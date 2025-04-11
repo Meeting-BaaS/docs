@@ -120,9 +120,21 @@ jobs:
             cp tmp/openapi.json openapi.json
           fi
 
-          # Commit the change
+          # Install dependencies for build
+          pnpm install
+
+          # Create empty .env file
+          touch .env
+
+          # Run the pre-build script to generate API docs
+          pnpm build:pre
+
+          # Add all changes - both the openapi.json and generated content files
           git add openapi.json
-          git commit -m "Update OpenAPI spec - $(date +'%Y-%m-%d %H:%M:%S') [Checksum: ${{ steps.fetch-spec.outputs.checksum }}]"
+          git add content/docs/api/reference/
+
+          # Commit the changes
+          git commit -m "Update OpenAPI spec and generated docs - $(date +'%Y-%m-%d %H:%M:%S') [Checksum: ${{ steps.fetch-spec.outputs.checksum }}]"
 
           # Push the branch
           git push origin $BRANCH_NAME
@@ -135,6 +147,10 @@ jobs:
             --head "$BRANCH_NAME"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEXT_PUBLIC_ORAMA_AI_API_KEY: ${{ secrets.NEXT_PUBLIC_ORAMA_AI_API_KEY }}
+          NEXT_PUBLIC_ORAMA_AI_ENDPOINT: ${{ secrets.NEXT_PUBLIC_ORAMA_AI_ENDPOINT }}
+          NEXT_PUBLIC_ORAMA_SEARCH_API_KEY: ${{ secrets.NEXT_PUBLIC_ORAMA_SEARCH_API_KEY }}
+          NEXT_PUBLIC_ORAMA_SEARCH_ENDPOINT: ${{ secrets.NEXT_PUBLIC_ORAMA_SEARCH_ENDPOINT }}
 
       - name: Comment on existing PR
         if: steps.fetch-spec.outputs.has_changes == 'true' && steps.check-prs.outputs.create_pr == 'false'
