@@ -1,0 +1,7 @@
+{
+  "title": "Typescript SDK",
+  "icon": "Code",
+  "description": "Typescript SDK for MeetingBaas.",
+  "root": true,
+  "pages": ["index"]
+}
