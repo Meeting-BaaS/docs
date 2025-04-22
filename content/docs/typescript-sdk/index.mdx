@@ -1,41 +1,71 @@
 ---
 title: Introduction
 description: Official SDK for interacting with the Meeting BaaS API
-icon: Braces
+icon: Book
 ---
 
 ## Introduction
 
-The Meeting BaaS SDK is the official TypeScript package for interacting with the Meeting BaaS API - the unified API for Google Meet, Zoom, and Microsoft Teams. This strongly-typed SDK provides a complete interface to all Meeting BaaS capabilities, allowing you to programmatically manage meeting bots, calendar integrations, and more.
+The **Meeting BaaS SDK** is the officially supported TypeScript package that empowers developers to integrate with the Meeting BaaS API - the universal interface for automating meetings across Google Meet, Zoom, and Microsoft Teams. This SDK provides:
 
-This package is automatically generated from the Meeting BaaS OpenAPI specification, ensuring it stays up-to-date with all API capabilities.
+- Complete type safety with comprehensive TypeScript definitions
+- Automatic updates synced with our OpenAPI specification
+- Simplified access to all meeting automation capabilities
+- Cross-platform consistency for all supported meeting providers
 
 ## Features
 
 <Cards>
   <Card title="BaaS API Client" icon={<Code className="text-blue-400" />}>
-    Strongly typed functions for interacting with the complete Meeting BaaS API.
+    Strongly typed functions for interacting with the complete Meeting BaaS API,
+    providing access to all endpoints with full TypeScript support.
   </Card>
   <Card title="Bot Management" icon={<Bot className="text-green-400" />}>
-    Create, join, and manage meeting bots across platforms.
+    Create, join, and manage meeting bots across platforms including Google
+    Meet, Zoom, and Microsoft Teams.
   </Card>
   <Card
     title="Calendar Integration"
     icon={<Calendar className="text-purple-400" />}
   >
-    Connect calendars and automatically schedule meeting recordings.
+    Connect calendars and automatically schedule meeting recordings with support
+    for multiple providers.
+  </Card>
+  <Card
+    title="Complete API Coverage"
+    icon={<CheckCircle className="text-teal-400" />}
+  >
+    Access to all Meeting BaaS API endpoints with consistent, well-documented
+    interfaces.
   </Card>
   <Card
     title="TypeScript Support"
     icon={<FileType className="text-orange-400" />}
   >
-    Full TypeScript definitions for all APIs.
+    Full TypeScript definitions for all APIs, including request/response types
+    and error handling.
   </Card>
   <Card
     title="MPC Tool Integration"
     icon={<Wrench className="text-yellow-400" />}
   >
-    Pre-generated MPC tools for easy integration with AI systems.
+    Pre-generated MPC tools for easy integration with AI systems and simple
+    registration process.
+  </Card>
+  <Card title="CLI Interface" icon={<Terminal className="text-red-400" />}>
+    Command-line tools included for common operations and quick testing.
+  </Card>
+  <Card
+    title="Automatic Tool Generation"
+    icon={<Cog className="text-indigo-400" />}
+  >
+    MPC tools automatically generated for all SDK methods, ensuring consistency.
+  </Card>
+  <Card
+    title="Combined Package Mode"
+    icon={<Package className="text-pink-400" />}
+  >
+    Special optimized bundle available for MPC server installations.
   </Card>
 </Cards>
 
@@ -52,130 +82,20 @@ yarn add @meeting-baas/sdk
 pnpm add @meeting-baas/sdk
 ```
 
-## Quick Start
-
-```typescript
-import { BaasClient } from '@meeting-baas/sdk';
-
-// Create a BaaS client
-const client = new BaasClient({
-  apiKey: 'your-api-key', // Get yours at https://meetingbaas.com
-});
-
-// Join a meeting
-const botId = await client.joinMeeting({
-  botName: 'Meeting Assistant',
-  meetingUrl: 'https://meet.google.com/abc-def-ghi',
-  reserved: true,
-});
-
-// Get meeting data
-const meetingData = await client.getMeetingData(botId);
-console.log('Meeting data:', meetingData);
-```
-
-## Usage Examples
-
-<Tabs>
-  <Tab title="Basic Usage" value="basic">
-    ```typescript
-    import { BaasClient } from "@meeting-baas/sdk";
-
-    // Create a BaaS client
-    const client = new BaasClient({
-      apiKey: "your-api-key",
-    });
-
-    // Join a meeting
-    const botId = await client.joinMeeting({
-      botName: "My Assistant",
-      meetingUrl: "https://meet.google.com/abc-def-ghi",
-      reserved: true,
-    });
-
-    // Get meeting data
-    const meetingData = await client.getMeetingData(botId);
-    console.log("Meeting data:", meetingData);
-
-    // Delete meeting data
-    await client.deleteData(botId);
-    ```
-
-  </Tab>
-  <Tab title="Using MPC Tools" value="mpc">
-    ```typescript
-    import { register_tool } from "your-mpc-server";
-    import {
-      join_meeting_tool,
-      get_meeting_data_tool,
-      delete_data_tool,
-    } from "@meeting-baas/sdk/tools";
-
-    // Register tools with your MPC server
-    register_tool(join_meeting_tool);
-    register_tool(get_meeting_data_tool);
-    register_tool(delete_data_tool);
-
-    // Or import all tools at once
-    import { allTools, registerTools } from "@meeting-baas/sdk/tools";
-    await registerTools(allTools, register_tool);
-    ```
-
-  </Tab>
-  <Tab title="Calendar Integration" value="calendar">
-    ```typescript
-    import { BaasClient, Provider } from "@meeting-baas/sdk";
-
-    const client = new BaasClient({
-      apiKey: "your-api-key",
-    });
-
-    // Create a calendar integration
-    const calendar = await client.createCalendar({
-      oauthClientId: "your-oauth-client-id",
-      oauthClientSecret: "your-oauth-client-secret",
-      oauthRefreshToken: "your-oauth-refresh-token",
-      platform: Provider.Google,
-    });
-
-    // List all calendars
-    const calendars = await client.listCalendars();
-
-    // List events from a calendar
-    const events = await client.listEvents(calendar.uuid);
-
-    // Schedule a recording for an event
-    await client.scheduleRecordEvent(events[0].uuid, {
-      botName: "Event Recording Bot",
-      extra: { customId: "my-event-123" },
-    });
-    ```
-
-  </Tab>
-</Tabs>
-
-## MPC Server Integration
-
-The SDK includes pre-generated MPC (Model Context Protocol) tools that can be easily integrated with any MPC server implementation:
-
-```typescript
-import { allTools, setupBaasTools } from '@meeting-baas/sdk/tools';
-
-// Create a client and register all tools in one step
-const client = setupBaasTools(
-  allTools,
-  server.registerTool,
-  process.env.MEETING_BAAS_API_KEY,
-);
-```
-
 ## Learn More
 
 <Cards>
   <Card
-    title="API Reference"
+    title="Quick Start"
+    icon={<Zap />}
+    href="/docs/typescript-sdk/quick-start"
+  >
+    Complete API documentation for all SDK methods.
+  </Card>
+  <Card
+    title="Integration"
     icon={<FileText />}
-    href="/docs/typescript-sdk/api-reference"
+    href="/docs/typescript-sdk/integration"
   >
     Complete API documentation for all SDK methods.
   </Card>
@@ -188,7 +108,7 @@ const client = setupBaasTools(
   </Card>
   <Card
     title="Advanced Examples"
-    icon={<Code />}
+    icon={<MessageSquareText />}
     href="/docs/typescript-sdk/advanced-examples"
   >
     Complex integration patterns and use cases.
