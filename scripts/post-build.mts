@@ -8,6 +8,4 @@ async function main() {
   await Promise.all([updateSearchIndexes(), updateOramaAi()]);
 }
 
-await main().catch((e) => {
-  console.error('Failed to run post build script', e);
-});
+main().catch(console.error);
