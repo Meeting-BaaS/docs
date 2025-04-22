@@ -2,9 +2,9 @@
   "title": "SDK Reference",
   "icon": "Code",
   "pages": [
+    "common",
     "bots",
     "calendars",
-    "webhooks",
-    "common"
+    "webhooks"
   ]
 }

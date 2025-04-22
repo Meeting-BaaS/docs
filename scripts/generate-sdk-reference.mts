@@ -623,6 +623,20 @@ ${categories.map(category => `## ${category}
 
     writeFileSync(mainMetaPath, JSON.stringify(mainMetaContent, null, 2));
 
+    // Write reference meta.json
+    const referenceMetaContent = {
+      title: "SDK Reference",
+      icon: "Code",
+      pages: [
+        "common",
+        "bots",
+        "calendars",
+        "webhooks"
+      ]
+    };
+
+    writeFileSync(join(referenceDir, 'meta.json'), JSON.stringify(referenceMetaContent, null, 2));
+
     console.log('Generated SDK reference documentation');
   } catch (error) {
     console.error('Failed to generate SDK reference:', error);
