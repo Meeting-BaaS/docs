@@ -38,10 +38,10 @@ const IGNORED_TYPES = [
 ];
 
 const CATEGORIES = {
+  COMMON: 'Common',
   BOTS: 'Bots',
   CALENDARS: 'Calendars',
-  WEBHOOKS: 'Webhooks',
-  COMMON: 'Common'
+  WEBHOOKS: 'Webhooks'
 };
 
 const METHOD_EXAMPLES: Record<string, string> = {
