@@ -35,6 +35,7 @@ export default function DocsPage(): React.ReactElement {
             Meeting BaaS, and LLMs to chat with your transcripts.
           </p>
         </Item>
+
         <Item href="/docs/speaking-bots">
           <Icon className="speaking-bots">
             <BotIcon className="size-full" />
@@ -43,6 +44,16 @@ export default function DocsPage(): React.ReactElement {
           <p className="text-fd-muted-foreground text-sm">
             Speaking Bots for Google Meet, Microsoft Teams and Zoom. Powered by
             Pipecat and Meeting BaaS.
+          </p>
+        </Item>
+
+        <Item href="/docs/typescript-sdk">
+          <Icon className="typescript-sdk">
+            <BotIcon className="size-full" />
+          </Icon>
+          <h2 className="mb-2 text-lg font-semibold">Typescript SDK</h2>
+          <p className="text-fd-muted-foreground text-sm">
+            Official SDK for interacting with the Meeting BaaS API
           </p>
         </Item>
       </div>

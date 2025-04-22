@@ -1,0 +1,76 @@
+---
+title: Integration
+description: The Meeting BaaS SDK comes with pre-generated MPC (Model Context Protocol) tools that can be easily integrated with any MPC server implementation. These tools are bundled by default and can be imported directly.
+icon: FileText
+---
+
+## MPC Server Integration
+
+The SDK includes pre-generated MPC (Model Context Protocol) tools that can be easily integrated with any MPC server implementation:
+
+### Simple Integration
+
+The simplest way to use the MPC tools:
+
+```typescript
+import { allTools, registerTools } from '@meeting-baas/sdk/tools';
+import { BaasClient } from '@meeting-baas/sdk';
+
+// Create a BaaS client with your API key
+const client = new BaasClient({
+  apiKey: process.env.MEETING_BAAS_API_KEY,
+});
+
+// Register all tools with your MPC server
+// Replace registerTool with your server's registration function
+registerTools(allTools, (tool) => {
+  server.registerTool(tool);
+});
+```
+
+### One-Line Setup
+
+For even simpler integration, use the setupBaasTools convenience function:
+
+```typescript
+import { allTools, setupBaasTools } from '@meeting-baas/sdk/tools';
+
+// Create a client and register all tools in one step
+const client = setupBaasTools(
+  allTools,
+  server.registerTool,
+  process.env.MEETING_BAAS_API_KEY,
+);
+```
+
+### Calendar Integration
+
+For calendar integration:
+
+```typescript
+import { BaasClient, Provider } from '@meeting-baas/sdk';
+
+const client = new BaasClient({
+  apiKey: 'your-api-key',
+});
+
+// Create a calendar integration
+const calendar = await client.createCalendar({
+  oauthClientId: 'your-oauth-client-id',
+  oauthClientSecret: 'your-oauth-client-secret',
+  oauthRefreshToken: 'your-oauth-refresh-token',
+  platform: Provider.Google,
+});
+
+// List all calendars
+const calendars = await client.listCalendars();
+
+// List events from a calendar
+const events = await client.listEvents(calendar.uuid);
+
+// Schedule a recording for an event
+await client.scheduleRecordEvent(events[0].uuid, {
+  botName: 'Event Recording Bot',
+  extra: { customId: 'my-event-123' },
+});
+```

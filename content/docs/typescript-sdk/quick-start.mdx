@@ -1,0 +1,104 @@
+---
+title: Quick Start
+description: Comprehensive guide for integrating with Meeting BaaS services.
+icon: Zap
+---
+
+```typescript
+import { BaasClient } from '@meeting-baas/sdk';
+
+// Create a BaaS client
+const client = new BaasClient({
+  apiKey: 'your-api-key', // Get yours at https://meetingbaas.com
+});
+
+// Join a meeting
+const botId = await client.joinMeeting({
+  botName: 'Meeting Assistant',
+  meetingUrl: 'https://meet.google.com/abc-def-ghi',
+  reserved: true,
+});
+
+// Get meeting data
+const meetingData = await client.getMeetingData(botId);
+console.log('Meeting data:', meetingData);
+```
+
+## Usage Examples
+
+### Basic Usage
+
+```typescript
+import { BaasClient } from '@meeting-baas/sdk';
+
+// Create a BaaS client
+const client = new BaasClient({
+  apiKey: 'your-api-key',
+});
+
+// Join a meeting
+const botId = await client.joinMeeting({
+  botName: 'My Assistant',
+  meetingUrl: 'https://meet.google.com/abc-def-ghi',
+  reserved: true,
+});
+
+// Get meeting data
+const meetingData = await client.getMeetingData(botId);
+console.log('Meeting data:', meetingData);
+
+// Delete meeting data
+await client.deleteData(botId);
+```
+
+### Using MPC Tools
+
+```typescript
+import { register_tool } from 'your-mpc-server';
+import {
+  join_meeting_tool,
+  get_meeting_data_tool,
+  delete_data_tool,
+} from '@meeting-baas/sdk/tools';
+
+// Register tools with your MPC server
+register_tool(join_meeting_tool);
+register_tool(get_meeting_data_tool);
+register_tool(delete_data_tool);
+
+// Or import all tools at once
+import { allTools, registerTools } from '@meeting-baas/sdk/tools';
+await registerTools(allTools, register_tool);
+```
+
+### MPC Server Bundle Mode
+
+For MPC server deployments, use the combined package mode:
+
+```typescript
+import { BaasClient, Provider } from '@meeting-baas/sdk';
+
+const client = new BaasClient({
+  apiKey: 'your-api-key',
+});
+
+// Create a calendar integration
+const calendar = await client.createCalendar({
+  oauthClientId: 'your-oauth-client-id',
+  oauthClientSecret: 'your-oauth-client-secret',
+  oauthRefreshToken: 'your-oauth-refresh-token',
+  platform: Provider.Google,
+});
+
+// List all calendars
+const calendars = await client.listCalendars();
+
+// List events from a calendar
+const events = await client.listEvents(calendar.uuid);
+
+// Schedule a recording for an event
+await client.scheduleRecordEvent(events[0].uuid, {
+  botName: 'Event Recording Bot',
+  extra: { customId: 'my-event-123' },
+});
+```

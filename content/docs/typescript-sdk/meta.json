@@ -3,5 +3,11 @@
   "icon": "Code",
   "description": "Typescript SDK for MeetingBaas.",
   "root": true,
-  "pages": ["index"]
+  "pages": [
+    "index",
+    "quick-start",
+    "integration",
+    "mpc-tools",
+    "advanced-examples"
+  ]
 }

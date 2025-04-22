@@ -1,0 +1,148 @@
+---
+title: Advanced Examples
+description: The Meeting BaaS SDK comes with pre-generated MPC (Model Context Protocol) tools that can be easily integrated with any MPC server implementation. These tools are bundled by default and can be imported directly.
+icon: MessageSquareText
+---
+
+## Calendars API
+
+### createCalendar(createCalendarParams: CreateCalendarParams)
+
+SomeCalendarsApi
+
+```typescript
+import { CreateCalendarParams } from "@meeting-baas/sdk";
+
+// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
+await client.calendars.createCalendar({
+  // ... CreateCalendarParams properties
+});
+```
+
+### deleteCalendar(uuid: string)
+
+Permanently removes a calendar integration by its UUID, including all associated events and bot configurations
+
+```typescript
+// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
+await client.calendars.deleteCalendar('example');
+```
+
+### getCalendar(uuid: string)
+
+Retrieves detailed information about a specific calendar integration by its UUID
+
+```typescript
+// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
+await client.calendars.getCalendar('example');
+```
+
+### getEvent(uuid: string)
+
+Retrieves comprehensive details about a specific calendar event by its UUID
+
+```typescript
+// Returns: Promise<Event>
+await client.calendars.getEvent('example');
+```
+
+### listEvents(calendarId: string, attendeeEmail?: string?, cursor?: string?, organizerEmail?: string?, startDateGte?: string?, startDateLte?: string?, status?: string?, updatedAtGte?: string?)
+
+Retrieves a paginated list of calendar events with comprehensive filtering options
+
+```typescript
+/ Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
+await client.calendars.listEvents('example', 'example', 'example', 'example', 'example', 'example', 'example', 'example');
+```
+
+### listRawCalendars(listRawCalendarsParams: ListRawCalendarsParams)
+
+Retrieves unprocessed calendar data directly from the provider (Google, Microsoft) using provided OAuth credentials
+
+```typescript
+import { ListRawCalendarsParams } from "@meeting-baas/sdk";
+
+// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
+await client.calendars.listRawCalendars({
+  // ... ListRawCalendarsParams properties
+});
+```
+
+### patchBot(uuid: string, botParam3: BotParam3, allOccurrences?: boolean?)
+
+Updates the configuration of a bot already scheduled to record an event
+
+```typescript
+import { BotParam3 } from "@meeting-baas/sdk";
+
+// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
+await client.calendars.patchBot('example', {
+  // ... BotParam3 properties
+}, true);
+```
+
+### scheduleRecordEvent(uuid: string, botParam2: BotParam2, allOccurrences?: boolean?)
+
+Configures a bot to automatically join and record a specific calendar event at its scheduled time
+
+```typescript
+import { BotParam2 } from "@meeting-baas/sdk";
+
+// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
+await client.calendars.scheduleRecordEvent('example', {
+  // ... BotParam2 properties
+}, true);
+```
+
+### unscheduleRecordEvent(uuid: string, allOccurrences?: boolean?)
+
+Cancels a previously scheduled recording for a calendar event and releases associated bot resources
+
+```typescript
+// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
+await client.calendars.unscheduleRecordEvent('example', true);
+```
+
+### updateCalendar(uuid: string, updateCalendarParams: UpdateCalendarParams)
+
+Updates a calendar integration with new credentials or platform while maintaining the same UUID
+
+```typescript
+import { UpdateCalendarParams } from "@meeting-baas/sdk";
+
+// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
+await client.calendars.updateCalendar('example', {
+  // ... UpdateCalendarParams properties
+});
+```
+
+## Next.js API Route Example
+
+For Next.js applications:
+
+```typescript
+// app/api/mcp/route.ts
+import { allTools, registerTools } from "@meeting-baas/sdk/tools";
+import { BaasClient } from "@meeting-baas/sdk";
+import { McpServer } from "your-mcp-server-library";
+
+export async function POST(req: Request) {
+  const { messages } = await req.json();
+
+  // Initialize your MPC server
+  const server = new McpServer();
+
+  // Create BaaS client
+  const client = new BaasClient({
+    apiKey: process.env.MEETING_BAAS_API_KEY,
+  });
+
+  // Register tools
+  await registerTools(allTools, server.registerTool);
+
+  // Process the request with your MPC server
+  const result = await server.processRequest(messages);
+
+  return Response.json(result);
+}
+```
