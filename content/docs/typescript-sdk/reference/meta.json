@@ -1,0 +1,10 @@
+{
+  "title": "SDK Reference",
+  "icon": "Code",
+  "pages": [
+    "bots",
+    "calendars",
+    "webhooks",
+    "common"
+  ]
+}

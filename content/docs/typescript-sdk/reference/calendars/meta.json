@@ -1,0 +1,26 @@
+{
+  "title": "Calendars",
+  "icon": "Calendar",
+  "pages": [
+    "createcalendar",
+    "deletecalendar",
+    "getcalendar",
+    "getevent",
+    "listcalendars",
+    "listevents",
+    "listrawcalendars",
+    "patchbot",
+    "resyncallcalendars",
+    "schedulerecordevent",
+    "unschedulerecordevent",
+    "updatecalendar",
+    "calendarsapiinterface",
+    "calendarsapicreatecalendarrequest",
+    "calendarsapilisteventsrequest",
+    "calendarsapilistrawcalendarsrequest",
+    "calendarsapipatchbotrequest",
+    "calendarsapischedulerecordeventrequest",
+    "calendarsapiunschedulerecordeventrequest",
+    "calendarsapiupdatecalendarrequest"
+  ]
+}

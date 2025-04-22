@@ -1,0 +1,17 @@
+{
+  "title": "Bots",
+  "icon": "Bot",
+  "pages": [
+    "botswithmetadata",
+    "deletedata",
+    "getmeetingdata",
+    "join",
+    "leave",
+    "retranscribebot",
+    "defaultapiinterface",
+    "defaultapibotswithmetadatarequest",
+    "defaultapigetmeetingdatarequest",
+    "defaultapijoinrequest",
+    "defaultapiretranscribebotrequest"
+  ]
+}

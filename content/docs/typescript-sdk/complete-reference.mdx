@@ -1,0 +1,1532 @@
+---
+title: SDK Reference
+description: Complete reference of all methods and types in the Meeting BaaS TypeScript SDK
+icon: Code
+---
+
+## Methods
+
+
+### Bots
+
+
+#### `botsWithMetadata`
+
+```typescript
+botsWithMetadata(requestParameters: import("@meeting-baas/sdk/api/default-api").DefaultApiBotsWithMetadataRequest, options: RawAxiosRequestConfig): Promise<any>
+```
+
+
+
+
+
+
+#### `deleteData`
+
+```typescript
+deleteData(options: RawAxiosRequestConfig): Promise<any>
+```
+
+
+
+
+
+
+#### `getMeetingData`
+
+```typescript
+getMeetingData(requestParameters: import("@meeting-baas/sdk/api/default-api").DefaultApiGetMeetingDataRequest, options: RawAxiosRequestConfig): Promise<any>
+```
+
+
+
+
+<Callout type="info">
+  Example:
+  
+  ```typescript
+  // Get meeting data
+const meetingData = await client.getMeetingData(botId);
+console.log("Meeting data:", meetingData);
+  ```
+</Callout>
+
+
+
+#### `join`
+
+```typescript
+join(requestParameters: import("@meeting-baas/sdk/api/default-api").DefaultApiJoinRequest, options: RawAxiosRequestConfig): Promise<any>
+```
+
+
+
+
+
+
+#### `leave`
+
+```typescript
+leave(options: RawAxiosRequestConfig): Promise<any>
+```
+
+
+
+
+
+
+#### `retranscribeBot`
+
+```typescript
+retranscribeBot(requestParameters: import("@meeting-baas/sdk/api/default-api").DefaultApiRetranscribeBotRequest, options: RawAxiosRequestConfig): Promise<any>
+```
+
+
+
+
+
+
+
+### Calendars
+
+
+#### `createCalendar`
+
+```typescript
+createCalendar(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiCreateCalendarRequest, options: RawAxiosRequestConfig): Promise<any>
+```
+
+
+
+
+<Callout type="info">
+  Example:
+  
+  ```typescript
+  // Create a calendar integration
+const calendar = await client.createCalendar({
+  oauthClientId: "your-oauth-client-id",
+  oauthClientSecret: "your-oauth-client-secret",
+  oauthRefreshToken: "your-oauth-refresh-token",
+  platform: Provider.Google,
+});
+  ```
+</Callout>
+
+
+
+#### `deleteCalendar`
+
+```typescript
+deleteCalendar(options: RawAxiosRequestConfig): Promise<any>
+```
+
+
+
+
+
+
+#### `getCalendar`
+
+```typescript
+getCalendar(options: RawAxiosRequestConfig): Promise<any>
+```
+
+
+
+
+
+
+#### `getEvent`
+
+```typescript
+getEvent(options: RawAxiosRequestConfig): Promise<any>
+```
+
+
+
+
+
+
+#### `listCalendars`
+
+```typescript
+listCalendars(options: RawAxiosRequestConfig): Promise<any>
+```
+
+
+
+
+
+
+#### `listEvents`
+
+```typescript
+listEvents(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiListEventsRequest, options: RawAxiosRequestConfig): Promise<any>
+```
+
+
+
+
+<Callout type="info">
+  Example:
+  
+  ```typescript
+  // List events from a calendar
+const events = await client.listEvents(calendar.uuid, {
+  startDateGte: "2024-01-01T00:00:00Z",
+  status: "upcoming"
+});
+  ```
+</Callout>
+
+
+
+#### `listRawCalendars`
+
+```typescript
+listRawCalendars(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiListRawCalendarsRequest, options: RawAxiosRequestConfig): Promise<any>
+```
+
+
+
+
+
+
+#### `patchBot`
+
+```typescript
+patchBot(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiPatchBotRequest, options: RawAxiosRequestConfig): Promise<any>
+```
+
+
+
+
+
+
+#### `resyncAllCalendars`
+
+```typescript
+resyncAllCalendars(options: RawAxiosRequestConfig): Promise<any>
+```
+
+
+
+
+
+
+#### `scheduleRecordEvent`
+
+```typescript
+scheduleRecordEvent(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiScheduleRecordEventRequest, options: RawAxiosRequestConfig): Promise<any>
+```
+
+
+
+
+
+
+#### `unscheduleRecordEvent`
+
+```typescript
+unscheduleRecordEvent(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiUnscheduleRecordEventRequest, options: RawAxiosRequestConfig): Promise<any>
+```
+
+
+
+
+
+
+#### `updateCalendar`
+
+```typescript
+updateCalendar(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiUpdateCalendarRequest, options: RawAxiosRequestConfig): Promise<any>
+```
+
+
+
+
+
+
+
+
+
+## Types
+
+
+### Bots
+
+
+#### `DefaultApiBotsWithMetadataRequest`
+
+```typescript
+interface DefaultApiBotsWithMetadataRequest {
+  botName: string
+  createdAfter: string
+  createdBefore: string
+  cursor: string
+  filterByExtra: string
+  limit: number
+  meetingUrl: string
+  sortByExtra: string
+  speakerName: string
+}
+```
+
+
+
+
+#### `DefaultApiGetMeetingDataRequest`
+
+```typescript
+interface DefaultApiGetMeetingDataRequest {
+  botId: string
+}
+```
+
+
+
+
+#### `DefaultApiInterface`
+
+```typescript
+interface DefaultApiInterface {
+  
+}
+```
+
+
+
+
+#### `DefaultApiJoinRequest`
+
+```typescript
+interface DefaultApiJoinRequest {
+  joinRequest: import("@meeting-baas/sdk/models/join-request").JoinRequest
+}
+```
+
+
+
+
+#### `DefaultApiRetranscribeBotRequest`
+
+```typescript
+interface DefaultApiRetranscribeBotRequest {
+  retranscribeBody: import("@meeting-baas/sdk/models/retranscribe-body").RetranscribeBody
+}
+```
+
+
+
+
+
+### Calendars
+
+
+#### `CalendarsApiCreateCalendarRequest`
+
+```typescript
+interface CalendarsApiCreateCalendarRequest {
+  createCalendarParams: import("@meeting-baas/sdk/models/create-calendar-params").CreateCalendarParams
+}
+```
+
+
+
+
+#### `CalendarsApiInterface`
+
+```typescript
+interface CalendarsApiInterface {
+  
+}
+```
+
+
+
+
+#### `CalendarsApiListEventsRequest`
+
+```typescript
+interface CalendarsApiListEventsRequest {
+  calendarId: string
+  attendeeEmail: string
+  cursor: string
+  organizerEmail: string
+  startDateGte: string
+  startDateLte: string
+  status: string
+  updatedAtGte: string
+}
+```
+
+
+
+
+#### `CalendarsApiListRawCalendarsRequest`
+
+```typescript
+interface CalendarsApiListRawCalendarsRequest {
+  listRawCalendarsParams: import("@meeting-baas/sdk/models/list-raw-calendars-params").ListRawCalendarsParams
+}
+```
+
+
+
+
+#### `CalendarsApiPatchBotRequest`
+
+```typescript
+interface CalendarsApiPatchBotRequest {
+  botParam3: import("@meeting-baas/sdk/models/bot-param3").BotParam3
+  allOccurrences: boolean
+}
+```
+
+
+
+
+#### `CalendarsApiScheduleRecordEventRequest`
+
+```typescript
+interface CalendarsApiScheduleRecordEventRequest {
+  botParam2: import("@meeting-baas/sdk/models/bot-param2").BotParam2
+  allOccurrences: boolean
+}
+```
+
+
+
+
+#### `CalendarsApiUnscheduleRecordEventRequest`
+
+```typescript
+interface CalendarsApiUnscheduleRecordEventRequest {
+  allOccurrences: boolean
+}
+```
+
+
+
+
+#### `CalendarsApiUpdateCalendarRequest`
+
+```typescript
+interface CalendarsApiUpdateCalendarRequest {
+  updateCalendarParams: import("@meeting-baas/sdk/models/update-calendar-params").UpdateCalendarParams
+}
+```
+
+
+
+
+
+### Webhooks
+
+
+#### `GetWebhookUrlResponse`
+
+```typescript
+interface GetWebhookUrlResponse {
+  'webhook_url': string
+}
+```
+
+
+
+
+#### `PostWebhookUrlRequest`
+
+```typescript
+interface PostWebhookUrlRequest {
+  'webhookUrl': string
+}
+```
+
+
+
+
+#### `RetryWebhookQuery`
+
+```typescript
+interface RetryWebhookQuery {
+  'botUuid': string
+}
+```
+
+
+
+
+
+### Common
+
+
+#### `Account`
+
+```typescript
+interface Account {
+  'company_name': string
+  'createdAt': import("@meeting-baas/sdk/models/system-time").SystemTime
+  'email': string
+  'firstname': string
+  'id': number
+  'lastname': string
+  'phone': string
+  'status': number
+}
+```
+
+
+
+
+#### `AccountInfos`
+
+```typescript
+interface AccountInfos {
+  'account': import("@meeting-baas/sdk/models/account").Account
+}
+```
+
+
+
+
+#### `ApiKeyResponse`
+
+```typescript
+interface ApiKeyResponse {
+  'apiKey': string
+}
+```
+
+
+
+
+#### `Attendee`
+
+```typescript
+interface Attendee {
+  'email': string
+  'name': string
+}
+```
+
+
+
+
+#### `AutomaticLeaveRequest`
+
+```typescript
+interface AutomaticLeaveRequest {
+  'noone_joined_timeout': number
+  'waiting_room_timeout': number
+}
+```
+
+
+
+
+#### `BaasClientConfig`
+
+```typescript
+interface BaasClientConfig {
+  apiKey: string
+  baseUrl: string
+}
+```
+
+
+
+
+#### `Bot`
+
+```typescript
+interface Bot {
+  'bot': import("@meeting-baas/sdk/models/bot2").Bot2
+  'duration': number
+  'params': import("@meeting-baas/sdk/models/bot-param").BotParam
+}
+```
+
+
+
+
+#### `Bot2`
+
+```typescript
+interface Bot2 {
+  'accountId': number
+  'botParamId': number
+  'createdAt': string
+  'diarization_v2': boolean
+  'endedAt': string
+  'errors': string
+  'event_id': number
+  'id': number
+  'meetingUrl': string
+  'mp4_s3_path': string
+  'reserved': boolean
+  'scheduled_bot_id': number
+  'session_id': string
+  'uuid': string
+}
+```
+
+
+
+
+#### `BotData`
+
+```typescript
+interface BotData {
+  'bot': import("@meeting-baas/sdk/models/bot-with-params").BotWithParams
+  'transcripts': import("@meeting-baas/sdk/models/transcript").Transcript[]
+}
+```
+
+
+
+
+#### `BotPagined`
+
+```typescript
+interface BotPagined {
+  'bots': import("@meeting-baas/sdk/models/bot").Bot[]
+  'hasMore': boolean
+}
+```
+
+
+
+
+#### `BotParam`
+
+```typescript
+interface BotParam {
+  'bot_image': string
+  'botName': string
+  'deduplication_key': string
+  'enter_message': string
+  'extra': { [key: string]: any; }
+  'noone_joined_timeout': number
+  'recording_mode': string
+  'speech_to_text_api_key': string
+  'speech_to_text_provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
+  'streaming_audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
+  'streaming_input': string
+  'streaming_output': string
+  'waiting_room_timeout': number
+  'webhookUrl': string
+}
+```
+
+
+
+
+#### `BotParam2`
+
+```typescript
+interface BotParam2 {
+  'bot_image': string
+  'botName': string
+  'deduplication_key': string
+  'enter_message': string
+  'extra': { [key: string]: any; }
+  'noone_joined_timeout': number
+  'recording_mode': string
+  'speech_to_text': import("@meeting-baas/sdk/models/speech-to-text").SpeechToText
+  'streaming_audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
+  'streaming_input': string
+  'streaming_output': string
+  'waiting_room_timeout': number
+  'webhook_url': string
+}
+```
+
+
+
+
+#### `BotParam3`
+
+```typescript
+interface BotParam3 {
+  'bot_image': string
+  'bot_name': string
+  'deduplication_key': string
+  'enter_message': string
+  'extra': any
+  'noone_joined_timeout': number
+  'recording_mode': string
+  'speech_to_text': import("@meeting-baas/sdk/models/speech-to-text").SpeechToText
+  'streaming_audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
+  'streaming_input': string
+  'streaming_output': string
+  'waiting_room_timeout': number
+  'webhook_url': string
+}
+```
+
+
+
+
+#### `BotWithParams`
+
+```typescript
+interface BotWithParams {
+  'accountId': number
+  'bot_image': string
+  'botName': string
+  'botParamId': number
+  'createdAt': string
+  'deduplication_key': string
+  'diarization_v2': boolean
+  'endedAt': string
+  'enter_message': string
+  'errors': string
+  'event_id': number
+  'extra': { [key: string]: any; }
+  'id': number
+  'meetingUrl': string
+  'mp4_s3_path': string
+  'noone_joined_timeout': number
+  'recording_mode': string
+  'reserved': boolean
+  'scheduled_bot_id': number
+  'session_id': string
+  'speech_to_text_api_key': string
+  'speech_to_text_provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
+  'streaming_audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
+  'streaming_input': string
+  'streaming_output': string
+  'uuid': string
+  'waiting_room_timeout': number
+  'webhookUrl': string
+}
+```
+
+
+
+
+#### `Calendar`
+
+```typescript
+interface Calendar {
+  'email': string
+  'googleId': string
+  'name': string
+  'resource_id': string
+  'uuid': string
+}
+```
+
+
+
+
+#### `CalendarListEntry`
+
+```typescript
+interface CalendarListEntry {
+  'email': string
+  'id': string
+  'isPrimary': boolean
+}
+```
+
+
+
+
+#### `CreateCalendarParams`
+
+```typescript
+interface CreateCalendarParams {
+  'oauthClientId': string
+  'oauthClientSecret': string
+  'oauthRefreshToken': string
+  'platform': import("@meeting-baas/sdk/models/provider").Provider
+  'raw_calendar_id': string
+}
+```
+
+
+
+
+#### `CreateCalendarResponse`
+
+```typescript
+interface CreateCalendarResponse {
+  'calendar': import("@meeting-baas/sdk/models/calendar").Calendar
+}
+```
+
+
+
+
+#### `DailyTokenConsumption`
+
+```typescript
+interface DailyTokenConsumption {
+  'consumptionByService': import("@meeting-baas/sdk/models/token-consumption-by-service").TokenConsumptionByService
+  'date': string
+}
+```
+
+
+
+
+#### `DeleteResponse`
+
+```typescript
+interface DeleteResponse {
+  'ok': boolean
+  'status': string
+}
+```
+
+
+
+
+#### `EndMeetingQuery`
+
+```typescript
+interface EndMeetingQuery {
+  'botUuid': string
+}
+```
+
+
+
+
+#### `EndMeetingTrampolineQuery`
+
+```typescript
+interface EndMeetingTrampolineQuery {
+  'botUuid': string
+}
+```
+
+
+
+
+#### `EndMeetingTrampolineRequest`
+
+```typescript
+interface EndMeetingTrampolineRequest {
+  'diarization_v2': boolean
+}
+```
+
+
+
+
+#### `Event`
+
+```typescript
+interface Event {
+  'attendees': import("@meeting-baas/sdk/models/attendee").Attendee[]
+  'bot_param': import("@meeting-baas/sdk/models/bot-param").BotParam
+  'calendarUuid': string
+  'deleted': boolean
+  'endTime': string
+  'googleId': string
+  'isOrganizer': boolean
+  'isRecurring': boolean
+  'lastUpdatedAt': string
+  'meetingUrl': string
+  'name': string
+  'raw': { [key: string]: any; }
+  'recurring_event_id': string
+  'startTime': string
+  'uuid': string
+}
+```
+
+
+
+
+#### `FailedRecordRequest`
+
+```typescript
+interface FailedRecordRequest {
+  'meetingUrl': string
+  'message': string
+}
+```
+
+
+
+
+#### `GetAllBotsQuery`
+
+```typescript
+interface GetAllBotsQuery {
+  'bot_id': string
+  'end_date': string
+  'limit': number
+  'offset': number
+  'start_date': string
+}
+```
+
+
+
+
+#### `GetMeetingDataQuery`
+
+```typescript
+interface GetMeetingDataQuery {
+  'botId': string
+}
+```
+
+
+
+
+#### `GetStartedAccount`
+
+```typescript
+interface GetStartedAccount {
+  'email': string
+  'firstname': string
+  'google_token_id': string
+  'lastname': string
+  'microsoft_token_id': string
+}
+```
+
+
+
+
+#### `GetstartedQuery`
+
+```typescript
+interface GetstartedQuery {
+  'redirect_url': string
+}
+```
+
+
+
+
+#### `JoinRequest`
+
+```typescript
+interface JoinRequest {
+  'automatic_leave': import("@meeting-baas/sdk/models/join-request-automatic-leave").JoinRequestAutomaticLeave
+  'bot_image': string
+  'botName': string
+  'deduplication_key': string
+  'entry_message': string
+  'extra': { [key: string]: any; }
+  'meetingUrl': string
+  'recording_mode': import("@meeting-baas/sdk/models/join-request-recording-mode").JoinRequestRecordingMode
+  'reserved': boolean
+  'speech_to_text': import("@meeting-baas/sdk/models/join-request-speech-to-text").JoinRequestSpeechToText
+  'start_time': number
+  'streaming': import("@meeting-baas/sdk/models/join-request-streaming").JoinRequestStreaming
+  'webhook_url': string
+}
+```
+
+
+
+
+#### `JoinRequestAutomaticLeave`
+
+```typescript
+interface JoinRequestAutomaticLeave {
+  'noone_joined_timeout': number
+  'waiting_room_timeout': number
+}
+```
+
+
+
+
+#### `JoinRequestRecordingMode`
+
+```typescript
+interface JoinRequestRecordingMode {
+  
+}
+```
+
+
+
+
+#### `JoinRequestScheduled`
+
+```typescript
+interface JoinRequestScheduled {
+  'botParamId': number
+  'meetingUrl': string
+  'scheduleOrigin': import("@meeting-baas/sdk/models/schedule-origin").ScheduleOrigin
+}
+```
+
+
+
+
+#### `JoinRequestSpeechToText`
+
+```typescript
+interface JoinRequestSpeechToText {
+  'api_key': string
+  'provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
+}
+```
+
+
+
+
+#### `JoinRequestStreaming`
+
+```typescript
+interface JoinRequestStreaming {
+  'audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
+  'input': string
+  'output': string
+}
+```
+
+
+
+
+#### `JoinResponse`
+
+```typescript
+interface JoinResponse {
+  'botId': string
+}
+```
+
+
+
+
+#### `JoinResponse2`
+
+```typescript
+interface JoinResponse2 {
+  'botId': string
+}
+```
+
+
+
+
+#### `LeaveResponse`
+
+```typescript
+interface LeaveResponse {
+  'ok': boolean
+}
+```
+
+
+
+
+#### `ListEventResponse`
+
+```typescript
+interface ListEventResponse {
+  'data': import("@meeting-baas/sdk/models/event").Event[]
+  'next': string
+}
+```
+
+
+
+
+#### `ListRawCalendarsParams`
+
+```typescript
+interface ListRawCalendarsParams {
+  'oauthClientId': string
+  'oauthClientSecret': string
+  'oauthRefreshToken': string
+  'platform': import("@meeting-baas/sdk/models/provider").Provider
+}
+```
+
+
+
+
+#### `ListRawCalendarsResponse`
+
+```typescript
+interface ListRawCalendarsResponse {
+  'calendars': import("@meeting-baas/sdk/models/calendar-list-entry").CalendarListEntry[]
+}
+```
+
+
+
+
+#### `ListRecentBotsQuery`
+
+```typescript
+interface ListRecentBotsQuery {
+  'bot_name': string
+  'created_after': string
+  'created_before': string
+  'cursor': string
+  'filter_by_extra': string
+  'limit': number
+  'meeting_url': string
+  'sort_by_extra': string
+  'speaker_name': string
+}
+```
+
+
+
+
+#### `ListRecentBotsResponse`
+
+```typescript
+interface ListRecentBotsResponse {
+  'lastUpdated': string
+  'next_cursor': string
+  'recentBots': import("@meeting-baas/sdk/models/recent-bot-entry").RecentBotEntry[]
+}
+```
+
+
+
+
+#### `LoginAccount`
+
+```typescript
+interface LoginAccount {
+  'app_signin_token': string
+  'google_chrome_token_id': string
+  'google_token_id': string
+  'microsoft_token_id': string
+  'password': string
+  'pseudo': string
+}
+```
+
+
+
+
+#### `LoginQuery`
+
+```typescript
+interface LoginQuery {
+  'redirect_url': string
+}
+```
+
+
+
+
+#### `Metadata`
+
+```typescript
+interface Metadata {
+  'botData': import("@meeting-baas/sdk/models/bot-data").BotData
+  'contentDeleted': boolean
+  'duration': number
+  'mp4': string
+}
+```
+
+
+
+
+#### `QueryListEvent`
+
+```typescript
+interface QueryListEvent {
+  'attendee_email': string
+  'calendarId': string
+  'cursor': string
+  'organizer_email': string
+  'start_date_gte': string
+  'start_date_lte': string
+  'status': string
+  'updated_at_gte': string
+}
+```
+
+
+
+
+#### `QueryPatchRecordEvent`
+
+```typescript
+interface QueryPatchRecordEvent {
+  'all_occurrences': boolean
+}
+```
+
+
+
+
+#### `QueryScheduleRecordEvent`
+
+```typescript
+interface QueryScheduleRecordEvent {
+  'all_occurrences': boolean
+}
+```
+
+
+
+
+#### `QueryUnScheduleRecordEvent`
+
+```typescript
+interface QueryUnScheduleRecordEvent {
+  'all_occurrences': boolean
+}
+```
+
+
+
+
+#### `ReceivedMessageQuery`
+
+```typescript
+interface ReceivedMessageQuery {
+  'sessionId': string
+}
+```
+
+
+
+
+#### `RecentBotEntry`
+
+```typescript
+interface RecentBotEntry {
+  'access_count': number
+  'contentDeleted': boolean
+  'createdAt': string
+  'duration': number
+  'ended_at': string
+  'extra': { [key: string]: any; }
+  'id': string
+  'last_accessed_at': string
+  'meetingUrl': string
+  'name': string
+  'session_id': string
+  'speakers': string[]
+}
+```
+
+
+
+
+#### `RecognizerWord`
+
+```typescript
+interface RecognizerWord {
+  'endTime': number
+  'startTime': number
+  'text': string
+  'user_id': number
+}
+```
+
+
+
+
+#### `ResyncAllCalendarsResponse`
+
+```typescript
+interface ResyncAllCalendarsResponse {
+  'errors': any[][]
+  'syncedCalendars': string[]
+}
+```
+
+
+
+
+#### `ResyncAllResponse`
+
+```typescript
+interface ResyncAllResponse {
+  'errors': any[][]
+  'syncedCalendars': string[]
+}
+```
+
+
+
+
+#### `RetranscribeBody`
+
+```typescript
+interface RetranscribeBody {
+  'botUuid': string
+  'speech_to_text': import("@meeting-baas/sdk/models/speech-to-text").SpeechToText
+  'webhook_url': string
+}
+```
+
+
+
+
+#### `ScheduleOriginOneOf`
+
+```typescript
+interface ScheduleOriginOneOf {
+  'Event': import("@meeting-baas/sdk/models/schedule-origin-one-of-event").ScheduleOriginOneOfEvent
+}
+```
+
+
+
+
+#### `ScheduleOriginOneOf1`
+
+```typescript
+interface ScheduleOriginOneOf1 {
+  'ScheduledBot': import("@meeting-baas/sdk/models/schedule-origin-one-of-event").ScheduleOriginOneOfEvent
+}
+```
+
+
+
+
+#### `ScheduleOriginOneOfEvent`
+
+```typescript
+interface ScheduleOriginOneOfEvent {
+  'id': number
+}
+```
+
+
+
+
+#### `SpeechToText`
+
+```typescript
+interface SpeechToText {
+  'api_key': string
+  'provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
+}
+```
+
+
+
+
+#### `SpeechToTextApiParameter`
+
+```typescript
+interface SpeechToTextApiParameter {
+  'api_key': string
+  'provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
+}
+```
+
+
+
+
+#### `StartRecordFailedQuery`
+
+```typescript
+interface StartRecordFailedQuery {
+  'bot_uuid': string
+}
+```
+
+
+
+
+#### `StreamingApiParameter`
+
+```typescript
+interface StreamingApiParameter {
+  'audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
+  'input': string
+  'output': string
+}
+```
+
+
+
+
+#### `SyncResponse`
+
+```typescript
+interface SyncResponse {
+  'affected_event_uuids': string[]
+  'has_updates': string
+}
+```
+
+
+
+
+#### `SystemTime`
+
+```typescript
+interface SystemTime {
+  'nanosSinceEpoch': number
+  'secsSinceEpoch': number
+}
+```
+
+
+
+
+#### `TokenConsumptionByService`
+
+```typescript
+interface TokenConsumptionByService {
+  'duration': string
+  'recordingTokens': string
+  'streamingInputHour': string
+  'streamingInputTokens': string
+  'streamingOutputHour': string
+  'streamingOutputTokens': string
+  'transcriptionByokHour': string
+  'transcriptionByokTokens': string
+  'transcriptionHour': string
+  'transcriptionTokens': string
+}
+```
+
+
+
+
+#### `TokenConsumptionQuery`
+
+```typescript
+interface TokenConsumptionQuery {
+  'endDate': string
+  'startDate': string
+}
+```
+
+
+
+
+#### `Transcript`
+
+```typescript
+interface Transcript {
+  'botId': number
+  'end_time': number
+  'id': number
+  'lang': string
+  'speaker': string
+  'startTime': number
+  'user_id': number
+  'words': import("@meeting-baas/sdk/models/word").Word[]
+}
+```
+
+
+
+
+#### `Transcript2`
+
+```typescript
+interface Transcript2 {
+  'botId': number
+  'end_time': number
+  'lang': string
+  'speaker': string
+  'startTime': number
+  'user_id': number
+}
+```
+
+
+
+
+#### `Transcript3`
+
+```typescript
+interface Transcript3 {
+  'botId': number
+  'end_time': number
+  'id': number
+  'lang': string
+  'speaker': string
+  'startTime': number
+  'user_id': number
+}
+```
+
+
+
+
+#### `Transcript4`
+
+```typescript
+interface Transcript4 {
+  'bot_id': number
+  'end_time': number
+  'id': number
+  'lang': string
+  'speaker': string
+  'start_time': number
+  'user_id': number
+}
+```
+
+
+
+
+#### `UpdateCalendarParams`
+
+```typescript
+interface UpdateCalendarParams {
+  'oauthClientId': string
+  'oauthClientSecret': string
+  'oauthRefreshToken': string
+  'platform': import("@meeting-baas/sdk/models/provider").Provider
+}
+```
+
+
+
+
+#### `UserTokensResponse`
+
+```typescript
+interface UserTokensResponse {
+  'availableTokens': string
+  'last_purchase_date': string
+  'totalTokensPurchased': string
+}
+```
+
+
+
+
+#### `Version`
+
+```typescript
+interface Version {
+  'buildDate': string
+  'buildTimestamp': string
+  'location': string
+}
+```
+
+
+
+
+#### `Word`
+
+```typescript
+interface Word {
+  'botId': number
+  'endTime': number
+  'id': number
+  'startTime': number
+  'text': string
+  'user_id': number
+}
+```
+
+
+
+
