@@ -1,4 +1,4 @@
-import { writeFileSync, readdirSync, readFileSync, mkdirSync } from 'fs';
+import { writeFileSync, readdirSync, readFileSync, mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
 import { Project } from 'ts-morph';
 
@@ -45,23 +45,51 @@ const CATEGORIES = {
 };
 
 const METHOD_EXAMPLES: Record<string, string> = {
-  joinMeeting: `// Join a meeting with a bot
-const botId = await client.joinMeeting({
+  join: `import { BaasClient } from "@meeting-baas/sdk";
+
+// Create a BaaS client
+const client = new BaasClient({
+  apiKey: "your-api-key", // Get yours at https://meetingbaas.com
+});
+
+// Join a meeting with a bot
+const botId = await client.join({
   botName: "Meeting Assistant",
   meetingUrl: "https://meet.google.com/abc-def-ghi",
   reserved: true,
 });`,
-  getMeetingData: `// Get meeting data
+  getMeetingData: `import { BaasClient } from "@meeting-baas/sdk";
+
+// Create a BaaS client
+const client = new BaasClient({
+  apiKey: "your-api-key",
+});
+
+// Get meeting data
 const meetingData = await client.getMeetingData(botId);
 console.log("Meeting data:", meetingData);`,
-  createCalendar: `// Create a calendar integration
+  createCalendar: `import { BaasClient, Provider } from "@meeting-baas/sdk";
+
+// Create a BaaS client
+const client = new BaasClient({
+  apiKey: "your-api-key",
+});
+
+// Create a calendar integration
 const calendar = await client.createCalendar({
   oauthClientId: "your-oauth-client-id",
   oauthClientSecret: "your-oauth-client-secret",
   oauthRefreshToken: "your-oauth-refresh-token",
   platform: Provider.Google,
 });`,
-  listEvents: `// List events from a calendar
+  listEvents: `import { BaasClient } from "@meeting-baas/sdk";
+
+// Create a BaaS client
+const client = new BaasClient({
+  apiKey: "your-api-key",
+});
+
+// List events from a calendar
 const events = await client.listEvents(calendar.uuid, {
   startDateGte: "2024-01-01T00:00:00Z",
   status: "upcoming"
@@ -69,6 +97,19 @@ const events = await client.listEvents(calendar.uuid, {
 };
 
 function writeMethodFile(method: MethodInfo, outputDir: string) {
+  // Extract parameter details
+  const parameterDetails = method.parameters.map(param => {
+    const [name, type] = param.split(': ');
+    return {
+      name: name.trim(),
+      type: type.trim(),
+      description: method.description?.includes(name) ? method.description.split(name)[1]?.split('.')[0] : undefined
+    };
+  });
+
+  // Get related methods based on category and name
+  const relatedMethods = getRelatedMethods(method);
+
   const content = `---
 title: ${method.name}
 full: true
@@ -78,11 +119,29 @@ full: true
 
 ${method.description ? `${method.description}\n\n` : ''}
 
+## Usage
+
 \`\`\`typescript
 ${method.name}(${method.parameters.join(', ')}): ${method.returnType}
 \`\`\`
 
+## Parameters
+
+${parameterDetails.map(param => `
+### \`${param.name}\`
+
+Type: \`${param.type}\`
+
+${param.description ? `${param.description}\n` : ''}
+`).join('\n')}
+
+## Returns
+
+\`${method.returnType}\`
+
 ${method.example ? `
+## Example
+
 <Callout type="info">
   Example:
   
@@ -91,10 +150,108 @@ ${method.example ? `
   \`\`\`
 </Callout>
 ` : ''}
+
+## Common Use Cases
+
+${getCommonUseCases(method)}
+
+## Related Methods
+
+${relatedMethods.map(related => `- [${related.name}](./${related.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}.mdx)`).join('\n')}
 `;
 
   const fileName = method.name.toLowerCase().replace(/[^a-z0-9]/g, '_') + '.mdx';
-  writeFileSync(join(outputDir, fileName), content);
+  const filePath = join(outputDir, fileName);
+  
+  // Only write if file doesn't exist or if it's a new file
+  if (!existsSync(filePath) || fileName.startsWith('new_')) {
+    writeFileSync(filePath, content);
+  }
+}
+
+function getRelatedMethods(method: MethodInfo): MethodInfo[] {
+  // Define related methods based on category and name
+  const relatedMap: Record<string, string[]> = {
+    'join': ['leave', 'getMeetingData', 'deleteData'],
+    'leave': ['join', 'getMeetingData'],
+    'getMeetingData': ['join', 'leave', 'deleteData'],
+    'deleteData': ['join', 'getMeetingData'],
+    'createCalendar': ['listCalendars', 'getCalendar', 'updateCalendar', 'deleteCalendar'],
+    'listCalendars': ['createCalendar', 'getCalendar', 'updateCalendar', 'deleteCalendar'],
+    'getCalendar': ['createCalendar', 'listCalendars', 'updateCalendar', 'deleteCalendar'],
+    'updateCalendar': ['createCalendar', 'listCalendars', 'getCalendar', 'deleteCalendar'],
+    'deleteCalendar': ['createCalendar', 'listCalendars', 'getCalendar', 'updateCalendar'],
+    'listEvents': ['getEvent', 'scheduleRecordEvent', 'unscheduleRecordEvent'],
+    'getEvent': ['listEvents', 'scheduleRecordEvent', 'unscheduleRecordEvent'],
+    'scheduleRecordEvent': ['listEvents', 'getEvent', 'unscheduleRecordEvent'],
+    'unscheduleRecordEvent': ['listEvents', 'getEvent', 'scheduleRecordEvent']
+  };
+
+  return (relatedMap[method.name] || []).map(name => ({
+    name,
+    parameters: [],
+    returnType: '',
+    category: method.category
+  }));
+}
+
+function getCommonUseCases(method: MethodInfo): string {
+  const useCases: Record<string, string> = {
+    'join': `- Joining a meeting with a bot for recording
+- Setting up a bot with custom parameters
+- Configuring webhook notifications for a specific bot
+- Starting a meeting recording with automatic transcription`,
+    'leave': `- Ending a bot's participation in a meeting
+- Stopping a meeting recording
+- Cleaning up bot resources after a meeting
+- Handling meeting completion`,
+    'getMeetingData': `- Retrieving meeting transcripts
+- Accessing meeting metadata
+- Getting bot status and configuration
+- Downloading meeting recordings`,
+    'deleteData': `- Removing meeting data for privacy
+- Cleaning up old meeting records
+- Managing storage usage
+- Handling data retention policies`,
+    'createCalendar': `- Setting up Google Calendar integration
+- Connecting Microsoft Teams calendar
+- Configuring calendar sync settings
+- Managing calendar permissions`,
+    'listCalendars': `- Viewing all connected calendars
+- Checking calendar sync status
+- Managing multiple calendar integrations
+- Verifying calendar permissions`,
+    'getCalendar': `- Viewing calendar details
+- Checking calendar sync status
+- Verifying calendar permissions
+- Managing calendar settings`,
+    'updateCalendar': `- Updating calendar credentials
+- Changing calendar sync settings
+- Modifying calendar permissions
+- Refreshing calendar integration`,
+    'deleteCalendar': `- Removing calendar integration
+- Cleaning up unused calendars
+- Managing calendar connections
+- Handling calendar disconnection`,
+    'listEvents': `- Viewing upcoming meetings
+- Checking scheduled recordings
+- Managing calendar events
+- Filtering events by date or status`,
+    'getEvent': `- Viewing event details
+- Checking recording status
+- Managing event settings
+- Verifying event configuration`,
+    'scheduleRecordEvent': `- Setting up automatic recording
+- Configuring bot parameters for an event
+- Managing recording schedules
+- Setting up recurring recordings`,
+    'unscheduleRecordEvent': `- Canceling scheduled recordings
+- Removing bot from events
+- Managing recording schedules
+- Handling event changes`
+  };
+
+  return useCases[method.name] || 'No common use cases documented yet.';
 }
 
 function writeTypeFile(type: TypeInfo, outputDir: string) {
@@ -153,6 +310,155 @@ ${items.map(item => `- [${item.name}](./${item.name.toLowerCase().replace(/[^a-z
 `;
 
   writeFileSync(join(outputDir, 'index.mdx'), content);
+}
+
+function extractExamplesFromJSDoc(method: MethodInfo) {
+  // Extract examples from JSDoc comments
+  const examples = method.description?.split('\n')
+    .filter(line => line.includes('Example:'))
+    .map(line => line.split('Example:')[1].trim());
+  
+  return examples || [];
+}
+
+function generateExampleForType(name: string, type: string): string {
+  // Handle SDK-specific types first
+  if (type.includes('JoinRequest')) {
+    return `{
+  botName: "Meeting Assistant",
+  meetingUrl: "https://meet.google.com/abc-def-ghi",
+  reserved: true,
+  speech_to_text: {
+    provider: "gladia"
+  }
+}`;
+  }
+
+  if (type.includes('JoinRequestSpeechToText')) {
+    return `{
+  provider: "gladia",
+  api_key: "your-api-key"
+}`;
+  }
+
+  if (type.includes('JoinRequestAutomaticLeave')) {
+    return `{
+  enabled: true,
+  after_minutes: 60
+}`;
+  }
+
+  if (type.includes('JoinRequestRecordingMode')) {
+    return `{
+  mode: "audio",
+  quality: "high"
+}`;
+  }
+
+  if (type.includes('JoinRequestStreaming')) {
+    return `{
+  enabled: true,
+  url: "https://your-streaming-endpoint.com"
+}`;
+  }
+
+  // Handle common types with context
+  if (type.includes('string')) {
+    if (name.toLowerCase().includes('url')) {
+      if (name.toLowerCase().includes('webhook')) {
+        return '"https://your-webhook-endpoint.com"';
+      }
+      if (name.toLowerCase().includes('streaming')) {
+        return '"https://your-streaming-endpoint.com"';
+      }
+      if (name.toLowerCase().includes('meeting')) {
+        return '"https://meet.google.com/abc-def-ghi"';
+      }
+      if (name.toLowerCase().includes('image')) {
+        return '"https://example.com/bot-image.jpg"';
+      }
+      return '"https://example.com"';
+    }
+    if (name.toLowerCase().includes('id')) {
+      if (name.toLowerCase().includes('bot')) {
+        return '"bot_123"';
+      }
+      if (name.toLowerCase().includes('meeting')) {
+        return '"meeting_456"';
+      }
+      return '"id_789"';
+    }
+    if (name.toLowerCase().includes('name')) {
+      if (name.toLowerCase().includes('bot')) {
+        return '"Meeting Assistant"';
+      }
+      if (name.toLowerCase().includes('speaker')) {
+        return '"John Doe"';
+      }
+      return '"Example Name"';
+    }
+    if (name.toLowerCase().includes('date')) {
+      return '"2024-01-01T00:00:00Z"';
+    }
+    if (name.toLowerCase().includes('message')) {
+      return '"Hello, I am a meeting assistant bot."';
+    }
+    if (name.toLowerCase().includes('key')) {
+      return '"your-api-key"';
+    }
+    return '"example"';
+  }
+  
+  if (type.includes('number')) {
+    if (name.toLowerCase().includes('time')) {
+      return 'Date.now()';
+    }
+    if (name.toLowerCase().includes('minutes')) {
+      return '60';
+    }
+    if (name.toLowerCase().includes('limit')) {
+      return '10';
+    }
+    return '42';
+  }
+  
+  if (type.includes('boolean')) {
+    if (name.toLowerCase().includes('enabled')) {
+      return 'true';
+    }
+    if (name.toLowerCase().includes('reserved')) {
+      return 'true';
+    }
+    return 'false';
+  }
+  
+  if (type.includes('array')) {
+    return '[]';
+  }
+  
+  if (type.includes('object')) {
+    if (name.toLowerCase().includes('extra')) {
+      return `{
+  customField: "value",
+  anotherField: 123
+}`;
+    }
+    return '{}';
+  }
+  
+  // Default case
+  return 'null';
+}
+
+function generateTypeSafeExample(method: MethodInfo) {
+  // Generate example based on parameter types
+  const params = method.parameters.map(param => {
+    const [name, type] = param.split(': ');
+    return generateExampleForType(name, type);
+  });
+  
+  return `// Example usage
+const result = await client.${method.name}(${params.join(', ')});`;
 }
 
 export async function generateSDKReference() {

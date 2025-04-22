@@ -7,10 +7,35 @@ full: true
 
 
 
+## Usage
+
 ```typescript
 listEvents(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiListEventsRequest, options: RawAxiosRequestConfig): Promise<any>
 ```
 
+## Parameters
+
+
+### `requestParameters`
+
+Type: `import("@meeting-baas/sdk/api/calendars-api").CalendarsApiListEventsRequest`
+
+
+
+
+### `options`
+
+Type: `RawAxiosRequestConfig`
+
+
+
+
+## Returns
+
+`Promise<any>`
+
+
+## Example
 
 <Callout type="info">
   Example:
@@ -24,3 +49,16 @@ const events = await client.listEvents(calendar.uuid, {
   ```
 </Callout>
 
+
+## Common Use Cases
+
+- Viewing upcoming meetings
+- Checking scheduled recordings
+- Managing calendar events
+- Filtering events by date or status
+
+## Related Methods
+
+- [getEvent](./getevent.mdx)
+- [scheduleRecordEvent](./schedulerecordevent.mdx)
+- [unscheduleRecordEvent](./unschedulerecordevent.mdx)

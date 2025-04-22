@@ -7,10 +7,35 @@ full: true
 
 
 
+## Usage
+
 ```typescript
 getMeetingData(requestParameters: import("@meeting-baas/sdk/api/default-api").DefaultApiGetMeetingDataRequest, options: RawAxiosRequestConfig): Promise<any>
 ```
 
+## Parameters
+
+
+### `requestParameters`
+
+Type: `import("@meeting-baas/sdk/api/default-api").DefaultApiGetMeetingDataRequest`
+
+
+
+
+### `options`
+
+Type: `RawAxiosRequestConfig`
+
+
+
+
+## Returns
+
+`Promise<any>`
+
+
+## Example
 
 <Callout type="info">
   Example:
@@ -22,3 +47,16 @@ console.log("Meeting data:", meetingData);
   ```
 </Callout>
 
+
+## Common Use Cases
+
+- Retrieving meeting transcripts
+- Accessing meeting metadata
+- Getting bot status and configuration
+- Downloading meeting recordings
+
+## Related Methods
+
+- [join](./join.mdx)
+- [leave](./leave.mdx)
+- [deleteData](./deletedata.mdx)
