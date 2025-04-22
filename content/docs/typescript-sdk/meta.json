@@ -5,9 +5,9 @@
   "root": true,
   "pages": [
     "index",
-    "quick-start",
+    "getting-started",
     "integration",
-    "mpc-tools",
-    "advanced-examples"
+    "complete-reference",
+    "updates"
   ]
 }

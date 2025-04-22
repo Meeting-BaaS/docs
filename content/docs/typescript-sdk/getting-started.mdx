@@ -1,0 +1,90 @@
+---
+title: Getting Started
+description: Learn how to install and use the Meeting BaaS TypeScript SDK.
+icon: Download
+---
+
+<Steps>
+<Step>
+### Install the Package
+
+Install the Meeting BaaS SDK using your preferred package manager:
+
+<Tabs groupId='package-manager' persist items={['npm', 'pnpm', 'yarn']}>
+
+```bash tab="npm"
+npm install @meeting-baas/sdk
+```
+
+```bash tab="pnpm"
+pnpm add @meeting-baas/sdk
+```
+
+```bash tab="yarn"
+yarn add @meeting-baas/sdk
+```
+
+</Tabs>
+
+</Step>
+
+<Step>
+### Create a Client
+
+Create a new instance of the BaaS client with your API key:
+
+```typescript
+import { BaasClient } from "@meeting-baas/sdk";
+
+// Create a BaaS client
+const client = new BaasClient({
+  apiKey: "your-api-key", // Get yours at https://meetingbaas.com
+});
+```
+
+<Callout type="warn">
+  Make sure to keep your API key secure and never expose it in client-side code.
+</Callout>
+
+</Step>
+
+<Step>
+### Join a Meeting
+
+Use the client to join a meeting with a bot:
+
+```typescript
+// Join a meeting
+const botId = await client.joinMeeting({
+  botName: "Meeting Assistant",
+  meetingUrl: "https://meet.google.com/abc-def-ghi",
+  reserved: true,
+});
+
+// Get meeting data
+const meetingData = await client.getMeetingData(botId);
+console.log("Meeting data:", meetingData);
+```
+
+</Step>
+
+<Step>
+### Handle Webhooks
+
+Set up webhook handling to receive real-time updates about your meetings:
+
+```typescript
+// Set up webhook handling
+client.on("complete", (data) => {
+  console.log("Meeting completed:", data);
+});
+
+client.on("failed", (data) => {
+  console.log("Meeting failed:", data);
+});
+```
+
+For more information about webhooks, see the [Webhooks documentation](/docs/typescript-sdk/webhooks).
+
+</Step>
+</Steps> 
