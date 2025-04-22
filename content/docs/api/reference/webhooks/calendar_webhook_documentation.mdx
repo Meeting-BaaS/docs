@@ -73,7 +73,7 @@ _openapi:
 
           - `last_updated_ts`: ISO-8601 timestamp when the sync occurred
 
-          - `affected_event_uuids`: Array of UUIDs for events that were changed
+          - `affected_event_uuids**: Array of UUIDs for events that were changed
 
 
           ## Integration with Meeting BaaS Calendar API
@@ -84,10 +84,10 @@ _openapi:
           1. Use the `/calendar_events` endpoint to retrieve detailed
           information about specific events
 
-          2. Use the `/calendars/{uuid}` endpoint to get calendar metadata
+          2. Use the `/calendars/:uuid` endpoint to get calendar metadata
 
           3. Schedule recording bots for any new meetings with the
-          `/calendar_events/{uuid}/bot` endpoint
+          `/calendar_events/:uuid/bot` endpoint
 
 
           ## Webhook Usage Tips
@@ -149,14 +149,14 @@ Sent when calendar events are synced with external providers.
 **Field details:**
 - `calendar_id`: The UUID of the synchronized calendar
 - `last_updated_ts`: ISO-8601 timestamp when the sync occurred
-- `affected_event_uuids`: Array of UUIDs for events that were changed
+- `affected_event_uuids**: Array of UUIDs for events that were changed
 
 ## Integration with Meeting BaaS Calendar API
 
 After receiving a calendar webhook event, you can:
 1. Use the `/calendar_events` endpoint to retrieve detailed information about specific events
-2. Use the `/calendars/{uuid}` endpoint to get calendar metadata
-3. Schedule recording bots for any new meetings with the `/calendar_events/{uuid}/bot` endpoint
+2. Use the `/calendars/:uuid` endpoint to get calendar metadata
+3. Schedule recording bots for any new meetings with the `/calendar_events/:uuid/bot` endpoint
 
 ## Webhook Usage Tips
 

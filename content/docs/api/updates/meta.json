@@ -2,6 +2,7 @@
   "title": "API Updates",
   "icon": "Zap",
   "pages": [
+    "api-update-2025-04-23",
     "calendar-api-enhancements",
     "calendar-api-update",
     "minor-streaming-zoom-and-microsoft-teams",
