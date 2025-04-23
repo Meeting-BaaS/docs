@@ -8,7 +8,10 @@
     "version": "1.1"
   },
   "servers": [
-    { "url": "https://api.meetingbaas.com", "description": "Production server" }
+    {
+      "url": "https://api.meetingbaas.com",
+      "description": "Production server"
+    }
   ],
   "paths": {
     "/bots/": {
@@ -19,7 +22,9 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/JoinRequest" }
+              "schema": {
+                "$ref": "#/components/schemas/JoinRequest"
+              }
             }
           },
           "required": true
@@ -29,12 +34,18 @@
             "description": "",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/JoinResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/JoinResponse"
+                }
               }
             }
           }
         },
-        "security": [{ "ApiKeyAuth": [] }]
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
       }
     },
     "/bots/{uuid}": {
@@ -60,7 +71,9 @@
             "description": "",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/LeaveResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/LeaveResponse"
+                }
               }
             }
           }
@@ -77,7 +90,9 @@
             "in": "query",
             "name": "bot_id",
             "required": true,
-            "schema": { "type": "string" },
+            "schema": {
+              "type": "string"
+            },
             "style": "form"
           }
         ],
@@ -86,7 +101,9 @@
             "description": "",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Metadata" }
+                "schema": {
+                  "$ref": "#/components/schemas/Metadata"
+                }
               }
             }
           }
@@ -116,21 +133,31 @@
             "description": "",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/DeleteResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/DeleteResponse"
+                }
               }
             }
           },
-          "401": { "description": "no content" },
-          "403": { "description": "no content" },
-          "404": { "description": "no content" },
-          "429": { "description": "no content" }
+          "401": {
+            "description": "no content"
+          },
+          "403": {
+            "description": "no content"
+          },
+          "404": {
+            "description": "no content"
+          },
+          "429": {
+            "description": "no content"
+          }
         }
       }
     },
     "/bots/bots_with_metadata": {
       "get": {
         "summary": "List Bots with Metadata",
-        "description": "Paginated list of bots sorted by creation date (newest first). \n\nSupports filtering by `meeting_url`, `bot_name`, `created_after/before`, and `speaker_name`. \n\nAdvanced JSON filtering with `filter_by_extra: \"field:value,field2:value2\"` and sorting with `sort_by_extra: \"field:desc\"`.\n\nReturns metadata with meeting details, duration, speakers, and pagination token in `next_cursor`.",
+        "description": "Retrieves a paginated list of the user's bots with essential metadata, including IDs, names, and meeting details. Supports filtering, sorting, and advanced querying options.",
         "operationId": "bots_with_metadata",
         "parameters": [
           {
@@ -139,7 +166,10 @@
             "description": "Filter bots by name containing this string.\n\nPerforms a case-insensitive partial match on the bot's name. Useful for finding bots with specific naming conventions or to locate a particular bot when you don't have its ID.\n\nExample: \"Sales\" would match \"Sales Meeting\", \"Quarterly Sales\", etc.",
             "schema": {
               "description": "Filter bots by name containing this string.\n\nPerforms a case-insensitive partial match on the bot's name. Useful for finding bots with specific naming conventions or to locate a particular bot when you don't have its ID.\n\nExample: \"Sales\" would match \"Sales Meeting\", \"Quarterly Sales\", etc.",
-              "type": ["string", "null"]
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "style": "form"
           },
@@ -149,7 +179,10 @@
             "description": "Filter bots created after this date (ISO format).\n\nLimits results to bots created at or after the specified timestamp. Used for time-based filtering to find recent additions.\n\nFormat: ISO-8601 date-time string (YYYY-MM-DDThh:mm:ss) Example: \"2023-05-01T00:00:00\"",
             "schema": {
               "description": "Filter bots created after this date (ISO format).\n\nLimits results to bots created at or after the specified timestamp. Used for time-based filtering to find recent additions.\n\nFormat: ISO-8601 date-time string (YYYY-MM-DDThh:mm:ss) Example: \"2023-05-01T00:00:00\"",
-              "type": ["string", "null"]
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "style": "form"
           },
@@ -159,7 +192,10 @@
             "description": "Filter bots created before this date (ISO format).\n\nLimits results to bots created at or before the specified timestamp. Used for time-based filtering to exclude recent additions.\n\nFormat: ISO-8601 date-time string (YYYY-MM-DDThh:mm:ss) Example: \"2023-05-31T23:59:59\"",
             "schema": {
               "description": "Filter bots created before this date (ISO format).\n\nLimits results to bots created at or before the specified timestamp. Used for time-based filtering to exclude recent additions.\n\nFormat: ISO-8601 date-time string (YYYY-MM-DDThh:mm:ss) Example: \"2023-05-31T23:59:59\"",
-              "type": ["string", "null"]
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "style": "form"
           },
@@ -169,7 +205,23 @@
             "description": "Cursor for pagination, obtained from previous response.\n\nUsed for retrieving the next set of results after a previous call. The cursor value is returned in the `nextCursor` field of responses that have additional results available.\n\nFormat: Base64-encoded string containing pagination metadata",
             "schema": {
               "description": "Cursor for pagination, obtained from previous response.\n\nUsed for retrieving the next set of results after a previous call. The cursor value is returned in the `nextCursor` field of responses that have additional results available.\n\nFormat: Base64-encoded string containing pagination metadata",
-              "type": ["string", "null"]
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "style": "form"
+          },
+          {
+            "in": "query",
+            "name": "ended_after",
+            "description": "Filter bots ended after this date (ISO format).\n\nLimits results to bots that ended at or after the specified timestamp. Useful for finding completed meetings within a specific time period.\n\nFormat: ISO-8601 date-time string (YYYY-MM-DDThh:mm:ss) Example: \"2023-05-01T00:00:00\"",
+            "schema": {
+              "description": "Filter bots ended after this date (ISO format).\n\nLimits results to bots that ended at or after the specified timestamp. Useful for finding completed meetings within a specific time period.\n\nFormat: ISO-8601 date-time string (YYYY-MM-DDThh:mm:ss) Example: \"2023-05-01T00:00:00\"",
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "style": "form"
           },
@@ -179,7 +231,10 @@
             "description": "Filter bots by matching values in the extra JSON payload.\n\nThis parameter performs in-memory filtering on the `extra` JSON field, similar to a SQL WHERE clause. It reduces the result set to only include bots that match all specified conditions.\n\nFormat specifications: - Single condition: \"field:value\" - Multiple conditions: \"field1:value1,field2:value2\"\n\nExamples: - \"customer_id:12345\" - Only bots with this customer ID - \"status:active,project:sales\" - Only active bots from sales projects\n\nNotes: - All conditions must match for a bot to be included - Values are matched exactly (case-sensitive) - Bots without the specified field are excluded",
             "schema": {
               "description": "Filter bots by matching values in the extra JSON payload.\n\nThis parameter performs in-memory filtering on the `extra` JSON field, similar to a SQL WHERE clause. It reduces the result set to only include bots that match all specified conditions.\n\nFormat specifications: - Single condition: \"field:value\" - Multiple conditions: \"field1:value1,field2:value2\"\n\nExamples: - \"customer_id:12345\" - Only bots with this customer ID - \"status:active,project:sales\" - Only active bots from sales projects\n\nNotes: - All conditions must match for a bot to be included - Values are matched exactly (case-sensitive) - Bots without the specified field are excluded",
-              "type": ["string", "null"]
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "style": "form"
           },
@@ -201,7 +256,10 @@
             "description": "Filter bots by meeting URL containing this string.\n\nPerforms a case-insensitive partial match on the bot's meeting URL. Use this to find bots associated with specific meeting platforms or particular meeting IDs.\n\nExample: \"zoom.us\" would match all Zoom meetings",
             "schema": {
               "description": "Filter bots by meeting URL containing this string.\n\nPerforms a case-insensitive partial match on the bot's meeting URL. Use this to find bots associated with specific meeting platforms or particular meeting IDs.\n\nExample: \"zoom.us\" would match all Zoom meetings",
-              "type": ["string", "null"]
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "style": "form"
           },
@@ -211,7 +269,10 @@
             "description": "Sort the results by a field in the extra JSON payload.\n\nThis parameter performs in-memory sorting on the `extra` JSON field, similar to a SQL ORDER BY clause. It changes the order of results but not which results are included.\n\nFormat specifications: - Default (ascending): \"field\" - Explicit direction: \"field:asc\" or \"field:desc\"\n\nExamples: - \"customer_id\" - Sort by customer_id (ascending) - \"priority:desc\" - Sort by priority (descending)\n\nNotes: - Applied after all filtering - String comparison is used for sorting - Bots with the field come before bots without it - Can be combined with filter_by_extra",
             "schema": {
               "description": "Sort the results by a field in the extra JSON payload.\n\nThis parameter performs in-memory sorting on the `extra` JSON field, similar to a SQL ORDER BY clause. It changes the order of results but not which results are included.\n\nFormat specifications: - Default (ascending): \"field\" - Explicit direction: \"field:asc\" or \"field:desc\"\n\nExamples: - \"customer_id\" - Sort by customer_id (ascending) - \"priority:desc\" - Sort by priority (descending)\n\nNotes: - Applied after all filtering - String comparison is used for sorting - Bots with the field come before bots without it - Can be combined with filter_by_extra",
-              "type": ["string", "null"]
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "style": "form"
           },
@@ -221,7 +282,10 @@
             "description": "NOTE: this is a preview feature and not yet available\n\nFilter bots by speaker name containing this string.\n\nPerforms a case-insensitive partial match on the speakers in the meeting. Useful for finding meetings that included a specific person.\n\nExample: \"John\" would match meetings with speakers like \"John Smith\" or \"John Doe\"",
             "schema": {
               "description": "NOTE: this is a preview feature and not yet available\n\nFilter bots by speaker name containing this string.\n\nPerforms a case-insensitive partial match on the speakers in the meeting. Useful for finding meetings that included a specific person.\n\nExample: \"John\" would match meetings with speakers like \"John Smith\" or \"John Doe\"",
-              "type": ["string", "null"]
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "style": "form"
           }
@@ -248,62 +312,120 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/RetranscribeBody" }
+              "schema": {
+                "$ref": "#/components/schemas/RetranscribeBody"
+              }
             }
           },
           "required": true
         },
         "responses": {
-          "200": { "description": "description" },
-          "202": { "description": "no content" }
+          "200": {
+            "description": "description"
+          },
+          "202": {
+            "description": "no content"
+          }
+        }
+      }
+    },
+    "/bots/{uuid}/screenshots": {
+      "get": {
+        "summary": "Get Screenshots",
+        "description": "Retrieves screenshots captured during the bot's session",
+        "operationId": "get_screenshots",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "uuid",
+            "description": "The UUID identifier",
+            "required": true,
+            "schema": {
+              "description": "The UUID identifier",
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ScreenshotsList"
+                }
+              }
+            }
+          }
         }
       }
     },
     "/bots/webhooks": {
       "get": {
-        "tags": ["Webhooks"],
+        "tags": [
+          "Webhooks"
+        ],
         "summary": "Webhook Events Documentation",
         "description": "Meeting BaaS sends webhook events to your configured webhook URL when specific events occur.\n\n## Webhook Event Types\n\n### 1. `complete`\nSent when a bot successfully completes recording a meeting. Contains full transcription data and a link to the recording.\n```json\n{\n  \\\"event\\\": \\\"complete\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"transcript\\\": [\n      {\n        \\\"speaker\\\": \\\"John Doe\\\",\n        \\\"offset\\\": 1.5,\n        \\\"words\\\": [\n          {\n            \\\"start\\\": 1.5,\n            \\\"end\\\": 1.9,\n            \\\"word\\\": \\\"Hello\\\"\n          },\n          {\n            \\\"start\\\": 2.0,\n            \\\"end\\\": 2.4,\n            \\\"word\\\": \\\"everyone\\\"\n          }\n        ]\n      }\n    ],\n    \\\"speakers\\\": [\n      \\\"John Doe\\\",\n      \\\"Jane Smith\\\"\n    ],\n    \\\"mp4\\\": \\\"https://storage.example.com/recordings/video123.mp4?token=abc\\\",\n    \\\"event\\\": \\\"complete\\\"\n  }\n}\n```\n\nThe `complete` event includes:\n- **bot_id**: Unique identifier for the bot that completed recording\n- **speakers**: A set of speaker names identified in the meeting\n- **transcript**: Full transcript data with speaker identification and word timing\n- **mp4**: URL to the recording file (valid for 24 hours by default)\n- **event**: Event type identifier (\"complete\")\n\n### 2. `failed`\nSent when a bot fails to join or record a meeting. Contains error details.\n```json\n{\n  \\\"event\\\": \\\"failed\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"error\\\": \\\"meeting_not_found\\\",\n    \\\"message\\\": \\\"Could not join meeting: The meeting ID was not found or has expired\\\"\n  }\n}\n```\n\nThe `failed` event includes:\n- **bot_id**: Unique identifier for the bot that failed\n- **error**: Error code identifying the type of failure\n- **message**: Detailed human-readable error message\n\nCommon error types include:\n- `meeting_not_found`: The meeting ID or link was invalid or expired\n- `access_denied`: The bot was denied access to the meeting\n- `authentication_error`: Failed to authenticate with the meeting platform\n- `network_error`: Network connectivity issues during recording\n- `internal_error`: Internal server error\n\n### 3. `calendar.sync_events`\nSent when calendar events are synced. Contains information about which events were updated.\n```json\n{\n  \\\"event\\\": \\\"calendar.sync_events\\\",\n  \\\"data\\\": {\n    \\\"calendar_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"last_updated_ts\\\": \\\"2023-05-01T12:00:00Z\\\",\n    \\\"affected_event_uuids\\\": [\n      \\\"123e4567-e89b-12d3-a456-426614174001\\\",\n      \\\"123e4567-e89b-12d3-a456-426614174002\\\"\n    ]\n  }\n}\n```\n\nThe `calendar.sync_events` event includes:\n- **calendar_id**: UUID of the calendar that was synced\n- **last_updated_ts**: ISO-8601 timestamp of when the sync occurred\n- **affected_event_uuids**: Array of UUIDs for calendar events that were added, updated, or deleted\n\nThis event is triggered when:\n- Calendar data is synced with the external provider (Google, Microsoft)\n- Multiple events may be created, updated, or deleted in a single sync operation\n- Use this event to update your local cache of calendar events\n\n### 4. `transcription_complete`\nSent when transcription is completed separately from recording (e.g., after retranscribing).\n```json\n{\n  \\\"event\\\": \\\"transcription_complete\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\"\n  }\n}\n```\n\nThe `transcription_complete` event includes:\n- **bot_id**: Unique identifier for the bot with the completed transcription\n\nThis event is sent when:\n- You request a retranscription via the `/bots/retranscribe` endpoint\n- An asynchronous transcription process completes after the recording has ended\n\n## Setting Up Webhooks\n\nYou can configure webhooks in two ways:\n1. **Account-level webhook URL**: Set a default webhook URL for all bots in your account using the `/accounts/webhook_url` endpoint\n2. **Bot-specific webhook URL**: Provide a `webhook_url` parameter when creating a bot with the `/bots` endpoint\n\nYour webhook endpoint must:\n- Accept POST requests with JSON payload\n- Return a 2xx status code to acknowledge receipt\n- Process requests within 10 seconds to avoid timeouts\n- Handle each event type appropriately based on the event type\n\nAll webhook requests include:\n- `x-meeting-baas-api-key` header with your API key for verification\n- `content-type: application/json` header\n- JSON body containing the event details\n\n## Webhook Reliability\n\nIf your endpoint fails to respond or returns an error, the system will attempt to retry the webhook delivery. For critical events, we recommend implementing:\n\n- Idempotency handling to prevent duplicate processing of the same event\n- Proper logging of webhook receipts for audit purposes\n- Asynchronous processing to quickly acknowledge receipt before handling the event data\n\nFor security, always validate the API key in the `x-meeting-baas-api-key` header matches your API key.",
         "operationId": "webhook_documentation",
         "responses": {
           "200": {
             "description": "",
-            "content": { "application/json": { "schema": {} } }
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
           }
         }
       }
     },
     "/bots/webhooks/bot": {
       "get": {
-        "tags": ["Webhooks"],
+        "tags": [
+          "Webhooks"
+        ],
         "summary": "Bot Webhook Events Documentation",
-        "description": "Meeting BaaS sends the following webhook events related to bot recordings.\n\n## Bot Webhook Event Types\n\n### 1. `complete`\nSent when a bot successfully completes recording a meeting.\n\n**Payload Structure:**\n```json\n{\n  \\\"event\\\": \\\"complete\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"transcript\\\": [\n      {\n        \\\"speaker\\\": \\\"John Doe\\\",\n        \\\"offset\\\": 1.5,\n        \\\"words\\\": [\n          {\n            \\\"start\\\": 1.5,\n            \\\"end\\\": 1.9,\n            \\\"word\\\": \\\"Hello\\\"\n          },\n          {\n            \\\"start\\\": 2.0,\n            \\\"end\\\": 2.4,\n            \\\"word\\\": \\\"everyone\\\"\n          }\n        ]\n      }\n    ],\n    \\\"speakers\\\": [\n      \\\"Jane Smith\\\",\n      \\\"John Doe\\\"\n    ],\n    \\\"mp4\\\": \\\"https://storage.example.com/recordings/video123.mp4?token=abc\\\",\n    \\\"event\\\": \\\"complete\\\"\n  }\n}\n```\n\n**When it's triggered:**\n- After a bot successfully records and processes a meeting\n- After the recording is uploaded and made available\n- When all processing of the meeting recording is complete\n\n**What to do with it:**\n- Download the MP4 recording for storage in your system\n- Store the transcript data in your database\n- Update meeting status in your application\n- Notify users that the recording is available\n\n### 2. `failed`\nSent when a bot fails to join or record a meeting.\n\n**Payload Structure:**\n```json\n{\n  \\\"event\\\": \\\"failed\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"error\\\": \\\"meeting_not_found\\\",\n    \\\"message\\\": \\\"Could not join meeting: The meeting ID was not found or has expired\\\"\n  }\n}\n```\n\n**Common error types:**\n- `meeting_not_found`: The meeting ID or link was invalid or expired\n- `access_denied`: The bot was denied access to the meeting\n- `authentication_error`: Failed to authenticate with the meeting platform\n- `network_error`: Network connectivity issues during recording\n- `internal_error`: Internal server error\n\n**What to do with it:**\n- Log the failure for troubleshooting\n- Notify administrators or users about the failed recording\n- Attempt to reschedule if appropriate\n- Update meeting status in your system\n\n### 3. `transcription_complete`\nSent when transcription is completed separately from recording.\n\n**Payload Structure:**\n```json\n{\n  \\\"event\\\": \\\"transcription_complete\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\"\n  }\n}\n```\n\n**When it's triggered:**\n- After requesting retranscription via the API\n- When an asynchronous transcription job completes\n- When a higher quality or different language transcription becomes available\n\n**What to do with it:**\n- Update the transcript data in your system\n- Notify users that improved transcription is available\n- Run any post-processing on the new transcript data\n\n## Webhook Usage Tips\n\n- Each event includes the `bot_id` so you can correlate with your internal data\n- The complete event includes speaker identification and full transcript data\n- For downloading recordings, the mp4 URL is valid for 24 hours\n- Handle the webhook asynchronously and return 200 OK quickly to prevent timeouts\n\nFor security, always validate the API key in the `x-meeting-baas-api-key` header matches your API key.",
+        "description": "Meeting BaaS sends the following webhook events related to bot recordings.\n\n## Bot Webhook Event Types\n\n### 1. `complete`\nSent when a bot successfully completes recording a meeting.\n\n**Payload Structure:**\n```json\n{\n  \\\"event\\\": \\\"complete\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"transcript\\\": [\n      {\n        \\\"speaker\\\": \\\"John Doe\\\",\n        \\\"offset\\\": 1.5,\n        \\\"words\\\": [\n          {\n            \\\"start\\\": 1.5,\n            \\\"end\\\": 1.9,\n            \\\"word\\\": \\\"Hello\\\"\n          },\n          {\n            \\\"start\\\": 2.0,\n            \\\"end\\\": 2.4,\n            \\\"word\\\": \\\"everyone\\\"\n          }\n        ]\n      }\n    ],\n    \\\"speakers\\\": [\n      \\\"John Doe\\\",\n      \\\"Jane Smith\\\"\n    ],\n    \\\"mp4\\\": \\\"https://storage.example.com/recordings/video123.mp4?token=abc\\\",\n    \\\"event\\\": \\\"complete\\\"\n  }\n}\n```\n\n**When it's triggered:**\n- After a bot successfully records and processes a meeting\n- After the recording is uploaded and made available\n- When all processing of the meeting recording is complete\n\n**What to do with it:**\n- Download the MP4 recording for storage in your system\n- Store the transcript data in your database\n- Update meeting status in your application\n- Notify users that the recording is available\n\n### 2. `failed`\nSent when a bot fails to join or record a meeting.\n\n**Payload Structure:**\n```json\n{\n  \\\"event\\\": \\\"failed\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"error\\\": \\\"meeting_not_found\\\",\n    \\\"message\\\": \\\"Could not join meeting: The meeting ID was not found or has expired\\\"\n  }\n}\n```\n\n**Common error types:**\n- `meeting_not_found`: The meeting ID or link was invalid or expired\n- `access_denied`: The bot was denied access to the meeting\n- `authentication_error`: Failed to authenticate with the meeting platform\n- `network_error`: Network connectivity issues during recording\n- `internal_error`: Internal server error\n\n**What to do with it:**\n- Log the failure for troubleshooting\n- Notify administrators or users about the failed recording\n- Attempt to reschedule if appropriate\n- Update meeting status in your system\n\n### 3. `transcription_complete`\nSent when transcription is completed separately from recording.\n\n**Payload Structure:**\n```json\n{\n  \\\"event\\\": \\\"transcription_complete\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\"\n  }\n}\n```\n\n**When it's triggered:**\n- After requesting retranscription via the API\n- When an asynchronous transcription job completes\n- When a higher quality or different language transcription becomes available\n\n**What to do with it:**\n- Update the transcript data in your system\n- Notify users that improved transcription is available\n- Run any post-processing on the new transcript data\n\n## Webhook Usage Tips\n\n- Each event includes the `bot_id` so you can correlate with your internal data\n- The complete event includes speaker identification and full transcript data\n- For downloading recordings, the mp4 URL is valid for 24 hours\n- Handle the webhook asynchronously and return 200 OK quickly to prevent timeouts\n\nFor security, always validate the API key in the `x-meeting-baas-api-key` header matches your API key.",
         "operationId": "bot_webhook_documentation",
         "responses": {
           "200": {
             "description": "",
-            "content": { "application/json": { "schema": {} } }
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
           }
         }
       }
     },
     "/bots/webhooks/calendar": {
       "get": {
-        "tags": ["Webhooks"],
+        "tags": [
+          "Webhooks"
+        ],
         "summary": "Calendar Webhook Events Documentation",
-        "description": "Meeting BaaS sends the following webhook events related to calendar integrations.\n\n## Calendar Webhook Event Types\n\n### 1. `calendar.sync_events`\nSent when calendar events are synced with external providers.\n\n**Payload Structure:**\n```json\n{\n  \\\"event\\\": \\\"calendar.sync_events\\\",\n  \\\"data\\\": {\n    \\\"calendar_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"last_updated_ts\\\": \\\"2023-05-01T12:00:00Z\\\",\n    \\\"affected_event_uuids\\\": [\n      \\\"123e4567-e89b-12d3-a456-426614174001\\\",\n      \\\"123e4567-e89b-12d3-a456-426614174002\\\"\n    ]\n  }\n}\n```\n\n**When it's triggered:**\n- After initial calendar connection is established\n- When external calendar providers (Google, Microsoft) send change notifications\n- After manual calendar resync operations\n- During scheduled periodic syncs\n- When events are created, updated, or deleted in the source calendar\n\n**What to do with it:**\n- Update your local copy of calendar events\n- Process any new events that match your criteria\n- Remove any deleted events from your system\n- Update schedules for any modified events\n- Refresh your UI to show the latest calendar data\n\n**Field details:**\n- `calendar_id`: The UUID of the synchronized calendar\n- `last_updated_ts`: ISO-8601 timestamp when the sync occurred\n- `affected_event_uuids`: Array of UUIDs for events that were changed\n\n## Integration with Meeting BaaS Calendar API\n\nAfter receiving a calendar webhook event, you can:\n1. Use the `/calendar_events` endpoint to retrieve detailed information about specific events\n2. Use the `/calendars/{uuid}` endpoint to get calendar metadata\n3. Schedule recording bots for any new meetings with the `/calendar_events/{uuid}/bot` endpoint\n\n## Webhook Usage Tips\n\n- Each event includes affected event UUIDs for efficient processing\n- You don't need to retrieve all calendar events - just process the changed ones\n- The timestamp helps determine the sequence of updates\n- For high-frequency calendars, consider batch processing of multiple events\n\nFor security, always validate the API key in the `x-meeting-baas-api-key` header matches your API key.",
+        "description": "Meeting BaaS sends the following webhook events related to calendar integrations.\n\n## Calendar Webhook Event Types\n\n### 1. `calendar.sync_events`\nSent when calendar events are synced with external providers.\n\n**Payload Structure:**\n```json\n{\n  \\\"event\\\": \\\"calendar.sync_events\\\",\n  \\\"data\\\": {\n    \\\"calendar_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"last_updated_ts\\\": \\\"2023-05-01T12:00:00Z\\\",\n    \\\"affected_event_uuids\\\": [\n      \\\"123e4567-e89b-12d3-a456-426614174001\\\",\n      \\\"123e4567-e89b-12d3-a456-426614174002\\\"\n    ]\n  }\n}\n```\n\n**When it's triggered:**\n- After initial calendar connection is established\n- When external calendar providers (Google, Microsoft) send change notifications\n- After manual calendar resync operations\n- During scheduled periodic syncs\n- When events are created, updated, or deleted in the source calendar\n\n**What to do with it:**\n- Update your local copy of calendar events\n- Process any new events that match your criteria\n- Remove any deleted events from your system\n- Update schedules for any modified events\n- Refresh your UI to show the latest calendar data\n\n**Field details:**\n- `calendar_id`: The UUID of the synchronized calendar\n- `last_updated_ts`: ISO-8601 timestamp when the sync occurred\n- `affected_event_uuids**: Array of UUIDs for events that were changed\n\n## Integration with Meeting BaaS Calendar API\n\nAfter receiving a calendar webhook event, you can:\n1. Use the `/calendar_events` endpoint to retrieve detailed information about specific events\n2. Use the `/calendars/:uuid` endpoint to get calendar metadata\n3. Schedule recording bots for any new meetings with the `/calendar_events/:uuid/bot` endpoint\n\n## Webhook Usage Tips\n\n- Each event includes affected event UUIDs for efficient processing\n- You don't need to retrieve all calendar events - just process the changed ones\n- The timestamp helps determine the sequence of updates\n- For high-frequency calendars, consider batch processing of multiple events\n\nFor security, always validate the API key in the `x-meeting-baas-api-key` header matches your API key.",
         "operationId": "calendar_webhook_documentation",
         "responses": {
           "200": {
             "description": "",
-            "content": { "application/json": { "schema": {} } }
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
           }
         }
       }
     },
     "/calendars/raw": {
       "post": {
-        "tags": ["Calendars"],
+        "tags": [
+          "Calendars"
+        ],
         "summary": "List Raw Calendars",
         "description": "Retrieves unprocessed calendar data directly from the provider (Google, Microsoft) using provided OAuth credentials. This endpoint is typically used during the initial setup process to allow users to select which calendars to integrate. Returns a list of available calendars with their unique IDs, email addresses, and primary status. This data is not persisted until a calendar is formally created using the create_calendar endpoint.",
         "operationId": "list_raw_calendars",
@@ -333,7 +455,9 @@
     },
     "/calendars/": {
       "get": {
-        "tags": ["Calendars"],
+        "tags": [
+          "Calendars"
+        ],
         "summary": "List Calendars",
         "description": "Retrieves all calendars that have been integrated with the system for the authenticated user. Returns a list of calendars with their names, email addresses, provider information, and sync status. This endpoint shows only calendars that have been formally connected through the create_calendar endpoint, not all available calendars from the provider.",
         "operationId": "list_calendars",
@@ -344,7 +468,9 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/Calendar" }
+                  "items": {
+                    "$ref": "#/components/schemas/Calendar"
+                  }
                 }
               }
             }
@@ -352,14 +478,18 @@
         }
       },
       "post": {
-        "tags": ["Calendars"],
+        "tags": [
+          "Calendars"
+        ],
         "summary": "Create Calendar",
         "description": "Integrates a new calendar with the system using OAuth credentials. This endpoint establishes a connection with the calendar provider (Google, Microsoft), sets up webhook notifications for real-time updates, and performs an initial sync of all calendar events. It requires OAuth credentials (client ID, client secret, and refresh token) and the platform type. Once created, the calendar is assigned a unique UUID that should be used for all subsequent operations. Returns the newly created calendar object with all integration details.",
         "operationId": "create_calendar",
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/CreateCalendarParams" }
+              "schema": {
+                "$ref": "#/components/schemas/CreateCalendarParams"
+              }
             }
           },
           "required": true
@@ -380,7 +510,9 @@
     },
     "/calendars/{uuid}": {
       "get": {
-        "tags": ["Calendars"],
+        "tags": [
+          "Calendars"
+        ],
         "summary": "Get Calendar",
         "description": "Retrieves detailed information about a specific calendar integration by its UUID. Returns comprehensive calendar data including the calendar name, email address, provider details (Google, Microsoft), sync status, and other metadata. This endpoint is useful for displaying calendar information to users or verifying the status of a calendar integration before performing operations on its events.",
         "operationId": "get_calendar",
@@ -402,14 +534,18 @@
             "description": "",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Calendar" }
+                "schema": {
+                  "$ref": "#/components/schemas/Calendar"
+                }
               }
             }
           }
         }
       },
       "delete": {
-        "tags": ["Calendars"],
+        "tags": [
+          "Calendars"
+        ],
         "summary": "Delete Calendar",
         "description": "Permanently removes a calendar integration by its UUID, including all associated events and bot configurations. This operation cancels any active subscriptions with the calendar provider, stops all webhook notifications, and unschedules any pending recordings. All related resources are cleaned up in the database. This action cannot be undone, and subsequent requests to this calendar's UUID will return 404 Not Found errors.",
         "operationId": "delete_calendar",
@@ -426,10 +562,16 @@
             "style": "simple"
           }
         ],
-        "responses": { "200": { "description": "no content" } }
+        "responses": {
+          "200": {
+            "description": "no content"
+          }
+        }
       },
       "patch": {
-        "tags": ["Calendars"],
+        "tags": [
+          "Calendars"
+        ],
         "summary": "Update Calendar",
         "description": "Updates a calendar integration with new credentials or platform while maintaining the same UUID. This operation is performed as an atomic transaction to ensure data integrity. The system automatically unschedules existing bots to prevent duplicates, updates the calendar credentials, and triggers a full resync of all events. Useful when OAuth tokens need to be refreshed or when migrating a calendar between providers. Returns the updated calendar object with its new configuration.",
         "operationId": "update_calendar",
@@ -449,7 +591,9 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/UpdateCalendarParams" }
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCalendarParams"
+              }
             }
           },
           "required": true
@@ -470,7 +614,9 @@
     },
     "/calendar_events/{uuid}": {
       "get": {
-        "tags": ["Calendars"],
+        "tags": [
+          "Calendars"
+        ],
         "summary": "Get Event",
         "description": "Retrieves comprehensive details about a specific calendar event by its UUID. Returns complete event information including title, meeting link, start and end times, organizer status, recurrence information, and the full list of attendees with their names and email addresses. Also includes any associated bot parameters if recording is scheduled for this event. The raw calendar data from the provider is also included for advanced use cases.",
         "operationId": "get_event",
@@ -492,7 +638,9 @@
             "description": "",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/Event" }
+                "schema": {
+                  "$ref": "#/components/schemas/Event"
+                }
               }
             }
           }
@@ -501,7 +649,9 @@
     },
     "/calendar_events/{uuid}/bot": {
       "post": {
-        "tags": ["Calendars"],
+        "tags": [
+          "Calendars"
+        ],
         "summary": "Schedule Record Event",
         "description": "Configures a bot to automatically join and record a specific calendar event at its scheduled time. The request body contains detailed bot configuration, including recording options, streaming settings, and webhook notification URLs. For recurring events, the 'all_occurrences' parameter can be set to true to schedule recording for all instances of the recurring series, or false (default) to schedule only the specific instance. Returns the updated event(s) with the bot parameters attached.",
         "operationId": "schedule_record_event",
@@ -523,7 +673,10 @@
             "description": "schedule a bot to all occurences of a recurring event",
             "schema": {
               "description": "schedule a bot to all occurences of a recurring event",
-              "type": ["boolean", "null"]
+              "type": [
+                "boolean",
+                "null"
+              ]
             },
             "style": "form"
           }
@@ -531,7 +684,9 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/BotParam2" }
+              "schema": {
+                "$ref": "#/components/schemas/BotParam2"
+              }
             }
           },
           "required": true
@@ -543,7 +698,9 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/Event" }
+                  "items": {
+                    "$ref": "#/components/schemas/Event"
+                  }
                 }
               }
             }
@@ -551,7 +708,9 @@
         }
       },
       "delete": {
-        "tags": ["Calendars"],
+        "tags": [
+          "Calendars"
+        ],
         "summary": "Unschedule Record Event",
         "description": "Cancels a previously scheduled recording for a calendar event and releases associated bot resources. For recurring events, the 'all_occurrences' parameter controls whether to unschedule from all instances of the recurring series or just the specific occurrence. This operation is idempotent and will not error if no bot was scheduled. Returns the updated event(s) with the bot parameters removed.",
         "operationId": "unschedule_record_event",
@@ -573,7 +732,10 @@
             "description": "unschedule a bot from all occurences of a recurring event",
             "schema": {
               "description": "unschedule a bot from all occurences of a recurring event",
-              "type": ["boolean", "null"]
+              "type": [
+                "boolean",
+                "null"
+              ]
             },
             "style": "form"
           }
@@ -585,7 +747,9 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/Event" }
+                  "items": {
+                    "$ref": "#/components/schemas/Event"
+                  }
                 }
               }
             }
@@ -593,7 +757,9 @@
         }
       },
       "patch": {
-        "tags": ["Calendars"],
+        "tags": [
+          "Calendars"
+        ],
         "summary": "Patch Bot",
         "description": "Updates the configuration of a bot already scheduled to record an event. Allows modification of recording settings, webhook URLs, and other bot parameters without canceling and recreating the scheduled recording. For recurring events, the 'all_occurrences' parameter determines whether changes apply to all instances or just the specific occurrence. Returns the updated event(s) with the modified bot parameters.",
         "operationId": "patch_bot",
@@ -615,7 +781,10 @@
             "description": "schedule a bot to all occurences of a recurring event",
             "schema": {
               "description": "schedule a bot to all occurences of a recurring event",
-              "type": ["boolean", "null"]
+              "type": [
+                "boolean",
+                "null"
+              ]
             },
             "style": "form"
           }
@@ -623,7 +792,9 @@
         "requestBody": {
           "content": {
             "application/json": {
-              "schema": { "$ref": "#/components/schemas/BotParam3" }
+              "schema": {
+                "$ref": "#/components/schemas/BotParam3"
+              }
             }
           },
           "required": true
@@ -635,7 +806,9 @@
               "application/json": {
                 "schema": {
                   "type": "array",
-                  "items": { "$ref": "#/components/schemas/Event" }
+                  "items": {
+                    "$ref": "#/components/schemas/Event"
+                  }
                 }
               }
             }
@@ -645,7 +818,9 @@
     },
     "/calendar_events/": {
       "get": {
-        "tags": ["Calendars"],
+        "tags": [
+          "Calendars"
+        ],
         "summary": "List Events",
         "description": "Retrieves a paginated list of calendar events with comprehensive filtering options. Supports filtering by organizer email, attendee email, date ranges (start_date_gte, start_date_lte), and event status. Results can be limited to upcoming events (default), past events, or all events. Each event includes full details such as meeting links, participants, and recording status. The response includes a 'next' pagination cursor for retrieving additional results.",
         "operationId": "list_events",
@@ -656,7 +831,10 @@
             "description": "If provided, filters events to include only those with this attendee's email address Example: \"jane.smith@example.com\"",
             "schema": {
               "description": "If provided, filters events to include only those with this attendee's email address Example: \"jane.smith@example.com\"",
-              "type": ["string", "null"]
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "style": "form"
           },
@@ -677,7 +855,10 @@
             "description": "Optional cursor for pagination This value is included in the `next` field of the previous response",
             "schema": {
               "description": "Optional cursor for pagination This value is included in the `next` field of the previous response",
-              "type": ["string", "null"]
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "style": "form"
           },
@@ -687,7 +868,10 @@
             "description": "If provided, filters events to include only those with this organizer's email address Example: \"john.doe@example.com\"",
             "schema": {
               "description": "If provided, filters events to include only those with this organizer's email address Example: \"john.doe@example.com\"",
-              "type": ["string", "null"]
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "style": "form"
           },
@@ -697,7 +881,10 @@
             "description": "If provided, filters events to include only those with a start date greater than or equal to this timestamp Format: ISO-8601 string, e.g., \"2023-01-01T00:00:00Z\"",
             "schema": {
               "description": "If provided, filters events to include only those with a start date greater than or equal to this timestamp Format: ISO-8601 string, e.g., \"2023-01-01T00:00:00Z\"",
-              "type": ["string", "null"]
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "style": "form"
           },
@@ -707,7 +894,10 @@
             "description": "If provided, filters events to include only those with a start date less than or equal to this timestamp Format: ISO-8601 string, e.g., \"2023-12-31T23:59:59Z\"",
             "schema": {
               "description": "If provided, filters events to include only those with a start date less than or equal to this timestamp Format: ISO-8601 string, e.g., \"2023-12-31T23:59:59Z\"",
-              "type": ["string", "null"]
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "style": "form"
           },
@@ -717,7 +907,10 @@
             "description": "Filter events by meeting status Valid values: \"upcoming\" (default) returns events after current time, \"past\" returns previous events, \"all\" returns both",
             "schema": {
               "description": "Filter events by meeting status Valid values: \"upcoming\" (default) returns events after current time, \"past\" returns previous events, \"all\" returns both",
-              "type": ["string", "null"]
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "style": "form"
           },
@@ -727,7 +920,10 @@
             "description": "If provided, fetches only events updated at or after this timestamp Format: ISO-8601 string, e.g., \"2023-01-01T00:00:00Z\"",
             "schema": {
               "description": "If provided, fetches only events updated at or after this timestamp Format: ISO-8601 string, e.g., \"2023-01-01T00:00:00Z\"",
-              "type": ["string", "null"]
+              "type": [
+                "string",
+                "null"
+              ]
             },
             "style": "form"
           }
@@ -737,7 +933,9 @@
             "description": "",
             "content": {
               "application/json": {
-                "schema": { "$ref": "#/components/schemas/ListEventResponse" }
+                "schema": {
+                  "$ref": "#/components/schemas/ListEventResponse"
+                }
               }
             }
           }
@@ -758,32 +956,85 @@
       "Account": {
         "description": "This structure represents the user's account information.",
         "type": "object",
-        "required": ["created_at", "email", "id", "status"],
+        "required": [
+          "created_at",
+          "email",
+          "id",
+          "secret",
+          "status"
+        ],
         "properties": {
-          "company_name": { "type": ["string", "null"] },
-          "created_at": { "$ref": "#/components/schemas/SystemTime" },
-          "email": { "type": "string" },
-          "firstname": { "type": ["string", "null"] },
-          "id": { "type": "integer", "format": "int32" },
-          "lastname": { "type": ["string", "null"] },
-          "phone": { "type": ["string", "null"] },
-          "status": { "type": "integer", "format": "int32" }
+          "company_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/SystemTime"
+          },
+          "email": {
+            "type": "string"
+          },
+          "firstname": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lastname": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "secret": {
+            "type": "string"
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32"
+          }
         }
       },
       "AccountInfos": {
         "description": "Structure consisting account information.",
         "type": "object",
-        "required": ["account"],
-        "properties": { "account": { "$ref": "#/components/schemas/Account" } }
+        "required": [
+          "account"
+        ],
+        "properties": {
+          "account": {
+            "$ref": "#/components/schemas/Account"
+          }
+        }
       },
       "ApiKeyResponse": {
         "type": "object",
-        "required": ["api_key"],
-        "properties": { "api_key": { "type": "string" } }
+        "required": [
+          "api_key"
+        ],
+        "properties": {
+          "api_key": {
+            "type": "string"
+          }
+        }
       },
       "Attendee": {
         "type": "object",
-        "required": ["email"],
+        "required": [
+          "email"
+        ],
         "properties": {
           "email": {
             "description": "The email address of the meeting attendee",
@@ -791,23 +1042,38 @@
           },
           "name": {
             "description": "The display name of the attendee if available from the calendar provider (Google, Microsoft)",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       },
-      "AudioFrequency": { "type": "string", "enum": ["16khz", "24khz"] },
+      "AudioFrequency": {
+        "type": "string",
+        "enum": [
+          "16khz",
+          "24khz"
+        ]
+      },
       "AutomaticLeaveRequest": {
         "type": "object",
         "properties": {
           "noone_joined_timeout": {
             "description": "The timeout in seconds for the bot to wait for participants to join before leaving the meeting, defaults to 600 seconds",
-            "type": ["integer", "null"],
+            "type": [
+              "integer",
+              "null"
+            ],
             "format": "uint32",
             "minimum": 0.0
           },
           "waiting_room_timeout": {
             "description": "The timeout in seconds for the bot to wait in the waiting room before leaving the meeting, defaults to 600 seconds",
-            "type": ["integer", "null"],
+            "type": [
+              "integer",
+              "null"
+            ],
             "format": "uint32",
             "minimum": 0.0
           }
@@ -815,11 +1081,22 @@
       },
       "Bot": {
         "type": "object",
-        "required": ["bot", "duration", "params"],
+        "required": [
+          "bot",
+          "duration",
+          "params"
+        ],
         "properties": {
-          "bot": { "$ref": "#/components/schemas/Bot2" },
-          "duration": { "type": "integer", "format": "int64" },
-          "params": { "$ref": "#/components/schemas/BotParam" }
+          "bot": {
+            "$ref": "#/components/schemas/Bot2"
+          },
+          "duration": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "params": {
+            "$ref": "#/components/schemas/BotParam"
+          }
         }
       },
       "Bot2": {
@@ -837,162 +1114,378 @@
           "uuid"
         ],
         "properties": {
-          "account_id": { "type": "integer", "format": "int32" },
-          "bot_param_id": { "type": "integer", "format": "int32" },
-          "created_at": { "$ref": "#/components/schemas/DateTime" },
-          "diarization_v2": { "type": "boolean" },
-          "ended_at": { "$ref": "#/components/schemas/OptionalDateTime" },
-          "errors": { "type": ["string", "null"] },
-          "event_id": { "type": ["integer", "null"], "format": "int32" },
-          "id": { "type": "integer", "format": "int32" },
-          "meeting_url": { "type": "string" },
-          "mp4_s3_path": { "type": "string" },
-          "reserved": { "type": "boolean" },
-          "scheduled_bot_id": {
-            "type": ["integer", "null"],
+          "account_id": {
+            "type": "integer",
             "format": "int32"
           },
-          "session_id": { "type": ["string", "null"] },
-          "uuid": { "type": "string", "format": "uuid" }
+          "bot_param_id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/DateTime"
+          },
+          "diarization_v2": {
+            "type": "boolean"
+          },
+          "ended_at": {
+            "$ref": "#/components/schemas/OptionalDateTime"
+          },
+          "errors": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "event_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "meeting_url": {
+            "type": "string"
+          },
+          "mp4_s3_path": {
+            "type": "string"
+          },
+          "reserved": {
+            "type": "boolean"
+          },
+          "scheduled_bot_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "session_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "uuid": {
+            "type": "string",
+            "format": "uuid"
+          }
         }
       },
       "BotData": {
         "type": "object",
-        "required": ["bot", "transcripts"],
+        "required": [
+          "bot",
+          "transcripts"
+        ],
         "properties": {
-          "bot": { "$ref": "#/components/schemas/BotWithParams" },
+          "bot": {
+            "$ref": "#/components/schemas/BotWithParams"
+          },
           "transcripts": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Transcript" }
-          }
-        }
-      },
-      "BotIdParam": {
-        "description": "Bot ID path parameter for API endpoints (uses database ID) This parameter is for internal use only and not exposed in public API",
-        "type": "object",
-        "required": ["bot_id"],
-        "properties": {
-          "bot_id": {
-            "description": "The bot ID",
-            "type": "integer",
-            "format": "int32"
+            "items": {
+              "$ref": "#/components/schemas/Transcript"
+            }
           }
         }
       },
       "BotPagined": {
         "type": "object",
-        "required": ["bots", "has_more"],
+        "required": [
+          "bots",
+          "has_more"
+        ],
         "properties": {
           "bots": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Bot" }
+            "items": {
+              "$ref": "#/components/schemas/Bot"
+            }
           },
-          "has_more": { "type": "boolean" }
+          "has_more": {
+            "type": "boolean"
+          }
         }
       },
       "BotParam": {
         "type": "object",
-        "required": ["bot_name", "extra", "webhook_url"],
+        "required": [
+          "bot_name",
+          "extra",
+          "webhook_url"
+        ],
         "properties": {
-          "bot_image": { "type": ["string", "null"] },
-          "bot_name": { "type": "string" },
-          "deduplication_key": { "type": ["string", "null"] },
-          "enter_message": { "type": ["string", "null"] },
-          "extra": { "$ref": "#/components/schemas/Extra" },
+          "bot_image": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "bot_name": {
+            "type": "string"
+          },
+          "deduplication_key": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "enter_message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "extra": {
+            "$ref": "#/components/schemas/Extra"
+          },
           "noone_joined_timeout": {
-            "type": ["integer", "null"],
+            "type": [
+              "integer",
+              "null"
+            ],
             "format": "int32"
           },
           "recording_mode": {
             "anyOf": [
-              { "$ref": "#/components/schemas/RecordingMode" },
-              { "type": "null" }
+              {
+                "$ref": "#/components/schemas/RecordingMode"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
-          "speech_to_text_api_key": { "type": ["string", "null"] },
+          "speech_to_text_api_key": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "speech_to_text_provider": {
             "anyOf": [
-              { "$ref": "#/components/schemas/SpeechToTextProvider" },
-              { "type": "null" }
+              {
+                "$ref": "#/components/schemas/SpeechToTextProvider"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "streaming_audio_frequency": {
             "anyOf": [
-              { "$ref": "#/components/schemas/AudioFrequency" },
-              { "type": "null" }
+              {
+                "$ref": "#/components/schemas/AudioFrequency"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
-          "streaming_input": { "type": ["string", "null"] },
-          "streaming_output": { "type": ["string", "null"] },
+          "streaming_input": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "streaming_output": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "waiting_room_timeout": {
-            "type": ["integer", "null"],
+            "type": [
+              "integer",
+              "null"
+            ],
             "format": "int32"
           },
-          "webhook_url": { "type": "string" }
+          "webhook_url": {
+            "type": "string"
+          },
+          "zoom_sdk_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zoom_sdk_pwd": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "BotParam2": {
         "type": "object",
-        "required": ["bot_name", "extra"],
+        "required": [
+          "bot_name",
+          "extra"
+        ],
         "properties": {
-          "bot_image": { "type": ["string", "null"] },
-          "bot_name": { "type": "string" },
-          "deduplication_key": { "type": ["string", "null"] },
-          "enter_message": { "type": ["string", "null"] },
-          "extra": { "$ref": "#/components/schemas/Extra" },
+          "bot_image": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "bot_name": {
+            "type": "string"
+          },
+          "deduplication_key": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "enter_message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "extra": {
+            "$ref": "#/components/schemas/Extra"
+          },
           "noone_joined_timeout": {
-            "type": ["integer", "null"],
+            "type": [
+              "integer",
+              "null"
+            ],
             "format": "int32"
           },
           "recording_mode": {
             "anyOf": [
-              { "$ref": "#/components/schemas/RecordingMode" },
-              { "type": "null" }
+              {
+                "$ref": "#/components/schemas/RecordingMode"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "speech_to_text": {
             "anyOf": [
-              { "$ref": "#/components/schemas/SpeechToText" },
-              { "type": "null" }
+              {
+                "$ref": "#/components/schemas/SpeechToText"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "streaming_audio_frequency": {
             "anyOf": [
-              { "$ref": "#/components/schemas/AudioFrequency" },
-              { "type": "null" }
+              {
+                "$ref": "#/components/schemas/AudioFrequency"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
-          "streaming_input": { "type": ["string", "null"] },
-          "streaming_output": { "type": ["string", "null"] },
+          "streaming_input": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "streaming_output": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "waiting_room_timeout": {
-            "type": ["integer", "null"],
+            "type": [
+              "integer",
+              "null"
+            ],
             "format": "int32"
           },
-          "webhook_url": { "type": ["string", "null"] }
+          "webhook_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zoom_sdk_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zoom_sdk_pwd": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "BotParam3": {
         "type": "object",
         "properties": {
-          "bot_image": { "default": null, "type": ["string", "null"] },
-          "bot_name": { "type": ["string", "null"] },
-          "deduplication_key": { "default": null, "type": ["string", "null"] },
-          "enter_message": { "default": null, "type": ["string", "null"] },
-          "extra": { "default": null },
+          "bot_image": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "bot_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "deduplication_key": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "enter_message": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "extra": {
+            "default": null
+          },
           "noone_joined_timeout": {
             "default": null,
-            "type": ["integer", "null"],
+            "type": [
+              "integer",
+              "null"
+            ],
             "format": "int32"
           },
           "recording_mode": {
             "anyOf": [
               {
                 "anyOf": [
-                  { "$ref": "#/components/schemas/RecordingMode" },
-                  { "type": "null" }
+                  {
+                    "$ref": "#/components/schemas/RecordingMode"
+                  },
+                  {
+                    "type": "null"
+                  }
                 ]
               },
-              { "type": "null" }
+              {
+                "type": "null"
+              }
             ]
           },
           "speech_to_text": {
@@ -1000,11 +1493,17 @@
             "anyOf": [
               {
                 "anyOf": [
-                  { "$ref": "#/components/schemas/SpeechToText" },
-                  { "type": "null" }
+                  {
+                    "$ref": "#/components/schemas/SpeechToText"
+                  },
+                  {
+                    "type": "null"
+                  }
                 ]
               },
-              { "type": "null" }
+              {
+                "type": "null"
+              }
             ]
           },
           "streaming_audio_frequency": {
@@ -1012,21 +1511,61 @@
             "anyOf": [
               {
                 "anyOf": [
-                  { "$ref": "#/components/schemas/AudioFrequency" },
-                  { "type": "null" }
+                  {
+                    "$ref": "#/components/schemas/AudioFrequency"
+                  },
+                  {
+                    "type": "null"
+                  }
                 ]
               },
-              { "type": "null" }
+              {
+                "type": "null"
+              }
             ]
           },
-          "streaming_input": { "default": null, "type": ["string", "null"] },
-          "streaming_output": { "default": null, "type": ["string", "null"] },
+          "streaming_input": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "streaming_output": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "waiting_room_timeout": {
             "default": null,
-            "type": ["integer", "null"],
+            "type": [
+              "integer",
+              "null"
+            ],
             "format": "int32"
           },
-          "webhook_url": { "type": ["string", "null"] }
+          "webhook_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zoom_sdk_id": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zoom_sdk_pwd": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "BotWithParams": {
@@ -1047,84 +1586,224 @@
           "webhook_url"
         ],
         "properties": {
-          "account_id": { "type": "integer", "format": "int32" },
-          "bot_image": { "type": ["string", "null"] },
-          "bot_name": { "type": "string" },
-          "bot_param_id": { "type": "integer", "format": "int32" },
-          "created_at": { "$ref": "#/components/schemas/DateTime" },
-          "deduplication_key": { "type": ["string", "null"] },
-          "diarization_v2": { "type": "boolean" },
-          "ended_at": { "$ref": "#/components/schemas/OptionalDateTime" },
-          "enter_message": { "type": ["string", "null"] },
-          "errors": { "type": ["string", "null"] },
-          "event_id": { "type": ["integer", "null"], "format": "int32" },
-          "extra": { "$ref": "#/components/schemas/Extra" },
-          "id": { "type": "integer", "format": "int32" },
-          "meeting_url": { "type": "string" },
-          "mp4_s3_path": { "type": "string" },
+          "account_id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bot_image": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "bot_name": {
+            "type": "string"
+          },
+          "bot_param_id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "created_at": {
+            "$ref": "#/components/schemas/DateTime"
+          },
+          "deduplication_key": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "diarization_v2": {
+            "type": "boolean"
+          },
+          "ended_at": {
+            "$ref": "#/components/schemas/OptionalDateTime"
+          },
+          "enter_message": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "errors": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "event_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "extra": {
+            "$ref": "#/components/schemas/Extra"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "meeting_url": {
+            "type": "string"
+          },
+          "mp4_s3_path": {
+            "type": "string"
+          },
           "noone_joined_timeout": {
-            "type": ["integer", "null"],
+            "type": [
+              "integer",
+              "null"
+            ],
             "format": "int32"
           },
           "recording_mode": {
             "anyOf": [
-              { "$ref": "#/components/schemas/RecordingMode" },
-              { "type": "null" }
+              {
+                "$ref": "#/components/schemas/RecordingMode"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
-          "reserved": { "type": "boolean" },
+          "reserved": {
+            "type": "boolean"
+          },
           "scheduled_bot_id": {
-            "type": ["integer", "null"],
+            "type": [
+              "integer",
+              "null"
+            ],
             "format": "int32"
           },
-          "session_id": { "type": ["string", "null"] },
-          "speech_to_text_api_key": { "type": ["string", "null"] },
+          "session_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "speech_to_text_api_key": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "speech_to_text_provider": {
             "anyOf": [
-              { "$ref": "#/components/schemas/SpeechToTextProvider" },
-              { "type": "null" }
+              {
+                "$ref": "#/components/schemas/SpeechToTextProvider"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "streaming_audio_frequency": {
             "anyOf": [
-              { "$ref": "#/components/schemas/AudioFrequency" },
-              { "type": "null" }
+              {
+                "$ref": "#/components/schemas/AudioFrequency"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
-          "streaming_input": { "type": ["string", "null"] },
-          "streaming_output": { "type": ["string", "null"] },
-          "uuid": { "type": "string", "format": "uuid" },
+          "streaming_input": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "streaming_output": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "uuid": {
+            "type": "string",
+            "format": "uuid"
+          },
           "waiting_room_timeout": {
-            "type": ["integer", "null"],
+            "type": [
+              "integer",
+              "null"
+            ],
             "format": "int32"
           },
-          "webhook_url": { "type": "string" }
+          "webhook_url": {
+            "type": "string"
+          },
+          "zoom_sdk_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zoom_sdk_pwd": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "Calendar": {
         "type": "object",
-        "required": ["email", "google_id", "name", "uuid"],
+        "required": [
+          "email",
+          "google_id",
+          "name",
+          "uuid"
+        ],
         "properties": {
-          "email": { "type": "string" },
-          "google_id": { "type": "string" },
-          "name": { "type": "string" },
-          "resource_id": { "type": ["string", "null"] },
-          "uuid": { "type": "string", "format": "uuid" }
+          "email": {
+            "type": "string"
+          },
+          "google_id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "resource_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "uuid": {
+            "type": "string",
+            "format": "uuid"
+          }
         }
       },
       "CalendarListEntry": {
         "type": "object",
-        "required": ["email", "id", "is_primary"],
+        "required": [
+          "email",
+          "id",
+          "is_primary"
+        ],
         "properties": {
-          "email": { "type": "string" },
-          "id": { "type": "string" },
-          "is_primary": { "type": "boolean" }
+          "email": {
+            "type": "string"
+          },
+          "id": {
+            "type": "string"
+          },
+          "is_primary": {
+            "type": "boolean"
+          }
         }
       },
       "CalendarUuidParam": {
         "description": "Calendar UUID path parameter for API endpoints",
         "type": "object",
-        "required": ["calendar_uuid"],
+        "required": [
+          "calendar_uuid"
+        ],
         "properties": {
           "calendar_uuid": {
             "description": "The calendar UUID",
@@ -1141,34 +1820,62 @@
           "platform"
         ],
         "properties": {
-          "oauth_client_id": { "type": "string" },
-          "oauth_client_secret": { "type": "string" },
-          "oauth_refresh_token": { "type": "string" },
-          "platform": { "$ref": "#/components/schemas/Provider" },
-          "raw_calendar_id": { "type": ["string", "null"] }
+          "oauth_client_id": {
+            "type": "string"
+          },
+          "oauth_client_secret": {
+            "type": "string"
+          },
+          "oauth_refresh_token": {
+            "type": "string"
+          },
+          "platform": {
+            "$ref": "#/components/schemas/Provider"
+          },
+          "raw_calendar_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "CreateCalendarResponse": {
         "type": "object",
-        "required": ["calendar"],
+        "required": [
+          "calendar"
+        ],
         "properties": {
-          "calendar": { "$ref": "#/components/schemas/Calendar" }
+          "calendar": {
+            "$ref": "#/components/schemas/Calendar"
+          }
         }
       },
       "DailyTokenConsumption": {
         "type": "object",
-        "required": ["consumption_by_service", "date"],
+        "required": [
+          "consumption_by_service",
+          "date"
+        ],
         "properties": {
           "consumption_by_service": {
             "$ref": "#/components/schemas/TokenConsumptionByService"
           },
-          "date": { "type": "string" }
+          "date": {
+            "type": "string"
+          }
         }
       },
-      "DateTime": { "type": "string", "format": "date-time" },
+      "DateTime": {
+        "type": "string",
+        "format": "date-time"
+      },
       "DeleteResponse": {
         "type": "object",
-        "required": ["ok", "status"],
+        "required": [
+          "ok",
+          "status"
+        ],
         "properties": {
           "ok": {
             "description": "Whether the request was processed successfully",
@@ -1185,39 +1892,65 @@
           {
             "description": "All data was successfully deleted",
             "type": "string",
-            "enum": ["deleted"]
+            "enum": [
+              "deleted"
+            ]
           },
           {
             "description": "Some data was deleted, but other parts couldn't be removed",
             "type": "string",
-            "enum": ["partiallyDeleted"]
+            "enum": [
+              "partiallyDeleted"
+            ]
           },
           {
             "description": "No data needed to be deleted as it was already removed",
             "type": "string",
-            "enum": ["alreadyDeleted"]
+            "enum": [
+              "alreadyDeleted"
+            ]
           },
           {
             "description": "No data was found for the specified bot",
             "type": "string",
-            "enum": ["noDataFound"]
+            "enum": [
+              "noDataFound"
+            ]
           }
         ]
       },
       "EndMeetingQuery": {
         "type": "object",
-        "required": ["bot_uuid"],
-        "properties": { "bot_uuid": { "type": "string" } }
+        "required": [
+          "bot_uuid"
+        ],
+        "properties": {
+          "bot_uuid": {
+            "type": "string"
+          }
+        }
       },
       "EndMeetingTrampolineQuery": {
         "type": "object",
-        "required": ["bot_uuid"],
-        "properties": { "bot_uuid": { "type": "string" } }
+        "required": [
+          "bot_uuid"
+        ],
+        "properties": {
+          "bot_uuid": {
+            "type": "string"
+          }
+        }
       },
       "EndMeetingTrampolineRequest": {
         "type": "object",
-        "required": ["diarization_v2"],
-        "properties": { "diarization_v2": { "type": "boolean" } }
+        "required": [
+          "diarization_v2"
+        ],
+        "properties": {
+          "diarization_v2": {
+            "type": "boolean"
+          }
+        }
       },
       "Event": {
         "type": "object",
@@ -1239,16 +1972,25 @@
         "properties": {
           "attendees": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Attendee" }
+            "items": {
+              "$ref": "#/components/schemas/Attendee"
+            }
           },
           "bot_param": {
             "description": "Associated bot parameters if a bot is scheduled for this event",
             "anyOf": [
-              { "$ref": "#/components/schemas/BotParam" },
-              { "type": "null" }
+              {
+                "$ref": "#/components/schemas/BotParam"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
-          "calendar_uuid": { "type": "string", "format": "uuid" },
+          "calendar_uuid": {
+            "type": "string",
+            "format": "uuid"
+          },
           "deleted": {
             "description": "Indicates whether this event has been deleted",
             "type": "boolean"
@@ -1289,14 +2031,20 @@
           },
           "recurring_event_id": {
             "description": "For recurring events, the ID of the parent recurring event series (if applicable)",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "start_time": {
             "description": "The start time of the event in UTC timezone",
             "type": "string",
             "format": "date-time"
           },
-          "uuid": { "type": "string", "format": "uuid" }
+          "uuid": {
+            "type": "string",
+            "format": "uuid"
+          }
         }
       },
       "Extra": {
@@ -1305,89 +2053,185 @@
       },
       "FailedRecordRequest": {
         "type": "object",
-        "required": ["meeting_url", "message"],
+        "required": [
+          "meeting_url",
+          "message"
+        ],
         "properties": {
-          "meeting_url": { "type": "string" },
-          "message": { "type": "string" }
+          "meeting_url": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
         }
       },
       "GetAllBotsQuery": {
         "type": "object",
-        "required": ["limit", "offset"],
+        "required": [
+          "limit",
+          "offset"
+        ],
         "properties": {
-          "bot_id": { "type": ["string", "null"] },
+          "bot_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "end_date": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "partial-date-time"
           },
-          "limit": { "type": "integer", "format": "int32" },
-          "offset": { "type": "integer", "format": "int32" },
+          "limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "offset": {
+            "type": "integer",
+            "format": "int32"
+          },
           "start_date": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "partial-date-time"
           }
         }
       },
       "GetMeetingDataQuery": {
         "type": "object",
-        "required": ["bot_id"],
-        "properties": { "bot_id": { "type": "string" } }
+        "required": [
+          "bot_id"
+        ],
+        "properties": {
+          "bot_id": {
+            "type": "string"
+          }
+        }
       },
       "GetStartedAccount": {
         "type": "object",
-        "required": ["email"],
+        "required": [
+          "email"
+        ],
         "properties": {
-          "email": { "type": "string" },
-          "firstname": { "type": ["string", "null"] },
-          "google_token_id": { "type": ["string", "null"] },
-          "lastname": { "type": ["string", "null"] },
-          "microsoft_token_id": { "type": ["string", "null"] }
+          "email": {
+            "type": "string"
+          },
+          "firstname": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "google_token_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lastname": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "microsoft_token_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "GetWebhookUrlResponse": {
         "type": "object",
-        "properties": { "webhook_url": { "type": ["string", "null"] } }
+        "properties": {
+          "webhook_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
       },
       "GetstartedQuery": {
         "type": "object",
-        "properties": { "redirect_url": { "type": ["string", "null"] } }
+        "properties": {
+          "redirect_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
       },
       "JoinRequest": {
         "type": "object",
-        "required": ["bot_name", "meeting_url", "reserved"],
+        "required": [
+          "bot_name",
+          "meeting_url",
+          "reserved"
+        ],
         "properties": {
           "automatic_leave": {
             "description": "The bot will leave the meeting automatically after the timeout, defaults to 600 seconds.",
             "anyOf": [
-              { "$ref": "#/components/schemas/AutomaticLeaveRequest" },
-              { "type": "null" }
+              {
+                "$ref": "#/components/schemas/AutomaticLeaveRequest"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "bot_image": {
-            "description": "The image to use for the bot, must be a URL. Recommended ratio is 4:3.",
-            "type": ["string", "null"],
+            "description": "The image to use for the bot, must be a URL. Recommended ratio is 16:9.",
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "uri"
           },
-          "bot_name": { "type": "string" },
+          "bot_name": {
+            "type": "string"
+          },
           "deduplication_key": {
             "description": "We prevent multiple bots with same API key joining a meeting within 5 mins, unless overridden by deduplication_key.",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "entry_message": {
             "description": "There are no entry messages on Microsoft Teams as guests outside of an organization do not have access to the chat.",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "extra": {
-            "description": "A Json object that allows you to add custom data to a bot for your convenience, e.g. your end user's ID.",
+            "description": "A JSON object that allows you to add custom data to a bot for your convenience, e.g. your end user's ID.",
             "default": null,
             "$ref": "#/components/schemas/Extra"
           },
-          "meeting_url": { "type": "string" },
+          "meeting_url": {
+            "type": "string"
+          },
           "recording_mode": {
             "description": "The recording mode for the bot, defaults to 'speaker_view'.",
             "anyOf": [
-              { "$ref": "#/components/schemas/RecordingMode" },
-              { "type": "null" }
+              {
+                "$ref": "#/components/schemas/RecordingMode"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "reserved": {
@@ -1397,67 +2241,133 @@
           "speech_to_text": {
             "description": "The default speech to text provider is Gladia.",
             "anyOf": [
-              { "$ref": "#/components/schemas/SpeechToText" },
-              { "type": "null" }
+              {
+                "$ref": "#/components/schemas/SpeechToText"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "start_time": {
             "description": "Unix timestamp (in milliseconds) for when the bot should join the meeting. The bot joins 4 minutes before the start time.",
-            "type": ["integer", "null"],
+            "type": [
+              "integer",
+              "null"
+            ],
             "format": "uint64",
             "minimum": 0.0
           },
           "streaming": {
-            "description": "WebSocket streams for 16kHz audio. Input stream receives audio sent to the bot. Output stream receives audio from the bot.",
+            "description": "WebSocket streams for 16 kHz audio. Input stream receives audio sent to the bot. Output stream receives audio from the bot.",
             "anyOf": [
-              { "$ref": "#/components/schemas/StreamingApiParameter" },
-              { "type": "null" }
+              {
+                "$ref": "#/components/schemas/StreamingApiParameter"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
           "webhook_url": {
             "description": "A webhook URL to send events to, overrides the webhook URL set in your account settings.",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zoom_sdk_id": {
+            "description": "For the Own Zoom Credentials feature, we need your zoom sdk id.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zoom_sdk_pwd": {
+            "description": "For the Own Zoom Credentials feature, we need your zoom sdk pwd.",
+            "type": [
+              "string",
+              "null"
+            ]
           }
         },
         "additionalProperties": false
       },
       "JoinRequestScheduled": {
         "type": "object",
-        "required": ["bot_param_id", "meeting_url", "schedule_origin"],
+        "required": [
+          "bot_param_id",
+          "meeting_url",
+          "schedule_origin"
+        ],
         "properties": {
-          "bot_param_id": { "type": "integer", "format": "int32" },
-          "meeting_url": { "type": "string" },
-          "schedule_origin": { "$ref": "#/components/schemas/ScheduleOrigin" }
+          "bot_param_id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "meeting_url": {
+            "type": "string"
+          },
+          "schedule_origin": {
+            "$ref": "#/components/schemas/ScheduleOrigin"
+          }
         },
         "additionalProperties": false
       },
       "JoinResponse": {
         "type": "object",
-        "required": ["bot_id"],
-        "properties": { "bot_id": { "type": "string", "format": "uuid" } }
+        "required": [
+          "bot_id"
+        ],
+        "properties": {
+          "bot_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
       },
       "JoinResponse2": {
         "type": "object",
-        "required": ["bot_id"],
-        "properties": { "bot_id": { "type": "string", "format": "uuid" } }
+        "required": [
+          "bot_id"
+        ],
+        "properties": {
+          "bot_id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
       },
       "LeaveResponse": {
         "type": "object",
-        "required": ["ok"],
-        "properties": { "ok": { "type": "boolean" } }
+        "required": [
+          "ok"
+        ],
+        "properties": {
+          "ok": {
+            "type": "boolean"
+          }
+        }
       },
       "ListEventResponse": {
         "type": "object",
-        "required": ["data"],
+        "required": [
+          "data"
+        ],
         "properties": {
           "data": {
             "description": "Vector of calendar events matching the list criteria",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Event" }
+            "items": {
+              "$ref": "#/components/schemas/Event"
+            }
           },
           "next": {
             "description": "Optional url for fetching the next page of results if there are more results to fetch. The limit of events returned is 100. When None, there are no more results to fetch.",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       },
@@ -1470,19 +2380,31 @@
           "platform"
         ],
         "properties": {
-          "oauth_client_id": { "type": "string" },
-          "oauth_client_secret": { "type": "string" },
-          "oauth_refresh_token": { "type": "string" },
-          "platform": { "$ref": "#/components/schemas/Provider" }
+          "oauth_client_id": {
+            "type": "string"
+          },
+          "oauth_client_secret": {
+            "type": "string"
+          },
+          "oauth_refresh_token": {
+            "type": "string"
+          },
+          "platform": {
+            "$ref": "#/components/schemas/Provider"
+          }
         }
       },
       "ListRawCalendarsResponse": {
         "type": "object",
-        "required": ["calendars"],
+        "required": [
+          "calendars"
+        ],
         "properties": {
           "calendars": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/CalendarListEntry" }
+            "items": {
+              "$ref": "#/components/schemas/CalendarListEntry"
+            }
           }
         }
       },
@@ -1491,23 +2413,45 @@
         "properties": {
           "bot_name": {
             "description": "Filter bots by name containing this string.\n\nPerforms a case-insensitive partial match on the bot's name. Useful for finding bots with specific naming conventions or to locate a particular bot when you don't have its ID.\n\nExample: \"Sales\" would match \"Sales Meeting\", \"Quarterly Sales\", etc.",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "created_after": {
             "description": "Filter bots created after this date (ISO format).\n\nLimits results to bots created at or after the specified timestamp. Used for time-based filtering to find recent additions.\n\nFormat: ISO-8601 date-time string (YYYY-MM-DDThh:mm:ss) Example: \"2023-05-01T00:00:00\"",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "created_before": {
             "description": "Filter bots created before this date (ISO format).\n\nLimits results to bots created at or before the specified timestamp. Used for time-based filtering to exclude recent additions.\n\nFormat: ISO-8601 date-time string (YYYY-MM-DDThh:mm:ss) Example: \"2023-05-31T23:59:59\"",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "cursor": {
             "description": "Cursor for pagination, obtained from previous response.\n\nUsed for retrieving the next set of results after a previous call. The cursor value is returned in the `nextCursor` field of responses that have additional results available.\n\nFormat: Base64-encoded string containing pagination metadata",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ended_after": {
+            "description": "Filter bots ended after this date (ISO format).\n\nLimits results to bots that ended at or after the specified timestamp. Useful for finding completed meetings within a specific time period.\n\nFormat: ISO-8601 date-time string (YYYY-MM-DDThh:mm:ss) Example: \"2023-05-01T00:00:00\"",
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "filter_by_extra": {
             "description": "Filter bots by matching values in the extra JSON payload.\n\nThis parameter performs in-memory filtering on the `extra` JSON field, similar to a SQL WHERE clause. It reduces the result set to only include bots that match all specified conditions.\n\nFormat specifications: - Single condition: \"field:value\" - Multiple conditions: \"field1:value1,field2:value2\"\n\nExamples: - \"customer_id:12345\" - Only bots with this customer ID - \"status:active,project:sales\" - Only active bots from sales projects\n\nNotes: - All conditions must match for a bot to be included - Values are matched exactly (case-sensitive) - Bots without the specified field are excluded",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "limit": {
             "description": "Maximum number of bots to return in a single request.\n\nLimits the number of results returned in a single API call. This parameter helps control response size and page length.\n\nDefault: 10 Minimum: 1 Maximum: 50",
@@ -1517,61 +2461,114 @@
           },
           "meeting_url": {
             "description": "Filter bots by meeting URL containing this string.\n\nPerforms a case-insensitive partial match on the bot's meeting URL. Use this to find bots associated with specific meeting platforms or particular meeting IDs.\n\nExample: \"zoom.us\" would match all Zoom meetings",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "sort_by_extra": {
             "description": "Sort the results by a field in the extra JSON payload.\n\nThis parameter performs in-memory sorting on the `extra` JSON field, similar to a SQL ORDER BY clause. It changes the order of results but not which results are included.\n\nFormat specifications: - Default (ascending): \"field\" - Explicit direction: \"field:asc\" or \"field:desc\"\n\nExamples: - \"customer_id\" - Sort by customer_id (ascending) - \"priority:desc\" - Sort by priority (descending)\n\nNotes: - Applied after all filtering - String comparison is used for sorting - Bots with the field come before bots without it - Can be combined with filter_by_extra",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "speaker_name": {
             "description": "NOTE: this is a preview feature and not yet available\n\nFilter bots by speaker name containing this string.\n\nPerforms a case-insensitive partial match on the speakers in the meeting. Useful for finding meetings that included a specific person.\n\nExample: \"John\" would match meetings with speakers like \"John Smith\" or \"John Doe\"",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       },
       "ListRecentBotsResponse": {
         "type": "object",
-        "required": ["last_updated", "recent_bots"],
+        "required": [
+          "last_updated",
+          "recent_bots"
+        ],
         "properties": {
           "last_updated": {
-            "description": "Timestamp of when this data was generated",
+            "description": "Timestamp of when this data was generated (in ISO-8601 format)",
             "type": "string"
           },
           "next_cursor": {
             "description": "Cursor for fetching the next page, null if no more results",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "recent_bots": {
             "description": "List of recent bots with metadata",
             "type": "array",
-            "items": { "$ref": "#/components/schemas/RecentBotEntry" }
+            "items": {
+              "$ref": "#/components/schemas/RecentBotEntry"
+            }
           }
         }
       },
       "LoginAccount": {
         "type": "object",
-        "required": ["password", "pseudo"],
+        "required": [
+          "password",
+          "pseudo"
+        ],
         "properties": {
-          "app_signin_token": { "type": ["string", "null"] },
-          "google_chrome_token_id": { "type": ["string", "null"] },
-          "google_token_id": { "type": ["string", "null"] },
-          "microsoft_token_id": { "type": ["string", "null"] },
-          "password": { "type": "string" },
-          "pseudo": { "type": "string" }
+          "app_signin_token": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "google_chrome_token_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "google_token_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "microsoft_token_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "password": {
+            "type": "string"
+          },
+          "pseudo": {
+            "type": "string"
+          }
         }
       },
       "LoginQuery": {
         "type": "object",
-        "properties": { "redirect_url": { "type": ["string", "null"] } }
+        "properties": {
+          "redirect_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
       },
       "Metadata": {
         "type": "object",
-        "required": ["bot_data", "content_deleted", "duration", "mp4"],
+        "required": [
+          "bot_data",
+          "duration",
+          "mp4"
+        ],
         "properties": {
-          "bot_data": { "$ref": "#/components/schemas/BotData" },
-          "content_deleted": {
-            "description": "Indicates whether the recording has been deleted",
-            "type": "boolean"
+          "bot_data": {
+            "$ref": "#/components/schemas/BotData"
           },
           "duration": {
             "description": "Duration of the recording in seconds",
@@ -1579,29 +2576,49 @@
             "format": "int64"
           },
           "mp4": {
-            "description": "URL to access the recording MP4 file. Will be null if content has been deleted.",
+            "description": "URL to access the recording MP4 file. Will be an empty string if the file doesn't exist in S3.",
             "type": "string"
           }
         }
       },
-      "OptionalDateTime": { "type": ["string", "null"], "format": "date-time" },
+      "OptionalDateTime": {
+        "type": [
+          "string",
+          "null"
+        ],
+        "format": "date-time"
+      },
       "PostWebhookUrlRequest": {
         "type": "object",
-        "required": ["webhook_url"],
-        "properties": { "webhook_url": { "type": "string" } }
+        "required": [
+          "webhook_url"
+        ],
+        "properties": {
+          "webhook_url": {
+            "type": "string"
+          }
+        }
       },
       "Provider": {
         "description": "Fields with value `\"simple\"` parse as `Kind::Simple`. Fields with value `\"fancy\"` parse as `Kind::SoFancy`.",
         "type": "string",
-        "enum": ["Google", "Microsoft"]
+        "enum": [
+          "Google",
+          "Microsoft"
+        ]
       },
       "QueryListEvent": {
         "type": "object",
-        "required": ["calendar_id"],
+        "required": [
+          "calendar_id"
+        ],
         "properties": {
           "attendee_email": {
             "description": "If provided, filters events to include only those with this attendee's email address Example: \"jane.smith@example.com\"",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "calendar_id": {
             "description": "Calendar ID to filter events by This is required to specify which calendar's events to retrieve",
@@ -1609,27 +2626,45 @@
           },
           "cursor": {
             "description": "Optional cursor for pagination This value is included in the `next` field of the previous response",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "organizer_email": {
             "description": "If provided, filters events to include only those with this organizer's email address Example: \"john.doe@example.com\"",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "start_date_gte": {
             "description": "If provided, filters events to include only those with a start date greater than or equal to this timestamp Format: ISO-8601 string, e.g., \"2023-01-01T00:00:00Z\"",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "start_date_lte": {
             "description": "If provided, filters events to include only those with a start date less than or equal to this timestamp Format: ISO-8601 string, e.g., \"2023-12-31T23:59:59Z\"",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "status": {
             "description": "Filter events by meeting status Valid values: \"upcoming\" (default) returns events after current time, \"past\" returns previous events, \"all\" returns both",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "updated_at_gte": {
             "description": "If provided, fetches only events updated at or after this timestamp Format: ISO-8601 string, e.g., \"2023-01-01T00:00:00Z\"",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       },
@@ -1638,7 +2673,10 @@
         "properties": {
           "all_occurrences": {
             "description": "schedule a bot to all occurences of a recurring event",
-            "type": ["boolean", "null"]
+            "type": [
+              "boolean",
+              "null"
+            ]
           }
         }
       },
@@ -1647,7 +2685,10 @@
         "properties": {
           "all_occurrences": {
             "description": "schedule a bot to all occurences of a recurring event",
-            "type": ["boolean", "null"]
+            "type": [
+              "boolean",
+              "null"
+            ]
           }
         }
       },
@@ -1656,48 +2697,65 @@
         "properties": {
           "all_occurrences": {
             "description": "unschedule a bot from all occurences of a recurring event",
-            "type": ["boolean", "null"]
+            "type": [
+              "boolean",
+              "null"
+            ]
           }
         }
       },
       "ReceivedMessageQuery": {
         "type": "object",
-        "required": ["session_id"],
-        "properties": { "session_id": { "type": "string" } }
+        "required": [
+          "session_id"
+        ],
+        "properties": {
+          "session_id": {
+            "type": "string"
+          }
+        }
       },
       "RecentBotEntry": {
         "type": "object",
         "required": [
-          "content_deleted",
+          "bot_name",
           "created_at",
           "extra",
           "id",
           "meeting_url",
-          "name",
           "speakers"
         ],
         "properties": {
           "access_count": {
             "description": "Number of times this bot data has been accessed (if tracked)",
-            "type": ["integer", "null"],
+            "type": [
+              "integer",
+              "null"
+            ],
             "format": "int32"
           },
-          "content_deleted": {
-            "description": "Indicates whether the recording content has been deleted",
-            "type": "boolean"
+          "bot_name": {
+            "description": "Name of the bot",
+            "type": "string"
           },
           "created_at": {
-            "description": "Creation timestamp of the bot",
+            "description": "Creation timestamp of the bot in ISO-8601 format",
             "type": "string"
           },
           "duration": {
             "description": "Duration of the bot session in seconds (if completed)",
-            "type": ["integer", "null"],
+            "type": [
+              "integer",
+              "null"
+            ],
             "format": "int64"
           },
           "ended_at": {
-            "description": "End time of the bot session (if completed)",
-            "type": ["string", "null"]
+            "description": "End time of the bot session (if completed) in ISO-8601 format",
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "extra": {
             "description": "Extra custom data provided during bot creation",
@@ -1710,32 +2768,57 @@
           },
           "last_accessed_at": {
             "description": "Last time this bot data was accessed (if available)",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "meeting_url": {
             "description": "URL of the meeting the bot joined",
             "type": "string"
           },
-          "name": { "description": "Name of the bot", "type": "string" },
           "session_id": {
             "description": "Session ID if the bot is active",
-            "type": ["string", "null"]
+            "type": [
+              "string",
+              "null"
+            ]
           },
           "speakers": {
             "description": "List of unique speaker names from the bot's transcripts",
             "type": "array",
-            "items": { "type": "string" }
+            "items": {
+              "type": "string"
+            }
           }
         }
       },
       "RecognizerWord": {
         "type": "object",
-        "required": ["end_time", "start_time", "text"],
+        "required": [
+          "end_time",
+          "start_time",
+          "text"
+        ],
         "properties": {
-          "end_time": { "type": "number", "format": "double" },
-          "start_time": { "type": "number", "format": "double" },
-          "text": { "type": "string" },
-          "user_id": { "type": ["integer", "null"], "format": "int32" }
+          "end_time": {
+            "type": "number",
+            "format": "double"
+          },
+          "start_time": {
+            "type": "number",
+            "format": "double"
+          },
+          "text": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
         }
       },
       "RecordingMode": {
@@ -1744,23 +2827,32 @@
           {
             "description": "Records the active speaker view",
             "type": "string",
-            "enum": ["speaker_view"]
+            "enum": [
+              "speaker_view"
+            ]
           },
           {
             "description": "Records the gallery view showing multiple participants",
             "type": "string",
-            "enum": ["gallery_view"]
+            "enum": [
+              "gallery_view"
+            ]
           },
           {
             "description": "Records only the audio from the meeting",
             "type": "string",
-            "enum": ["audio_only"]
+            "enum": [
+              "audio_only"
+            ]
           }
         ]
       },
       "ResyncAllCalendarsResponse": {
         "type": "object",
-        "required": ["errors", "synced_calendars"],
+        "required": [
+          "errors",
+          "synced_calendars"
+        ],
         "properties": {
           "errors": {
             "description": "List of calendar UUIDs that failed to resync, with detailed error messages explaining the failure reason",
@@ -1768,8 +2860,13 @@
             "items": {
               "type": "array",
               "items": [
-                { "type": "string", "format": "uuid" },
-                { "type": "string" }
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "string"
+                }
               ],
               "maxItems": 2,
               "minItems": 2
@@ -1778,13 +2875,19 @@
           "synced_calendars": {
             "description": "List of calendar UUIDs that were successfully resynced with their calendar provider (Google, Microsoft)",
             "type": "array",
-            "items": { "type": "string", "format": "uuid" }
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         }
       },
       "ResyncAllResponse": {
         "type": "object",
-        "required": ["errors", "synced_calendars"],
+        "required": [
+          "errors",
+          "synced_calendars"
+        ],
         "properties": {
           "errors": {
             "description": "List of calendar UUIDs that failed to resync, with error messages",
@@ -1792,8 +2895,13 @@
             "items": {
               "type": "array",
               "items": [
-                { "type": "string", "format": "uuid" },
-                { "type": "string" }
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "string"
+                }
               ],
               "maxItems": 2,
               "minItems": 2
@@ -1802,90 +2910,191 @@
           "synced_calendars": {
             "description": "List of calendar UUIDs that were successfully resynced",
             "type": "array",
-            "items": { "type": "string", "format": "uuid" }
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
         }
       },
       "RetranscribeBody": {
         "type": "object",
-        "required": ["bot_uuid"],
+        "required": [
+          "bot_uuid"
+        ],
         "properties": {
-          "bot_uuid": { "type": "string" },
+          "bot_uuid": {
+            "type": "string"
+          },
           "speech_to_text": {
             "anyOf": [
-              { "$ref": "#/components/schemas/SpeechToText" },
-              { "type": "null" }
+              {
+                "$ref": "#/components/schemas/SpeechToText"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
-          "webhook_url": { "type": ["string", "null"] }
+          "webhook_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "RetryWebhookQuery": {
         "type": "object",
-        "required": ["bot_uuid"],
-        "properties": { "bot_uuid": { "type": "string" } }
+        "required": [
+          "bot_uuid"
+        ],
+        "properties": {
+          "bot_uuid": {
+            "type": "string"
+          }
+        }
       },
       "ScheduleOrigin": {
         "oneOf": [
           {
             "type": "object",
-            "required": ["Event"],
+            "required": [
+              "Event"
+            ],
             "properties": {
               "Event": {
                 "type": "object",
-                "required": ["id"],
-                "properties": { "id": { "type": "integer", "format": "int32" } }
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "format": "int32"
+                  }
+                }
               }
             },
             "additionalProperties": false
           },
           {
             "type": "object",
-            "required": ["ScheduledBot"],
+            "required": [
+              "ScheduledBot"
+            ],
             "properties": {
               "ScheduledBot": {
                 "type": "object",
-                "required": ["id"],
-                "properties": { "id": { "type": "integer", "format": "int32" } }
+                "required": [
+                  "id"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "integer",
+                    "format": "int32"
+                  }
+                }
               }
             },
             "additionalProperties": false
           }
         ]
       },
+      "ScreenshotWrapper": {
+        "description": "Schema-compatible wrapper for the Screenshot struct",
+        "type": "object",
+        "required": [
+          "date",
+          "url"
+        ],
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        }
+      },
+      "ScreenshotsList": {
+        "description": "Wrapper struct for Screenshots list that implements JsonSchema",
+        "type": "array",
+        "items": {
+          "$ref": "#/components/schemas/ScreenshotWrapper"
+        }
+      },
       "SpeechToText": {
         "anyOf": [
-          { "$ref": "#/components/schemas/SpeechToTextApiParameter" },
-          { "$ref": "#/components/schemas/SpeechToTextProvider" }
+          {
+            "$ref": "#/components/schemas/SpeechToTextApiParameter"
+          },
+          {
+            "$ref": "#/components/schemas/SpeechToTextProvider"
+          }
         ]
       },
       "SpeechToTextApiParameter": {
         "type": "object",
-        "required": ["provider"],
+        "required": [
+          "provider"
+        ],
         "properties": {
-          "api_key": { "type": ["string", "null"] },
-          "provider": { "$ref": "#/components/schemas/SpeechToTextProvider" }
+          "api_key": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "provider": {
+            "$ref": "#/components/schemas/SpeechToTextProvider"
+          }
         }
       },
       "SpeechToTextProvider": {
         "type": "string",
-        "enum": ["Gladia", "Runpod", "Default"]
+        "enum": [
+          "Gladia",
+          "Runpod",
+          "Default"
+        ]
       },
       "StartRecordFailedQuery": {
         "type": "object",
-        "properties": { "bot_uuid": { "type": ["string", "null"] } }
+        "properties": {
+          "bot_uuid": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
       },
       "StreamingApiParameter": {
         "type": "object",
         "properties": {
           "audio_frequency": {
             "anyOf": [
-              { "$ref": "#/components/schemas/AudioFrequency" },
-              { "type": "null" }
+              {
+                "$ref": "#/components/schemas/AudioFrequency"
+              },
+              {
+                "type": "null"
+              }
             ]
           },
-          "input": { "type": ["string", "null"] },
-          "output": { "type": ["string", "null"] }
+          "input": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "output": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
         }
       },
       "SyncResponse": {
@@ -1893,19 +3102,31 @@
         "properties": {
           "affected_event_uuids": {
             "description": "UUIDs of affected events",
-            "type": ["array", "null"],
-            "items": { "type": "string", "format": "uuid" }
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
           },
           "has_updates": {
             "description": "timestamp of last updated event if some events has been updated.",
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "date-time"
           }
         }
       },
       "SystemTime": {
         "type": "object",
-        "required": ["nanos_since_epoch", "secs_since_epoch"],
+        "required": [
+          "nanos_since_epoch",
+          "secs_since_epoch"
+        ],
         "properties": {
           "nanos_since_epoch": {
             "type": "integer",
@@ -1934,79 +3155,245 @@
           "transcription_tokens"
         ],
         "properties": {
-          "duration": { "type": "string" },
-          "recording_tokens": { "type": "string" },
-          "streaming_input_hour": { "type": "string" },
-          "streaming_input_tokens": { "type": "string" },
-          "streaming_output_hour": { "type": "string" },
-          "streaming_output_tokens": { "type": "string" },
-          "transcription_byok_hour": { "type": "string" },
-          "transcription_byok_tokens": { "type": "string" },
-          "transcription_hour": { "type": "string" },
-          "transcription_tokens": { "type": "string" }
+          "duration": {
+            "type": "string"
+          },
+          "recording_tokens": {
+            "type": "string"
+          },
+          "streaming_input_hour": {
+            "type": "string"
+          },
+          "streaming_input_tokens": {
+            "type": "string"
+          },
+          "streaming_output_hour": {
+            "type": "string"
+          },
+          "streaming_output_tokens": {
+            "type": "string"
+          },
+          "transcription_byok_hour": {
+            "type": "string"
+          },
+          "transcription_byok_tokens": {
+            "type": "string"
+          },
+          "transcription_hour": {
+            "type": "string"
+          },
+          "transcription_tokens": {
+            "type": "string"
+          }
         }
       },
       "TokenConsumptionQuery": {
         "type": "object",
-        "required": ["end_date", "start_date"],
+        "required": [
+          "end_date",
+          "start_date"
+        ],
         "properties": {
-          "end_date": { "type": "string", "format": "partial-date-time" },
-          "start_date": { "type": "string", "format": "partial-date-time" }
+          "end_date": {
+            "type": "string",
+            "format": "partial-date-time"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "partial-date-time"
+          }
         }
       },
       "Transcript": {
         "type": "object",
-        "required": ["bot_id", "id", "speaker", "start_time", "words"],
+        "required": [
+          "bot_id",
+          "id",
+          "speaker",
+          "start_time",
+          "words"
+        ],
         "properties": {
-          "bot_id": { "type": "integer", "format": "int32" },
-          "end_time": { "type": ["number", "null"], "format": "double" },
-          "id": { "type": "integer", "format": "int32" },
-          "lang": { "type": ["string", "null"] },
-          "speaker": { "type": "string" },
-          "start_time": { "type": "number", "format": "double" },
-          "user_id": { "type": ["integer", "null"], "format": "int32" },
+          "bot_id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "end_time": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lang": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "speaker": {
+            "type": "string"
+          },
+          "start_time": {
+            "type": "number",
+            "format": "double"
+          },
+          "user_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
           "words": {
             "type": "array",
-            "items": { "$ref": "#/components/schemas/Word" }
+            "items": {
+              "$ref": "#/components/schemas/Word"
+            }
           }
         }
       },
       "Transcript2": {
         "type": "object",
-        "required": ["bot_id", "speaker", "start_time"],
+        "required": [
+          "bot_id",
+          "speaker",
+          "start_time"
+        ],
         "properties": {
-          "bot_id": { "type": "integer", "format": "int32" },
-          "end_time": { "type": ["number", "null"], "format": "double" },
-          "lang": { "type": ["string", "null"] },
-          "speaker": { "type": "string" },
-          "start_time": { "type": "number", "format": "double" },
-          "user_id": { "type": ["integer", "null"], "format": "int32" }
+          "bot_id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "end_time": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "lang": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "speaker": {
+            "type": "string"
+          },
+          "start_time": {
+            "type": "number",
+            "format": "double"
+          },
+          "user_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
         }
       },
       "Transcript3": {
         "type": "object",
-        "required": ["bot_id", "id", "speaker", "start_time"],
+        "required": [
+          "bot_id",
+          "id",
+          "speaker",
+          "start_time"
+        ],
         "properties": {
-          "bot_id": { "type": "integer", "format": "int32" },
-          "end_time": { "type": ["number", "null"], "format": "double" },
-          "id": { "type": "integer", "format": "int32" },
-          "lang": { "type": ["string", "null"] },
-          "speaker": { "type": "string" },
-          "start_time": { "type": "number", "format": "double" },
-          "user_id": { "type": ["integer", "null"], "format": "int32" }
+          "bot_id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "end_time": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lang": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "speaker": {
+            "type": "string"
+          },
+          "start_time": {
+            "type": "number",
+            "format": "double"
+          },
+          "user_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
         }
       },
       "Transcript4": {
         "type": "object",
-        "required": ["id"],
+        "required": [
+          "id"
+        ],
         "properties": {
-          "bot_id": { "type": ["integer", "null"], "format": "int32" },
-          "end_time": { "type": ["number", "null"], "format": "double" },
-          "id": { "type": "integer", "format": "int32" },
-          "lang": { "type": ["string", "null"] },
-          "speaker": { "type": ["string", "null"] },
-          "start_time": { "type": ["number", "null"], "format": "double" },
-          "user_id": { "type": ["integer", "null"], "format": "int32" }
+          "bot_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          },
+          "end_time": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "lang": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "speaker": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "start_time": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "format": "double"
+          },
+          "user_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
         }
       },
       "UpdateCalendarParams": {
@@ -2018,56 +3405,119 @@
           "platform"
         ],
         "properties": {
-          "oauth_client_id": { "type": "string" },
-          "oauth_client_secret": { "type": "string" },
-          "oauth_refresh_token": { "type": "string" },
-          "platform": { "$ref": "#/components/schemas/Provider" }
+          "oauth_client_id": {
+            "type": "string"
+          },
+          "oauth_client_secret": {
+            "type": "string"
+          },
+          "oauth_refresh_token": {
+            "type": "string"
+          },
+          "platform": {
+            "$ref": "#/components/schemas/Provider"
+          }
         }
       },
       "UserTokensResponse": {
         "type": "object",
-        "required": ["available_tokens", "total_tokens_purchased"],
+        "required": [
+          "available_tokens",
+          "total_tokens_purchased"
+        ],
         "properties": {
-          "available_tokens": { "type": "string" },
+          "available_tokens": {
+            "type": "string"
+          },
           "last_purchase_date": {
-            "type": ["string", "null"],
+            "type": [
+              "string",
+              "null"
+            ],
             "format": "partial-date-time"
           },
-          "total_tokens_purchased": { "type": "string" }
+          "total_tokens_purchased": {
+            "type": "string"
+          }
         }
       },
       "UuidParam": {
         "description": "UUID path parameter for API endpoints",
         "type": "object",
-        "required": ["uuid"],
+        "required": [
+          "uuid"
+        ],
         "properties": {
-          "uuid": { "description": "The UUID identifier", "type": "string" }
+          "uuid": {
+            "description": "The UUID identifier",
+            "type": "string"
+          }
         }
       },
       "Version": {
         "type": "object",
-        "required": ["build_date", "build_timestamp", "location"],
+        "required": [
+          "build_date",
+          "build_timestamp",
+          "location"
+        ],
         "properties": {
-          "build_date": { "type": "string" },
-          "build_timestamp": { "type": "string" },
-          "location": { "type": "string" }
+          "build_date": {
+            "type": "string"
+          },
+          "build_timestamp": {
+            "type": "string"
+          },
+          "location": {
+            "type": "string"
+          }
         }
       },
       "Word": {
         "type": "object",
-        "required": ["bot_id", "end_time", "id", "start_time", "text"],
+        "required": [
+          "bot_id",
+          "end_time",
+          "id",
+          "start_time",
+          "text"
+        ],
         "properties": {
-          "bot_id": { "type": "integer", "format": "int32" },
-          "end_time": { "type": "number", "format": "double" },
-          "id": { "type": "integer", "format": "int32" },
-          "start_time": { "type": "number", "format": "double" },
-          "text": { "type": "string" },
-          "user_id": { "type": ["integer", "null"], "format": "int32" }
+          "bot_id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "end_time": {
+            "type": "number",
+            "format": "double"
+          },
+          "id": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "start_time": {
+            "type": "number",
+            "format": "double"
+          },
+          "text": {
+            "type": "string"
+          },
+          "user_id": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
         }
       }
     }
   },
-  "security": [{ "ApiKeyAuth": [] }],
+  "security": [
+    {
+      "ApiKeyAuth": []
+    }
+  ],
   "tags": [
     {
       "name": "Webhooks",
