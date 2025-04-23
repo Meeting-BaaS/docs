@@ -1,0 +1,206 @@
+---
+title: MCP on Vercel
+description: Cloud-based MCP server for Meeting BaaS integration deployable on Vercel
+icon: Cloud
+---
+
+# MCP on Vercel
+
+MCP on Vercel is a cloud-based [Model Context Protocol](https://github.com/anthropics/anthropic-model-context-protocol) server that powers the [chat.meetingbaas.com](https://chat.meetingbaas.com) interface. It's built on top of the Vercel MCP template with Meeting BaaS-specific modifications for meeting automation and management.
+
+<Card
+  icon={<Github />}
+  title="GitHub Repository"
+  href="https://github.com/Meeting-Baas/mcp-on-vercel"
+  description="Fork the repository to customize and deploy your own MCP server"
+  external
+/>
+
+## Features
+
+The MCP on Vercel server provides:
+
+<Cards>
+  <Card
+    title="Meeting BaaS SDK Integration"
+    icon={<Code className="text-blue-400" />}
+  >
+    Complete integration with the TypeScript SDK for seamless access to all
+    Meeting BaaS capabilities.
+  </Card>
+  <Card
+    title="Speaking Bot Support"
+    icon={<MessageSquare className="text-green-400" />}
+  >
+    Tools for managing AI-powered speaking agents with customizable personas.
+  </Card>
+  <Card
+    title="Calendar Integration"
+    icon={<Calendar className="text-purple-400" />}
+  >
+    Connect calendars and schedule automated meeting recordings with intelligent
+    controls.
+  </Card>
+  <Card
+    title="Serverless Architecture"
+    icon={<Cloud className="text-teal-400" />}
+  >
+    Optimized for deployment on Vercel with efficient resource usage and scaling
+    capabilities.
+  </Card>
+</Cards>
+
+## Prerequisites
+
+Before getting started, you'll need:
+
+- A [Vercel account](https://vercel.com)
+- A [Meeting BaaS API key](https://meetingbaas.com)
+- A Redis instance (for session management)
+- Node.js (v16+) for local development
+
+## Deployment Options
+
+<Tabs>
+  <Tab title="One-Click Deploy" value="one-click">
+    The fastest way to get started is to deploy directly to Vercel:
+    
+    <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FMeeting-Baas%2Fmcp-on-vercel&env=REDIS_URL&envDescription=Redis%20URL%20for%20session%20management" target="_blank">
+      <img src="https://vercel.com/button" alt="Deploy with Vercel" />
+    </a>
+    
+    You'll need to provide:
+    - A Redis URL for session management
+    - (Optional) Your Meeting BaaS API key for development
+
+  </Tab>
+  <Tab title="Manual Setup" value="manual">
+    For more control, you can fork the repository and set up manually:
+    
+    ```bash
+    # Clone the repository
+    git clone https://github.com/Meeting-Baas/mcp-on-vercel.git
+    cd mcp-on-vercel
+    
+    # Install dependencies
+    npm install
+    
+    # Configure environment variables
+    cp .env.example .env
+    # Edit .env with your Redis URL and API key
+    
+    # Deploy to Vercel
+    npx vercel --prod
+    ```
+
+  </Tab>
+</Tabs>
+
+## Environment Variables
+
+Configure the following environment variables in your Vercel project:
+
+| Variable       | Description                                  | Required |
+| -------------- | -------------------------------------------- | -------- |
+| `REDIS_URL`    | URL to your Redis instance                   | Yes      |
+| `NODE_ENV`     | Set to "development" for development mode    | No       |
+| `LOG_LEVEL`    | Logging level (defaults to "info")           | No       |
+| `BAAS_API_KEY` | Your Meeting BaaS API key (development only) | No       |
+
+## Authentication
+
+The server supports multiple ways to provide the Meeting BaaS API key:
+
+### Request Headers (in order of precedence)
+
+- `x-meeting-baas-api-key`
+- `x-meetingbaas-apikey`
+- `x-api-key`
+- `Authorization` (as a Bearer token)
+
+### Request Body (for POST requests)
+
+```json
+{
+  "apiKey": "your-api-key"
+}
+```
+
+### Environment Variable (development mode only)
+
+```
+BAAS_API_KEY=your-api-key
+```
+
+<Callout type="info">
+  In production, the API key should be provided through request headers or body.
+  The environment variable is only used in development mode for testing
+  purposes.
+</Callout>
+
+## Integration with Claude Desktop
+
+To use your MCP on Vercel server with Claude Desktop:
+
+1. Open Claude Desktop
+2. Go to Settings > Model Context Protocol
+3. Add a new MCP Server with:
+   - Name: Meeting BaaS (or any name you prefer)
+   - Server URL: Your deployed Vercel URL
+   - Headers: `x-api-key: YOUR_MEETING_BAAS_API_KEY`
+
+<Callout>
+  Make sure you have deployed your server to Vercel and it's accessible at the
+  URL you provide.
+</Callout>
+
+## Vercel-Specific Optimizations
+
+For best performance on Vercel:
+
+1. Enable Fluid Compute in your Vercel project settings
+2. Adjust max duration to 800 seconds in `vercel.json` if you're using a Vercel Pro or Enterprise account
+3. Ensure your Redis instance is in the same region as your Vercel deployment
+
+## Custom Development
+
+To customize the server for your specific needs:
+
+1. Update `api/server.ts` with your additional tools and resources
+2. Edit `lib/tools` to modify or extend existing Meeting BaaS tools
+3. Configure custom prompts in `lib/prompts`
+
+## Testing
+
+To test your server locally:
+
+```bash
+# Run the development server
+npm run dev
+
+# Test with the included client
+node scripts/test-client.mjs http://localhost:3000
+```
+
+## Learn More
+
+<Cards>
+  <Card
+    title="Meeting MCP"
+    icon={<Server />}
+    href="/docs/mcp-servers/meeting-mcp"
+  >
+    Explore the standalone MCP server alternative for local deployment.
+  </Card>
+  <Card title="TypeScript SDK" icon={<FileText />} href="/docs/typescript-sdk">
+    Learn about the Meeting BaaS SDK that powers this MCP server.
+  </Card>
+  <Card
+    title="MCP Specification"
+    icon={<ExternalLink />}
+    href="https://github.com/anthropics/anthropic-model-context-protocol"
+    external
+  >
+    Review the official Model Context Protocol documentation.
+  </Card>
+</Cards>

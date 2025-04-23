@@ -1,0 +1,127 @@
+---
+title: Getting Started
+description: Get started with Model Context Protocol servers for Meeting BaaS
+icon: Rocket
+---
+
+# Getting Started with MCP Servers
+
+This guide will help you get started with Model Context Protocol (MCP) servers for Meeting BaaS. MCP servers provide AI assistants like Claude with the ability to interact with Meeting BaaS services, enabling automation of meeting management, transcription, and analysis.
+
+## Choose Your MCP Server
+
+Meeting BaaS offers two MCP server implementations to fit different deployment needs:
+
+<Cards>
+  <Card
+    title="MCP on Vercel"
+    icon={<Cloud className="text-blue-400" />}
+    href="/docs/mcp-servers/mcp-on-vercel"
+  >
+    A cloud-based MCP server optimized for deployment on Vercel. Ideal for teams
+    who want a serverless deployment with minimal infrastructure management.
+  </Card>
+  <Card
+    title="Meeting MCP"
+    icon={<Server className="text-green-400" />}
+    href="/docs/mcp-servers/meeting-mcp"
+  >
+    A standalone MCP server for local deployment or self-hosting. Perfect for
+    teams who need maximum control over their infrastructure.
+  </Card>
+</Cards>
+
+## Prerequisites
+
+Before setting up an MCP server, you'll need:
+
+1. A [Meeting BaaS API key](https://meetingbaas.com)
+2. Node.js (v16 or later) for local development
+3. Access to an MCP client, such as [Claude Desktop](https://claude.ai/desktop) or Cursor
+
+## Quick Start Guide
+
+<Steps>
+  <Step title="Choose Your Deployment Method">
+    Decide whether you want to deploy on Vercel (cloud-based) or run a local server.
+
+    **Cloud-based (MCP on Vercel)**
+    - Managed infrastructure
+    - Simplified deployment
+    - Better for production scenarios
+
+    **Local (Meeting MCP)**
+    - Complete control
+    - Enhanced privacy
+    - Better for development and testing
+
+  </Step>
+
+  <Step title="Deploy Your MCP Server">
+    Follow the deployment instructions for your chosen server:
+
+    **MCP on Vercel**
+    - Fork the [MCP on Vercel repository](https://github.com/Meeting-Baas/mcp-on-vercel)
+    - Deploy to Vercel with a Redis instance
+    - Configure environment variables
+
+    **Meeting MCP**
+    - Clone the [Meeting MCP repository](https://github.com/Meeting-Baas/meeting-mcp)
+    - Run locally with `npm install` and `npm start`
+    - Configure with your API keys
+
+  </Step>
+
+  <Step title="Connect to an MCP Client">
+    Connect your MCP server to an MCP client such as Claude Desktop:
+
+    1. Open Claude Desktop
+    2. Go to Settings > Model Context Protocol
+    3. Add a new MCP Server with:
+       - Name: Meeting BaaS
+       - Server URL: Your deployed server URL or `http://localhost:7017/mcp` for local
+       - Headers: Add your Meeting BaaS API key with `x-api-key`
+
+  </Step>
+
+  <Step title="Test Your Connection">
+    Test your MCP server connection by asking Claude to perform a Meeting BaaS action:
+
+    ```
+    Can you list any recent meeting bots I have?
+    ```
+
+    or
+
+    ```
+    Help me set up a bot to join my upcoming Zoom meeting.
+    ```
+
+  </Step>
+</Steps>
+
+## Next Steps
+
+<Cards>
+  <Card
+    title="Set Up Calendar Integration"
+    icon={<Calendar />}
+    href="/docs/mcp-servers/getting-started/calendar-integration"
+  >
+    Integrate your Google or Microsoft calendar to automate meeting recordings.
+  </Card>
+  <Card
+    title="Configure Bot Settings"
+    icon={<Settings />}
+    href="/docs/mcp-servers/getting-started/bot-configuration"
+  >
+    Learn how to customize meeting bot settings for optimal performance.
+  </Card>
+  <Card
+    title="MCP Client Configuration"
+    icon={<Puzzle />}
+    href="/docs/mcp-servers/getting-started/client-configuration"
+  >
+    Configure different MCP clients to work with your Meeting BaaS servers.
+  </Card>
+</Cards>

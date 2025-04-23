@@ -1,0 +1,93 @@
+---
+title: Introduction
+description: Model Context Protocol servers for Meeting BaaS integration
+icon: ServerCog
+---
+
+## What is Model Context Protocol?
+
+The [Model Context Protocol (MCP)](https://github.com/anthropics/anthropic-model-context-protocol) is an open standard developed by Anthropic that enables AI assistants like Claude to securely connect with external data sources and tools. MCP provides a standardized way for AI models to:
+
+- Access data from various repositories
+- Use tools to take actions in external systems
+- Maintain context when working across different applications
+
+MCP follows a client-server architecture where AI assistants (clients) connect to lightweight servers that expose specific capabilities through a standardized interface.
+
+## Meeting BaaS MCP Servers
+
+Meeting BaaS offers two MCP server options to help you integrate AI capabilities with your meeting management:
+
+<Cards>
+  <Card
+    title="MCP on Vercel"
+    icon={<Cloud className="text-blue-400" />}
+    href="/docs/mcp-servers/mcp-on-vercel"
+  >
+    A cloud-based MCP server optimized for deployment on Vercel, providing AI
+    integration with Meeting BaaS services through a serverless architecture.
+  </Card>
+  <Card
+    title="Meeting MCP"
+    icon={<Server className="text-green-400" />}
+    href="/docs/mcp-servers/meeting-mcp"
+  >
+    A standalone MCP server for local deployment, offering comprehensive meeting
+    data management, transcript search, and bot control capabilities.
+  </Card>
+</Cards>
+
+## Key Capabilities
+
+Both MCP servers provide access to Meeting BaaS capabilities through standardized tools:
+
+<Accordions>
+  <Accordion title="Meeting Management" icon={<VideoIcon />} defaultOpen>
+    - Create and invite meeting bots to video conferences - Record and
+    transcribe meetings automatically - Manage speaking bots with different
+    personas - Configure recording settings and bot behavior
+  </Accordion>
+
+  <Accordion title="Calendar Integration" icon={<Calendar />}>
+    - Connect Google and Microsoft calendars - Schedule automated recordings of
+    upcoming meetings - Manage calendar events and recordings - Receive guidance
+    on OAuth setup and configuration
+  </Accordion>
+
+  <Accordion title="Transcript & Data Access" icon={<FileText />}>
+    - Search through meeting transcripts - Identify and share key moments from
+    meetings - Generate shareable links to specific meeting segments - Access
+    comprehensive meeting data and metadata
+  </Accordion>
+</Accordions>
+
+## MCP Client Integration
+
+These MCP servers can be integrated with various MCP clients:
+
+- **Claude Desktop**: Connect directly to your meetings and calendars through the Claude Desktop app
+- **Cursor**: Enable meeting access and management directly from your IDE
+- **Custom Applications**: Build your own MCP clients that leverage Meeting BaaS capabilities
+
+## Getting Started
+
+Choose the MCP server that best fits your needs:
+
+<Cards>
+  <Card
+    title="Deploy to Vercel"
+    icon={<ExternalLink />}
+    href="https://github.com/Meeting-Baas/mcp-on-vercel"
+  >
+    Fork and deploy the cloud-based MCP server to your Vercel account.
+  </Card>
+  <Card
+    title="Run Locally"
+    icon={<Terminal />}
+    href="https://github.com/Meeting-Baas/meeting-mcp"
+  >
+    Clone and run the standalone MCP server on your local machine.
+  </Card>
+</Cards>
+
+Both servers integrate with the [Meeting BaaS TypeScript SDK](/docs/typescript-sdk) to provide comprehensive coverage of all API capabilities.

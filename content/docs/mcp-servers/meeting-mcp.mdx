@@ -1,0 +1,321 @@
+---
+title: Meeting MCP
+description: Standalone MCP server for local deployment with Meeting BaaS integration
+icon: Server
+---
+
+# Meeting MCP
+
+Meeting MCP is a standalone [Model Context Protocol](https://github.com/anthropics/anthropic-model-context-protocol) server that provides AI assistants with access to Meeting BaaS data and capabilities. The server can be deployed locally or on your own infrastructure, making it ideal for use with Claude Desktop and other MCP clients.
+
+<Card
+  icon={<Github />}
+  title="GitHub Repository"
+  href="https://github.com/Meeting-Baas/meeting-mcp"
+  description="Clone the repository to deploy your own MCP server"
+  external
+/>
+
+## Features
+
+<Cards>
+  <Card title="Meeting Management" icon={<Video className="text-blue-400" />}>
+    Create, join, and manage meeting bots with automatic recording and
+    transcription.
+  </Card>
+  <Card title="Transcript Search" icon={<Search className="text-green-400" />}>
+    Search and analyze meeting transcripts for specific content or speakers.
+  </Card>
+  <Card
+    title="Calendar Integration"
+    icon={<Calendar className="text-purple-400" />}
+  >
+    Connect calendars and automatically schedule meeting recordings.
+  </Card>
+  <Card title="QR Code Generation" icon={<QrCode className="text-amber-400" />}>
+    Generate AI-powered QR code images that can be used as bot avatars.
+  </Card>
+  <Card
+    title="Key Moment Identification"
+    icon={<Clock className="text-teal-400" />}
+  >
+    Automatically identify and share important moments from meetings.
+  </Card>
+  <Card title="Link Sharing" icon={<Link className="text-indigo-400" />}>
+    Generate shareable links to meetings and specific timestamps.
+  </Card>
+  <Card title="Local Deployment" icon={<HardDrive className="text-red-400" />}>
+    Run completely on your own infrastructure for enhanced security and control.
+  </Card>
+</Cards>
+
+## Prerequisites
+
+Before getting started, you'll need:
+
+- Node.js (v16 or later)
+- npm
+- A [Meeting BaaS API key](https://meetingbaas.com)
+- (Optional) A QR Code AI API key for QR code generation
+
+## Installation
+
+<Steps>
+  <Step title="Clone the Repository">
+    ```bash git clone https://github.com/Meeting-Baas/meeting-mcp.git cd
+    meeting-mcp ```
+  </Step>
+  <Step title="Install Dependencies">```bash npm install ```</Step>
+  <Step title="Build the Project">```bash npm run build ```</Step>
+  <Step title="Start the Server">
+    ```bash npm run start ``` By default, the server runs on port 7017 and
+    exposes the MCP endpoint at http://localhost:7017/mcp.
+  </Step>
+</Steps>
+
+## Available Tools
+
+The server exposes several tools through the MCP protocol:
+
+<Accordions>
+  <Accordion title="Calendar Tools" icon={<Calendar />} defaultOpen>
+    - **oauthGuidance**: Get step-by-step instructions for setting up OAuth -
+    **listRawCalendars**: List available calendars before integration -
+    **setupCalendarOAuth**: Integrate a calendar using OAuth credentials -
+    **listCalendars**: List all integrated calendars - **getCalendar**: Get
+    detailed information about a specific calendar - **deleteCalendar**: Remove
+    a calendar integration - **resyncAllCalendars**: Force a refresh of all
+    connected calendars - **listUpcomingMeetings**: List upcoming meetings from
+    a calendar - **listEvents**: List calendar events with filtering options -
+    **getEvent**: Get detailed information about a specific event -
+    **scheduleRecording**: Schedule a bot to record an upcoming meeting -
+    **cancelRecording**: Cancel a previously scheduled recording -
+    **checkCalendarIntegration**: Diagnose calendar integration issues
+  </Accordion>
+
+<Accordion title="Meeting Tools" icon={<Video />}>
+  - **createBot**: Create a meeting bot that can join video conferences -
+  **getBots**: List all bots and their associated meetings -
+  **getBotsByMeeting**: Get bots for a specific meeting URL - **getRecording**:
+  Retrieve recording information - **getRecordingStatus**: Check the status of a
+  recording - **getMeetingData**: Get transcript and recording data
+</Accordion>
+
+<Accordion title="Transcript Tools" icon={<FileText />}>
+  - **getMeetingTranscript**: Get a complete meeting transcript with speaker
+  information - **findKeyMoments**: Automatically identify important moments in
+  a meeting
+</Accordion>
+
+<Accordion title="QR Code Tools" icon={<QrCode />}>
+  - **generateQRCode**: Create an AI-generated QR code image for use as a bot
+  avatar
+</Accordion>
+
+  <Accordion title="Link Sharing Tools" icon={<Link />}>
+    - **shareableMeetingLink**: Generate a formatted, shareable link to a
+    recording - **shareMeetingSegments**: Create links to multiple important
+    moments
+  </Accordion>
+</Accordions>
+
+## Authentication
+
+The server expects an API key in the `x-api-key` header for authentication. You can configure the default API key in the configuration file.
+
+Many tools also support direct authentication through parameters (named with "WithCredentials"), allowing you to provide the API key directly in the query rather than through headers.
+
+## Integration with Claude Desktop
+
+<Steps>
+  <Step title="Edit the Claude Desktop Configuration File">
+    ```bash
+    # On Mac/Linux
+    vim ~/Library/Application\ Support/Claude/claude_desktop_config.json
+    
+    # On Windows
+    notepad %APPDATA%\Claude\claude_desktop_config.json
+    ```
+  </Step>
+  
+  <Step title="Add the Meeting BaaS MCP Server Configuration">
+    ```json
+    {
+      "mcpServers": {
+        "meetingbaas": {
+          "command": "/bin/bash",
+          "args": [
+            "-c",
+            "cd /path/to/meeting-mcp && (npm run build 1>&2) && MCP_FROM_CLAUDE=true node dist/index.js"
+          ],
+          "headers": {
+            "x-api-key": "YOUR_API_KEY_FOR_MEETING_BAAS"
+          },
+          "botConfig": {
+            "name": "Meeting Assistant",
+            "image": "https://meetingbaas.com/static/972043b7d604bca0d4b0048c7dd67ad2/fc752/previewFeatures.avif",
+            "entryMessage": "Hello, I'm a bot from Meeting Baas. I'll be taking notes for this meeting.",
+            "deduplicationKey": "unique_key_to_override_restriction",
+            "nooneJoinedTimeout": 600,
+            "waitingRoomTimeout": 600,
+            "speechToTextProvider": "Gladia",
+            "speechToTextApiKey": "YOUR_SPEECH_TO_TEXT_API_KEY",
+            "extra": {
+              "meetingType": "sales",
+              "summaryPrompt": "Focus on action items and decision points",
+              "searchKeywords": ["budget", "timeline", "deliverables"]
+            }
+          }
+        }
+      }
+    }
+    ```
+    
+    <Callout>
+      Replace `/path/to/meeting-mcp` with the actual path to your local repository and `YOUR_API_KEY` with your actual Meeting BaaS API key.
+    </Callout>
+  </Step>
+  
+  <Step title="Restart Claude Desktop">
+    Close and reopen Claude Desktop to apply the changes.
+  </Step>
+</Steps>
+
+## QR Code API Key Configuration
+
+The QR code generator tool requires an API key from [QR Code AI API](https://www.qrcode-ai-api.com/). There are several ways to provide this:
+
+1. **Directly in the prompt**: Include your API key in the prompt when using the `generateQRCode` tool
+2. **As a parameter**: Provide your API key as the `apiKey` parameter
+3. **Environment variable**: Set the `QRCODE_API_KEY` environment variable
+4. **Claude Desktop config**: Add the API key to your Claude Desktop configuration file
+
+## Example Workflows
+
+<Tabs>
+  <Tab title="Recording a Meeting" value="recording">
+```
+# Create a bot for a meeting
+"Create a bot for my Zoom meeting at https://zoom.us/j/123456789"
+
+# Check recording status
+
+"What's the status of my meeting recording for the Zoom call I started earlier?"
+
+```
+  </Tab>
+  <Tab title="Calendar Integration" value="calendar">
+```
+
+# Get OAuth guidance
+
+"I want to integrate my Google Calendar. How do I get OAuth credentials?"
+
+# Set up calendar integration
+
+"Integrate my Google Calendar using these credentials:
+
+- Platform: Google
+- Client ID: my-client-id-123456789.apps.googleusercontent.com
+- Client Secret: my-client-secret-ABCDEF123456
+- Refresh Token: my-refresh-token-ABCDEF123456789
+- Raw Calendar ID: primary@gmail.com"
+
+# View upcoming meetings
+
+"Show me my upcoming meetings from calendar 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
+
+# Schedule recording
+
+"Schedule a recording for my team meeting with event ID 7a8b9c0d-1e2f-3a4b-5c6d-7e8f9a0b1c2d"
+
+```
+  </Tab>
+  <Tab title="Analyzing Content" value="analyzing">
+```
+
+# Get a meeting transcript
+
+"Get the transcript from my team meeting with bot ID abc-123"
+
+# Find key moments
+
+"Identify key moments from yesterday's product planning meeting with bot ID xyz-456"
+
+# Share a specific moment
+
+"Create a shareable link to the part of meeting abc-123 at timestamp 12:45 where John was talking about the budget"
+
+```
+  </Tab>
+  <Tab title="QR Code Generation" value="qrcode">
+```
+
+# Generate a QR code with contact information
+
+"Generate a QR code with the following parameters:
+
+- Type: email
+- To: john.doe@company.com
+- Prompt: Create a professional-looking QR code with abstract blue patterns
+- Style: style_crystal"
+
+# Use as a bot avatar
+
+"Join my Zoom meeting at https://zoom.us/j/123456789 with the following parameters:
+
+- Bot name: QR Code Assistant
+- Bot image: [URL from the generated QR code]
+- Entry message: Hello everyone, scan my avatar to get my contact information."
+
+````
+  </Tab>
+</Tabs>
+
+## Development
+
+For development purposes, you can:
+
+```bash
+# Run in development mode with auto-reload
+npm run dev
+
+# Test with MCP Inspector
+npm run inspect
+
+# Clean up logs
+npm run cleanup
+````
+
+## Project Structure
+
+- `src/index.ts`: Main entry point
+- `src/tools/`: Tool implementations
+- `src/resources/`: Resource definitions
+- `src/api/`: API client for the Meeting BaaS backend
+- `src/types/`: TypeScript type definitions
+- `src/config.ts`: Server configuration
+- `src/utils/`: Utility functions
+
+## Learn More
+
+<Cards>
+  <Card
+    title="MCP on Vercel"
+    icon={<Cloud />}
+    href="/docs/mcp-servers/mcp-on-vercel"
+  >
+    Explore the cloud-based alternative for deployment on Vercel.
+  </Card>
+  <Card title="TypeScript SDK" icon={<FileText />} href="/docs/typescript-sdk">
+    Learn about the Meeting BaaS SDK that powers this MCP server.
+  </Card>
+  <Card
+    title="MCP Specification"
+    icon={<ExternalLink />}
+    href="https://github.com/anthropics/anthropic-model-context-protocol"
+    external
+  >
+    Review the official Model Context Protocol documentation.
+  </Card>
+</Cards>
