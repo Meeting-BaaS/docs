@@ -1,3 +1,9 @@
 {
-  "pages": ["api", "transcript-seeker", "speaking-bots", "typescript-sdk"]
+  "pages": [
+    "api",
+    "transcript-seeker",
+    "speaking-bots",
+    "typescript-sdk",
+    "mcp-servers"
+  ]
 }
