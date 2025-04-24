@@ -6,6 +6,7 @@
 .content-collections
 .source
  content/llm/all.md
+ all.md
 
 # test & build
 /coverage

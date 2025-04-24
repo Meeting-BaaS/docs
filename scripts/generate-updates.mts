@@ -53,18 +53,23 @@ interface LLMModel {
 function getGitChanges(): { modified: string[]; untracked: string[] } {
   try {
     // Get modified files
-    const modifiedOutput = execSync('git diff --name-only HEAD').toString();
+    const modifiedOutput = execSync(
+      'git diff --name-only HEAD',
+      { maxBuffer: 10 * 1024 * 1024 }, // 10MB buffer limit
+    ).toString();
     const modified = modifiedOutput
       .split('\n')
       .filter(
         (file) =>
           file.startsWith('content/docs/api/reference/') &&
           file.endsWith('.mdx'),
-      );
+      )
+      .sort(); // Sort for consistent ordering
 
     // Get untracked files
     const untrackedOutput = execSync(
       'git ls-files --others --exclude-standard',
+      { maxBuffer: 10 * 1024 * 1024 }, // 10MB buffer limit
     ).toString();
     const untracked = untrackedOutput
       .split('\n')
@@ -72,7 +77,8 @@ function getGitChanges(): { modified: string[]; untracked: string[] } {
         (file) =>
           file.startsWith('content/docs/api/reference/') &&
           file.endsWith('.mdx'),
-      );
+      )
+      .sort(); // Sort for consistent ordering
 
     return { modified, untracked };
   } catch (error) {
@@ -332,6 +338,7 @@ ${Object.entries(changesByFolder)
   .map(([folder, files]) => {
     const folderDiff = execSync(
       `git diff -- ${files.map((f) => `"${f}"`).join(' ')}`,
+      { maxBuffer: 10 * 1024 * 1024 }, // 10MB buffer limit
     ).toString();
     return `
 ### ${folder.toUpperCase()} CHANGES
@@ -465,8 +472,9 @@ ${sanitizeForMdx(packageJsonDiff)}
       // Get git changes for SDK docs
       const gitStatus = execSync(
         `git diff --name-only -- ${sdkDocsPath}`,
+        { maxBuffer: 10 * 1024 * 1024 }, // 10MB buffer limit
       ).toString();
-      const changedFiles = gitStatus.split('\n').filter(Boolean);
+      const changedFiles = gitStatus.split('\n').filter(Boolean).sort(); // Sort for consistent ordering
 
       // Group changed files by folder
       const filesByFolder: Record<string, string[]> = {
@@ -543,6 +551,7 @@ ${Object.entries(filesByFolder)
   .map(([folder, files]) => {
     const folderDiff = execSync(
       `git diff -- ${files.map((f) => `"${f}"`).join(' ')}`,
+      { maxBuffer: 10 * 1024 * 1024 }, // 10MB buffer limit
     ).toString();
     return `
 ### ${folder.toUpperCase()} CHANGES
@@ -602,14 +611,20 @@ async function generateLLMUpdates(): Promise<string | null> {
     try {
       // Get all LLM content files
       const llmFiles = readdirSync(llmContentDir)
-        .filter((f) => f.endsWith('.md'))
+        .filter((f) => f.endsWith('.md') && f !== 'all.md') // Deliberately exclude all.md
+        .sort() // Sort files to ensure consistent ordering
         .map((f) => join(llmContentDir, f));
 
       // Get git status to see which files have changed
       const gitStatus = execSync(
         `git diff --name-only -- ${llmContentDir}`,
+        { maxBuffer: 10 * 1024 * 1024 }, // 10MB buffer limit
       ).toString();
-      const changedFiles = gitStatus.split('\n').filter(Boolean);
+      const changedFiles = gitStatus
+        .split('\n')
+        .filter(Boolean)
+        .filter((file) => !file.endsWith('/all.md')) // Deliberately exclude all.md
+        .sort(); // Sort changed files to ensure consistent ordering
 
       if (changedFiles.length === 0) {
         console.log('No changes detected in LLM content files');
@@ -652,6 +667,7 @@ This file contains raw git diff information that will be processed by an LLM.
         // For a single file change, focus on that file
         const singleFileDiff = execSync(
           `git diff -- "${singleFile}"`,
+          { maxBuffer: 10 * 1024 * 1024 }, // 10MB buffer limit
         ).toString();
         const fileExists = existsSync(singleFile);
         const fileContent = fileExists ? readFileSync(singleFile, 'utf-8') : '';
@@ -700,6 +716,7 @@ ${Object.entries(filesByService)
   .map(([service, files]) => {
     const serviceDiff = execSync(
       `git diff -- ${files.map((f) => `"${f}"`).join(' ')}`,
+      { maxBuffer: 10 * 1024 * 1024 }, // 10MB buffer limit
     ).toString();
     return `
 ### ${service.toUpperCase()} CHANGES

@@ -26,898 +26,6 @@ Expect a response within the day.
 
 ---
 
-## Introduction
-
-Deploy AI for video meetings through a single unified API.
-
-### Source: ./content/docs/api/index.mdx
-
-
-**Meeting BaaS** 🐟 provides _Meetings Bots As A Service_, with integrated transcription.
-
-This allows you to:
-
-1. **interact with**
-2. **transcribe**
-3. **AI summarize**
-
-video-meetings through a single unified API. Using Meeting BaaS, you can deploy bots on Microsoft Teams, Google Meet, and Zoom in less than 1 minute.
-
-Our meeting bots act as regular meeting participants with full audio and visual capabilities.
-
-They can listen, speak, use chat, and appear with customizable names and profile pictures.
-
-Just provide a meeting URL through a simple command, and meeting bots will connect to the meeting, give their name and ask to be let in.
-
-Once inside, they record the meeting until it ends, and provide you with the data as they go.
-
-
----
-
-## Getting the Data
-
-Learn how to receive meeting data through webhooks
-
-### Source: ./content/docs/api/getting-started/getting-the-data.mdx
-
-
-# Getting Meeting Data
-
-Your webhook URL will receive two types of data:
-
-1. Live meeting events during the meeting
-2. Final meeting data after completion
-
-These events will start flowing in after [sending a bot to a meeting](/docs/api/getting-started/sending-a-bot).
-
-## 1. Live Meeting Events
-
-```http
-POST /your-endpoint
-x-meeting-baas-api-key: YOUR-API-KEY
-
-{
-  "event": "bot.status_change",
-  "data": {
-    "bot_id": "123e4567-e89b-12d3-a456-426614174000",
-    "status": {
-      "code": "joining_call",
-      "created_at": "2024-01-01T12:00:00.000Z"
-    }
-  }
-}
-```
-
-### Status Event Fields
-
-- `event`: The key-value pair for bot status events. Always `bot.status_change`.
-- `data.bot_id`: The identifier of the bot.
-- `data.status.code`: The code of the event. One of:
-  - `joining_call`: The bot has acknowledged the request to join the call.
-  - `in_waiting_room`: The bot is in the "waiting room" of the meeting.
-  - `in_call_not_recording`: The bot has joined the meeting, however it is not recording yet.
-  - `in_call_recording`: The bot is in the meeting and recording the audio and video.
-  - `recording_paused`: The recording has been temporarily paused.
-  - `recording_resumed`: The recording has resumed after being paused.
-  - `call_ended`: The bot has left the call.
-  - `bot_rejected`: The bot was rejected from joining the meeting.
-  - `bot_removed`: The bot was removed from the meeting.
-  - `waiting_room_timeout`: The bot timed out while waiting to be admitted.
-  - `invalid_meeting_url`: The provided meeting URL was invalid.
-  - `meeting_error`: An unexpected error occurred during the meeting.
-- `data.status.created_at`: An ISO string of the datetime of the event.
-
-When receiving an `in_call_recording` event, additional data is provided:
-
-- `data.status.start_time`: The timestamp when the recording started.
-
-For `meeting_error` events, additional error details are provided:
-
-- `data.status.error_message`: A description of the error that occurred.
-- `data.status.error_type`: The type of error encountered.
-
-## 2. Final Meeting Data
-
-You'll receive either a `complete` or `failed` event.
-
-### Success Response (`complete`)
-
-```http
-POST /your-endpoint
-x-meeting-baas-api-key: YOUR-API-KEY
-
-{
-  "event": "complete",
-  "data": {
-    "bot_id": "123e4567-e89b-12d3-a456-426614174000",
-    "mp4": "https://bots-videos.s3.eu-west-3.amazonaws.com/path/to/video.mp4?X-Amz-Signature=...",
-    "speakers": ["Alice", "Bob"],
-    "transcript": [{
-      "speaker": "Alice",
-      "words": [{
-        "start": 1.3348110430839002,
-        "end": 1.4549110430839003,
-        "word": "Hi"
-      }, {
-        "start": 1.4549110430839003,
-        "end": 1.5750110430839004,
-        "word": "Bob!"
-      }]
-    }, {
-      "speaker": "Bob",
-      "words": [{
-        "start": 2.6583010430839,
-        "end": 2.778401043083901,
-        "word": "Hello"
-      }, {
-        "start": 2.778401043083901,
-        "end": 2.9185110430839005,
-        "word": "Alice!"
-      }]
-    }]
-  }
-}
-```
-
-<Callout type="warn" icon={<AlertTriangle className="h-5 w-5" />}>
-  **IMPORTANT**: The mp4 URL is a pre-signed AWS S3 URL that is only valid for 2
-  hours. Make sure to download the recording promptly or generate a new URL
-  through the API if needed.
-</Callout>
-
-#### Complete Response Fields
-
-- `bot_id`: The identifier of the bot.
-- `mp4`: A private AWS S3 URL of the mp4 recording of the meeting. Valid for two hours only.
-- `speakers`: The list of speakers in this meeting. Currently requires transcription to be enabled.
-- `transcript` (optional): The meeting transcript. Only given when `speech_to_text` is set when asking for a bot. An array containing:
-  - `transcript.speaker`: The speaker name.
-  - `transcript.words`: The list of words, each containing:
-    - `transcript.words.start`: The start time of the word
-    - `transcript.words.end`: The end time of the word
-    - `transcript.words.word`: The word itself
-
-### Failure Response (`failed`)
-
-```http
-POST /your-endpoint
-x-meeting-baas-api-key: YOUR-API-KEY
-
-{
-  "event": "failed",
-  "data": {
-    "bot_id": "123e4567-e89b-12d3-a456-426614174000",
-    "error": "CannotJoinMeeting"
-  }
-}
-```
-
-### Error Types
-
-| Error                 | Description                                                                                                                                                                                                    |
-| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| CannotJoinMeeting     | The bot could not join the meeting URL provided. In most cases, this is because the meeting URL was only accessible for logged-in users invited to the meeting.                                                |
-| TimeoutWaitingToStart | The bot has quit after waiting to be accepted. By default this is 10 minutes, configurable via `automatic_leave.waiting_room_timeout` or `automatic_leave.noone_joined_timeout` (both default to 600 seconds). |
-| BotNotAccepted        | The bot has been refused in the meeting.                                                                                                                                                                       |
-| BotRemoved            | The bot was removed from the meeting by a participant.                                                                                                                                                         |
-| InternalError         | An unexpected error occurred. Please contact us if the issue persists.                                                                                                                                         |
-| InvalidMeetingUrl     | The meeting URL provided is not a valid (Zoom, Meet, Teams) URL.                                                                                                                                               |
-
-### Recording End Reasons
-
-| Reason            | Description                                                     |
-| ----------------- | --------------------------------------------------------------- |
-| bot_removed       | Bot removed by participant                                      |
-| no_attendees      | No participants present                                         |
-| no_speaker        | Extended silence                                                |
-| recording_timeout | Maximum duration reached                                        |
-| api_request       | Bot [removed via API](/docs/api/getting-started/removing-a-bot) |
-| meeting_error     | An error occurred during the meeting (e.g., connection issues)  |
-
-
----
-
-## Removing a Bot
-
-Learn how to remove a bot from an ongoing meeting using the API
-
-### Source: ./content/docs/api/getting-started/removing-a-bot.mdx
-
-
-# Removing a Bot
-
-## Overview
-
-When you need to end a bot's participation in a meeting, you can use the API to remove it immediately. This is useful for:
-
-- Ending recordings early
-- Freeing up bot resources
-- Responding to meeting conclusion
-
-## API Request
-
-Send a DELETE request to `https://api.meetingbaas.com/bots/{YOUR_BOT_ID}`:
-
-<Tabs items={['Bash', 'Python', 'JavaScript']}>
-  <Tab value="Bash">
-    ```bash title="leave_meeting.sh"
-    curl -X DELETE "https://api.meetingbaas.com/bots/YOUR_BOT_ID" \
-         -H "Content-Type: application/json" \
-         -H "x-meeting-baas-api-key: YOUR-API-KEY"
-    ```
-  </Tab>
-  <Tab value="Python">
-    ```python title="leave_meeting.py"
-    import requests
-
-    bot_id = "YOUR_BOT_ID"
-    url = f"https://api.meetingbaas.com/bots/{bot_id}"
-    headers = {
-        "Content-Type": "application/json",
-        "x-meeting-baas-api-key": "YOUR-API-KEY",
-    }
-
-    response = requests.delete(url, headers=headers)
-    if response.status_code == 200:
-        print("Bot successfully removed from the meeting.")
-    else:
-        print("Failed to remove the bot:", response.json())
-    ```
-
-  </Tab>
-  <Tab value="JavaScript">
-    ```javascript title="leave_meeting.js"
-    const botId = "YOUR_BOT_ID";
-    fetch(`https://api.meetingbaas.com/bots/${botId}`, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        "x-meeting-baas-api-key": "YOUR-API-KEY",
-      },
-    })
-      .then((response) => {
-        if (response.ok) {
-          console.log("Bot successfully removed from the meeting.");
-        } else {
-          console.error("Failed to remove the bot:", response.statusText);
-        }
-      })
-      .catch((error) => console.error("Error:", error));
-    ```
-  </Tab>
-</Tabs>
-
-## Required Parameters
-
-- **Path Parameter**: `bot_id` - The unique identifier received when [sending the bot](/docs/api/getting-started/sending-a-bot)
-- **Header**: `x-meeting-baas-api-key` - Your API key for authentication
-
-Both parameters are mandatory for the request to succeed.
-
-## Response
-
-The API will respond with a simple confirmation:
-
-```http
-HTTP/2 200
-Content-Type: application/json
-
-{ "ok": true }
-```
-
-## What Happens Next
-
-When a bot is removed:
-
-1. The bot leaves the meeting immediately
-2. A `call_ended` status event is sent to your webhook
-3. The final meeting data up to that point is delivered
-
-For more details about these webhook events, see [Getting the Data](/docs/api/getting-started/getting-the-data).
-
-
----
-
-## Sending a bot
-
-Learn how to send AI bots to meetings through the Meeting BaaS API, with options for immediate or scheduled joining and customizable settings
-
-### Source: ./content/docs/api/getting-started/sending-a-bot.mdx
-
-
-# Sending a Bot to a Meeting
-
-You can summon a bot in two ways:
-
-1. **Immediately to a meeting**, provided your bot pool is sufficient.
-2. **Reserved join in 4 minutes**, ideal for scheduled meetings.
-
-## API Request
-
-Send a POST request to [https://api.meetingbaas.com/bots](https://api.meetingbaas.com/bots):
-
-<Tabs items={['Bash', 'Python', 'JavaScript']}>
-  <Tab value="Bash">
-    ```bash title="join_meeting.sh"
-    curl -X POST "https://api.meetingbaas.com/bots" \
-         -H "Content-Type: application/json" \
-         -H "x-meeting-baas-api-key: YOUR-API-KEY" \
-         -d '{
-               "meeting_url": "YOUR-MEETING-URL",
-               "bot_name": "AI Notetaker",
-               "recording_mode": "speaker_view",
-               "bot_image": "https://example.com/bot.jpg",
-               "entry_message": "I am a good meeting bot :)",
-               "reserved": false,
-               "speech_to_text": {
-                 "provider": "Default"
-               },
-               "automatic_leave": {
-                 "waiting_room_timeout": 600
-               }
-             }'
-    ```
-  </Tab>
-  <Tab value="Python">
-    ```python title="join_meeting.py"
-    import requests
-    url = "https://api.meetingbaas.com/bots"
-    headers = {
-        "Content-Type": "application/json",
-        "x-meeting-baas-api-key": "YOUR-API-KEY",
-    }
-    config = {
-        "meeting_url": "YOUR-MEETING-URL",
-        "bot_name": "AI Notetaker",
-        "recording_mode": "speaker_view",
-        "bot_image": "https://example.com/bot.jpg",
-        "entry_message": "I am a good meeting bot :)",
-        "reserved": False,
-        "speech_to_text": {
-            "provider": "Default"
-        },
-        "automatic_leave": {
-            "waiting_room_timeout": 600  # 10 minutes in seconds
-        }
-    }
-    response = requests.post(url, json=config, headers=headers)
-    print(response.json())
-    ```
-  </Tab>
-  <Tab value="JavaScript">
-    ```javascript title="join_meeting.js"
-    fetch("https://api.meetingbaas.com/bots", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-meeting-baas-api-key": "YOUR-API-KEY",
-      },
-      body: JSON.stringify({
-        meeting_url: "YOUR-MEETING-URL",
-        bot_name: "AI Notetaker",
-        reserved: false,
-        recording_mode: "speaker_view",
-        bot_image: "https://example.com/bot.jpg",
-        entry_message: "I am a good meeting bot :)",
-        speech_to_text: {
-          provider: "Default",
-        },
-        automatic_leave: {
-          waiting_room_timeout: 600,
-        },
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => console.log(data.bot_id))
-      .catch((error) => console.error("Error:", error));
-    ```
-  </Tab>
-</Tabs>
-
-## Request Parameters
-
-### Required Parameters
-
-- `meeting_url`: The meeting URL to join. Accepts Google Meet, Microsoft Teams or Zoom URLs.
-- `bot_name`: The display name of the bot.
-- `reserved`: Controls how the bot joins the meeting
-  - `false`: Sends a bot from our pool of _always ready_ meeting bots, immediately. Beware that **demand might temporarily be higher than the number of currently available bots**, which could imply a delay in the bot joining. When possible, prefer the true option which reserves an instance of an AI meeting bot.
-  - `true`: Reserves in advance a meeting bot for an upcoming meeting, ensuring the presence of the bot at the start of the meeting, typically for planned calendar events. You need to **call this route exactly 4 minutes before the start of the meeting**.
-
-### Recording Options
-
-- `recording_mode`: Optional. One of:
-  - `"speaker_view"`: (default) The recording will only show the person speaking at any time
-  - `"gallery_view"`: The recording will show all the speakers
-  - `"audio_only"`: The recording will be a mp3
-
-### Bot Appearance and Behavior
-
-- `bot_image`: The URL of the image the bot will display. Must be a valid URI format. Optional.
-- `entry_message`: Optional. The message the bot will write within 15 seconds after being accepted in the meeting.
-
-### Transcription Settings
-
-- `speech_to_text`: Optional. If not provided, no transcription will be generated and processing time will be faster.
-  - Must be an object with:
-    - `provider`: One of:
-      - `"Default"`: Standard transcription, no API key needed
-      - `"Gladia"` or `"Runpod"`: Requires their respective API key to be provided
-    - `api_key`: Required when using Gladia or Runpod providers. Must be a valid API key from the respective service.
-
-### Automatic Leaving
-
-- `automatic_leave`: Optional object containing:
-  - `waiting_room_timeout`: Time in seconds the bot will wait in a meeting room before dropping. Default is 600 (10 minutes)
-  - `noone_joined_timeout`: Time in seconds the bot will wait if no one joins the meeting
-
-### Advanced Options
-
-- `webhook_url`: URL for webhook notifications
-- `deduplication_key`: String for deduplication. By default, Meeting BaaS will reject you sending multiple bots to a same meeting within 5 minutes, to avoid spamming.
-- `streaming`: Object containing optional WebSocket streaming configuration:
-  - `audio_frequency`: Audio frequency for the WebSocket streams. Can be "16khz" or "24khz" (defaults to "24khz")
-  - `input`: WebSocket endpoint to receive raw audio bytes and speaker diarization as JSON strings from the meeting
-  - `output`: WebSocket endpoint to stream raw audio bytes back into the meeting, enabling bot speech
-- `extra`: Additional custom data
-- `start_time`: Unix timestamp (in milliseconds) for when the bot should join the meeting. The bot joins 4 minutes before this timestamp. For example, if you want the bot to join at exactly 2:00 PM, set this to the millisecond timestamp of 2:00 PM.
-
-## Response
-
-The API will respond with the unique identifier for your bot:
-
-```http
-HTTP/2 200
-Content-Type: application/json
-
-{
-  "bot_id": 42
-}
-```
-
-## Next Steps
-
-Use this `bot_id` to:
-
-- [Monitor the bot's status and receive meeting data](/docs/api/getting-started/getting-the-data)
-- [Remove the bot from the meeting](/docs/api/getting-started/removing-a-bot)
-
-
----
-
-## Syncing Calendars
-
-Learn how to sync calendars with the API, and automatically send meeting bots to the right place at the right time
-
-### Source: ./content/docs/api/getting-started/syncing-calendars.mdx
-
-
-# Calendar Synchronization
-
-<Callout type="info">
-  This page has been moved to a new location. You'll be automatically redirected
-  to [Calendar Synchronization](/docs/api/getting-started/calendars).
-</Callout>
-
-<meta
-  http-equiv="refresh"
-  content="0;url=/docs/api/getting-started/calendars"
-/>
-
-<script>window.location.href = "/docs/api/getting-started/calendars";</script>
-
-Meeting BaaS allows you to automatically sync calendars from Outlook and Google Workspace to deploy bots to scheduled meetings. This helps you automate recording and participation in meetings without manual intervention.
-
-<div className="grid grid-cols-1 gap-4 mt-6 md:grid-cols-2 lg:grid-cols-3">
-  <Card title="1. Calendar Sync Setup" href="/docs/api/getting-started/calendars/setup" icon={<ChevronRight className="w-4 h-4" />}>
-    Learn how to authenticate and set up calendar integrations with Google Workspace and Microsoft Outlook
-  </Card>
-
-<Card
-  title="2. Managing Calendar Events"
-  href="/docs/api/getting-started/calendars/events"
-  icon={<ChevronRight className="h-4 w-4" />}
->
-  Work with calendar events and schedule automated recordings for meetings
-</Card>
-
-  <Card title="3. Webhooks & Maintenance" href="/docs/api/getting-started/calendars/webhooks" icon={<ChevronRight className="w-4 h-4" />}>
-    Receive real-time updates, handle errors, and maintain your calendar integrations
-  </Card>
-</div>
-
-## Key Benefits
-
-- **Automated Bot Deployment**: Automatically send bots to meetings as they appear on calendars
-- **Multi-Calendar Support**: Connect to both Google Workspace and Microsoft Outlook calendars
-- **Real-Time Updates**: Receive webhook notifications when calendar events change
-- **Selective Recording**: Apply business logic to determine which meetings to record
-
-## Implementation Overview
-
-1. First, [set up calendar integrations](/docs/api/getting-started/calendars/setup) using OAuth authentication
-2. Then, [work with calendar events](/docs/api/getting-started/calendars/events) to schedule automated recordings
-3. Finally, [implement webhooks](/docs/api/getting-started/calendars/webhooks) to receive real-time updates and handle maintenance
-
-This modular approach allows you to implement each component at your own pace and focuses the documentation on specific aspects of the integration.
-
-
----
-
-## April 23rd, 2025
-
-Latest changes to the Meeting BaaS API
-
-### Source: ./content/docs/api/updates/api-update-2025-04-23.mdx
-
-
-import { Info } from 'lucide-react';
-
-<Callout type="info" icon={<Info className="h-5 w-5" />}>
-  Paris, April 23rd, 2025.
-</Callout>
-
-We're excited to announce several improvements to our API endpoints.
-
-## Bots
-
-### [GET /bots/with/metadata](/docs/api/reference/bots_with_metadata)
-
-Simplified and improved the bot listing endpoint:
-- Streamlined response format for better readability
-- Maintains all filtering capabilities (`meeting_url`, `bot_name`, `created_after/before`, `speaker_name`)
-- Supports advanced filtering and sorting through `filter_by_extra` and `sort_by_extra`
-- Returns essential metadata including IDs, names, and meeting details
-
-### [GET /bots/:uuid/screenshots](/docs/api/reference/get_screenshots)
-
-New endpoint to retrieve screenshots captured during a bot's session:
-- Access screenshots taken while trying to access meetings
-- Useful for monitoring and verification purposes
-- Part of our expanded bot monitoring capabilities
-
-## Webhooks
-
-### GET /webhooks/calendar/webhook/documentation
-
-Documentation improvements and parameter updates:
-- Updated parameter notation from `{uuid}` to `:uuid` for consistency with REST API standards
-- Clarified the `affected_event_uuids` field documentation
-- Enhanced integration examples with calendar events
-- All endpoint references now use `:parameter` notation
-
-## Implementation Timeline
-
-These changes will be live in production on April 24th, 2025. The updates focus on improving documentation clarity, adding new monitoring capabilities, and maintaining consistent API patterns across our endpoints.
-
-
----
-
-## Calendar API Enhancements
-
-Improved filtering, comprehensive event details, and calendar management
-
-### Source: ./content/docs/api/updates/calendar-api-enhancements.mdx
-
-
-<Callout type="info" icon={<Info className="h-5 w-5" />}>
-  Paris, the 2nd of March 2025.
-</Callout>
-
-We've expanded our Calendar API with new filtering capabilities and improved calendar management. These enhancements provide more flexibility when working with calendar events and integrations.
-
-## New Features
-
-### Enhanced Event Filtering
-
-The [`GET /calendar_events`](/docs/api/reference/calendars/list_events) endpoint now supports additional filtering parameters:
-
-- `attendeeEmail` - Filter events by attendee email address
-- `organizerEmail` - Filter events by organizer email address
-- `startDateGte` - Filter events with start date greater than or equal to timestamp
-- `startDateLte` - Filter events with start date less than or equal to timestamp
-- `status` - Filter by meeting status (`upcoming`, `past`, or `all`)
-
-### Improved Attendee Information
-
-The `Attendee` object now includes a `name` field that provides the display name of the attendee when available from the calendar provider (Google, Microsoft).
-
-## Migration Guide
-
-1. Update your API clients to take advantage of the new filtering parameters
-
-## Related Updates
-
-- [Calendar API Update](/docs/api/updates/calendar-api-update) - Previous calendar API enhancements
-- [Retranscribe Route](/docs/api/updates/retranscribe-route) - Information about the retranscribe endpoint
-
-
----
-
-## Calendar API Update
-
-New webhooks, events, and pagination updates
-
-### Source: ./content/docs/api/updates/calendar-api-update.mdx
-
-
-<Callout type="info" icon={<Info className="h-5 w-5" />}>
-  Paris, the 12th of December 2024.
-</Callout>
-
-We're excited to announce several improvements to our Calendar API endpoints. These changes include new features and some breaking changes.
-
-## New Features
-
-### Webhook Configuration Flexibility
-
-- The `webhook_url` parameter is now optional on [`POST /calendar`](/docs/api/reference/calendars/create_calendar) endpoint if a webhook URL is already configured on the account
-
-### Enhanced Event Information
-
-- [`GET /calendar_events`](/docs/api/reference/calendars/list_events) now includes attendees information for each event
-- [`GET /calendar_events/uuid`](/docs/api/reference/calendars/get_event) now returns the `calendar_id` of the event
-
-### Recurring Events Bot Management
-
-- New query parameter `all_occurrences` added to [`POST /calendar_events/uuid/bot`](/docs/api/reference/calendars/schedule_record_event)
-- Allows scheduling a bot for all instances of a recurring event
-- Same functionality added to [`DELETE /calendar_events/uuid/bot`](/docs/api/reference/calendars/unschedule_record_event)
-- Enables bot removal from all occurrences of a recurring event
-
-## Breaking Changes
-
-<Callout type="warn">
-### Bot Management Response Format
-
-- [`POST /calendar_events/uuid/bot`](/docs/api/reference/calendars/schedule_record_event) now returns an array of events instead of a single event
-- [`DELETE /calendar_events/uuid/bot`](/docs/api/reference/calendars/unschedule_record_event) now returns an array of events instead of a single event
-
-</Callout>
-
-<Callout type="warn">
-### Pagination Changes
-- [`GET /calendar_events`](/docs/api/reference/list_events) endpoint no longer supports `offset/limit` pagination
-- Implemented cursor-based pagination
-- Response format changed to include a `next` field for fetching subsequent events
-- Events are returned in batches of 100
-- Example response structure:
-  ````json
-  {
-    "events": [...],
-    "next": "cursor_token_for_next_page"
-  }
-  ````
-</Callout>
-## Migration Guide
-
-1. Update your pagination implementation to use the new cursor-based system
-2. Modify your bot management logic to handle arrays of events instead of single events
-3. Review any webhook configuration logic to take advantage of the new optional webhook_url parameter
-
-## Implementation Timeline
-
-These changes are now live in production.
-
-
----
-
-## Streaming and Client Updates
-
-New streaming formats, WebSocket configurations, and client improvements
-
-### Source: ./content/docs/api/updates/minor-streaming-zoom-and-microsoft-teams.mdx
-
-
-<Callout type="info" icon={<Info className="h-5 w-5" />}>
-  Paris, the 4th of January 2025.
-</Callout>
-
-We're excited to announce several improvements to our streaming API and client applications for Zoom, Microsoft Teams, and Google Meet. These updates enhance stability, performance, and functionality.
-
-## New Features
-
-### Streaming Format Specification
-
-- You can now specify the streaming format for WebSocket streams, 16kHz or 24kHz.
-- **audio_frequency**: The audio frequency for the WebSocket streams, defaults to 24kHz. Can be one of `16khz` or `24khz`.
-
-### Microsoft Teams Client Update
-
-- We've updated our Microsoft Teams client, reducing the number of bugs by 50%.
-- Now supports live Teams links, including Microsoft Live Meeting URLs (e.g., `https://teams.live.com/meet/...`).
-
-### Google Meet Client Update
-
-- We've updated our Google Meet client, reducing the number of bugs by 10%.
-
-### Zoom Client Update
-
-- Released an entirely new Zoom client. Currently, video capture isn't supported, but we plan to release this feature within the next two weeks.
-- Zoom is expected to be our most stable client.
-
-## Implementation Timeline
-
-These changes are now live in production.
-
-
----
-
-## Improvements & Retranscribe Route
-
-Teams/GMeet stability improvements and new transcription capabilities
-
-### Source: ./content/docs/api/updates/retranscribe-route.mdx
-
-
-<Callout type="info" icon={<Info className="h-5 w-5" />}>
-  **Paris**, the 27th of February 2025.
-</Callout>
-
-We're excited to announce significant improvements to our platform stability and the introduction of new API capabilities.
-
-## Platform Stability Improvements
-
-### Teams & Google Meet Enhancement
-
-- Complete engine rewrite for both Teams and Google Meet platforms
-- Migrated from Puppeteer to Playwright for improved stability
-- Significantly enhanced performance and reliability
-- Successfully tested with extended runtime (15+ hours) showing excellent stability
-
-## New API Features
-
-### New Retranscribe Endpoint
-
-- Introduced new [`POST /bots/retranscribe`](/docs/api/reference/retranscribe_bot) endpoint
-- Allows transcription or retranscription of a bot's audio
-- Supports both default and custom speech-to-text providers
-- Flexible webhook configuration for processing notifications
-
-### OCR Capabilities
-
-- Added Optical Character Recognition (OCR) inside bots for better detection of current meeting status
-- This will enable future features including:
-  - Sharing screenshots of meeting content
-  - OCR'ed content shared in meetings (for RAG and other AI-enhanced applications)
-- Improves bot awareness of visual meeting context
-
-### Join Endpoint Enhancement
-
-- Added `audio_only` parameter to [`POST /bots`](/docs/api/reference/join) endpoint
-- Enables audio-only participation in meetings
-- Optimized for scenarios requiring only audio capabilities
-
-## Implementation Details
-
-### Retranscribe API
-
-The new retranscribe endpoint accepts the following parameters:
-
-- `bot_uuid`: Identifier for the target bot
-- `provider`: Choice of speech-to-text provider
-- `webhook_url`: Optional callback URL for completion notifications
-
-<Callout type="info">
-  The retranscribe feature is particularly useful for:
-  - Improving existing transcriptions
-  
-  - Using different speech-to-text providers
-
-- Recovering from any transcription issues
-
-</Callout>
-
-## Future Enhancements
-
-We're actively working on expanding the capabilities of the retranscribe endpoint:
-
-- Additional speech-to-text providers will be supported in upcoming releases
-- Custom provider parameters will be exposed through a flexible JSON configuration field
-- This will enable fine-tuned control over transcription settings and provider-specific features
-
-## Migration Guide
-
-No breaking changes were introduced with these updates. All new features are additive and backward compatible with existing implementations.
-
-## Implementation Timeline
-
-These changes are now live in production and available for immediate use.
-
-
----
-
-## List Bots with Metadata
-
-### Source: ./content/docs/api/reference/bots_with_metadata.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-Retrieves a paginated list of the user's bots with essential metadata, including IDs, names, and meeting details. Supports filtering, sorting, and advanced querying options.
-
-<APIPage document={"./openapi.json"} operations={[{"path":"/bots/bots_with_metadata","method":"get"}]} webhooks={[]} hasHead={false} />
-
----
-
-## Delete Data
-
-### Source: ./content/docs/api/reference/delete_data.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-Deletes a bot's data including recording, transcription, and logs. Only metadata is retained. Rate limited to 5 requests per minute per API key.
-
-<APIPage document={"./openapi.json"} operations={[{"path":"/bots/{uuid}/delete_data","method":"post"}]} webhooks={[]} hasHead={false} />
-
----
-
-## Get Meeting Data
-
-### Source: ./content/docs/api/reference/get_meeting_data.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-Get meeting recording and metadata
-
-<APIPage document={"./openapi.json"} operations={[{"path":"/bots/meeting_data","method":"get"}]} webhooks={[]} hasHead={false} />
-
----
-
-## Get Screenshots
-
-### Source: ./content/docs/api/reference/get_screenshots.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-Retrieves screenshots captured during the bot's session
-
-<APIPage document={"./openapi.json"} operations={[{"path":"/bots/{uuid}/screenshots","method":"get"}]} webhooks={[]} hasHead={false} />
-
----
-
-## Join
-
-### Source: ./content/docs/api/reference/join.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-Have a bot join a meeting, now or in the future. You can provide a `webhook_url` parameter to receive webhook events specific to this bot, overriding your account's default webhook URL. Events include recording completion, failures, and transcription updates.
-
-<APIPage document={"./openapi.json"} operations={[{"path":"/bots/","method":"post"}]} webhooks={[]} hasHead={false} />
-
----
-
-## Leave
-
-### Source: ./content/docs/api/reference/leave.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-Leave
-
-<APIPage document={"./openapi.json"} operations={[{"path":"/bots/{uuid}","method":"delete"}]} webhooks={[]} hasHead={false} />
-
----
-
-## Retranscribe Bot
-
-### Source: ./content/docs/api/reference/retranscribe_bot.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-Transcribe or retranscribe a bot's audio using the Default or your provided Speech to Text Provider
-
-<APIPage document={"./openapi.json"} operations={[{"path":"/bots/retranscribe","method":"post"}]} webhooks={[]} hasHead={false} />
-
----
-
 ## Events
 
 Work with calendar events and schedule recordings
@@ -1684,6 +792,537 @@ Now that you understand webhooks and error handling:
 
 ---
 
+## Getting the Data
+
+Learn how to receive meeting data through webhooks
+
+### Source: ./content/docs/api/getting-started/getting-the-data.mdx
+
+
+# Getting Meeting Data
+
+Your webhook URL will receive two types of data:
+
+1. Live meeting events during the meeting
+2. Final meeting data after completion
+
+These events will start flowing in after [sending a bot to a meeting](/docs/api/getting-started/sending-a-bot).
+
+## 1. Live Meeting Events
+
+```http
+POST /your-endpoint
+x-meeting-baas-api-key: YOUR-API-KEY
+
+{
+  "event": "bot.status_change",
+  "data": {
+    "bot_id": "123e4567-e89b-12d3-a456-426614174000",
+    "status": {
+      "code": "joining_call",
+      "created_at": "2024-01-01T12:00:00.000Z"
+    }
+  }
+}
+```
+
+### Status Event Fields
+
+- `event`: The key-value pair for bot status events. Always `bot.status_change`.
+- `data.bot_id`: The identifier of the bot.
+- `data.status.code`: The code of the event. One of:
+  - `joining_call`: The bot has acknowledged the request to join the call.
+  - `in_waiting_room`: The bot is in the "waiting room" of the meeting.
+  - `in_call_not_recording`: The bot has joined the meeting, however it is not recording yet.
+  - `in_call_recording`: The bot is in the meeting and recording the audio and video.
+  - `recording_paused`: The recording has been temporarily paused.
+  - `recording_resumed`: The recording has resumed after being paused.
+  - `call_ended`: The bot has left the call.
+  - `bot_rejected`: The bot was rejected from joining the meeting.
+  - `bot_removed`: The bot was removed from the meeting.
+  - `waiting_room_timeout`: The bot timed out while waiting to be admitted.
+  - `invalid_meeting_url`: The provided meeting URL was invalid.
+  - `meeting_error`: An unexpected error occurred during the meeting.
+- `data.status.created_at`: An ISO string of the datetime of the event.
+
+When receiving an `in_call_recording` event, additional data is provided:
+
+- `data.status.start_time`: The timestamp when the recording started.
+
+For `meeting_error` events, additional error details are provided:
+
+- `data.status.error_message`: A description of the error that occurred.
+- `data.status.error_type`: The type of error encountered.
+
+## 2. Final Meeting Data
+
+You'll receive either a `complete` or `failed` event.
+
+### Success Response (`complete`)
+
+```http
+POST /your-endpoint
+x-meeting-baas-api-key: YOUR-API-KEY
+
+{
+  "event": "complete",
+  "data": {
+    "bot_id": "123e4567-e89b-12d3-a456-426614174000",
+    "mp4": "https://bots-videos.s3.eu-west-3.amazonaws.com/path/to/video.mp4?X-Amz-Signature=...",
+    "speakers": ["Alice", "Bob"],
+    "transcript": [{
+      "speaker": "Alice",
+      "words": [{
+        "start": 1.3348110430839002,
+        "end": 1.4549110430839003,
+        "word": "Hi"
+      }, {
+        "start": 1.4549110430839003,
+        "end": 1.5750110430839004,
+        "word": "Bob!"
+      }]
+    }, {
+      "speaker": "Bob",
+      "words": [{
+        "start": 2.6583010430839,
+        "end": 2.778401043083901,
+        "word": "Hello"
+      }, {
+        "start": 2.778401043083901,
+        "end": 2.9185110430839005,
+        "word": "Alice!"
+      }]
+    }]
+  }
+}
+```
+
+<Callout type="warn" icon={<AlertTriangle className="h-5 w-5" />}>
+  **IMPORTANT**: The mp4 URL is a pre-signed AWS S3 URL that is only valid for 2
+  hours. Make sure to download the recording promptly or generate a new URL
+  through the API if needed.
+</Callout>
+
+#### Complete Response Fields
+
+- `bot_id`: The identifier of the bot.
+- `mp4`: A private AWS S3 URL of the mp4 recording of the meeting. Valid for two hours only.
+- `speakers`: The list of speakers in this meeting. Currently requires transcription to be enabled.
+- `transcript` (optional): The meeting transcript. Only given when `speech_to_text` is set when asking for a bot. An array containing:
+  - `transcript.speaker`: The speaker name.
+  - `transcript.words`: The list of words, each containing:
+    - `transcript.words.start`: The start time of the word
+    - `transcript.words.end`: The end time of the word
+    - `transcript.words.word`: The word itself
+
+### Failure Response (`failed`)
+
+```http
+POST /your-endpoint
+x-meeting-baas-api-key: YOUR-API-KEY
+
+{
+  "event": "failed",
+  "data": {
+    "bot_id": "123e4567-e89b-12d3-a456-426614174000",
+    "error": "CannotJoinMeeting"
+  }
+}
+```
+
+### Error Types
+
+| Error                 | Description                                                                                                                                                                                                    |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CannotJoinMeeting     | The bot could not join the meeting URL provided. In most cases, this is because the meeting URL was only accessible for logged-in users invited to the meeting.                                                |
+| TimeoutWaitingToStart | The bot has quit after waiting to be accepted. By default this is 10 minutes, configurable via `automatic_leave.waiting_room_timeout` or `automatic_leave.noone_joined_timeout` (both default to 600 seconds). |
+| BotNotAccepted        | The bot has been refused in the meeting.                                                                                                                                                                       |
+| BotRemoved            | The bot was removed from the meeting by a participant.                                                                                                                                                         |
+| InternalError         | An unexpected error occurred. Please contact us if the issue persists.                                                                                                                                         |
+| InvalidMeetingUrl     | The meeting URL provided is not a valid (Zoom, Meet, Teams) URL.                                                                                                                                               |
+
+### Recording End Reasons
+
+| Reason            | Description                                                     |
+| ----------------- | --------------------------------------------------------------- |
+| bot_removed       | Bot removed by participant                                      |
+| no_attendees      | No participants present                                         |
+| no_speaker        | Extended silence                                                |
+| recording_timeout | Maximum duration reached                                        |
+| api_request       | Bot [removed via API](/docs/api/getting-started/removing-a-bot) |
+| meeting_error     | An error occurred during the meeting (e.g., connection issues)  |
+
+
+---
+
+## Removing a Bot
+
+Learn how to remove a bot from an ongoing meeting using the API
+
+### Source: ./content/docs/api/getting-started/removing-a-bot.mdx
+
+
+# Removing a Bot
+
+## Overview
+
+When you need to end a bot's participation in a meeting, you can use the API to remove it immediately. This is useful for:
+
+- Ending recordings early
+- Freeing up bot resources
+- Responding to meeting conclusion
+
+## API Request
+
+Send a DELETE request to `https://api.meetingbaas.com/bots/{YOUR_BOT_ID}`:
+
+<Tabs items={['Bash', 'Python', 'JavaScript']}>
+  <Tab value="Bash">
+    ```bash title="leave_meeting.sh"
+    curl -X DELETE "https://api.meetingbaas.com/bots/YOUR_BOT_ID" \
+         -H "Content-Type: application/json" \
+         -H "x-meeting-baas-api-key: YOUR-API-KEY"
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python title="leave_meeting.py"
+    import requests
+
+    bot_id = "YOUR_BOT_ID"
+    url = f"https://api.meetingbaas.com/bots/{bot_id}"
+    headers = {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+    }
+
+    response = requests.delete(url, headers=headers)
+    if response.status_code == 200:
+        print("Bot successfully removed from the meeting.")
+    else:
+        print("Failed to remove the bot:", response.json())
+    ```
+
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript title="leave_meeting.js"
+    const botId = "YOUR_BOT_ID";
+    fetch(`https://api.meetingbaas.com/bots/${botId}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          console.log("Bot successfully removed from the meeting.");
+        } else {
+          console.error("Failed to remove the bot:", response.statusText);
+        }
+      })
+      .catch((error) => console.error("Error:", error));
+    ```
+  </Tab>
+</Tabs>
+
+## Required Parameters
+
+- **Path Parameter**: `bot_id` - The unique identifier received when [sending the bot](/docs/api/getting-started/sending-a-bot)
+- **Header**: `x-meeting-baas-api-key` - Your API key for authentication
+
+Both parameters are mandatory for the request to succeed.
+
+## Response
+
+The API will respond with a simple confirmation:
+
+```http
+HTTP/2 200
+Content-Type: application/json
+
+{ "ok": true }
+```
+
+## What Happens Next
+
+When a bot is removed:
+
+1. The bot leaves the meeting immediately
+2. A `call_ended` status event is sent to your webhook
+3. The final meeting data up to that point is delivered
+
+For more details about these webhook events, see [Getting the Data](/docs/api/getting-started/getting-the-data).
+
+
+---
+
+## Sending a bot
+
+Learn how to send AI bots to meetings through the Meeting BaaS API, with options for immediate or scheduled joining and customizable settings
+
+### Source: ./content/docs/api/getting-started/sending-a-bot.mdx
+
+
+# Sending a Bot to a Meeting
+
+You can summon a bot in two ways:
+
+1. **Immediately to a meeting**, provided your bot pool is sufficient.
+2. **Reserved join in 4 minutes**, ideal for scheduled meetings.
+
+## API Request
+
+Send a POST request to [https://api.meetingbaas.com/bots](https://api.meetingbaas.com/bots):
+
+<Tabs items={['Bash', 'Python', 'JavaScript']}>
+  <Tab value="Bash">
+    ```bash title="join_meeting.sh"
+    curl -X POST "https://api.meetingbaas.com/bots" \
+         -H "Content-Type: application/json" \
+         -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+         -d '{
+               "meeting_url": "YOUR-MEETING-URL",
+               "bot_name": "AI Notetaker",
+               "recording_mode": "speaker_view",
+               "bot_image": "https://example.com/bot.jpg",
+               "entry_message": "I am a good meeting bot :)",
+               "reserved": false,
+               "speech_to_text": {
+                 "provider": "Default"
+               },
+               "automatic_leave": {
+                 "waiting_room_timeout": 600
+               }
+             }'
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python title="join_meeting.py"
+    import requests
+    url = "https://api.meetingbaas.com/bots"
+    headers = {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+    }
+    config = {
+        "meeting_url": "YOUR-MEETING-URL",
+        "bot_name": "AI Notetaker",
+        "recording_mode": "speaker_view",
+        "bot_image": "https://example.com/bot.jpg",
+        "entry_message": "I am a good meeting bot :)",
+        "reserved": False,
+        "speech_to_text": {
+            "provider": "Default"
+        },
+        "automatic_leave": {
+            "waiting_room_timeout": 600  # 10 minutes in seconds
+        }
+    }
+    response = requests.post(url, json=config, headers=headers)
+    print(response.json())
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript title="join_meeting.js"
+    fetch("https://api.meetingbaas.com/bots", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+      },
+      body: JSON.stringify({
+        meeting_url: "YOUR-MEETING-URL",
+        bot_name: "AI Notetaker",
+        reserved: false,
+        recording_mode: "speaker_view",
+        bot_image: "https://example.com/bot.jpg",
+        entry_message: "I am a good meeting bot :)",
+        speech_to_text: {
+          provider: "Default",
+        },
+        automatic_leave: {
+          waiting_room_timeout: 600,
+        },
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log(data.bot_id))
+      .catch((error) => console.error("Error:", error));
+    ```
+  </Tab>
+</Tabs>
+
+## Request Parameters
+
+### Required Parameters
+
+- `meeting_url`: The meeting URL to join. Accepts Google Meet, Microsoft Teams or Zoom URLs.
+- `bot_name`: The display name of the bot.
+- `reserved`: Controls how the bot joins the meeting
+  - `false`: Sends a bot from our pool of _always ready_ meeting bots, immediately. Beware that **demand might temporarily be higher than the number of currently available bots**, which could imply a delay in the bot joining. When possible, prefer the true option which reserves an instance of an AI meeting bot.
+  - `true`: Reserves in advance a meeting bot for an upcoming meeting, ensuring the presence of the bot at the start of the meeting, typically for planned calendar events. You need to **call this route exactly 4 minutes before the start of the meeting**.
+
+### Recording Options
+
+- `recording_mode`: Optional. One of:
+  - `"speaker_view"`: (default) The recording will only show the person speaking at any time
+  - `"gallery_view"`: The recording will show all the speakers
+  - `"audio_only"`: The recording will be a mp3
+
+### Bot Appearance and Behavior
+
+- `bot_image`: The URL of the image the bot will display. Must be a valid URI format. Optional.
+- `entry_message`: Optional. The message the bot will write within 15 seconds after being accepted in the meeting.
+
+### Transcription Settings
+
+- `speech_to_text`: Optional. If not provided, no transcription will be generated and processing time will be faster.
+  - Must be an object with:
+    - `provider`: One of:
+      - `"Default"`: Standard transcription, no API key needed
+      - `"Gladia"` or `"Runpod"`: Requires their respective API key to be provided
+    - `api_key`: Required when using Gladia or Runpod providers. Must be a valid API key from the respective service.
+
+### Automatic Leaving
+
+- `automatic_leave`: Optional object containing:
+  - `waiting_room_timeout`: Time in seconds the bot will wait in a meeting room before dropping. Default is 600 (10 minutes)
+  - `noone_joined_timeout`: Time in seconds the bot will wait if no one joins the meeting
+
+### Advanced Options
+
+- `webhook_url`: URL for webhook notifications
+- `deduplication_key`: String for deduplication. By default, Meeting BaaS will reject you sending multiple bots to a same meeting within 5 minutes, to avoid spamming.
+- `streaming`: Object containing optional WebSocket streaming configuration:
+  - `audio_frequency`: Audio frequency for the WebSocket streams. Can be "16khz" or "24khz" (defaults to "24khz")
+  - `input`: WebSocket endpoint to receive raw audio bytes and speaker diarization as JSON strings from the meeting
+  - `output`: WebSocket endpoint to stream raw audio bytes back into the meeting, enabling bot speech
+- `extra`: Additional custom data
+- `start_time`: Unix timestamp (in milliseconds) for when the bot should join the meeting. The bot joins 4 minutes before this timestamp. For example, if you want the bot to join at exactly 2:00 PM, set this to the millisecond timestamp of 2:00 PM.
+
+## Response
+
+The API will respond with the unique identifier for your bot:
+
+```http
+HTTP/2 200
+Content-Type: application/json
+
+{
+  "bot_id": 42
+}
+```
+
+## Next Steps
+
+Use this `bot_id` to:
+
+- [Monitor the bot's status and receive meeting data](/docs/api/getting-started/getting-the-data)
+- [Remove the bot from the meeting](/docs/api/getting-started/removing-a-bot)
+
+
+---
+
+## Syncing Calendars
+
+Learn how to sync calendars with the API, and automatically send meeting bots to the right place at the right time
+
+### Source: ./content/docs/api/getting-started/syncing-calendars.mdx
+
+
+# Calendar Synchronization
+
+<Callout type="info">
+  This page has been moved to a new location. You'll be automatically redirected
+  to [Calendar Synchronization](/docs/api/getting-started/calendars).
+</Callout>
+
+<meta
+  http-equiv="refresh"
+  content="0;url=/docs/api/getting-started/calendars"
+/>
+
+<script>window.location.href = "/docs/api/getting-started/calendars";</script>
+
+Meeting BaaS allows you to automatically sync calendars from Outlook and Google Workspace to deploy bots to scheduled meetings. This helps you automate recording and participation in meetings without manual intervention.
+
+<div className="grid grid-cols-1 gap-4 mt-6 md:grid-cols-2 lg:grid-cols-3">
+  <Card title="1. Calendar Sync Setup" href="/docs/api/getting-started/calendars/setup" icon={<ChevronRight className="w-4 h-4" />}>
+    Learn how to authenticate and set up calendar integrations with Google Workspace and Microsoft Outlook
+  </Card>
+
+<Card
+  title="2. Managing Calendar Events"
+  href="/docs/api/getting-started/calendars/events"
+  icon={<ChevronRight className="h-4 w-4" />}
+>
+  Work with calendar events and schedule automated recordings for meetings
+</Card>
+
+  <Card title="3. Webhooks & Maintenance" href="/docs/api/getting-started/calendars/webhooks" icon={<ChevronRight className="w-4 h-4" />}>
+    Receive real-time updates, handle errors, and maintain your calendar integrations
+  </Card>
+</div>
+
+## Key Benefits
+
+- **Automated Bot Deployment**: Automatically send bots to meetings as they appear on calendars
+- **Multi-Calendar Support**: Connect to both Google Workspace and Microsoft Outlook calendars
+- **Real-Time Updates**: Receive webhook notifications when calendar events change
+- **Selective Recording**: Apply business logic to determine which meetings to record
+
+## Implementation Overview
+
+1. First, [set up calendar integrations](/docs/api/getting-started/calendars/setup) using OAuth authentication
+2. Then, [work with calendar events](/docs/api/getting-started/calendars/events) to schedule automated recordings
+3. Finally, [implement webhooks](/docs/api/getting-started/calendars/webhooks) to receive real-time updates and handle maintenance
+
+This modular approach allows you to implement each component at your own pace and focuses the documentation on specific aspects of the integration.
+
+
+---
+
+## Introduction
+
+Deploy AI for video meetings through a single unified API.
+
+### Source: ./content/docs/api/index.mdx
+
+
+**Meeting BaaS** 🐟 provides _Meetings Bots As A Service_, with integrated transcription.
+
+This allows you to:
+
+1. **interact with**
+2. **transcribe**
+3. **AI summarize**
+
+video-meetings through a single unified API. Using Meeting BaaS, you can deploy bots on Microsoft Teams, Google Meet, and Zoom in less than 1 minute.
+
+Our meeting bots act as regular meeting participants with full audio and visual capabilities.
+
+They can listen, speak, use chat, and appear with customizable names and profile pictures.
+
+Just provide a meeting URL through a simple command, and meeting bots will connect to the meeting, give their name and ask to be let in.
+
+Once inside, they record the meeting until it ends, and provide you with the data as they go.
+
+
+---
+
+## List Bots with Metadata
+
+### Source: ./content/docs/api/reference/bots_with_metadata.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Retrieves a paginated list of the user's bots with essential metadata, including IDs, names, and meeting details. Supports filtering, sorting, and advanced querying options.
+
+<APIPage document={"./openapi.json"} operations={[{"path":"/bots/bots_with_metadata","method":"get"}]} webhooks={[]} hasHead={false} />
+
+---
+
 ## Create Calendar
 
 ### Source: ./content/docs/api/reference/calendars/create_calendar.mdx
@@ -1824,6 +1463,84 @@ Cancels a previously scheduled recording for a calendar event and releases assoc
 Updates a calendar integration with new credentials or platform while maintaining the same UUID. This operation is performed as an atomic transaction to ensure data integrity. The system automatically unschedules existing bots to prevent duplicates, updates the calendar credentials, and triggers a full resync of all events. Useful when OAuth tokens need to be refreshed or when migrating a calendar between providers. Returns the updated calendar object with its new configuration.
 
 <APIPage document={"./openapi.json"} operations={[{"path":"/calendars/{uuid}","method":"patch"}]} webhooks={[]} hasHead={false} />
+
+---
+
+## Delete Data
+
+### Source: ./content/docs/api/reference/delete_data.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Deletes a bot's data including recording, transcription, and logs. Only metadata is retained. Rate limited to 5 requests per minute per API key.
+
+<APIPage document={"./openapi.json"} operations={[{"path":"/bots/{uuid}/delete_data","method":"post"}]} webhooks={[]} hasHead={false} />
+
+---
+
+## Get Meeting Data
+
+### Source: ./content/docs/api/reference/get_meeting_data.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Get meeting recording and metadata
+
+<APIPage document={"./openapi.json"} operations={[{"path":"/bots/meeting_data","method":"get"}]} webhooks={[]} hasHead={false} />
+
+---
+
+## Get Screenshots
+
+### Source: ./content/docs/api/reference/get_screenshots.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Retrieves screenshots captured during the bot's session
+
+<APIPage document={"./openapi.json"} operations={[{"path":"/bots/{uuid}/screenshots","method":"get"}]} webhooks={[]} hasHead={false} />
+
+---
+
+## Join
+
+### Source: ./content/docs/api/reference/join.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Have a bot join a meeting, now or in the future. You can provide a `webhook_url` parameter to receive webhook events specific to this bot, overriding your account's default webhook URL. Events include recording completion, failures, and transcription updates.
+
+<APIPage document={"./openapi.json"} operations={[{"path":"/bots/","method":"post"}]} webhooks={[]} hasHead={false} />
+
+---
+
+## Leave
+
+### Source: ./content/docs/api/reference/leave.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Leave
+
+<APIPage document={"./openapi.json"} operations={[{"path":"/bots/{uuid}","method":"delete"}]} webhooks={[]} hasHead={false} />
+
+---
+
+## Retranscribe Bot
+
+### Source: ./content/docs/api/reference/retranscribe_bot.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Transcribe or retranscribe a bot's audio using the Default or your provided Speech to Text Provider
+
+<APIPage document={"./openapi.json"} operations={[{"path":"/bots/retranscribe","method":"post"}]} webhooks={[]} hasHead={false} />
 
 ---
 
@@ -2168,6 +1885,289 @@ If your endpoint fails to respond or returns an error, the system will attempt t
 For security, always validate the API key in the `x-meeting-baas-api-key` header matches your API key.
 
 <APIPage document={"./openapi.json"} operations={[{"path":"/bots/webhooks","method":"get"}]} webhooks={[]} hasHead={false} />
+
+---
+
+## April 23rd, 2025
+
+Latest changes to the Meeting BaaS API
+
+### Source: ./content/docs/api/updates/api-update-2025-04-23.mdx
+
+
+import { Info } from 'lucide-react';
+
+<Callout type="info" icon={<Info className="h-5 w-5" />}>
+  Paris, April 23rd, 2025.
+</Callout>
+
+We're excited to announce several improvements to our API endpoints.
+
+## Bots
+
+### [GET /bots/with/metadata](/docs/api/reference/bots_with_metadata)
+
+Simplified and improved the bot listing endpoint:
+- Streamlined response format for better readability
+- Maintains all filtering capabilities (`meeting_url`, `bot_name`, `created_after/before`, `speaker_name`)
+- Supports advanced filtering and sorting through `filter_by_extra` and `sort_by_extra`
+- Returns essential metadata including IDs, names, and meeting details
+
+### [GET /bots/:uuid/screenshots](/docs/api/reference/get_screenshots)
+
+New endpoint to retrieve screenshots captured during a bot's session:
+- Access screenshots taken while trying to access meetings
+- Useful for monitoring and verification purposes
+- Part of our expanded bot monitoring capabilities
+
+## Webhooks
+
+### GET /webhooks/calendar/webhook/documentation
+
+Documentation improvements and parameter updates:
+- Updated parameter notation from `{uuid}` to `:uuid` for consistency with REST API standards
+- Clarified the `affected_event_uuids` field documentation
+- Enhanced integration examples with calendar events
+- All endpoint references now use `:parameter` notation
+
+## Implementation Timeline
+
+These changes will be live in production on April 24th, 2025. The updates focus on improving documentation clarity, adding new monitoring capabilities, and maintaining consistent API patterns across our endpoints.
+
+
+---
+
+## Calendar API Enhancements
+
+Improved filtering, comprehensive event details, and calendar management
+
+### Source: ./content/docs/api/updates/calendar-api-enhancements.mdx
+
+
+<Callout type="info" icon={<Info className="h-5 w-5" />}>
+  Paris, the 2nd of March 2025.
+</Callout>
+
+We've expanded our Calendar API with new filtering capabilities and improved calendar management. These enhancements provide more flexibility when working with calendar events and integrations.
+
+## New Features
+
+### Enhanced Event Filtering
+
+The [`GET /calendar_events`](/docs/api/reference/calendars/list_events) endpoint now supports additional filtering parameters:
+
+- `attendeeEmail` - Filter events by attendee email address
+- `organizerEmail` - Filter events by organizer email address
+- `startDateGte` - Filter events with start date greater than or equal to timestamp
+- `startDateLte` - Filter events with start date less than or equal to timestamp
+- `status` - Filter by meeting status (`upcoming`, `past`, or `all`)
+
+### Improved Attendee Information
+
+The `Attendee` object now includes a `name` field that provides the display name of the attendee when available from the calendar provider (Google, Microsoft).
+
+## Migration Guide
+
+1. Update your API clients to take advantage of the new filtering parameters
+
+## Related Updates
+
+- [Calendar API Update](/docs/api/updates/calendar-api-update) - Previous calendar API enhancements
+- [Retranscribe Route](/docs/api/updates/retranscribe-route) - Information about the retranscribe endpoint
+
+
+---
+
+## Calendar API Update
+
+New webhooks, events, and pagination updates
+
+### Source: ./content/docs/api/updates/calendar-api-update.mdx
+
+
+<Callout type="info" icon={<Info className="h-5 w-5" />}>
+  Paris, the 12th of December 2024.
+</Callout>
+
+We're excited to announce several improvements to our Calendar API endpoints. These changes include new features and some breaking changes.
+
+## New Features
+
+### Webhook Configuration Flexibility
+
+- The `webhook_url` parameter is now optional on [`POST /calendar`](/docs/api/reference/calendars/create_calendar) endpoint if a webhook URL is already configured on the account
+
+### Enhanced Event Information
+
+- [`GET /calendar_events`](/docs/api/reference/calendars/list_events) now includes attendees information for each event
+- [`GET /calendar_events/uuid`](/docs/api/reference/calendars/get_event) now returns the `calendar_id` of the event
+
+### Recurring Events Bot Management
+
+- New query parameter `all_occurrences` added to [`POST /calendar_events/uuid/bot`](/docs/api/reference/calendars/schedule_record_event)
+- Allows scheduling a bot for all instances of a recurring event
+- Same functionality added to [`DELETE /calendar_events/uuid/bot`](/docs/api/reference/calendars/unschedule_record_event)
+- Enables bot removal from all occurrences of a recurring event
+
+## Breaking Changes
+
+<Callout type="warn">
+### Bot Management Response Format
+
+- [`POST /calendar_events/uuid/bot`](/docs/api/reference/calendars/schedule_record_event) now returns an array of events instead of a single event
+- [`DELETE /calendar_events/uuid/bot`](/docs/api/reference/calendars/unschedule_record_event) now returns an array of events instead of a single event
+
+</Callout>
+
+<Callout type="warn">
+### Pagination Changes
+- [`GET /calendar_events`](/docs/api/reference/list_events) endpoint no longer supports `offset/limit` pagination
+- Implemented cursor-based pagination
+- Response format changed to include a `next` field for fetching subsequent events
+- Events are returned in batches of 100
+- Example response structure:
+  ````json
+  {
+    "events": [...],
+    "next": "cursor_token_for_next_page"
+  }
+  ````
+</Callout>
+## Migration Guide
+
+1. Update your pagination implementation to use the new cursor-based system
+2. Modify your bot management logic to handle arrays of events instead of single events
+3. Review any webhook configuration logic to take advantage of the new optional webhook_url parameter
+
+## Implementation Timeline
+
+These changes are now live in production.
+
+
+---
+
+## Streaming and Client Updates
+
+New streaming formats, WebSocket configurations, and client improvements
+
+### Source: ./content/docs/api/updates/minor-streaming-zoom-and-microsoft-teams.mdx
+
+
+<Callout type="info" icon={<Info className="h-5 w-5" />}>
+  Paris, the 4th of January 2025.
+</Callout>
+
+We're excited to announce several improvements to our streaming API and client applications for Zoom, Microsoft Teams, and Google Meet. These updates enhance stability, performance, and functionality.
+
+## New Features
+
+### Streaming Format Specification
+
+- You can now specify the streaming format for WebSocket streams, 16kHz or 24kHz.
+- **audio_frequency**: The audio frequency for the WebSocket streams, defaults to 24kHz. Can be one of `16khz` or `24khz`.
+
+### Microsoft Teams Client Update
+
+- We've updated our Microsoft Teams client, reducing the number of bugs by 50%.
+- Now supports live Teams links, including Microsoft Live Meeting URLs (e.g., `https://teams.live.com/meet/...`).
+
+### Google Meet Client Update
+
+- We've updated our Google Meet client, reducing the number of bugs by 10%.
+
+### Zoom Client Update
+
+- Released an entirely new Zoom client. Currently, video capture isn't supported, but we plan to release this feature within the next two weeks.
+- Zoom is expected to be our most stable client.
+
+## Implementation Timeline
+
+These changes are now live in production.
+
+
+---
+
+## Improvements & Retranscribe Route
+
+Teams/GMeet stability improvements and new transcription capabilities
+
+### Source: ./content/docs/api/updates/retranscribe-route.mdx
+
+
+<Callout type="info" icon={<Info className="h-5 w-5" />}>
+  **Paris**, the 27th of February 2025.
+</Callout>
+
+We're excited to announce significant improvements to our platform stability and the introduction of new API capabilities.
+
+## Platform Stability Improvements
+
+### Teams & Google Meet Enhancement
+
+- Complete engine rewrite for both Teams and Google Meet platforms
+- Migrated from Puppeteer to Playwright for improved stability
+- Significantly enhanced performance and reliability
+- Successfully tested with extended runtime (15+ hours) showing excellent stability
+
+## New API Features
+
+### New Retranscribe Endpoint
+
+- Introduced new [`POST /bots/retranscribe`](/docs/api/reference/retranscribe_bot) endpoint
+- Allows transcription or retranscription of a bot's audio
+- Supports both default and custom speech-to-text providers
+- Flexible webhook configuration for processing notifications
+
+### OCR Capabilities
+
+- Added Optical Character Recognition (OCR) inside bots for better detection of current meeting status
+- This will enable future features including:
+  - Sharing screenshots of meeting content
+  - OCR'ed content shared in meetings (for RAG and other AI-enhanced applications)
+- Improves bot awareness of visual meeting context
+
+### Join Endpoint Enhancement
+
+- Added `audio_only` parameter to [`POST /bots`](/docs/api/reference/join) endpoint
+- Enables audio-only participation in meetings
+- Optimized for scenarios requiring only audio capabilities
+
+## Implementation Details
+
+### Retranscribe API
+
+The new retranscribe endpoint accepts the following parameters:
+
+- `bot_uuid`: Identifier for the target bot
+- `provider`: Choice of speech-to-text provider
+- `webhook_url`: Optional callback URL for completion notifications
+
+<Callout type="info">
+  The retranscribe feature is particularly useful for:
+  - Improving existing transcriptions
+  
+  - Using different speech-to-text providers
+
+- Recovering from any transcription issues
+
+</Callout>
+
+## Future Enhancements
+
+We're actively working on expanding the capabilities of the retranscribe endpoint:
+
+- Additional speech-to-text providers will be supported in upcoming releases
+- Custom provider parameters will be exposed through a flexible JSON configuration field
+- This will enable fine-tuned control over transcription settings and provider-specific features
+
+## Migration Guide
+
+No breaking changes were introduced with these updates. All new features are additive and backward compatible with existing implementations.
+
+## Implementation Timeline
+
+These changes are now live in production and available for immediate use.
+
 
 ---
 
