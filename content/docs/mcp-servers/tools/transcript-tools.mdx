@@ -1,0 +1,132 @@
+# Transcript Tools
+
+Transcript Tools provide powerful capabilities for accessing, analyzing, and extracting insights from meeting recordings. These tools help you make the most of your meeting content through automated transcription and intelligent analysis.
+
+## getMeetingTranscript
+
+A powerful tool that retrieves complete meeting transcripts with speaker identification and organized content structure.
+
+### Parameters
+
+- `botId` (required): String - The unique identifier of the bot that recorded the meeting
+- `format` (optional): String - Output format preference ("text" or "json", defaults to "text")
+
+### Returns
+
+Returns a formatted transcript that includes:
+- Meeting metadata (title, duration, date)
+- Complete conversation content organized by speaker
+- Timestamps for each segment
+- Speaker-separated paragraphs for improved readability
+
+### Example Output
+
+```text
+Meeting: "Weekly Product Sync"
+Date: 2024-03-15
+Duration: 45m 30s
+
+Transcript:
+
+John Smith (09:00:00 AM):
+Hello everyone, thanks for joining today's call. We have a lot to cover regarding 
+the Q3 roadmap and our current progress on the platform redesign.
+
+Sarah Johnson (09:00:45 AM):
+Thanks John. I've prepared some slides about the user testing results we got back 
+yesterday. The feedback was generally positive but there are a few areas we need 
+to address.
+```
+
+### Usage Notes
+
+- Transcripts are automatically processed for accuracy and clarity
+- Speaker identification is based on voice recognition and meeting participant data
+- Supports multiple output formats for integration with other tools
+- Can handle meetings of any duration
+
+## findKeyMoments
+
+An AI-powered tool that automatically identifies and extracts significant moments from meeting recordings, making it easy to review and share important discussions.
+
+### Parameters
+
+- `botId` (required): String - The unique identifier of the bot that recorded the meeting
+- `meetingTitle` (optional): String - Filter for a specific meeting by title
+- `topics` (optional): Array String - List of specific topics to search for
+- `maxMoments` (optional): Number - Maximum number of key moments to return (default: 10)
+- `minConfidence` (optional): Number - Minimum confidence score for moment detection (0-1, default: 0.7)
+
+### Returns
+
+Returns a markdown-formatted list of key moments including:
+- Timestamp with clickable links
+- Context description
+- Speaker information
+- Confidence score
+- Topic categorization
+
+### Example Output
+
+```markdown
+## Key Moments - Product Strategy Meeting
+
+1. 🎯 Product Roadmap Discussion [09:05:23]
+   - Speaker: John Smith
+   - "We're prioritizing the mobile experience for Q3, with a focus on 
+     performance improvements"
+   - Confidence: 0.95
+   - [Jump to moment](meeting-link#t=545)
+
+2. 📊 User Testing Results [09:15:45]
+   - Speaker: Sarah Johnson
+   - "Our latest usability tests showed an 85% satisfaction rate with the new UI"
+   - Confidence: 0.89
+   - [Jump to moment](meeting-link#t=945)
+```
+
+### Features
+
+- **AI-Powered Analysis**: Uses advanced natural language processing to identify:
+  - Decision points
+  - Action items
+  - Important announcements
+  - Key discussions
+  - Questions and answers
+
+- **Smart Topic Detection**: Automatically categorizes moments into relevant topics
+  - Product updates
+  - Technical discussions
+  - Team decisions
+  - Action items
+  - Project milestones
+
+- **Customizable Detection**: 
+  - Adjust sensitivity for moment detection
+  - Filter by specific topics or speakers
+  - Set custom importance thresholds
+
+### Integration Capabilities
+
+Both tools support integration with:
+- Meeting platforms (Zoom, Teams, Google Meet)
+- Project management tools
+- Knowledge bases
+- Team collaboration platforms
+
+### Best Practices
+
+1. **For Optimal Transcription**:
+   - Ensure good audio quality
+   - Ask speakers to identify themselves
+   - Use noise-canceling when possible
+
+2. **For Key Moment Detection**:
+   - Provide relevant topics for more focused results
+   - Set appropriate confidence thresholds
+   - Review and validate automated selections
+
+3. **For Data Management**:
+   - Regularly archive transcripts
+   - Set up appropriate access controls
+   - Follow data retention policies

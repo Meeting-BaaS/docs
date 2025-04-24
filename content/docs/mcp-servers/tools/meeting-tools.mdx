@@ -1,0 +1,259 @@
+# Meeting Tools
+
+Meeting Tools provide a powerful set of APIs for managing automated meeting bots that can join, record, and transcribe video conferences. These tools enable seamless integration of meeting automation capabilities into your applications.
+
+## Core Features
+- Automated meeting recording
+- Real-time transcription
+- Customizable bot appearance and behavior
+- Support for multiple speech-to-text providers
+- Audio streaming capabilities
+- Meeting data retrieval and management
+
+## API Reference
+
+### createBot
+
+Creates an intelligent meeting bot that can join video conferences to record and transcribe meetings.
+
+```typescript
+interface CreateBotParams {
+  meeting_url: string;              // Required: URL of the meeting to join
+  name?: string;                    // Optional: Custom name for the bot
+  botImage?: string;               // Optional: URL to bot's avatar image
+  entryMessage?: string;           // Optional: Message bot sends when joining
+  deduplicationKey?: string;       // Optional: Override 5-minute same meeting restriction
+  nooneJoinedTimeout?: number;     // Optional: Timeout (seconds) if no one joins
+  waitingRoomTimeout?: number;     // Optional: Timeout (seconds) if stuck in waiting room
+  speechToTextProvider?: 'Gladia' | 'Runpod' | 'Default';  // Optional: Transcription provider
+  speechToTextApiKey?: string;     // Optional: API key for speech-to-text service
+  streamingInputUrl?: string;      // Optional: WebSocket URL for audio input
+  streamingOutputUrl?: string;     // Optional: WebSocket URL for audio output
+  streamingAudioFrequency?: '16khz' | '24khz';  // Optional: Audio streaming frequency
+  extra?: {                        // Optional: Additional meeting metadata
+    meetingType?: string;
+    customSummaryPrompt?: string;
+    searchKeywords?: string[];
+    [key: string]: any;
+  };
+}
+```
+
+**Returns:**
+```typescript
+interface BotResponse {
+  botId: string;
+  status: 'joined' | 'waiting' | 'failed';
+  meetingId: string;
+  joinTime: string;
+}
+```
+
+### getBots
+
+Retrieves a list of all active bots and their associated meetings.
+
+**Returns:**
+```typescript
+interface BotsResponse {
+  bots: Array<{
+    botId: string;
+    meetingId: string;
+    status: string;
+    joinTime: string;
+    meetingUrl: string;
+  }>;
+}
+```
+
+### getBotsByMeeting
+
+Retrieves all bots associated with a specific meeting URL.
+
+```typescript
+interface GetBotsByMeetingParams {
+  meetingUrl: string;  // Required: URL of the meeting to query
+}
+```
+
+**Returns:**
+```typescript
+interface MeetingBotsResponse {
+  bots: Array<{
+    botId: string;
+    status: string;
+    joinTime: string;
+  }>;
+}
+```
+
+### getRecording
+
+Retrieves detailed recording information for a specific bot/meeting.
+
+```typescript
+interface GetRecordingParams {
+  botId: string;  // Required: ID of the bot that made the recording
+}
+```
+
+**Returns:**
+```typescript
+interface RecordingResponse {
+  recordingId: string;
+  duration: number;
+  status: 'in-progress' | 'completed' | 'failed';
+  downloadUrl?: string;
+  createdAt: string;
+}
+```
+
+### getRecordingStatus
+
+Checks the current status of an in-progress recording.
+
+```typescript
+interface RecordingStatusParams {
+  recordingId: string;  // Required: ID of the recording to check
+}
+```
+
+**Returns:**
+```typescript
+interface RecordingStatusResponse {
+  status: 'in-progress' | 'completed' | 'failed';
+  progress?: number;
+  errorMessage?: string;
+}
+```
+
+### getMeetingData
+
+Retrieves comprehensive transcript and recording data for a specific meeting.
+
+```typescript
+interface GetMeetingDataParams {
+  meetingId: string;  // Required: ID of the meeting to retrieve data for
+}
+```
+
+**Returns:**
+```typescript
+interface MeetingDataResponse {
+  meetingId: string;
+  duration: number;
+  transcriptSegments: number;
+  participants: string[];
+  recording: {
+    downloadUrl: string;
+    size: number;
+    format: string;
+  };
+  transcript: {
+    segments: Array<{
+      speaker: string;
+      text: string;
+      startTime: number;
+      endTime: number;
+    }>;
+  };
+}
+```
+
+### getMeetingDataWithCredentials
+
+Retrieves meeting data using direct API authentication credentials.
+
+```typescript
+interface GetMeetingDataWithCredentialsParams {
+  meetingId: string;  // Required: ID of the meeting
+  apiKey: string;     // Required: API key for authentication
+}
+```
+
+**Returns:** Same as `getMeetingDataResponse`
+
+## Best Practices
+
+1. **Bot Naming**: Use descriptive names that help identify the bot's purpose (e.g., "Sales-Meeting-Recorder").
+
+2. **Timeouts**: Set appropriate timeout values based on your meeting context:
+   - `nooneJoinedTimeout`: Recommended 300 seconds (5 minutes)
+   - `waitingRoomTimeout`: Recommended 180 seconds (3 minutes)
+
+3. **Speech-to-Text Providers**:
+   - Default: Best for general purpose transcription
+   - Gladia: Optimized for multiple languages
+   - Runpod: Best for high-accuracy technical content
+
+4. **Audio Streaming**:
+   - Use 16kHz for standard quality
+   - Use 24kHz for high-quality audio requirements
+
+5. **Deduplication**:
+   - Use `deduplicationKey` when you need multiple bots in the same meeting
+   - Generate unique keys to bypass the 5-minute restriction
+
+## Error Handling
+
+Common error scenarios and recommended handling:
+
+```typescript
+interface ErrorResponse {
+  error: {
+    code: string;
+    message: string;
+    details?: any;
+  };
+}
+```
+
+- `MEETING_NOT_FOUND`: Verify the meeting URL is correct and accessible
+- `BOT_JOIN_FAILED`: Check waiting room settings and meeting permissions
+- `INVALID_CREDENTIALS`: Verify API key and authentication
+- `RECORDING_FAILED`: Check storage capacity and network connectivity
+
+## Rate Limits
+
+- Standard tier: 10 requests per minute
+- Premium tier: 100 requests per minute
+- Enterprise tier: Custom limits available
+
+## Security Considerations
+
+1. Always store API keys securely
+2. Use environment variables for sensitive credentials
+3. Implement proper access controls for recording downloads
+4. Monitor bot activity for unauthorized access
+5. Regular audit of active bots and recordings
+
+## Examples
+
+### Creating a Basic Meeting Bot
+
+```typescript
+const response = await createBot({
+  meeting_url: "https://meeting-url.com/123",
+  name: "Meeting Recorder",
+  nooneJoinedTimeout: 300,
+  speechToTextProvider: "Default"
+});
+```
+
+### Advanced Bot with Custom Configuration
+
+```typescript
+const response = await createBot({
+  meeting_url: "https://meeting-url.com/123",
+  name: "Sales Meeting Bot",
+  botImage: "https://your-domain.com/bot-avatar.png",
+  entryMessage: "Hello! I'm here to record the meeting.",
+  speechToTextProvider: "Gladia",
+  speechToTextApiKey: "your-api-key",
+  extra: {
+    meetingType: "sales",
+    customSummaryPrompt: "Focus on action items and deal values",
+    searchKeywords: ["proposal", "pricing", "follow-up"]
+  }
+});
+```

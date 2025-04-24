@@ -4,8 +4,6 @@ description: Standalone MCP server for local deployment with Meeting BaaS integr
 icon: Server
 ---
 
-# Meeting MCP
-
 Meeting MCP is a standalone [Model Context Protocol](https://github.com/anthropics/anthropic-model-context-protocol) server that provides AI assistants with access to Meeting BaaS data and capabilities. The server can be deployed locally or on your own infrastructure, making it ideal for use with Claude Desktop and other MCP clients.
 
 <Card
@@ -62,14 +60,26 @@ Before getting started, you'll need:
 
 <Steps>
   <Step title="Clone the Repository">
-    ```bash git clone https://github.com/Meeting-Baas/meeting-mcp.git cd
-    meeting-mcp ```
+    ```bash
+    git clone https://github.com/Meeting-Baas/meeting-mcp.git
+    cd meeting-mcp
+    ```
   </Step>
-  <Step title="Install Dependencies">```bash npm install ```</Step>
-  <Step title="Build the Project">```bash npm run build ```</Step>
+  <Step title="Install Dependencies">
+    ```bash
+    npm install
+    ```
+  </Step>
+  <Step title="Build the Project">
+    ```bash
+    npm run build
+    ```
+  </Step>
   <Step title="Start the Server">
-    ```bash npm run start ``` By default, the server runs on port 7017 and
-    exposes the MCP endpoint at http://localhost:7017/mcp.
+    ```bash
+    npm run start
+    ```
+    By default, the server runs on port 7017 and exposes the MCP endpoint at http://localhost:7017/mcp.
   </Step>
 </Steps>
 
@@ -296,26 +306,3 @@ npm run cleanup
 - `src/types/`: TypeScript type definitions
 - `src/config.ts`: Server configuration
 - `src/utils/`: Utility functions
-
-## Learn More
-
-<Cards>
-  <Card
-    title="MCP on Vercel"
-    icon={<Cloud />}
-    href="/docs/mcp-servers/mcp-on-vercel"
-  >
-    Explore the cloud-based alternative for deployment on Vercel.
-  </Card>
-  <Card title="TypeScript SDK" icon={<FileText />} href="/docs/typescript-sdk">
-    Learn about the Meeting BaaS SDK that powers this MCP server.
-  </Card>
-  <Card
-    title="MCP Specification"
-    icon={<ExternalLink />}
-    href="https://github.com/anthropics/anthropic-model-context-protocol"
-    external
-  >
-    Review the official Model Context Protocol documentation.
-  </Card>
-</Cards>

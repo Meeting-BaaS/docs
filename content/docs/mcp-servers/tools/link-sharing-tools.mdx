@@ -1,0 +1,130 @@
+# Link Sharing Tools
+
+These tools help you create well-formatted, shareable links to meeting recordings and segments, making it easier to reference and share specific parts of meetings with your team.
+
+## shareableMeetingLink
+
+Creates a beautifully formatted, shareable link to a meeting recording with rich metadata that can be directly shared in chat applications.
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `botId` | string | Yes | The unique identifier for the meeting bot |
+| `timestamp` | string | No | Timestamp in format "HH:MM:SS" to link to a specific moment |
+| `title` | string | No | Title of the meeting |
+| `speakerName` | string | No | Name of the current speaker |
+| `description` | string | No | Brief description of the meeting or segment |
+
+### Returns
+A markdown-formatted string containing the meeting link with metadata that can be shared in chat applications.
+
+### Example Usage
+
+```typescript
+const link = await shareableMeetingLink({
+  botId: "abc123",
+  timestamp: "00:12:35",
+  title: "Weekly Team Sync",
+  speakerName: "Sarah Johnson",
+  description: "Discussing the new product roadmap"
+});
+```
+
+### Output Format
+```markdown
+📽️ **Meeting Recording: Weekly Team Sync**
+⏱️ Timestamp: 00:12:35
+🎤 Speaker: Sarah Johnson
+📝 Discussing the new product roadmap
+
+🔗 [View Recording](https://meetingbaas.com/viewer/abc123?t=755)
+```
+
+## shareMeetingSegments
+
+Generates a formatted list of links to multiple important moments in a meeting, perfect for creating a table of contents or highlighting key discussions.
+
+### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `botId` | string | Yes | The unique identifier for the meeting bot |
+| `segments` | Segment[] | Yes | Array of meeting segments |
+
+#### Segment Object Structure
+```typescript
+interface Segment {
+  timestamp: string;        // Format: "HH:MM:SS"
+  speaker?: string;        // Optional speaker name
+  description: string;     // Description of the segment
+  title?: string;         // Optional segment title
+}
+```
+
+### Returns
+A markdown-formatted list of segments with direct links to each moment in the meeting.
+
+### Example Usage
+
+```typescript
+const segments = await shareMeetingSegments({
+  botId: "abc123",
+  segments: [
+    {
+      timestamp: "00:00:00",
+      title: "Meeting Start",
+      speaker: "John Doe",
+      description: "Introduction and agenda overview"
+    },
+    {
+      timestamp: "00:15:30",
+      title: "Q1 Results",
+      speaker: "Jane Smith",
+      description: "Financial performance review"
+    },
+    {
+      timestamp: "00:45:20",
+      title: "Product Updates",
+      speaker: "Mike Johnson",
+      description: "New feature announcements"
+    }
+  ]
+});
+```
+
+### Output Format
+```markdown
+## Meeting Segments
+
+1. 🎯 **Meeting Start** (00:00:00)
+   👤 John Doe
+   📝 Introduction and agenda overview
+   🔗 [Jump to segment](https://meetingbaas.com/viewer/abc123?t=0)
+
+2. 📊 **Q1 Results** (00:15:30)
+   👤 Jane Smith
+   📝 Financial performance review
+   🔗 [Jump to segment](https://meetingbaas.com/viewer/abc123?t=930)
+
+3. 🚀 **Product Updates** (00:45:20)
+   👤 Mike Johnson
+   📝 New feature announcements
+   🔗 [Jump to segment](https://meetingbaas.com/viewer/abc123?t=2720)
+```
+
+## Best Practices
+
+1. **Timestamps**: Always use the HH:MM:SS format for consistency
+2. **Descriptions**: Keep descriptions concise but informative
+3. **Titles**: Use clear, descriptive titles that indicate the content
+4. **Segments**: When creating segments, ensure they follow a logical flow
+5. **Speaker Names**: Use full names for better clarity and searchability
+
+## Tips for Effective Link Sharing
+
+- Use timestamps strategically to point to the exact moment of important discussions
+- Include relevant context in descriptions to help viewers understand the content
+- Group related segments together when sharing multiple links
+- Consider your audience when writing descriptions and choosing segments to share
+- Use titles that make it easy to find specific content later

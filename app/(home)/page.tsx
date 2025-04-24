@@ -56,6 +56,16 @@ export default function DocsPage(): React.ReactElement {
             Official SDK for interacting with the Meeting BaaS API
           </p>
         </Item>
+        <Item href="/docs/mcp-servers">
+          <Icon className="mcp-servers">
+            <BotIcon className="size-full" />
+          </Icon>
+          <h2 className="mb-2 text-lg font-semibold">Meeting Control Panel (MCP)</h2>
+          <p className="text-fd-muted-foreground text-sm">
+            Powerful admin panel for managing meeting bots, integrations, and
+            integrations.
+          </p>
+        </Item>
       </div>
     </main>
   );

@@ -43,6 +43,10 @@ export default function CustomSearchDialog(
           name: 'Typescript SDK',
           value: 'typescript-sdk',
         },
+        {
+          name: 'MCP Servers',
+          value: 'mcp-servers'
+        }
       ]}
       client={client}
       showOrama

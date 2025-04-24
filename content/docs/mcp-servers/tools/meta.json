@@ -1,0 +1,12 @@
+{
+  "title": "Tools",
+  "description": "Tools and utilities for working with MCP servers",
+  "icon": "Wrench",
+  "pages": [
+    "calender-tools",
+    "meeting-tools",
+    "transcript-tools",
+    "link-sharing-tools",
+    "qr-code-tools"
+  ]
+}

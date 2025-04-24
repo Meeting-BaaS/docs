@@ -1,0 +1,130 @@
+---
+title: Getting Started
+description: Get started with Model Context Protocol servers for Meeting BaaS
+icon: Rocket
+---
+
+An MCP server acts as a bridge between AI assistants and Meeting BaaS services, providing:
+
+- Real-time meeting transcription and analysis
+- Automated meeting scheduling and management
+- Context-aware AI interactions
+- Secure API integrations
+- Scalable infrastructure for enterprise needs
+
+## Deployment Options
+
+Meeting BaaS offers two robust MCP server implementations to match your specific needs:
+
+<Cards>
+  <Card
+    title="MCP on Vercel"
+    icon={<Cloud className="text-blue-400" />}
+    href="/docs/mcp-servers/mcp-on-vercel"
+  >
+    A serverless solution optimized for Vercel deployment, offering:
+    - Zero infrastructure management
+    - Automatic scaling
+    - Global edge deployment
+    - Simplified CI/CD integration
+  </Card>
+  <Card
+    title="Meeting MCP"
+    icon={<Server className="text-green-400" />}
+    href="/docs/mcp-servers/meeting-mcp"
+  >
+    A self-hosted solution providing:
+    - Complete infrastructure control
+    - Custom deployment options
+    - Enhanced security configurations
+    - Local development flexibility
+  </Card>
+</Cards>
+
+## System Requirements
+
+Before proceeding with the setup, ensure you have:
+
+### Essential Requirements
+- Node.js v16.x or later
+- npm or yarn package manager
+- Git for version control
+- A Meeting BaaS account with API access
+
+### Additional Tools
+- Docker (for local development)
+- VS Code or preferred IDE
+- Terminal access
+- Basic knowledge of JavaScript/TypeScript
+
+## Detailed Setup Guide
+
+<Steps>
+  <Step title="Account Setup">
+    1. Create a Meeting BaaS account at [meetingbaas.com](https://meetingbaas.com)
+    2. Generate an API key from your dashboard
+    3. Save your API credentials securely
+  </Step>
+
+  <Step title="Environment Preparation">
+    1. Install Node.js and npm
+    ```bash
+    # Check Node.js version
+    node --version
+    
+    # Check npm version
+    npm --version
+    ```
+    
+    2. Set up your development environment
+    3. Configure your IDE for TypeScript development
+  </Step>
+
+  <Step title="Choose Deployment Method">
+    Select your preferred deployment approach based on your needs:
+
+    **Cloud Deployment (MCP on Vercel)**
+    - Ideal for teams wanting minimal infrastructure management
+    - Perfect for production environments
+    - Supports automatic scaling
+    - Includes built-in monitoring
+
+    **Self-Hosted (Meeting MCP)**
+    - Best for complete control over infrastructure
+    - Suitable for custom security requirements
+    - Allows local development and testing
+    - Enables custom modifications
+  </Step>
+
+  <Step title="Initial Configuration">
+    1. Clone the appropriate repository
+    ```bash
+    # For Vercel deployment
+    git clone https://github.com/meetingbaas/mcp-vercel
+    
+    # For self-hosted deployment
+    git clone https://github.com/meetingbaas/meeting-mcp
+    ```
+
+    2. Install dependencies
+    ```bash
+    npm install
+    ```
+
+    3. Configure environment variables
+    ```bash
+    cp .env.example .env
+    ```
+  </Step>
+
+  <Step title="Testing Your Setup">
+    1. Run the development server
+    ```bash
+    npm run dev
+    ```
+
+    2. Verify the server is running
+    3. Test API endpoints
+    4. Configure your AI assistant
+  </Step>
+</Steps>

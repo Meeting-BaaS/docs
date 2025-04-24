@@ -1,0 +1,206 @@
+---
+title: Claude Desktop Integration
+description: Configure and integrate Claude Desktop with Meeting BaaS MCP servers for AI-powered meeting assistance and automation
+icon: Bot
+---
+
+This guide explains how to integrate Claude Desktop with Meeting BaaS MCP server for enhanced meeting capabilities.
+
+## Configuration Setup
+
+### Step 1: Edit Configuration File
+
+Open your Claude Desktop configuration file located at:
+
+```bash
+# For macOS
+~/Library/Application Support/Claude/claude_desktop_config.json
+
+# For Windows
+%APPDATA%\Claude\claude_desktop_config.json
+
+# For Linux
+~/.config/Claude/claude_desktop_config.json
+```
+
+### Step 2: Add MCP Server Configuration
+
+Add the following configuration to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "meetingbaas": {
+      "command": "/bin/bash",
+      "args": [
+        "-c",
+        "cd /path/to/meeting-mcp && (npm run build 1>&2) && MCP_FROM_CLAUDE=true node dist/index.js"
+      ],
+      "headers": {
+        "x-api-key": "YOUR_API_KEY_FOR_MEETING_BAAS"
+      },
+      "botConfig": {
+        "name": "Meeting Assistant",
+        "image": "https://meetingbaas.com/static/972043b7d604bca0d4b0048c7dd67ad2/fc752/previewFeatures.avif",
+        "entryMessage": "Hello, I'm a bot from Meeting Baas. I'll be taking notes for this meeting.",
+        "deduplicationKey": "unique_key_to_override_restriction",
+        "nooneJoinedTimeout": 600,
+        "waitingRoomTimeout": 600,
+        "speechToTextProvider": "Gladia",
+        "speechToTextApiKey": "YOUR_SPEECH_TO_TEXT_API_KEY",
+        "extra": {
+          "meetingType": "sales",
+          "summaryPrompt": "Focus on action items and decision points",
+          "searchKeywords": ["budget", "timeline", "deliverables"],
+          "timeStampHighlights": [
+            {"time": "00:05:23", "note": "Discussion about Q2 sales numbers"},
+            {"time": "00:12:47", "note": "Team disagreement on marketing strategy"}
+          ],
+          "participants": ["John Smith", "Jane Doe", "Bob Johnson"],
+          "project": "Project Phoenix",
+          "department": "Engineering",
+          "priority": "High",
+          "followupDate": "2023-12-15",
+          "tags": ["technical", "planning", "retrospective"]
+        },
+        "calendarOAuth": {
+          "platform": "Google",
+          "clientId": "YOUR_OAUTH_CLIENT_ID",
+          "clientSecret": "YOUR_OAUTH_CLIENT_SECRET",
+          "refreshToken": "YOUR_REFRESH_TOKEN",
+          "rawCalendarId": "primary@gmail.com"
+        }
+      }
+    }
+  }
+}
+```
+
+## Configuration Parameters Explained
+
+### Core Configuration
+
+| Parameter | Description | Required |
+|-----------|-------------|----------|
+| `command` | Specifies the shell to execute the MCP server | Yes |
+| `args` | Array of command-line arguments for server execution | Yes |
+| `headers` | Authentication headers including API keys | Yes |
+
+### Bot Configuration (`botConfig`)
+
+| Parameter | Description | Required | Default |
+|-----------|-------------|----------|---------|
+| `name` | Display name of the bot in meetings | Yes | "Claude Assistant" |
+| `image` | URL for bot's avatar image | No | System default |
+| `entryMessage` | Bot's greeting message when joining meetings | No | - |
+| `deduplicationKey` | Key to bypass 5-minute rejoin restriction | No | - |
+| `nooneJoinedTimeout` | Timeout (seconds) if no participants join | No | 600 |
+| `waitingRoomTimeout` | Timeout (seconds) for waiting room | No | 600 |
+
+### Speech-to-Text Configuration
+
+| Parameter | Description | Required |
+|-----------|-------------|----------|
+| `speechToTextProvider` | Provider for transcription service ("Gladia", "Runpod", "Default") | No |
+| `speechToTextApiKey` | API key for the chosen provider | Required if provider specified |
+
+### Calendar Integration (`calendarOAuth`)
+
+| Parameter | Description | Required |
+|-----------|-------------|----------|
+| `platform` | Calendar platform ("Google" or "Microsoft") | Yes |
+| `clientId` | OAuth client ID | Yes |
+| `clientSecret` | OAuth client secret | Yes |
+| `refreshToken` | OAuth refresh token | Yes |
+| `rawCalendarId` | Specific calendar ID to integrate | No |
+
+### Extended Metadata (`extra`)
+
+The `extra` field allows for flexible metadata configuration to enhance AI capabilities:
+
+```json
+{
+  "meetingType": "Type of meeting (sales, technical, etc.)",
+  "summaryPrompt": "Custom prompt for meeting summaries",
+  "searchKeywords": ["Array of keywords to track"],
+  "timeStampHighlights": [
+    {
+      "time": "HH:MM:SS",
+      "note": "Description of highlight"
+    }
+  ],
+  "participants": ["Array of participant names"],
+  "project": "Project identifier",
+  "department": "Department name",
+  "priority": "Meeting priority level",
+  "followupDate": "YYYY-MM-DD",
+  "tags": ["Array of relevant tags"]
+}
+```
+
+## Security Considerations
+
+1. **API Key Management**:
+   - Use API keys associated with your corporate email account
+   - Store API keys securely
+   - Regularly rotate API keys
+   - Never commit API keys to version control
+
+2. **Access Control**:
+   - Recordings and bot logs are automatically shared with same-domain colleagues
+   - Implement proper access controls for sensitive meetings
+   - Regular audit of access patterns
+
+## QR Code API Integration
+
+The QR Code API uses the same header name (`x-api-key`) but requires separate configuration. Configure it using one of these methods:
+
+1. Environment Variable:
+   ```bash
+   export MEETING_BAAS_QR_API_KEY="your_api_key"
+   ```
+
+2. Direct Configuration:
+   ```json
+   {
+     "qrCodeApi": {
+       "apiKey": "YOUR_QR_API_KEY"
+     }
+   }
+   ```
+
+## Best Practices
+
+1. **Meeting Setup**:
+   - Configure appropriate timeouts
+   - Use meaningful bot names
+   - Set clear entry messages
+
+2. **Data Management**:
+   - Regular backup of configurations
+   - Periodic review of stored meetings
+   - Clean up unused recordings
+
+3. **Integration Maintenance**:
+   - Regular updates of dependencies
+   - Monitor API usage
+   - Keep OAuth tokens updated
+
+## Troubleshooting
+
+1. **Connection Issues**:
+   - Verify API key validity
+   - Check network connectivity
+   - Ensure correct server path
+
+2. **Bot Behavior**:
+   - Verify timeout settings
+   - Check log files for errors
+   - Confirm OAuth credentials if using calendar integration
+
+3. **Performance Issues**:
+   - Monitor system resources
+   - Check network bandwidth
+   - Verify speech-to-text provider status
+
+After configuration, restart Claude Desktop for changes to take effect.

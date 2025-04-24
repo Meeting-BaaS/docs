@@ -1,0 +1,10 @@
+{
+  "title": "Integrations",
+  "description": "Connect your MCP server with popular calendar services and AI assistants",
+  "icon": "Plug",
+  "pages": [
+    "calendar-integration",
+    "claude-desktop-integration",
+    "cursor-integration"
+  ]
+}

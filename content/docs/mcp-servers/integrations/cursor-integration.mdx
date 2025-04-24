@@ -1,0 +1,180 @@
+---
+title: Cursor Integration
+description: Configure and integrate Cursor IDE with Meeting BaaS MCP servers for AI-powered development assistance and code collaboration
+icon: Code
+---
+
+## Overview
+This guide explains how to integrate the Meeting BaaS Model Context Protocol (MCP) server with Cursor, an AI-powered IDE. This integration enables enhanced AI capabilities within your development environment.
+
+## Integration Steps
+
+### Setting Up Cursor Integration
+
+1. **Launch Cursor**
+   - Open the Cursor IDE on your system
+   - Ensure you're running the latest version for optimal compatibility
+
+2. **Access Settings**
+   - Click on the Settings icon (⚙️) in the bottom left corner
+   - Alternatively, use the keyboard shortcut `Ctrl+,` (Windows/Linux) or `Cmd+,` (macOS)
+
+3. **Configure Model Context Protocol**
+   - Navigate to "Model Context Protocol" section
+   - Click on "Add New Server"
+   - Enter the following configuration:
+     ```json
+     {
+       "name": "Meeting BaaS MCP",
+       "type": "sse",
+       "serverUrl": "http://localhost:7017/mcp"
+     }
+     ```
+   - If authentication is required, add headers in the format:
+     ```json
+     {
+       "Authorization": "Bearer your-token-here"
+     }
+     ```
+
+## Development Guide
+
+### Building the Project
+
+```bash
+# Build the project
+npm run build
+```
+This command compiles the TypeScript code and generates the production-ready build.
+
+### Testing
+
+```bash
+# Run MCP Inspector for testing
+npm run inspect
+```
+The MCP Inspector provides a visual interface to test and debug your MCP server integration.
+
+### Development Mode
+
+```bash
+# Start development server with auto-reload
+npm run dev
+```
+Features:
+- Hot reloading for code changes
+- Real-time debugging information
+- Automatic server restart on file changes
+
+## Log Management
+
+### Cleanup Command
+```bash
+npm run cleanup
+```
+
+The log management system includes sophisticated features:
+
+- **Automated Log Cleanup**
+  - Removes redundant log files
+  - Cleans cached data periodically
+  - Maintains optimal disk usage
+
+- **Smart Log Filtering**
+  - Filters out non-essential ping messages
+  - Preserves critical error and warning logs
+  - Implements log rotation for long-term management
+
+- **Performance Optimization**
+  - Reduces I/O operations
+  - Minimizes memory footprint
+  - Implements efficient log compression
+
+## Project Architecture
+
+```
+project-root/
+├── src/
+│   ├── index.ts           # Main application entry point
+│   ├── tools/             # MCP tool implementations
+│   ├── resources/         # Resource definitions and handlers
+│   ├── api/              # Meeting BaaS backend API client
+│   ├── types/            # TypeScript type definitions
+│   ├── config.ts         # Server configuration
+│   └── utils/
+│       ├── logging.ts    # Advanced logging system
+│       └── tinyDb.ts     # Persistent state management
+```
+
+### Key Components
+
+1. **Main Entry Point** (`src/index.ts`)
+   - Server initialization
+   - Route configuration
+   - Middleware setup
+
+2. **Tools Directory** (`src/tools/`)
+   - Custom MCP tool implementations
+   - Tool registration and management
+   - Tool validation logic
+
+3. **Resources** (`src/resources/`)
+   - Static resource definitions
+   - Resource loading and caching
+   - Asset management
+
+4. **API Client** (`src/api/`)
+   - Meeting BaaS backend integration
+   - API request handling
+   - Response processing
+
+5. **Type Definitions** (`src/types/`)
+   - Interface definitions
+   - Type guards
+   - Shared type utilities
+
+6. **Configuration** (`src/config.ts`)
+   - Environment-based configuration
+   - Server settings
+   - Integration parameters
+
+7. **Utilities** (`src/utils/`)
+   - Logging system with advanced filtering
+   - Database operations for bot state
+   - Helper functions and common utilities
+
+## Best Practices
+
+1. **Error Handling**
+   - Implement comprehensive error catching
+   - Provide detailed error messages
+   - Log errors with appropriate severity levels
+
+2. **Security**
+   - Use environment variables for sensitive data
+   - Implement proper authentication
+   - Regular security audits
+
+3. **Performance**
+   - Optimize resource usage
+   - Implement caching where appropriate
+   - Monitor server health metrics
+
+## Troubleshooting
+
+Common issues and solutions:
+
+1. **Connection Issues**
+   - Verify server URL is correct
+   - Check if the server is running
+   - Confirm network connectivity
+
+2. **Authentication Errors**
+   - Validate token format
+   - Check token expiration
+   - Verify header configuration
+
+3. **Performance Problems**
+   - Monitor log sizes
+   - Check system resources
+   - Review active connections

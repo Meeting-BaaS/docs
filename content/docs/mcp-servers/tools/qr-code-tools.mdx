@@ -1,0 +1,91 @@
+# QR Code Tools
+
+## generateQRCode
+
+The `generateQRCode` tool creates AI-powered, visually appealing QR codes that can be used as bot avatars or for general purposes. These QR codes are not just functional but also aesthetically pleasing, combining art with utility.
+
+### Parameters
+
+| Parameter | Type | Description | Required |
+|-----------|------|-------------|-----------|
+| `type` | string | The type of QR code content. Options: `url`, `email`, `phone`, `sms`, `text` | Yes |
+| `to` | string | The destination content for the QR code (e.g., URL, email address, phone number, or text) | Yes |
+| `prompt` | string | AI generation prompt to customize the QR code's appearance (max 1000 characters) | Yes |
+| `style` | string | Visual style of the QR code. Options: `style_default`, `style_dots`, `style_rounded`, `style_crystal` | Yes |
+| `useAsBotImage` | boolean | Whether to set the generated QR code as the bot's avatar image (default: `true`) | No |
+| `template` | string | Template ID for pre-defined QR code designs (optional) | No |
+| `apiKey` | string | Your QR Code AI API key. If not provided, system default will be used | No |
+
+### API Key Integration
+
+You can provide your API key in two ways:
+1. Through the `apiKey` parameter
+2. Directly in the prompt by including phrases like "API key: qrc_your_key" or "Using API key: qrc_your_key"
+
+### Returns
+
+- A URL to the generated QR code image
+- The image URL is compatible with other tools like `joinMeeting`
+- The generated QR code is both scannable and visually appealing
+
+### Style Guide
+
+Each style option offers unique visual characteristics:
+- `style_default`: Classic QR code appearance with AI-enhanced elements
+- `style_dots`: Circular patterns for a modern, softer look
+- `style_rounded`: Smooth corners and flowing design
+- `style_crystal`: Crystalline structure with reflective effects
+
+### Examples
+
+#### Basic Usage
+```bash
+Generate a QR code with my email lazare@spoke.app that looks like a Tiger in crystal style
+```
+
+#### With API Key in Prompt
+```bash
+Generate a QR code for my website https://example.com that looks like a mountain landscape. Use API key: qrc_my-personal-api-key-123456
+```
+
+#### Formal Parameter Structure
+```bash
+Generate a QR code with the following parameters:
+- Type: email
+- To: john.doe@example.com
+- Prompt: Create a QR code that looks like a mountain landscape
+- Style: style_rounded
+- API Key: qrc_my-personal-api-key-123456
+```
+
+### Best Practices
+
+1. **Prompts**
+   - Be specific about the desired visual elements
+   - Include color preferences if any
+   - Mention any specific themes or moods
+
+2. **Testing**
+   - Always test the QR code with multiple devices
+   - Ensure sufficient contrast for scanning
+   - Verify the encoded information is correct
+
+3. **Design Considerations**
+   - Choose styles that match your brand identity
+   - Consider the scanning environment
+   - Balance aesthetics with functionality
+
+### Limitations
+
+- Maximum prompt length: 1000 characters
+- Image format: PNG
+- Resolution: Up to 1024x1024 pixels
+- API rate limits may apply based on your key type
+
+### Security Notes
+
+- Never share your API key publicly
+- Use environment variables for API keys in production
+- Regularly rotate API keys for security
+
+For more information and support, visit our [API documentation](https://docs.qrcode-ai.com).

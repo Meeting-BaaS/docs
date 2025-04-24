@@ -1,0 +1,411 @@
+# Calendar Tools
+
+Calendar Tools provide a robust set of APIs for integrating and managing calendar systems within your application. These tools support both Google Calendar and Microsoft Calendar integrations through OAuth authentication.
+
+## OAuth Setup Guide
+
+### oauthGuidance
+
+Get detailed step-by-step instructions for setting up OAuth authentication with Google or Microsoft calendars.
+
+```typescript
+GET /api/calendar/oauth/guidance
+```
+
+**Response:**
+- Comprehensive setup instructions for both Google and Microsoft OAuth
+- Required API permissions and scopes
+- Step-by-step credential creation process
+- Security best practices
+
+## Calendar Integration
+
+### listRawCalendars
+
+Lists all available calendars from Google or Microsoft before integration.
+
+```typescript
+POST /api/calendar/raw/list
+```
+
+**Parameters:**
+```json
+{
+  "platform": "Google | Microsoft",
+  "clientId": "your_client_id",
+  "clientSecret": "your_client_secret",
+  "refreshToken": "your_refresh_token"
+}
+```
+
+**Response:**
+```json
+{
+  "calendars": [
+    {
+      "id": "calendar_id",
+      "name": "Calendar Name",
+      "isPrimary": true,
+      "email": "calendar@example.com"
+    }
+  ]
+}
+```
+
+### setupCalendarOAuth
+
+Integrates a calendar using OAuth credentials.
+
+```typescript
+POST /api/calendar/setup
+```
+
+**Parameters:**
+```json
+{
+  "platform": "Google | Microsoft",
+  "clientId": "your_client_id",
+  "clientSecret": "your_client_secret",
+  "refreshToken": "your_refresh_token",
+  "rawCalendarId": "optional_calendar_id" // Optional
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "calendarId": "uuid",
+  "name": "Calendar Name",
+  "email": "calendar@example.com"
+}
+```
+
+## Calendar Management
+
+### listCalendars
+
+Lists all integrated calendars in your system.
+
+```typescript
+GET /api/calendars
+```
+
+**Response:**
+```json
+{
+  "calendars": [
+    {
+      "uuid": "calendar_uuid",
+      "name": "Calendar Name",
+      "email": "calendar@example.com",
+      "platform": "Google | Microsoft",
+      "lastSynced": "2024-03-21T10:00:00Z"
+    }
+  ]
+}
+```
+
+### getCalendar
+
+Retrieves detailed information about a specific calendar.
+
+```typescript
+GET /api/calendars/{calendarId}
+```
+
+**Parameters:**
+- `calendarId`: UUID of the calendar (path parameter)
+
+**Response:**
+```json
+{
+  "uuid": "calendar_uuid",
+  "name": "Calendar Name",
+  "email": "calendar@example.com",
+  "platform": "Google | Microsoft",
+  "lastSynced": "2024-03-21T10:00:00Z",
+  "settings": {
+    "timezone": "UTC",
+    "defaultReminders": []
+  }
+}
+```
+
+### deleteCalendar
+
+Removes a calendar integration from your system.
+
+```typescript
+DELETE /api/calendars/{calendarId}
+```
+
+**Parameters:**
+- `calendarId`: UUID of the calendar (path parameter)
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Calendar successfully deleted"
+}
+```
+
+### resyncAllCalendars
+
+Forces a refresh of all connected calendars.
+
+```typescript
+POST /api/calendars/resync
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "syncedCalendars": 5,
+  "lastSyncTime": "2024-03-21T10:00:00Z"
+}
+```
+
+## Event Management
+
+### listUpcomingMeetings
+
+Retrieves upcoming meetings from a specific calendar.
+
+```typescript
+GET /api/calendars/{calendarId}/meetings
+```
+
+**Parameters:**
+- `calendarId`: UUID of the calendar (path parameter)
+- `status`: "upcoming" | "past" | "all" (query parameter, optional)
+- `limit`: number (query parameter, optional)
+
+**Response:**
+```json
+{
+  "meetings": [
+    {
+      "id": "meeting_id",
+      "title": "Meeting Title",
+      "startTime": "2024-03-21T10:00:00Z",
+      "endTime": "2024-03-21T11:00:00Z",
+      "isRecorded": false
+    }
+  ]
+}
+```
+
+### listEvents
+
+Lists calendar events with comprehensive filtering options.
+
+```typescript
+GET /api/calendars/{calendarId}/events
+```
+
+**Parameters:**
+- `calendarId`: UUID of the calendar (path parameter)
+- `startDateGte`: ISO date string (query parameter, optional)
+- `startDateLte`: ISO date string (query parameter, optional)
+- `attendeeEmail`: string (query parameter, optional)
+- Additional filters available
+
+**Response:**
+```json
+{
+  "events": [
+    {
+      "id": "event_id",
+      "title": "Event Title",
+      "description": "Event Description",
+      "startTime": "2024-03-21T10:00:00Z",
+      "endTime": "2024-03-21T11:00:00Z",
+      "attendees": [
+        {
+          "email": "attendee@example.com",
+          "responseStatus": "accepted"
+        }
+      ],
+      "meetingLink": "https://meet.example.com/123"
+    }
+  ]
+}
+```
+
+### listEventsWithCredentials
+
+Similar to listEvents but accepts direct API credentials.
+
+```typescript
+GET /api/calendars/{calendarId}/events/direct
+```
+
+**Parameters:**
+- Same as listEvents, plus:
+- `apiKey`: Your API key (header)
+
+### getEvent
+
+Retrieves detailed information about a specific calendar event.
+
+```typescript
+GET /api/events/{eventId}
+```
+
+**Parameters:**
+- `eventId`: UUID of the event (path parameter)
+
+**Response:**
+```json
+{
+  "id": "event_id",
+  "title": "Event Title",
+  "description": "Event Description",
+  "startTime": "2024-03-21T10:00:00Z",
+  "endTime": "2024-03-21T11:00:00Z",
+  "attendees": [],
+  "recordingStatus": "scheduled | recording | completed | none"
+}
+```
+
+## Recording Management
+
+### scheduleRecording
+
+Schedules a bot to record an upcoming meeting.
+
+```typescript
+POST /api/events/{eventId}/record
+```
+
+**Parameters:**
+```json
+{
+  "botName": "Recording Bot",
+  "botImage": "https://example.com/bot-avatar.png", // Optional
+  "recordingMode": "speaker | gallery | automatic", // Optional
+  "quality": "high | medium | low" // Optional
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "recordingId": "recording_uuid",
+  "scheduledStartTime": "2024-03-21T10:00:00Z"
+}
+```
+
+### scheduleRecordingWithCredentials
+
+Similar to scheduleRecording but accepts direct API credentials.
+
+```typescript
+POST /api/events/{eventId}/record/direct
+```
+
+**Parameters:**
+- Same as scheduleRecording, plus:
+- `apiKey`: Your API key (header)
+
+### cancelRecording
+
+Cancels a previously scheduled recording.
+
+```typescript
+DELETE /api/events/{eventId}/record
+```
+
+**Parameters:**
+- `eventId`: UUID of the event (path parameter)
+- `allOccurrences`: boolean (query parameter, optional)
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Recording cancelled successfully"
+}
+```
+
+### cancelRecordingWithCredentials
+
+Similar to cancelRecording but accepts direct API credentials.
+
+```typescript
+DELETE /api/events/{eventId}/record/direct
+```
+
+**Parameters:**
+- Same as cancelRecording, plus:
+- `apiKey`: Your API key (header)
+
+## System Health
+
+### checkCalendarIntegration
+
+Diagnoses calendar integration status and health.
+
+```typescript
+GET /api/calendar/health
+```
+
+**Response:**
+```json
+{
+  "status": "healthy | degraded | error",
+  "lastSync": "2024-03-21T10:00:00Z",
+  "connectedCalendars": 5,
+  "activeRecordings": 2,
+  "issues": [
+    {
+      "type": "auth_error | sync_error | api_error",
+      "message": "Detailed error message",
+      "calendarId": "affected_calendar_uuid"
+    }
+  ],
+  "recommendations": [
+    "List of troubleshooting steps or recommendations"
+  ]
+}
+```
+
+## Best Practices
+
+1. **OAuth Token Management**
+   - Securely store refresh tokens
+   - Implement token rotation
+   - Handle token expiration gracefully
+
+2. **Error Handling**
+   - Implement proper error handling for API rate limits
+   - Handle calendar sync conflicts
+   - Manage recording failures appropriately
+
+3. **Performance Optimization**
+   - Cache calendar data when appropriate
+   - Implement pagination for large event lists
+   - Use webhook notifications for calendar updates
+
+4. **Security Considerations**
+   - Use HTTPS for all API calls
+   - Implement proper authentication
+   - Regular security audits
+   - Monitor for suspicious activities
+
+## Rate Limits
+
+- Standard tier: 100 requests per minute
+- Enterprise tier: 1000 requests per minute
+- Webhook notifications: 50 per second
+
+## Support
+
+For additional support or questions:
+- Documentation: https://docs.example.com/calendar-tools
+- Support Email: support@example.com
+- API Status: https://status.example.com
