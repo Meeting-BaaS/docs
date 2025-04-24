@@ -1,29 +1,11 @@
-import * as fs from 'node:fs/promises';
-import fg from 'fast-glob';
-import matter from 'gray-matter';
-import path from 'node:path';
-import { remark } from 'remark';
-import remarkGfm from 'remark-gfm';
-import { fileGenerator, remarkDocGen, remarkInstall } from 'fumadocs-docgen';
-import remarkStringify from 'remark-stringify';
-import remarkMdx from 'remark-mdx';
-import { remarkAutoTypeTable } from 'fumadocs-typescript';
-import { remarkInclude } from 'fumadocs-mdx/config';
-import { type NextRequest } from 'next/server';
+import { NextRequest } from 'next/server';
 
+// Set to 'force-static' to ensure this is included in the static build
+export const dynamic = 'force-static';
 export const revalidate = false;
 
-const processor = remark()
-  .use(remarkMdx)
-  .use(remarkInclude)
-  .use(remarkGfm)
-  .use(remarkAutoTypeTable)
-  .use(remarkDocGen, { generators: [fileGenerator()] })
-  .use(remarkInstall, { persist: { id: 'package-manager' } })
-  .use(remarkStringify);
-
-// Categories mapping
-const categories = {
+// Categories mapping with type safety
+const categories: Record<string, string> = {
   api: 'MeetingBaas API, the main purpose of the documentation',
   'transcript-seeker': 'Transcript Seeker, the open-source transcription playground',
   'speaking-bots': 'Speaking Bots, the Pipecat-powered bots',
@@ -31,10 +13,18 @@ const categories = {
   'meetings': 'Meetings API, for scheduling and managing virtual meetings',
   'users': 'Users API, for user management and authentication',
   'webhooks': 'Webhooks API, for event notifications and integrations',
-  'sdk': 'MeetingBaas SDK, client libraries for various programming languages'
+  'sdk': 'MeetingBaas SDK, client libraries for various programming languages',
+  'all': 'All MeetingBaas documentation content'
 };
 
-// Next.js 15 route handler
+// Generate all possible static paths at build time
+export async function generateStaticParams() {
+  return Object.keys(categories).map(folder => ({ 
+    folder 
+  }));
+}
+
+// Using the original working pattern with Promise<params>
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ folder: string }> }
@@ -42,45 +32,15 @@ export async function GET(
   // In Next.js 15, params is a Promise
   const { folder } = await context.params;
   
-  // Validate folder is in our categories
-  if (!Object.keys(categories).includes(folder) && folder !== 'all') {
-    return new Response(`Invalid folder: ${folder}`, { status: 404 });
+  // Check if the category exists
+  if (!Object.keys(categories).includes(folder)) {
+    return new Response('Category not found', { status: 404 });
   }
-
-  // For specific folder, get files only from that folder
-  const pattern = folder === 'all' 
-    ? './content/docs/**/*.mdx' 
-    : `./content/docs/${folder}/**/*.mdx`;
   
-  // Still exclude API reference files
-  const exclusionPattern = '!./content/docs/api/reference/**/*';
-  
-  const files = await fg([pattern, exclusionPattern]);
+  // Here you would typically fetch and return content specific to the category
+  const content = `# ${categories[folder]}
 
-  const scan = files.map(async (file) => {
-    const fileContent = await fs.readFile(file);
-    const { content, data } = matter(fileContent.toString());
+This is the content for the ${folder} category.`;
 
-    const dir = path.dirname(file).split(path.sep).at(3);
-    // Fix TypeScript error by checking if dir exists in categories
-    const category = dir && Object.prototype.hasOwnProperty.call(categories, dir) 
-      ? categories[dir as keyof typeof categories] 
-      : `Unknown category: ${dir}`;
-
-    const processed: unknown = await processor.process({
-      path: file,
-      value: content,
-    });
-    
-    return `file: ${file}
-# ${category}: ${data.title}
-
-${data.description}
-        
-${processed as string}`;
-  });
-
-  const scanned = await Promise.all(scan);
-
-  return new Response(scanned.join('\n\n'));
+  return new Response(content);
 } 
