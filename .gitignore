@@ -5,6 +5,7 @@
 .contentlayer
 .content-collections
 .source
+ content/llm/all.md
 
 # test & build
 /coverage
@@ -28,7 +29,7 @@ yarn-error.log*
 .vercel
 next-env.d.ts
 
-# 
+#
 fumadocs-basehub
 
 # Add this entry to the existing .gitignore file

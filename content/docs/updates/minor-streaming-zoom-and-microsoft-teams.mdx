@@ -1,30 +1,34 @@
-<Callout type="info" icon={<Info className="h-5 w-5" />}>
-  Paris, the 4th of January 2025.
-</Callout>
+---
+title: Meeting Clients Update
+description: Streaming and client improvements
+icon: Video
+date: 2025-01-04
+service: api
+tags: ['api', 'streaming', 'zoom', 'teams', 'meet']
+---
 
-We're excited to announce several improvements to our streaming API and client applications for Zoom, Microsoft Teams, and Google Meet. These updates enhance stability, performance, and functionality.
+# Meeting Clients Update <Badge variant="outline">January 4th, 2025</Badge>
 
-## New Features
+## Streaming API
 
-### Streaming Format Specification
+- New audio frequency specification option
+- **audio_frequency**: Choose between `16khz` or `24khz` (default: 24kHz)
 
-- You can now specify the streaming format for WebSocket streams, 16kHz or 24kHz.
-- **audio_frequency**: The audio frequency for the WebSocket streams, defaults to 24kHz. Can be one of `16khz` or `24khz`.
+## Client Updates
 
-### Microsoft Teams Client Update
+### Microsoft Teams
 
-- We've updated our Microsoft Teams client, reducing the number of bugs by 50%.
-- Now supports live Teams links, including Microsoft Live Meeting URLs (e.g., `https://teams.live.com/meet/...`).
+- 50% bug reduction
+- Support for live Teams links (`https://teams.live.com/meet/...`)
 
-### Google Meet Client Update
+### Google Meet
 
-- We've updated our Google Meet client, reducing the number of bugs by 10%.
+- 10% bug reduction
 
-### Zoom Client Update
+### Zoom
 
-- Released an entirely new Zoom client. Currently, video capture isn't supported, but we plan to release this feature within the next two weeks.
-- Zoom is expected to be our most stable client.
+- Entirely new client implementation
+- Video capture coming in the next two weeks
+- Currently our most stable client
 
-## Implementation Timeline
-
-These changes are now live in production.
+All changes are now live in production.
