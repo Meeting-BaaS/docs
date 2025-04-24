@@ -10,11 +10,12 @@ export async function generateStaticParams() {
 }
 
 export async function GET(request: NextRequest) {
-  // Get host from request for proper URL construction
-  const host = request.headers.get('host') || 'localhost:3000';
-  const protocol = host.includes('localhost') ? 'http' : 'https';
-  const baseUrl = `${protocol}://${host}`;
-  
-  // Redirect to the non-txt version
-  return Response.redirect(`${baseUrl}/llms`, 301);
+  // We need to use NextResponse for proper redirects with relative URLs
+  // during static generation
+  return new Response(null, {
+    status: 302,
+    headers: {
+      'Location': '/llms'
+    }
+  });
 } 
