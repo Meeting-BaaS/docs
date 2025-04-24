@@ -1,6 +1,9 @@
 {
-  "title": "MCP's",
+  "title": "MCP Servers",
   "description": "Deploy and manage Model Context Protocol (MCP) servers for Meeting BaaS integration",
   "icon": "Server",
-  "pages": ["vercel-mcp", "meeting-mcp"]
+  "pages": [
+    "meeting-mcp",
+    "vercel-mcp"
+  ]
 }

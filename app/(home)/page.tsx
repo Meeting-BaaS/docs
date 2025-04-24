@@ -1,5 +1,5 @@
 import { cn } from '@/lib/cn';
-import { BotIcon, CaptionsIcon, ServerCog, WebhookIcon } from 'lucide-react';
+import { BotIcon, CaptionsIcon, ServerCog, Settings, WebhookIcon } from 'lucide-react';
 import type { LinkProps } from 'next/link';
 import Link from 'next/link';
 
@@ -49,7 +49,7 @@ export default function DocsPage(): React.ReactElement {
 
         <Item href="/docs/typescript-sdk">
           <Icon className="typescript-sdk">
-            <BotIcon className="size-full" />
+            <Settings className="size-full" />
           </Icon>
           <h2 className="mb-2 text-lg font-semibold">Typescript SDK</h2>
           <p className="text-fd-muted-foreground text-sm">

@@ -1,0 +1,126 @@
+---
+title: Tools
+description: Technical details, deployment guides, and integration tools for Vercel MCP
+icon: Bolt
+---
+
+## Deployment Guide
+
+<Tabs>
+  <Tab title="One-Click Deploy" value="one-click">
+    Deploy directly to Vercel with minimal configuration:
+    
+    <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FMeeting-Baas%2Fmcp-on-vercel&env=REDIS_URL&envDescription=Redis%20URL%20for%20session%20management" target="_blank">
+      <img src="https://vercel.com/button" alt="Deploy with Vercel" />
+    </a>
+    
+    **Required Configuration:**
+    1. Redis URL for session management
+    2. Meeting BaaS API key (optional for development)
+    3. Enable Fluid Compute in project settings
+    4. Configure max duration in `vercel.json` (Pro/Enterprise)
+
+  </Tab>
+  <Tab title="Manual Deployment" value="manual">
+    For customized deployment with full control:
+    
+    ```bash
+    # Clone the repository
+    git clone https://github.com/Meeting-Baas/mcp-on-vercel.git
+    cd mcp-on-vercel
+    
+    # Install dependencies
+    npm install
+    
+    # Configure environment
+    cp .env.example .env
+    # Edit .env with required credentials
+    
+    # Deploy
+    npx vercel --prod
+    ```
+
+    **Post-Deployment Steps:**
+    1. Configure environment variables in Vercel dashboard
+    2. Enable Fluid Compute
+    3. Adjust compute settings for your usage tier
+    4. Set up monitoring and alerts
+
+  </Tab>
+</Tabs>
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Required | Description | Example |
+|----------|----------|-------------|----------|
+| `REDIS_URL` | Yes | Redis instance URL | `redis://user:pass@host:port` |
+| `NODE_ENV` | No | Environment mode | `development` or `production` |
+| `LOG_LEVEL` | No | Logging verbosity | `info`, `debug`, `error` |
+| `BAAS_API_KEY` | Dev only | Meeting BaaS API key | `mbk_xxxx...` |
+
+### Authentication Methods
+
+The server supports multiple authentication approaches in order of precedence:
+
+1. **HTTP Headers:**
+   ```http
+   x-meeting-baas-api-key: your-api-key
+   x-meetingbaas-apikey: your-api-key
+   x-api-key: your-api-key
+   Authorization: Bearer your-api-key
+   ```
+
+2. **Request Body (POST):**
+   ```json
+   {
+     "apiKey": "your-api-key"
+   }
+   ```
+
+3. **Environment Variable (Development):**
+   ```bash
+   BAAS_API_KEY=your-api-key
+   ```
+
+<Callout type="warning">
+  Production deployments should use header or body authentication methods. Environment
+  variable authentication is restricted to development environments only.
+</Callout>
+
+## Integration Guide
+
+### Claude Desktop Integration
+
+Configure your MCP server in Claude Desktop:
+
+1. Navigate to Settings > Model Context Protocol
+2. Add new MCP Server with:
+   ```yaml
+   Name: Meeting BaaS MCP
+   URL: [Your Vercel Deployment URL]
+   Headers:
+     x-api-key: [Your Meeting BaaS API Key]
+   ```
+
+### Custom Development
+
+Extend the server's capabilities:
+
+1. **Tool Customization:**
+   - Modify `/lib/tools` for custom Meeting BaaS integrations
+   - Add new tool definitions in `api/server.ts`
+
+2. **Prompt Engineering:**
+   - Update `/lib/prompts` for specialized use cases
+   - Configure context handling in `api/server.ts`
+
+3. **Testing:**
+   ```bash
+   # Start development server
+   npm run dev
+
+   # Run test client
+   node scripts/test-client.mjs http://localhost:3000
+   ```

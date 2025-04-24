@@ -1,0 +1,10 @@
+{
+  "title": "Vercel MCP",
+  "description": "Enterprise-grade Model Context Protocol server for Meeting BaaS integration",
+  "icon": "Cloud",
+  "pages": [
+    "overview",
+    "tools",
+    "features"
+  ]
+}

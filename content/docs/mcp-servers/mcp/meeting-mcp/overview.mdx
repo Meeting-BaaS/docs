@@ -1,7 +1,7 @@
 ---
-title: Meeting MCP
-description: Standalone MCP server for local deployment with Meeting BaaS integration
-icon: Server
+title: Overview
+description: Introduction to Meeting MCP - A Standalone MCP Server for Meeting BaaS Integration
+icon: TableOfContents
 ---
 
 Meeting MCP is a standalone [Model Context Protocol](https://www.anthropic.com/news/model-context-protocol) server that provides AI assistants with access to Meeting BaaS data and capabilities. The server can be deployed locally or on your own infrastructure, making it ideal for use with Claude Desktop and other MCP clients.
@@ -83,52 +83,6 @@ Before getting started, you'll need:
   </Step>
 </Steps>
 
-## Available Tools
-
-The server exposes several tools through the MCP protocol:
-
-<Accordions>
-  <Accordion title="Calendar Tools" icon={<Calendar />} defaultOpen>
-    - **oauthGuidance**: Get step-by-step instructions for setting up OAuth -
-    **listRawCalendars**: List available calendars before integration -
-    **setupCalendarOAuth**: Integrate a calendar using OAuth credentials -
-    **listCalendars**: List all integrated calendars - **getCalendar**: Get
-    detailed information about a specific calendar - **deleteCalendar**: Remove
-    a calendar integration - **resyncAllCalendars**: Force a refresh of all
-    connected calendars - **listUpcomingMeetings**: List upcoming meetings from
-    a calendar - **listEvents**: List calendar events with filtering options -
-    **getEvent**: Get detailed information about a specific event -
-    **scheduleRecording**: Schedule a bot to record an upcoming meeting -
-    **cancelRecording**: Cancel a previously scheduled recording -
-    **checkCalendarIntegration**: Diagnose calendar integration issues
-  </Accordion>
-
-<Accordion title="Meeting Tools" icon={<Video />}>
-  - **createBot**: Create a meeting bot that can join video conferences -
-  **getBots**: List all bots and their associated meetings -
-  **getBotsByMeeting**: Get bots for a specific meeting URL - **getRecording**:
-  Retrieve recording information - **getRecordingStatus**: Check the status of a
-  recording - **getMeetingData**: Get transcript and recording data
-</Accordion>
-
-<Accordion title="Transcript Tools" icon={<FileText />}>
-  - **getMeetingTranscript**: Get a complete meeting transcript with speaker
-  information - **findKeyMoments**: Automatically identify important moments in
-  a meeting
-</Accordion>
-
-<Accordion title="QR Code Tools" icon={<QrCode />}>
-  - **generateQRCode**: Create an AI-generated QR code image for use as a bot
-  avatar
-</Accordion>
-
-  <Accordion title="Link Sharing Tools" icon={<Link />}>
-    - **shareableMeetingLink**: Generate a formatted, shareable link to a
-    recording - **shareMeetingSegments**: Create links to multiple important
-    moments
-  </Accordion>
-</Accordions>
-
 ## Authentication
 
 The server expects an API key in the `x-api-key` header for authentication. You can configure the default API key in the configuration file.
@@ -191,97 +145,6 @@ Many tools also support direct authentication through parameters (named with "Wi
   </Step>
 </Steps>
 
-## QR Code API Key Configuration
-
-The QR code generator tool requires an API key from [QR Code AI API](https://www.qrcode-ai-api.com/). There are several ways to provide this:
-
-1. **Directly in the prompt**: Include your API key in the prompt when using the `generateQRCode` tool
-2. **As a parameter**: Provide your API key as the `apiKey` parameter
-3. **Environment variable**: Set the `QRCODE_API_KEY` environment variable
-4. **Claude Desktop config**: Add the API key to your Claude Desktop configuration file
-
-## Example Workflows
-
-<Tabs>
-  <Tab title="Recording a Meeting" value="recording">
-```
-# Create a bot for a meeting
-"Create a bot for my Zoom meeting at https://zoom.us/j/123456789"
-
-# Check recording status
-
-"What's the status of my meeting recording for the Zoom call I started earlier?"
-
-```
-  </Tab>
-  <Tab title="Calendar Integration" value="calendar">
-```
-
-# Get OAuth guidance
-
-"I want to integrate my Google Calendar. How do I get OAuth credentials?"
-
-# Set up calendar integration
-
-"Integrate my Google Calendar using these credentials:
-
-- Platform: Google
-- Client ID: my-client-id-123456789.apps.googleusercontent.com
-- Client Secret: my-client-secret-ABCDEF123456
-- Refresh Token: my-refresh-token-ABCDEF123456789
-- Raw Calendar ID: primary@gmail.com"
-
-# View upcoming meetings
-
-"Show me my upcoming meetings from calendar 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
-
-# Schedule recording
-
-"Schedule a recording for my team meeting with event ID 7a8b9c0d-1e2f-3a4b-5c6d-7e8f9a0b1c2d"
-
-```
-  </Tab>
-  <Tab title="Analyzing Content" value="analyzing">
-```
-
-# Get a meeting transcript
-
-"Get the transcript from my team meeting with bot ID abc-123"
-
-# Find key moments
-
-"Identify key moments from yesterday's product planning meeting with bot ID xyz-456"
-
-# Share a specific moment
-
-"Create a shareable link to the part of meeting abc-123 at timestamp 12:45 where John was talking about the budget"
-
-```
-  </Tab>
-  <Tab title="QR Code Generation" value="qrcode">
-```
-
-# Generate a QR code with contact information
-
-"Generate a QR code with the following parameters:
-
-- Type: email
-- To: john.doe@company.com
-- Prompt: Create a professional-looking QR code with abstract blue patterns
-- Style: style_crystal"
-
-# Use as a bot avatar
-
-"Join my Zoom meeting at https://zoom.us/j/123456789 with the following parameters:
-
-- Bot name: QR Code Assistant
-- Bot image: [URL from the generated QR code]
-- Entry message: Hello everyone, scan my avatar to get my contact information."
-
-````
-  </Tab>
-</Tabs>
-
 ## Development
 
 For development purposes, you can:
@@ -295,7 +158,7 @@ npm run inspect
 
 # Clean up logs
 npm run cleanup
-````
+```
 
 ## Project Structure
 

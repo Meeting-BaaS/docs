@@ -4,7 +4,7 @@
   "icon": "Plug",
   "pages": [
     "calendar-integration",
-    "claude-desktop-integration",
+    "claude-integration",
     "cursor-integration"
   ]
 }

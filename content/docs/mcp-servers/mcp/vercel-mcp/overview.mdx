@@ -1,0 +1,66 @@
+---
+title: Overview
+description: Introduction to enterprise-grade Model Context Protocol server for Meeting BaaS
+icon: TableOfContents
+---
+
+MCP on Vercel is an enterprise-grade [Model Context Protocol](https://www.anthropic.com/news/model-context-protocol) server that powers the [chat.meetingbaas.com](https://chat.meetingbaas.com) platform. Built as an enhanced fork of the Vercel MCP template, it provides comprehensive Meeting BaaS integration for advanced meeting automation, AI-powered interactions, and intelligent meeting management.
+
+<Card
+  icon={<Github />}
+  title="GitHub Repository"
+  href="https://github.com/Meeting-Baas/mcp-on-vercel"
+  description="Access the source code to deploy your own customized MCP server"
+  external
+/>
+
+## Core Features
+
+<Cards>
+  <Card
+    title="Meeting BaaS SDK Integration"
+    icon={<Code className="text-blue-400" />}
+  >
+    Seamless integration with the TypeScript SDK providing type-safe access to all Meeting BaaS features including video management, bot control, and meeting automation.
+  </Card>
+  <Card
+    title="Advanced Bot Management"
+    icon={<MessageSquare className="text-green-400" />}
+  >
+    Comprehensive tools for deploying and managing AI-powered speaking agents with customizable personas, real-time transcription, and dynamic interaction capabilities.
+  </Card>
+  <Card
+    title="Intelligent Calendar Integration"
+    icon={<Calendar className="text-purple-400" />}
+  >
+    Smart calendar management with automated meeting scheduling, recording controls, and AI-assisted event organization across multiple platforms.
+  </Card>
+  <Card
+    title="Enterprise-Ready Architecture"
+    icon={<Cloud className="text-teal-400" />}
+  >
+    Built for scale with Vercel's serverless infrastructure, featuring Redis-backed session management, fluid compute optimization, and cross-platform compatibility.
+  </Card>
+</Cards>
+
+## System Requirements
+
+**Required Components:**
+- Vercel account with deployment access
+- Meeting BaaS API key
+- Redis instance (for session state management)
+- Node.js v16 or higher (for local development)
+
+**Recommended Setup:**
+- Vercel Pro/Enterprise account for extended compute capabilities
+- Redis instance in the same region as your Vercel deployment
+- Fluid Compute enabled for optimal performance
+
+## Contributing
+
+This project is maintained as an enhanced fork of the [original Vercel MCP template](https://github.com/vercel-labs/mcp-on-vercel). Contributions are welcome through pull requests and issues on our repository.
+
+<Callout type="info">
+  For production deployments, we recommend subscribing to our release notifications
+  to stay updated with the latest security patches and feature enhancements.
+</Callout>

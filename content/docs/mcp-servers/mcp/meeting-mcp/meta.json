@@ -1,0 +1,6 @@
+{
+  "title": "Meeting MCP",
+  "description": "Standalone MCP server for local deployment with Meeting BaaS integration",
+  "icon": "Presentation",
+  "pages": ["overview", "tools"]
+}
