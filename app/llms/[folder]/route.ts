@@ -172,14 +172,17 @@ async function getContentForFolder(folder: string): Promise<string> {
   }
 }
 
-// Main route handler
-export async function GET(
-  request: NextRequest,
-  context: any
-) {
+// Single parameter route handler for maximum compatibility
+export async function GET(request: Request) {
   try {
-    // Get the folder parameter safely
-    const folder = context?.params?.folder || 'all';
+    // Extract folder from URL path
+    const url = new URL(request.url);
+    const pathname = url.pathname;
+    
+    // Parse the URL to extract the folder name
+    // Expected format: /llms/{folder}
+    const parts = pathname.split('/').filter(Boolean);
+    const folder = parts.length >= 2 ? parts[1] : 'all';
     
     // Check if the folder exists in our categories
     if (!Object.keys(categoryConfig).includes(folder)) {

@@ -1,116 +1,122 @@
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'fs';
+import fs from 'fs';
 import path from 'path';
-import glob from 'fast-glob';
 import matter from 'gray-matter';
-import { fileURLToPath } from 'url';
+import glob from 'fast-glob';
+
+// Type definition for the config
+type CategoryConfig = {
+  title: string;
+  description: string;
+  patterns: string[];
+  excludePatterns?: string[];
+};
 
 /**
  * Generate LLM-optimized versions of all documentation
  * This creates static files that can be served to LLMs with comprehensive content
  */
-export async function generateLLMContent() {
-  console.log('Generating LLM-optimized content...');
-
-  // Define the main document categories
-  const categories = {
-    api: 'MeetingBaas API Documentation',
-    'transcript-seeker': 'Transcript Seeker Documentation',
-    'speaking-bots': 'Speaking Bots Documentation',
-    'typescript-sdk': 'TypeScript SDK Documentation'
-  };
-
-  // Create LLM content directory if it doesn't exist
-  const llmContentDir = path.join(process.cwd(), 'content', 'llm');
-  mkdirSync(llmContentDir, { recursive: true });
-
-  // Process each category
-  for (const [category, title] of Object.entries(categories)) {
-    console.log(`Processing category: ${category}`);
+export async function run() {
+  try {
+    console.log('Generating LLM content...');
     
-    // Find all MDX files in this category
-    const files = await glob([`./content/docs/${category}/**/*.mdx`]);
+    // Create the content/llm directory if it doesn't exist
+    const llmContentDir = './content/llm';
+    if (!fs.existsSync(llmContentDir)) {
+      fs.mkdirSync(llmContentDir, { recursive: true });
+    }
     
-    // Collect content from all files in the category
-    const categoryContent: string[] = [`# ${title}\n\n`];
+    // Safely load the configuration (might not be available during first run)
+    let categoryConfig: Record<string, CategoryConfig>;
+    try {
+      // Try to import the generated config
+      const configModule = await import('../content/llm-config.js');
+      categoryConfig = configModule.categoryConfig;
+      
+      if (!categoryConfig || Object.keys(categoryConfig).length === 0) {
+        throw new Error('Config is empty');
+      }
+    } catch (error) {
+      console.warn('Could not load configuration from llm-config.js, using fallback configuration');
+      // Fallback default configuration
+      categoryConfig = {
+        'all': {
+          title: 'All MeetingBaas documentation content',
+          description: 'This contains all documentation across Meeting BaaS systems.',
+          patterns: ['./content/docs/**/*.mdx'],
+        },
+        'api': {
+          title: 'MeetingBaas API',
+          description: 'API documentation for interacting with Meeting BaaS services.',
+          patterns: ['./content/docs/api/**/*.mdx'],
+        }
+      };
+    }
     
-    for (const file of files) {
+    // Process each category
+    for (const [categoryPath, config] of Object.entries(categoryConfig)) {
+      console.log(`Processing category: ${categoryPath}`);
+      
       try {
-        const fileContent = readFileSync(file, 'utf-8');
-        const { content, data } = matter(fileContent);
+        // Get file patterns from config
+        const allPatterns = [...config.patterns];
+        if (config.excludePatterns) {
+          allPatterns.push(...config.excludePatterns);
+        }
         
-        // Add metadata and content from the file
-        categoryContent.push(`## ${data.title || path.basename(file, '.mdx')}`);
-        if (data.description) categoryContent.push(data.description);
-        categoryContent.push(`\n### Source: ${file}\n`);
-        categoryContent.push(content);
-        categoryContent.push('\n---\n');
+        // Find matching files
+        const files = await glob(allPatterns);
+        console.log(`  Found ${files.length} files`);
+        
+        if (files.length === 0) {
+          console.log(`  No files found for category: ${categoryPath}`);
+          continue;
+        }
+        
+        // Create the content for this category
+        let fullContent = `# ${config.title}\n\n${config.description}\n\n`;
+        
+        // Process each file
+        for (const filePath of files) {
+          try {
+            const fileContent = fs.readFileSync(filePath, 'utf-8');
+            const { content, data } = matter(fileContent);
+            
+            // Extract useful metadata
+            const title = data.title || path.basename(filePath, '.mdx');
+            const description = data.description || '';
+            
+            // Add this file's content to the full content
+            fullContent += `## ${title}\n\n`;
+            if (description) fullContent += `${description}\n\n`;
+            fullContent += `### Source: ${filePath}\n\n`;
+            fullContent += content;
+            fullContent += '\n\n---\n\n';
+          } catch (error) {
+            console.error(`  Error processing file ${filePath}:`, error);
+            fullContent += `## Error processing ${filePath}\n\n`;
+          }
+        }
+        
+        // Write the content to a file
+        const outputFilePath = path.join(llmContentDir, `${categoryPath.replace(/\//g, '-')}.md`);
+        fs.writeFileSync(outputFilePath, fullContent);
+        console.log(`  Generated content file: ${outputFilePath}`);
       } catch (error) {
-        console.error(`Error processing file ${file}:`, error);
+        console.error(`  Error generating content for category ${categoryPath}:`, error);
       }
     }
     
-    // Write the combined content to a single file
-    const outputPath = path.join(llmContentDir, `${category}.md`);
-    writeFileSync(outputPath, categoryContent.join('\n\n'));
-    console.log(`Generated LLM content for ${category} at ${outputPath}`);
+    console.log('LLM content generation completed successfully');
+  } catch (error) {
+    console.error('Error in LLM content generation:', error);
+    throw error;
   }
-
-  // Special handling for SDK reference sections
-  const sdkSubcategories = ['common', 'bots', 'calendars', 'webhooks'];
-  for (const subcategory of sdkSubcategories) {
-    console.log(`Processing SDK subcategory: ${subcategory}`);
-    
-    // Find all MDX files in this subcategory
-    const files = await glob([`./content/docs/typescript-sdk/reference/${subcategory}/**/*.mdx`]);
-    
-    // Collect content
-    const categoryContent: string[] = [`# TypeScript SDK ${subcategory.charAt(0).toUpperCase() + subcategory.slice(1)} Reference\n\n`];
-    
-    for (const file of files) {
-      try {
-        const fileContent = readFileSync(file, 'utf-8');
-        const { content, data } = matter(fileContent);
-        
-        // Add content
-        categoryContent.push(`## ${data.title || path.basename(file, '.mdx')}`);
-        if (data.description) categoryContent.push(data.description);
-        categoryContent.push(`\n### Source: ${file}\n`);
-        categoryContent.push(content);
-        categoryContent.push('\n---\n');
-      } catch (error) {
-        console.error(`Error processing file ${file}:`, error);
-      }
-    }
-    
-    // Write the combined content
-    const outputPath = path.join(llmContentDir, `typescript-sdk-${subcategory}.md`);
-    writeFileSync(outputPath, categoryContent.join('\n\n'));
-    console.log(`Generated LLM content for SDK ${subcategory} at ${outputPath}`);
-  }
-
-  // Generate an "all" file with links to all categories
-  const allContent = [
-    `# All MeetingBaas Documentation\n\n`,
-    `This file contains links to all documentation categories optimized for LLMs.\n\n`,
-    ...Object.entries(categories).map(([category, title]) => 
-      `- [${title}](/llms/${category})`
-    ),
-    ...sdkSubcategories.map(subcategory => 
-      `- [TypeScript SDK ${subcategory.charAt(0).toUpperCase() + subcategory.slice(1)} Reference](/llms/typescript-sdk-${subcategory})`
-    )
-  ];
-  
-  writeFileSync(path.join(llmContentDir, 'all.md'), allContent.join('\n'));
-  console.log('Generated LLM "all" content index');
-
-  return 'LLM content generation complete';
 }
 
-// ESM module check - this replaces the CommonJS require.main === module check
-const isMainModule = import.meta.url === `file://${process.argv[1]}`;
-
-if (isMainModule) {
-  generateLLMContent()
-    .then(console.log)
-    .catch(console.error);
+// Run the function if this script is called directly
+if (typeof require !== 'undefined' && require.main === module) {
+  run().catch((error) => {
+    console.error('Failed to generate LLM content:', error);
+    process.exit(1);
+  });
 } 

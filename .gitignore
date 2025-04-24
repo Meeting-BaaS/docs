@@ -30,3 +30,6 @@ next-env.d.ts
 
 # 
 fumadocs-basehub
+
+# Add this entry to the existing .gitignore file
+scripts-dist/

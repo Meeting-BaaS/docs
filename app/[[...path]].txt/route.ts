@@ -26,12 +26,12 @@ export async function generateStaticParams() {
   }));
 }
 
-// Using the simplified, consistent handler pattern
-export async function GET(
-  request: NextRequest,
-  context: any
-) {
+// Using minimal type annotations for maximum compatibility
+export async function GET(request: Request, props: any) {
   try {
+    // Safely access path parameters if they exist
+    const pathSegments = props?.params?.path || [];
+    
     // Get the request URL
     const url = new URL(request.url);
     let pathname = url.pathname;
