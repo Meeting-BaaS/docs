@@ -2,16 +2,20 @@ import { generateDocs } from './generate-docs.mjs';
 import { generateSDKUpdates } from './generate-sdk-updates.mjs';
 import { generateSDKReference } from './generate-sdk-reference.mjs';
 import { generateAPIUpdates } from './generate-api-updates.mjs';
+import { generateLLMContent } from './generate-llm-content.mjs';
 
-async function main() {
-  await Promise.all([
-    generateDocs(),
-    generateSDKUpdates(),
-    generateSDKReference(),
-    generateAPIUpdates()
-  ]);
+async function run() {
+  // Generate API docs
+  await generateDocs();
+  
+  // Generate SDK reference
+  await generateSDKReference();
+  
+  // Generate LLM-optimized content
+  await generateLLMContent();
 }
 
-await main().catch((e) => {
-  console.error('Failed to run pre build script', e);
+run().catch(error => {
+  console.error(error);
+  process.exit(1);
 });

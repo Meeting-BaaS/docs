@@ -8,22 +8,109 @@ import glob from 'fast-glob';
 export const dynamic = 'force-static';
 export const revalidate = false;
 
-// Categories mapping with type safety
-const categories: Record<string, string> = {
-  api: 'MeetingBaas API, the main purpose of the documentation',
-  'transcript-seeker': 'Transcript Seeker, the open-source transcription playground',
-  'speaking-bots': 'Speaking Bots, the Pipecat-powered bots',
-  'calendars': 'Calendars API, for managing calendar integrations and events',
-  'meetings': 'Meetings API, for scheduling and managing virtual meetings',
-  'users': 'Users API, for user management and authentication',
-  'webhooks': 'Webhooks API, for event notifications and integrations',
-  'sdk': 'MeetingBaas SDK, client libraries for various programming languages',
-  'all': 'All MeetingBaas documentation content'
+// Define a type for category configuration
+type CategoryConfig = {
+  title: string;
+  description: string;
+  patterns: string[];
+  excludePatterns?: string[];
+}
+
+// Centralized category configuration system
+// This defines the relationship between route identifiers and content locations
+const categoryConfig: Record<string, CategoryConfig> = {
+  // Main categories
+  'all': {
+    title: 'All MeetingBaas documentation content',
+    description: 'This contains all documentation across Meeting BaaS systems. Each section below is from a different part of the documentation.',
+    patterns: ['./content/docs/**/*.mdx'],
+  },
+  
+  // API documentation sections
+  'api': {
+    title: 'MeetingBaas API, the main purpose of the documentation',
+    description: 'API documentation for interacting with Meeting BaaS services.',
+    patterns: ['./content/docs/api/**/*.mdx'],
+  },
+  
+  // API reference subsections - these are organized under api/reference/
+  'calendars': {
+    title: 'Calendars API, for managing calendar integrations and events',
+    description: 'Documentation for calendar integration endpoints and functionality.',
+    patterns: ['./content/docs/api/reference/calendars/**/*.mdx'],
+  },
+  'meetings': {
+    title: 'Meetings API, for scheduling and managing virtual meetings',
+    description: 'Documentation for meeting management endpoints and functionality.',
+    patterns: [
+      './content/docs/api/reference/meetings/**/*.mdx',
+      './content/docs/meetings/**/*.mdx'
+    ],
+  },
+  'users': {
+    title: 'Users API, for user management and authentication',
+    description: 'Documentation for user management endpoints and functionality.',
+    patterns: [
+      './content/docs/api/reference/users/**/*.mdx',
+      './content/docs/users/**/*.mdx'
+    ],
+  },
+  'webhooks': {
+    title: 'Webhooks API, for event notifications and integrations',
+    description: 'Documentation for webhook integration endpoints and functionality.',
+    patterns: ['./content/docs/api/reference/webhooks/**/*.mdx'],
+  },
+  
+  // SDK documentation
+  'sdk': {
+    title: 'MeetingBaas SDK, client libraries for various programming languages',
+    description: 'Client libraries for integrating with Meeting BaaS in various programming languages.',
+    patterns: ['./content/docs/sdk/**/*.mdx', './content/docs/typescript-sdk/**/*.mdx'],
+  },
+  
+  // TypeScript SDK sections
+  'typescript-sdk': {
+    title: 'TypeScript SDK for MeetingBaas',
+    description: 'TypeScript SDK documentation for programmatically interacting with Meeting BaaS APIs.',
+    patterns: ['./content/docs/typescript-sdk/**/*.mdx'],
+  },
+  'typescript-sdk-common': {
+    title: 'Common TypeScript SDK methods and types',
+    description: 'Common utilities and types used across the TypeScript SDK.',
+    patterns: ['./content/docs/typescript-sdk/reference/common/**/*.mdx'],
+  },
+  'typescript-sdk-bots': {
+    title: 'Bot-related TypeScript SDK methods and types',
+    description: 'Bot integration methods and types in the TypeScript SDK.',
+    patterns: ['./content/docs/typescript-sdk/reference/bots/**/*.mdx'],
+  },
+  'typescript-sdk-calendars': {
+    title: 'Calendar-related TypeScript SDK methods and types',
+    description: 'Calendar integration methods and types in the TypeScript SDK.',
+    patterns: ['./content/docs/typescript-sdk/reference/calendars/**/*.mdx'],
+  },
+  'typescript-sdk-webhooks': {
+    title: 'Webhook-related TypeScript SDK methods and types',
+    description: 'Webhook integration methods and types in the TypeScript SDK.',
+    patterns: ['./content/docs/typescript-sdk/reference/webhooks/**/*.mdx'],
+  },
+  
+  // Other standalone sections
+  'transcript-seeker': {
+    title: 'Transcript Seeker, the open-source transcription playground',
+    description: 'Documentation for the Transcript Seeker transcription playground.',
+    patterns: ['./content/docs/transcript-seeker/**/*.mdx'],
+  },
+  'speaking-bots': {
+    title: 'Speaking Bots, the Pipecat-powered bots',
+    description: 'Documentation for Speaking Bots powered by Pipecat.',
+    patterns: ['./content/docs/speaking-bots/**/*.mdx'],
+  },
 };
 
 // Generate all possible static paths at build time
 export async function generateStaticParams() {
-  return Object.keys(categories).map(folder => ({ 
+  return Object.keys(categoryConfig).map(folder => ({ 
     folder 
   }));
 }
@@ -31,43 +118,61 @@ export async function generateStaticParams() {
 // Function to gather MDX content for a folder
 async function getContentForFolder(folder: string): Promise<string> {
   try {
-    // Define the pattern to match files based on the folder
-    const pattern = folder === 'all' 
-      ? './content/docs/**/*.mdx' 
-      : `./content/docs/${folder}/**/*.mdx`;
-    
-    // Exclude API reference files for most requests
-    const exclusionPattern = '!./content/docs/api/reference/**/*';
-    
-    // Find matching files
-    const files = await glob([pattern, exclusionPattern]);
-    
-    if (files.length === 0) {
-      return `# ${categories[folder]}\n\nNo content found for this category.`;
+    // Get the category configuration
+    const config = categoryConfig[folder];
+    if (!config) {
+      return `# Error: Unknown Category\n\nNo configuration found for category: ${folder}`;
     }
     
+    // Get file patterns from config
+    const allPatterns = [...config.patterns];
+    if (config.excludePatterns) {
+      allPatterns.push(...config.excludePatterns);
+    }
+    
+    // Find matching files
+    const files = await glob(allPatterns);
+    
+    // Debug logging
+    console.log(`Category ${folder}: Found ${files.length} files with patterns:`, allPatterns);
+    
+    if (files.length === 0) {
+      return `# ${config.title}\n\n${config.description}\n\nNo content found for this category.\n\nPatterns searched: ${allPatterns.join(', ')}`;
+    }
+    
+    // Create header for the content
+    let fullContent = `# ${config.title}\n\n${config.description}\n\n`;
+    
     // Process each file
-    const contentPromises = files.map(async (filePath) => {
-      const fileContent = fs.readFileSync(filePath, 'utf-8');
-      const { content, data } = matter(fileContent);
-      
-      // Get directory name for categorization
-      const dir = path.dirname(filePath).split(path.sep).at(2);
-      
-      return `## ${data.title || 'Untitled'}\n\n${data.description || ''}\n\n### File: ${filePath}\n\n${content.slice(0, 1000)}${content.length > 1000 ? '...(truncated)' : ''}`;
-    });
+    for (const filePath of files) {
+      try {
+        const fileContent = fs.readFileSync(filePath, 'utf-8');
+        const { content, data } = matter(fileContent);
+        
+        // Extract useful metadata
+        const title = data.title || path.basename(filePath, '.mdx');
+        const description = data.description || '';
+        
+        // Add this file's content to the full content
+        fullContent += `## ${title}\n\n`;
+        if (description) fullContent += `${description}\n\n`;
+        fullContent += `### Source: ${filePath}\n\n`;
+        fullContent += content;
+        fullContent += '\n\n---\n\n';
+      } catch (error) {
+        console.error(`Error processing file ${filePath}:`, error);
+        fullContent += `## Error processing ${filePath}\n\n`;
+      }
+    }
     
-    const contentParts = await Promise.all(contentPromises);
-    
-    // Create the full content with a header
-    return `# ${categories[folder]}\n\n${contentParts.join('\n\n---\n\n')}`;
+    return fullContent;
   } catch (error) {
     console.error(`Error getting content for folder ${folder}:`, error);
-    return `# ${categories[folder]}\n\nError processing content for this category.`;
+    return `# ${categoryConfig[folder]?.title || folder}\n\nError processing content for this category.`;
   }
 }
 
-// Using the working pattern with context: any
+// Main route handler
 export async function GET(
   request: NextRequest,
   context: any
@@ -77,8 +182,21 @@ export async function GET(
     const folder = context?.params?.folder || 'all';
     
     // Check if the folder exists in our categories
-    if (!Object.keys(categories).includes(folder)) {
-      return new Response(`Category not found: ${folder}`, { status: 404 });
+    if (!Object.keys(categoryConfig).includes(folder)) {
+      // Generate index page with available categories if category not found
+      let content = "# Available LLM Content Categories\n\n";
+      
+      for (const [key, config] of Object.entries(categoryConfig)) {
+        content += `- [/llms/${key}](${key}) - ${config.title}\n`;
+      }
+      
+      content += "\n[All Content](/llms/all)";
+      
+      return new Response(content, {
+        headers: {
+          'Content-Type': 'text/markdown; charset=utf-8'
+        }
+      });
     }
     
     // Get the content for this folder
