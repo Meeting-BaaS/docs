@@ -3,5 +3,12 @@
   "icon": "ServerCog",
   "description": "Model Context Protocol (MCP) servers enable AI assistants like Claude to interact with Meeting BaaS services for automated meeting management, transcription, and analysis. Choose between cloud-based deployment on Vercel or self-hosted options.",
   "root": true,
-  "pages": ["index", "mcp", "tools", "integrations", "updates"]
+  "pages": [
+    "index",
+    "meeting-mcp",
+    "vercel-mcp",
+    "tools",
+    "integrations",
+    "updates"
+  ]
 }
