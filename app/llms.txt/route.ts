@@ -1,6 +1,13 @@
 import { NextRequest } from 'next/server';
 
+// Set to 'force-static' to ensure this is included in the static build
+export const dynamic = 'force-static';
 export const revalidate = false;
+
+// Pre-generate this static route
+export async function generateStaticParams() {
+  return [{}]; // Generate this single route
+}
 
 export async function GET(request: NextRequest) {
   // Get host from request for proper URL construction
@@ -8,10 +15,6 @@ export async function GET(request: NextRequest) {
   const protocol = host.includes('localhost') ? 'http' : 'https';
   const baseUrl = `${protocol}://${host}`;
   
-  // Option 1: Simple redirect to the new "all" route
-  return Response.redirect(`${baseUrl}/llms/all`);
-  
-  // Option 2: For backward compatibility, you could also re-fetch from the "all" route
-  // const response = await fetch(`${baseUrl}/llms/all`);
-  // return response;
-}
+  // Redirect to the non-txt version
+  return Response.redirect(`${baseUrl}/llms`, 301);
+} 
