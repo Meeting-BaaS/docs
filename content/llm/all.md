@@ -2,58 +2,6 @@
 
 This contains all documentation across Meeting BaaS systems.
 
-## Community & Support
-
-Join our Discord Community, or ping us on our socials.
-
-### Source: ./content/docs/api/community-and-support.mdx
-
-
-## Community:
-
-- [Join our Discord](https://discord.com/invite/dsvFgDTr6c)
-- [Star us on Github](https://github.com/Meeting-Baas/Meeting-Bot-As-A-Service)
-
-## Contact & Support
-
-Planning to use more than 100 hours a month?  
-Expect a response within the day.
-
-- Twitter
-- <ContactLink />
-- Slack and Teams channels for customers and partners.
-
-
----
-
-## Introduction
-
-Deploy AI for video meetings through a single unified API.
-
-### Source: ./content/docs/api/index.mdx
-
-
-**Meeting BaaS** 🐟 provides _Meetings Bots As A Service_, with integrated transcription.
-
-This allows you to:
-
-1. **interact with**
-2. **transcribe**
-3. **AI summarize**
-
-video-meetings through a single unified API. Using Meeting BaaS, you can deploy bots on Microsoft Teams, Google Meet, and Zoom in less than 1 minute.
-
-Our meeting bots act as regular meeting participants with full audio and visual capabilities.
-
-They can listen, speak, use chat, and appear with customizable names and profile pictures.
-
-Just provide a meeting URL through a simple command, and meeting bots will connect to the meeting, give their name and ask to be let in.
-
-Once inside, they record the meeting until it ends, and provide you with the data as they go.
-
-
----
-
 ## Introduction
 
 Get started with Model Context Protocol servers for Meeting BaaS
@@ -752,6 +700,58 @@ random_persona = manager.get_persona()
 - Review error logs
 
 For detailed API documentation and implementation examples, see the full documentation in the `docs/` directory.
+
+
+---
+
+## Community & Support
+
+Join our Discord Community, or ping us on our socials.
+
+### Source: ./content/docs/api/community-and-support.mdx
+
+
+## Community:
+
+- [Join our Discord](https://discord.com/invite/dsvFgDTr6c)
+- [Star us on Github](https://github.com/Meeting-Baas/Meeting-Bot-As-A-Service)
+
+## Contact & Support
+
+Planning to use more than 100 hours a month?  
+Expect a response within the day.
+
+- Twitter
+- <ContactLink />
+- Slack and Teams channels for customers and partners.
+
+
+---
+
+## Introduction
+
+Deploy AI for video meetings through a single unified API.
+
+### Source: ./content/docs/api/index.mdx
+
+
+**Meeting BaaS** 🐟 provides _Meetings Bots As A Service_, with integrated transcription.
+
+This allows you to:
+
+1. **interact with**
+2. **transcribe**
+3. **AI summarize**
+
+video-meetings through a single unified API. Using Meeting BaaS, you can deploy bots on Microsoft Teams, Google Meet, and Zoom in less than 1 minute.
+
+Our meeting bots act as regular meeting participants with full audio and visual capabilities.
+
+They can listen, speak, use chat, and appear with customizable names and profile pictures.
+
+Just provide a meeting URL through a simple command, and meeting bots will connect to the meeting, give their name and ask to be let in.
+
+Once inside, they record the meeting until it ends, and provide you with the data as they go.
 
 
 ---
@@ -3052,6 +3052,1585 @@ await client.scheduleRecordEvent(events[0].uuid, {
 
 ---
 
+## api-update-2025-04-23
+
+### Source: ./content/docs/updates/api-update-2025-04-23.mdx
+
+<Callout type="info" icon={<Info className="h-5 w-5" />}>
+  Paris, April 23rd, 2025.
+</Callout>
+
+We're excited to announce several improvements to our API endpoints.
+
+## Bots
+
+### [GET /bots/with/metadata](/docs/api/reference/bots_with_metadata)
+
+Simplified and improved the bot listing endpoint:
+
+- Streamlined response format for better readability
+- Maintains all filtering capabilities (`meeting_url`, `bot_name`, `created_after/before`, `speaker_name`)
+- Supports advanced filtering and sorting through `filter_by_extra` and `sort_by_extra`
+- Returns essential metadata including IDs, names, and meeting details
+
+### [GET /bots/:uuid/screenshots](/docs/api/reference/get_screenshots)
+
+New endpoint to retrieve screenshots captured during a bot's session:
+
+- Access screenshots taken while trying to access meetings
+- Useful for monitoring and verification purposes
+- Part of our expanded bot monitoring capabilities
+
+## Webhooks
+
+### GET /webhooks/calendar/webhook/documentation
+
+Documentation improvements and parameter updates:
+
+- Updated parameter notation from `{uuid}` to `:uuid` for consistency with REST API standards
+- Clarified the `affected_event_uuids` field documentation
+- Enhanced integration examples with calendar events
+- All endpoint references now use `:parameter` notation
+
+## Implementation Timeline
+
+These changes will be live in production on April 24th, 2025. The updates focus on improving documentation clarity, adding new monitoring capabilities, and maintaining consistent API patterns across our endpoints.
+
+
+---
+
+## Hello
+
+Latest updates, improvements, and changes to Meeting BaaS services
+
+### Source: ./content/docs/updates/index.mdx
+
+
+# Meeting BaaS Updates
+
+This section contains update briefs and release notes for all Meeting BaaS services. Updates are organized by date (newest first) and include the relevant service icon to help you quickly identify which component each update relates to.
+
+## Latest Updates
+
+<Cards>
+  <Card
+    title="TypeScript SDK v4.0.0"
+    icon={<FileCode className="text-blue-400" />}
+    href="/docs/updates/typescript-sdk-v4"
+  >
+    <Badge variant="outline" className="mr-2">
+      Nov 12, 2024
+    </Badge>
+    Enhanced MPC tools support and complete API coverage
+  </Card>
+  <Card
+    title="New Transcription Providers"
+    icon={<WebhookIcon className="text-green-400" />}
+    href="/docs/updates/api-transcription-providers"
+  >
+    <Badge variant="outline" className="mr-2">
+      Nov 8, 2024
+    </Badge>
+    Multiple speech-to-text providers for enhanced transcription quality
+  </Card>
+</Cards>
+
+## Update Categories
+
+<Cards>
+  <Card title="API Updates" icon={<WebhookIcon />} href="/docs/updates/api">
+    Updates related to the Meeting BaaS REST API
+  </Card>
+  <Card
+    title="TypeScript SDK Updates"
+    icon={<FileCode />}
+    href="/docs/updates/typescript-sdk"
+  >
+    New releases and improvements to the TypeScript SDK
+  </Card>
+  <Card
+    title="MCP Servers Updates"
+    icon={<ServerCog />}
+    href="/docs/updates/mcp-servers"
+  >
+    Changes to the Model Context Protocol server implementations
+  </Card>
+  <Card
+    title="Speaking Bots Updates"
+    icon={<Bot />}
+    href="/docs/updates/speaking-bots"
+  >
+    Speaking bot feature and integration updates
+  </Card>
+  <Card
+    title="Transcript Seeker Updates"
+    icon={<Captions />}
+    href="/docs/updates/transcript-seeker"
+  >
+    Improvements to the Transcript Seeker platform
+  </Card>
+</Cards>
+
+## How Updates Are Organized
+
+Each update includes:
+
+- **Date**: When the update was released
+- **Service Icon**: Visual indicator of which service the update pertains to
+- **Title**: Brief description of the update
+- **Description**: Details about what changed and how to use new features
+- **Tags**: Categories for easier filtering (API, SDK, Feature, Bugfix, etc.)
+
+Updates may include code examples, screenshots, or links to detailed documentation when relevant.
+
+
+---
+
+## minor-streaming-zoom-and-microsoft-teams
+
+### Source: ./content/docs/updates/minor-streaming-zoom-and-microsoft-teams.mdx
+
+<Callout type="info" icon={<Info className="h-5 w-5" />}>
+  Paris, the 4th of January 2025.
+</Callout>
+
+We're excited to announce several improvements to our streaming API and client applications for Zoom, Microsoft Teams, and Google Meet. These updates enhance stability, performance, and functionality.
+
+## New Features
+
+### Streaming Format Specification
+
+- You can now specify the streaming format for WebSocket streams, 16kHz or 24kHz.
+- **audio_frequency**: The audio frequency for the WebSocket streams, defaults to 24kHz. Can be one of `16khz` or `24khz`.
+
+### Microsoft Teams Client Update
+
+- We've updated our Microsoft Teams client, reducing the number of bugs by 50%.
+- Now supports live Teams links, including Microsoft Live Meeting URLs (e.g., `https://teams.live.com/meet/...`).
+
+### Google Meet Client Update
+
+- We've updated our Google Meet client, reducing the number of bugs by 10%.
+
+### Zoom Client Update
+
+- Released an entirely new Zoom client. Currently, video capture isn't supported, but we plan to release this feature within the next two weeks.
+- Zoom is expected to be our most stable client.
+
+## Implementation Timeline
+
+These changes are now live in production.
+
+
+---
+
+## SDK Update 4.0.4
+
+Latest updates to the Meeting BaaS TypeScript SDK
+
+### Source: ./content/docs/updates/sdk-update-4.0.4.mdx
+
+
+<Callout type="info" icon={<Info className="h-5 w-5" />}>
+  April 23rd, 2025
+</Callout>
+
+We're excited to announce the release of version 4.0.4 of the Meeting BaaS TypeScript SDK.
+
+## Package Information
+
+- **Version**: 4.0.4
+- **Description**: Official SDK for Meeting BaaS API - https://meetingbaas.com
+- **Homepage**: https://meetingbaas.com
+- **Repository**: git+https://github.com/meeting-baas/sdk-generator.git
+- **License**: MIT
+
+## Dependencies
+
+### Main Dependencies
+- `axios`: 1.8.3
+- `zod`: 3.24.2
+
+### Peer Dependencies
+
+
+## Migration Guide
+
+To update to version 4.0.4, run:
+
+<Tabs groupId='package-manager' persist items={['npm', 'pnpm', 'yarn']}>
+
+```bash tab="npm"
+npm install @meeting-baas/sdk@4.0.4
+```
+
+```bash tab="pnpm"
+pnpm add @meeting-baas/sdk@4.0.4
+```
+
+```bash tab="yarn"
+yarn add @meeting-baas/sdk@4.0.4
+```
+
+</Tabs>
+
+## Implementation Timeline
+
+This version is now available on npm.
+
+
+---
+
+## SDK Update 4.0.5
+
+Latest updates to the Meeting BaaS TypeScript SDK
+
+### Source: ./content/docs/updates/sdk-update-4.0.5.mdx
+
+
+<Callout type="info" icon={<Info className="h-5 w-5" />}>
+  April 24th, 2025
+</Callout>
+
+We're excited to announce the release of version 4.0.5 of the Meeting BaaS TypeScript SDK.
+
+## Package Information
+
+- **Version**: 4.0.5
+- **Description**: Official SDK for Meeting BaaS API - https://meetingbaas.com
+- **Homepage**: https://meetingbaas.com
+- **Repository**: git+https://github.com/meeting-baas/sdk-generator.git
+- **License**: MIT
+
+## Dependencies
+
+### Main Dependencies
+- `axios`: 1.8.3
+- `zod`: 3.24.2
+
+### Peer Dependencies
+
+
+## Migration Guide
+
+To update to version 4.0.5, run:
+
+<Tabs groupId='package-manager' persist items={['npm', 'pnpm', 'yarn']}>
+
+```bash tab="npm"
+npm install @meeting-baas/sdk@4.0.5
+```
+
+```bash tab="pnpm"
+pnpm add @meeting-baas/sdk@4.0.5
+```
+
+```bash tab="yarn"
+yarn add @meeting-baas/sdk@4.0.5
+```
+
+</Tabs>
+
+## Implementation Timeline
+
+This version is now available on npm.
+
+
+---
+
+## Claude Integration
+
+Configure and integrate Claude Desktop with Meeting BaaS MCP servers for AI-powered meeting assistance and automation
+
+### Source: ./content/docs/mcp-servers/integrations/claude-integration.mdx
+
+
+This guide explains how to integrate Claude Desktop with Meeting BaaS MCP server for enhanced meeting capabilities.
+
+## Configuration Setup
+
+### Step 1: Edit Configuration File
+
+Open your Claude Desktop configuration file located at:
+
+```bash
+# For macOS
+~/Library/Application Support/Claude/claude_desktop_config.json
+
+# For Windows
+%APPDATA%\Claude\claude_desktop_config.json
+
+# For Linux
+~/.config/Claude/claude_desktop_config.json
+```
+
+### Step 2: Add MCP Server Configuration
+
+Add the following configuration to your `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "meetingbaas": {
+      "command": "/bin/bash",
+      "args": [
+        "-c",
+        "cd /path/to/meeting-mcp && (npm run build 1>&2) && MCP_FROM_CLAUDE=true node dist/index.js"
+      ],
+      "headers": {
+        "x-api-key": "YOUR_API_KEY_FOR_MEETING_BAAS"
+      },
+      "botConfig": {
+        "name": "Meeting Assistant",
+        "image": "https://meetingbaas.com/static/972043b7d604bca0d4b0048c7dd67ad2/fc752/previewFeatures.avif",
+        "entryMessage": "Hello, I'm a bot from Meeting Baas. I'll be taking notes for this meeting.",
+        "deduplicationKey": "unique_key_to_override_restriction",
+        "nooneJoinedTimeout": 600,
+        "waitingRoomTimeout": 600,
+        "speechToTextProvider": "Gladia",
+        "speechToTextApiKey": "YOUR_SPEECH_TO_TEXT_API_KEY",
+        "extra": {
+          "meetingType": "sales",
+          "summaryPrompt": "Focus on action items and decision points",
+          "searchKeywords": ["budget", "timeline", "deliverables"],
+          "timeStampHighlights": [
+            {"time": "00:05:23", "note": "Discussion about Q2 sales numbers"},
+            {"time": "00:12:47", "note": "Team disagreement on marketing strategy"}
+          ],
+          "participants": ["John Smith", "Jane Doe", "Bob Johnson"],
+          "project": "Project Phoenix",
+          "department": "Engineering",
+          "priority": "High",
+          "followupDate": "2023-12-15",
+          "tags": ["technical", "planning", "retrospective"]
+        },
+        "calendarOAuth": {
+          "platform": "Google",
+          "clientId": "YOUR_OAUTH_CLIENT_ID",
+          "clientSecret": "YOUR_OAUTH_CLIENT_SECRET",
+          "refreshToken": "YOUR_REFRESH_TOKEN",
+          "rawCalendarId": "primary@gmail.com"
+        }
+      }
+    }
+  }
+}
+```
+
+## Configuration Parameters Explained
+
+### Core Configuration
+
+| Parameter | Description | Required |
+|-----------|-------------|----------|
+| `command` | Specifies the shell to execute the MCP server | Yes |
+| `args` | Array of command-line arguments for server execution | Yes |
+| `headers` | Authentication headers including API keys | Yes |
+
+### Bot Configuration (`botConfig`)
+
+| Parameter | Description | Required | Default |
+|-----------|-------------|----------|---------|
+| `name` | Display name of the bot in meetings | Yes | "Claude Assistant" |
+| `image` | URL for bot's avatar image | No | System default |
+| `entryMessage` | Bot's greeting message when joining meetings | No | - |
+| `deduplicationKey` | Key to bypass 5-minute rejoin restriction | No | - |
+| `nooneJoinedTimeout` | Timeout (seconds) if no participants join | No | 600 |
+| `waitingRoomTimeout` | Timeout (seconds) for waiting room | No | 600 |
+
+### Speech-to-Text Configuration
+
+| Parameter | Description | Required |
+|-----------|-------------|----------|
+| `speechToTextProvider` | Provider for transcription service ("Gladia", "Runpod", "Default") | No |
+| `speechToTextApiKey` | API key for the chosen provider | Required if provider specified |
+
+### Calendar Integration (`calendarOAuth`)
+
+| Parameter | Description | Required |
+|-----------|-------------|----------|
+| `platform` | Calendar platform ("Google" or "Microsoft") | Yes |
+| `clientId` | OAuth client ID | Yes |
+| `clientSecret` | OAuth client secret | Yes |
+| `refreshToken` | OAuth refresh token | Yes |
+| `rawCalendarId` | Specific calendar ID to integrate | No |
+
+### Extended Metadata (`extra`)
+
+The `extra` field allows for flexible metadata configuration to enhance AI capabilities:
+
+```json
+{
+  "meetingType": "Type of meeting (sales, technical, etc.)",
+  "summaryPrompt": "Custom prompt for meeting summaries",
+  "searchKeywords": ["Array of keywords to track"],
+  "timeStampHighlights": [
+    {
+      "time": "HH:MM:SS",
+      "note": "Description of highlight"
+    }
+  ],
+  "participants": ["Array of participant names"],
+  "project": "Project identifier",
+  "department": "Department name",
+  "priority": "Meeting priority level",
+  "followupDate": "YYYY-MM-DD",
+  "tags": ["Array of relevant tags"]
+}
+```
+
+## Security Considerations
+
+1. **API Key Management**:
+   - Use API keys associated with your corporate email account
+   - Store API keys securely
+   - Regularly rotate API keys
+   - Never commit API keys to version control
+
+2. **Access Control**:
+   - Recordings and bot logs are automatically shared with same-domain colleagues
+   - Implement proper access controls for sensitive meetings
+   - Regular audit of access patterns
+
+## QR Code API Integration
+
+The QR Code API uses the same header name (`x-api-key`) but requires separate configuration. Configure it using one of these methods:
+
+1. Environment Variable:
+   ```bash
+   export MEETING_BAAS_QR_API_KEY="your_api_key"
+   ```
+
+2. Direct Configuration:
+   ```json
+   {
+     "qrCodeApi": {
+       "apiKey": "YOUR_QR_API_KEY"
+     }
+   }
+   ```
+
+## Best Practices
+
+1. **Meeting Setup**:
+   - Configure appropriate timeouts
+   - Use meaningful bot names
+   - Set clear entry messages
+
+2. **Data Management**:
+   - Regular backup of configurations
+   - Periodic review of stored meetings
+   - Clean up unused recordings
+
+3. **Integration Maintenance**:
+   - Regular updates of dependencies
+   - Monitor API usage
+   - Keep OAuth tokens updated
+
+## Troubleshooting
+
+1. **Connection Issues**:
+   - Verify API key validity
+   - Check network connectivity
+   - Ensure correct server path
+
+2. **Bot Behavior**:
+   - Verify timeout settings
+   - Check log files for errors
+   - Confirm OAuth credentials if using calendar integration
+
+3. **Performance Issues**:
+   - Monitor system resources
+   - Check network bandwidth
+   - Verify speech-to-text provider status
+
+After configuration, restart Claude Desktop for changes to take effect.
+
+
+---
+
+## Cursor Integration
+
+Configure and integrate Cursor IDE with Meeting BaaS MCP servers for AI-powered development assistance and code collaboration
+
+### Source: ./content/docs/mcp-servers/integrations/cursor-integration.mdx
+
+
+## Overview
+This guide explains how to integrate the Meeting BaaS Model Context Protocol (MCP) server with Cursor, an AI-powered IDE. This integration enables enhanced AI capabilities within your development environment.
+
+## Integration Steps
+
+### Setting Up Cursor Integration
+
+1. **Launch Cursor**
+   - Open the Cursor IDE on your system
+   - Ensure you're running the latest version for optimal compatibility
+
+2. **Access Settings**
+   - Click on the Settings icon (⚙️) in the bottom left corner
+   - Alternatively, use the keyboard shortcut `Ctrl+,` (Windows/Linux) or `Cmd+,` (macOS)
+
+3. **Configure Model Context Protocol**
+   - Navigate to "Model Context Protocol" section
+   - Click on "Add New Server"
+   - Enter the following configuration:
+     ```json
+     {
+       "name": "Meeting BaaS MCP",
+       "type": "sse",
+       "serverUrl": "http://localhost:7017/mcp"
+     }
+     ```
+   - If authentication is required, add headers in the format:
+     ```json
+     {
+       "Authorization": "Bearer your-token-here"
+     }
+     ```
+
+## Development Guide
+
+### Building the Project
+
+```bash
+# Build the project
+npm run build
+```
+This command compiles the TypeScript code and generates the production-ready build.
+
+### Testing
+
+```bash
+# Run MCP Inspector for testing
+npm run inspect
+```
+The MCP Inspector provides a visual interface to test and debug your MCP server integration.
+
+### Development Mode
+
+```bash
+# Start development server with auto-reload
+npm run dev
+```
+Features:
+- Hot reloading for code changes
+- Real-time debugging information
+- Automatic server restart on file changes
+
+## Log Management
+
+### Cleanup Command
+```bash
+npm run cleanup
+```
+
+The log management system includes sophisticated features:
+
+- **Automated Log Cleanup**
+  - Removes redundant log files
+  - Cleans cached data periodically
+  - Maintains optimal disk usage
+
+- **Smart Log Filtering**
+  - Filters out non-essential ping messages
+  - Preserves critical error and warning logs
+  - Implements log rotation for long-term management
+
+- **Performance Optimization**
+  - Reduces I/O operations
+  - Minimizes memory footprint
+  - Implements efficient log compression
+
+## Project Architecture
+
+```
+project-root/
+├── src/
+│   ├── index.ts           # Main application entry point
+│   ├── tools/             # MCP tool implementations
+│   ├── resources/         # Resource definitions and handlers
+│   ├── api/              # Meeting BaaS backend API client
+│   ├── types/            # TypeScript type definitions
+│   ├── config.ts         # Server configuration
+│   └── utils/
+│       ├── logging.ts    # Advanced logging system
+│       └── tinyDb.ts     # Persistent state management
+```
+
+### Key Components
+
+1. **Main Entry Point** (`src/index.ts`)
+   - Server initialization
+   - Route configuration
+   - Middleware setup
+
+2. **Tools Directory** (`src/tools/`)
+   - Custom MCP tool implementations
+   - Tool registration and management
+   - Tool validation logic
+
+3. **Resources** (`src/resources/`)
+   - Static resource definitions
+   - Resource loading and caching
+   - Asset management
+
+4. **API Client** (`src/api/`)
+   - Meeting BaaS backend integration
+   - API request handling
+   - Response processing
+
+5. **Type Definitions** (`src/types/`)
+   - Interface definitions
+   - Type guards
+   - Shared type utilities
+
+6. **Configuration** (`src/config.ts`)
+   - Environment-based configuration
+   - Server settings
+   - Integration parameters
+
+7. **Utilities** (`src/utils/`)
+   - Logging system with advanced filtering
+   - Database operations for bot state
+   - Helper functions and common utilities
+
+## Best Practices
+
+1. **Error Handling**
+   - Implement comprehensive error catching
+   - Provide detailed error messages
+   - Log errors with appropriate severity levels
+
+2. **Security**
+   - Use environment variables for sensitive data
+   - Implement proper authentication
+   - Regular security audits
+
+3. **Performance**
+   - Optimize resource usage
+   - Implement caching where appropriate
+   - Monitor server health metrics
+
+## Troubleshooting
+
+Common issues and solutions:
+
+1. **Connection Issues**
+   - Verify server URL is correct
+   - Check if the server is running
+   - Confirm network connectivity
+
+2. **Authentication Errors**
+   - Validate token format
+   - Check token expiration
+   - Verify header configuration
+
+3. **Performance Problems**
+   - Monitor log sizes
+   - Check system resources
+   - Review active connections
+
+
+---
+
+## Overview
+
+Introduction to Meeting MCP - A Standalone MCP Server for Meeting BaaS Integration
+
+### Source: ./content/docs/mcp-servers/meeting-mcp/overview.mdx
+
+
+Meeting MCP is a standalone [Model Context Protocol](https://www.anthropic.com/news/model-context-protocol) server that provides AI assistants with access to Meeting BaaS data and capabilities. The server can be deployed locally or on your own infrastructure, making it ideal for use with Claude Desktop and other MCP clients.
+
+<Card
+  icon={<Github />}
+  title="GitHub Repository"
+  href="https://github.com/Meeting-Baas/meeting-mcp"
+  description="Clone the repository to deploy your own MCP server"
+  external
+/>
+
+## Features
+
+<Cards>
+  <Card title="Meeting Management" icon={<Video className="text-blue-400" />}>
+    Create, join, and manage meeting bots with automatic recording and
+    transcription.
+  </Card>
+  <Card title="Transcript Search" icon={<Search className="text-green-400" />}>
+    Search and analyze meeting transcripts for specific content or speakers.
+  </Card>
+  <Card
+    title="Calendar Integration"
+    icon={<Calendar className="text-purple-400" />}
+  >
+    Connect calendars and automatically schedule meeting recordings.
+  </Card>
+  <Card title="QR Code Generation" icon={<QrCode className="text-amber-400" />}>
+    Generate AI-powered QR code images that can be used as bot avatars.
+  </Card>
+  <Card
+    title="Key Moment Identification"
+    icon={<Clock className="text-teal-400" />}
+  >
+    Automatically identify and share important moments from meetings.
+  </Card>
+  <Card title="Link Sharing" icon={<Link className="text-indigo-400" />}>
+    Generate shareable links to meetings and specific timestamps.
+  </Card>
+  <Card title="Local Deployment" icon={<HardDrive className="text-red-400" />}>
+    Run completely on your own infrastructure for enhanced security and control.
+  </Card>
+</Cards>
+
+## Prerequisites
+
+Before getting started, you'll need:
+
+- Node.js (v16 or later)
+- npm
+- A [Meeting BaaS API key](https://meetingbaas.com)
+- (Optional) A QR Code AI API key for QR code generation
+
+## Installation
+
+<Steps>
+  <Step title="Clone the Repository">
+    ```bash
+    git clone https://github.com/Meeting-Baas/meeting-mcp.git
+    cd meeting-mcp
+    ```
+  </Step>
+  <Step title="Install Dependencies">
+    ```bash
+    npm install
+    ```
+  </Step>
+  <Step title="Build the Project">
+    ```bash
+    npm run build
+    ```
+  </Step>
+  <Step title="Start the Server">
+    ```bash
+    npm run start
+    ```
+    By default, the server runs on port 7017 and exposes the MCP endpoint at http://localhost:7017/mcp.
+  </Step>
+</Steps>
+
+## Authentication
+
+The server expects an API key in the `x-api-key` header for authentication. You can configure the default API key in the configuration file.
+
+Many tools also support direct authentication through parameters (named with "WithCredentials"), allowing you to provide the API key directly in the query rather than through headers.
+
+## Integration with Claude Desktop
+
+<Steps>
+  <Step title="Edit the Claude Desktop Configuration File">
+    ```bash
+    # On Mac/Linux
+    vim ~/Library/Application\ Support/Claude/claude_desktop_config.json
+    
+    # On Windows
+    notepad %APPDATA%\Claude\claude_desktop_config.json
+    ```
+  </Step>
+  
+  <Step title="Add the Meeting BaaS MCP Server Configuration">
+    ```json
+    {
+      "mcpServers": {
+        "meetingbaas": {
+          "command": "/bin/bash",
+          "args": [
+            "-c",
+            "cd /path/to/meeting-mcp && (npm run build 1>&2) && MCP_FROM_CLAUDE=true node dist/index.js"
+          ],
+          "headers": {
+            "x-api-key": "YOUR_API_KEY_FOR_MEETING_BAAS"
+          },
+          "botConfig": {
+            "name": "Meeting Assistant",
+            "image": "https://meetingbaas.com/static/972043b7d604bca0d4b0048c7dd67ad2/fc752/previewFeatures.avif",
+            "entryMessage": "Hello, I'm a bot from Meeting Baas. I'll be taking notes for this meeting.",
+            "deduplicationKey": "unique_key_to_override_restriction",
+            "nooneJoinedTimeout": 600,
+            "waitingRoomTimeout": 600,
+            "speechToTextProvider": "Gladia",
+            "speechToTextApiKey": "YOUR_SPEECH_TO_TEXT_API_KEY",
+            "extra": {
+              "meetingType": "sales",
+              "summaryPrompt": "Focus on action items and decision points",
+              "searchKeywords": ["budget", "timeline", "deliverables"]
+            }
+          }
+        }
+      }
+    }
+    ```
+    
+    <Callout>
+      Replace `/path/to/meeting-mcp` with the actual path to your local repository and `YOUR_API_KEY` with your actual Meeting BaaS API key.
+    </Callout>
+  </Step>
+  
+  <Step title="Restart Claude Desktop">
+    Close and reopen Claude Desktop to apply the changes.
+  </Step>
+</Steps>
+
+## Development
+
+For development purposes, you can:
+
+```bash
+# Run in development mode with auto-reload
+npm run dev
+
+# Test with MCP Inspector
+npm run inspect
+
+# Clean up logs
+npm run cleanup
+```
+
+## Project Structure
+
+- `src/index.ts`: Main entry point
+- `src/tools/`: Tool implementations
+- `src/resources/`: Resource definitions
+- `src/api/`: API client for the Meeting BaaS backend
+- `src/types/`: TypeScript type definitions
+- `src/config.ts`: Server configuration
+- `src/utils/`: Utility functions
+
+
+---
+
+## Updates
+
+Latest updates, improvements, and changes to the Model Context Protocol (MCP) servers
+
+### Source: ./content/docs/mcp-servers/updates/index.mdx
+
+
+
+---
+
+## Features
+
+Core features and capabilities of Vercel MCP for Meeting BaaS
+
+### Source: ./content/docs/mcp-servers/vercel-mcp/features.mdx
+
+
+## Core Features
+
+<Card title="Technical Architecture" icon="code">
+  Built on top of the official Meeting BaaS TypeScript SDK (`@meeting-baas/sdk`), providing:
+
+  - **Type Safety**: Complete TypeScript definitions for all API interactions
+  - **Auto-Updates**: Synchronized with the latest OpenAPI specifications
+  - **Cross-Platform Support**: Unified interface for Google Meet, Zoom, and Microsoft Teams
+  - **Pre-built MCP Tools**: Ready-to-use AI system integrations
+  - **Comprehensive API Access**: Type-safe functions for the entire Meeting BaaS API surface
+</Card>
+
+## Advanced Capabilities
+
+### Meeting Management
+
+<Cards>
+  <Card title="Real-time Participation" icon="users">
+    - Seamless meeting joining and leaving
+    - Dynamic participant management
+    - Real-time status updates
+  </Card>
+
+  <Card title="Recording & Transcription" icon="video">
+    - Automated meeting recording
+    - Real-time transcription services
+    - Secure storage and retrieval
+  </Card>
+
+  <Card title="Bot Persona Management" icon="robot">
+    - Customizable bot personalities
+    - Context-aware responses
+    - Dynamic behavior adaptation
+  </Card>
+
+  <Card title="Resource Optimization" icon="gauge">
+    - Automatic resource cleanup
+    - Performance monitoring
+    - Usage optimization
+  </Card>
+</Cards>
+
+### Calendar Integration
+
+<Cards>
+  <Card title="Multi-Platform Support" icon="calendar">
+    - Google Calendar integration
+    - Microsoft Outlook support
+    - Other major calendar platforms
+  </Card>
+
+  <Card title="Smart Scheduling" icon="clock">
+    - AI-powered scheduling automation
+    - Conflict detection and resolution
+    - Timezone-aware scheduling
+  </Card>
+
+  <Card title="Event Management" icon="calendar-check">
+    - Real-time event updates
+    - Attendee management
+    - Resource allocation
+  </Card>
+
+  <Card title="Configuration" icon="gear">
+    - Cross-platform sync
+    - Custom scheduling rules
+    - Integration preferences
+  </Card>
+</Cards>
+
+### Bot Management
+
+<Cards>
+  <Card title="Monitoring & Analytics" icon="chart-line">
+    - Real-time performance metrics
+    - Usage statistics
+    - Health monitoring
+    - Automated alerts
+  </Card>
+
+  <Card title="Metadata Tracking" icon="database">
+    - Detailed interaction logs
+    - Performance analytics
+    - Usage patterns
+    - Error tracking
+  </Card>
+
+  <Card title="Dynamic Configuration" icon="sliders">
+    - Real-time config updates
+    - Feature toggles
+    - Behavior customization
+    - Environment-specific settings
+  </Card>
+
+  <Card title="Performance" icon="bolt">
+    - Resource optimization
+    - Load balancing
+    - Caching strategies
+    - Response time optimization
+  </Card>
+</Cards>
+
+
+---
+
+## Overview
+
+Introduction to enterprise-grade Model Context Protocol server for Meeting BaaS
+
+### Source: ./content/docs/mcp-servers/vercel-mcp/overview.mdx
+
+
+MCP on Vercel is an enterprise-grade [Model Context Protocol](https://www.anthropic.com/news/model-context-protocol) server that powers the [chat.meetingbaas.com](https://chat.meetingbaas.com) platform. Built as an enhanced fork of the Vercel MCP template, it provides comprehensive Meeting BaaS integration for advanced meeting automation, AI-powered interactions, and intelligent meeting management.
+
+<Card
+  icon={<Github />}
+  title="GitHub Repository"
+  href="https://github.com/Meeting-Baas/mcp-on-vercel"
+  description="Access the source code to deploy your own customized MCP server"
+  external
+/>
+
+## Core Features
+
+<Cards>
+  <Card
+    title="Meeting BaaS SDK Integration"
+    icon={<Code className="text-blue-400" />}
+  >
+    Seamless integration with the TypeScript SDK providing type-safe access to all Meeting BaaS features including video management, bot control, and meeting automation.
+  </Card>
+  <Card
+    title="Advanced Bot Management"
+    icon={<MessageSquare className="text-green-400" />}
+  >
+    Comprehensive tools for deploying and managing AI-powered speaking agents with customizable personas, real-time transcription, and dynamic interaction capabilities.
+  </Card>
+  <Card
+    title="Intelligent Calendar Integration"
+    icon={<Calendar className="text-purple-400" />}
+  >
+    Smart calendar management with automated meeting scheduling, recording controls, and AI-assisted event organization across multiple platforms.
+  </Card>
+  <Card
+    title="Enterprise-Ready Architecture"
+    icon={<Cloud className="text-teal-400" />}
+  >
+    Built for scale with Vercel's serverless infrastructure, featuring Redis-backed session management, fluid compute optimization, and cross-platform compatibility.
+  </Card>
+</Cards>
+
+## System Requirements
+
+**Required Components:**
+- Vercel account with deployment access
+- Meeting BaaS API key
+- Redis instance (for session state management)
+- Node.js v16 or higher (for local development)
+
+**Recommended Setup:**
+- Vercel Pro/Enterprise account for extended compute capabilities
+- Redis instance in the same region as your Vercel deployment
+- Fluid Compute enabled for optimal performance
+
+## Contributing
+
+This project is maintained as an enhanced fork of the [original Vercel MCP template](https://github.com/vercel-labs/mcp-on-vercel). Contributions are welcome through pull requests and issues on our repository.
+
+<Callout type="info">
+  For production deployments, we recommend subscribing to our release notifications
+  to stay updated with the latest security patches and feature enhancements.
+</Callout>
+
+
+---
+
+## Tools
+
+Technical details, deployment guides, and integration tools for Vercel MCP
+
+### Source: ./content/docs/mcp-servers/vercel-mcp/tools.mdx
+
+
+## Deployment Guide
+
+<Tabs>
+  <Tab title="One-Click Deploy" value="one-click">
+    Deploy directly to Vercel with minimal configuration:
+    
+    <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FMeeting-Baas%2Fmcp-on-vercel&env=REDIS_URL&envDescription=Redis%20URL%20for%20session%20management" target="_blank">
+      <img src="https://vercel.com/button" alt="Deploy with Vercel" />
+    </a>
+    
+    **Required Configuration:**
+    1. Redis URL for session management
+    2. Meeting BaaS API key (optional for development)
+    3. Enable Fluid Compute in project settings
+    4. Configure max duration in `vercel.json` (Pro/Enterprise)
+
+  </Tab>
+  <Tab title="Manual Deployment" value="manual">
+    For customized deployment with full control:
+    
+    ```bash
+    # Clone the repository
+    git clone https://github.com/Meeting-Baas/mcp-on-vercel.git
+    cd mcp-on-vercel
+    
+    # Install dependencies
+    npm install
+    
+    # Configure environment
+    cp .env.example .env
+    # Edit .env with required credentials
+    
+    # Deploy
+    npx vercel --prod
+    ```
+
+    **Post-Deployment Steps:**
+    1. Configure environment variables in Vercel dashboard
+    2. Enable Fluid Compute
+    3. Adjust compute settings for your usage tier
+    4. Set up monitoring and alerts
+
+  </Tab>
+</Tabs>
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Required | Description | Example |
+|----------|----------|-------------|----------|
+| `REDIS_URL` | Yes | Redis instance URL | `redis://user:pass@host:port` |
+| `NODE_ENV` | No | Environment mode | `development` or `production` |
+| `LOG_LEVEL` | No | Logging verbosity | `info`, `debug`, `error` |
+| `BAAS_API_KEY` | Dev only | Meeting BaaS API key | `mbk_xxxx...` |
+
+### Authentication Methods
+
+The server supports multiple authentication approaches in order of precedence:
+
+1. **HTTP Headers:**
+   ```http
+   x-meeting-baas-api-key: your-api-key
+   x-meetingbaas-apikey: your-api-key
+   x-api-key: your-api-key
+   Authorization: Bearer your-api-key
+   ```
+
+2. **Request Body (POST):**
+   ```json
+   {
+     "apiKey": "your-api-key"
+   }
+   ```
+
+3. **Environment Variable (Development):**
+   ```bash
+   BAAS_API_KEY=your-api-key
+   ```
+
+<Callout type="warning">
+  Production deployments should use header or body authentication methods. Environment
+  variable authentication is restricted to development environments only.
+</Callout>
+
+## Integration Guide
+
+### Claude Desktop Integration
+
+Configure your MCP server in Claude Desktop:
+
+1. Navigate to Settings > Model Context Protocol
+2. Add new MCP Server with:
+   ```yaml
+   Name: Meeting BaaS MCP
+   URL: [Your Vercel Deployment URL]
+   Headers:
+     x-api-key: [Your Meeting BaaS API Key]
+   ```
+
+### Custom Development
+
+Extend the server's capabilities:
+
+1. **Tool Customization:**
+   - Modify `/lib/tools` for custom Meeting BaaS integrations
+   - Add new tool definitions in `api/server.ts`
+
+2. **Prompt Engineering:**
+   - Update `/lib/prompts` for specialized use cases
+   - Configure context handling in `api/server.ts`
+
+3. **Testing:**
+   ```bash
+   # Start development server
+   npm run dev
+
+   # Run test client
+   node scripts/test-client.mjs http://localhost:3000
+   ```
+
+
+---
+
+## Environment Variables
+
+Configure environment variables for Speaking Bots
+
+### Source: ./content/docs/speaking-bots/getting-started/environment-variables.mdx
+
+
+Speaking Bots requires several API keys and configuration values to function properly. Here's a quick setup guide:
+
+1. Copy the example environment file:
+
+```bash
+cp .env.example .env
+```
+
+{" "}
+
+<Callout type="warn">
+  Never commit your `.env` file to version control. It contains sensitive API
+  keys that should be kept private.
+</Callout>
+
+2. Add your credentials to `.env`: You'll need 4 required API keys for core functionality (MeetingBaas, OpenAI, Speech-to-Text, and Text-to-Speech). Additional keys can be added later for optional features.
+
+## Core Bot Functionality (Required)
+
+<Steps>
+<Step>
+### MeetingBaas Configuration
+
+Required for sending meeting bots as personas to various platforms:
+
+```txt
+MEETING_BAAS_API_KEY=your_meetingbaas_api_key_here
+```
+
+Get your API key by:
+
+1. Signing up for [MeetingBaas](https://meetingbaas.com)
+2. Accessing your API key from the MeetingBaas dashboard
+
+</Step>
+
+<Step>
+### OpenAI Configuration
+
+Powers in-meeting AI interactions and persona management:
+
+```txt
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+<Callout>
+  This key is used both for in-meeting interactions and persona creation functionality.
+</Callout>
+</Step>
+
+<Step>
+### Speech-to-Text Configuration
+
+Choose one of the following options:
+
+#### Option 1: Deepgram
+
+```txt
+DEEPGRAM_API_KEY=your_deepgram_api_key_here
+```
+
+#### Option 2: Gladia
+
+```txt
+GLADIA_API_KEY=your_gladia_api_key_here
+```
+
+</Step>
+
+<Step>
+### Text-to-Speech Configuration
+
+Required for voice synthesis and persona voices:
+
+```txt
+CARTESIA_API_KEY=your_cartesia_api_key_here
+CARTESIA_VOICE_ID="79a125e8-cd45-4c13-8a67-188112f4dd22"
+```
+
+</Step>
+</Steps>
+
+## Optional Features
+
+### Multiple Bots Support
+
+<Steps>
+<Step>
+Required for running multiple bots in local development:
+```txt
+NGROK_AUTHTOKEN=your_ngrok_auth_token_here
+```
+
+<Callout>
+  Follow our [Ngrok Setup Guide](/docs/speaking-bots/getting-started/ngrok-setup) to get your auth token.
+</Callout>
+</Step>
+</Steps>
+
+### Persona Creation
+
+<Steps>
+  <Step>Required for AI image generation and storage:</Step>
+</Steps>
+
+
+---
+
+## Ngrok setup
+
+We create ngrok tunnel(s) for running several bots at once on your local machine
+
+### Source: ./content/docs/speaking-bots/getting-started/ngrok-setup.mdx
+
+
+## Local Setup
+
+For running one or more bots locally, you'll need an ngrok authtoken. Follow these steps:
+
+1. Sign up for a free account at [ngrok.com](https://dashboard.ngrok.com/signup)
+2. After signing up, get your authtoken from the [Your Authtoken page](https://dashboard.ngrok.com/get-started/your-authtoken)
+3. Add the token to your `.env` file or set it as an environment variable:
+
+```bash
+NGROK_AUTHTOKEN=your_ngrok_auth_token_here
+```
+
+That's it folks :)
+
+<Accordions>
+  <Accordion title="Configuration modification">
+
+We provide a ready-to-use configuration file in the repository at `config/ngrok/config.yml`. You can either use this file directly or create your own configuration.
+
+The default location for the ngrok configuration file varies by operating system:
+
+- Linux: `~/.config/ngrok/ngrok.yml`
+- macOS: `~/Library/Application Support/ngrok/ngrok.yml`
+- Windows: `%HOMEPATH%\AppData\Local\ngrok\ngrok.yml`
+
+To verify your configuration file location, you can run:
+
+```bash
+ngrok config check
+```
+
+If you want to create or edit your own configuration file, here's what it should contain:
+
+```yaml
+version: '3'
+agent:
+  authtoken: YOUR_AUTH_TOKEN
+
+tunnels:
+  proxy1:
+    proto: http
+    addr: 8766
+  proxy2:
+    proto: http
+    addr: 8768
+```
+
+For more detailed information about ngrok configuration options, see the [official ngrok configuration documentation](https://ngrok.com/docs/agent/config/).
+
+## Usage
+
+This sets up two separate tunnels (proxy1 and proxy2) that will be used by your bots to establish WebSocket connections with the meeting platforms. To start both tunnels simultaneously, run:
+
+```bash
+ngrok start --all --config config/ngrok/config.yml
+```
+
+The free tier of ngrok limits you to 2 concurrent tunnels, which means you can run up to 2 bots simultaneously in local development mode.
+
+  </Accordion>
+</Accordions>
+
+## WebSocket URL Resolution
+
+When running the server in local development mode, it will automatically detect and use your ngrok URLs. The server determines the WebSocket URL to use in the following priority order:
+
+1. User-provided URL in the request (if specified in the `websocket_url` field)
+2. `BASE_URL` environment variable (recommended for production)
+3. ngrok URL in local development mode
+4. Auto-detection from request headers (fallback, not reliable in production)
+
+To use local development mode with automatic ngrok detection:
+
+```bash
+# Start the API server with local development mode enabled
+poetry run python run.py --local-dev
+```
+
+## Troubleshooting WebSocket Connections
+
+### Common Issues
+
+1. **Timing Issues with ngrok and Meeting Baas Bots**
+
+   Sometimes, due to WebSocket connection delays through ngrok, the Meeting Baas bots may join the meeting before your local bot connects. If this happens:
+
+   - Simply press `Enter` to respawn your bot
+   - This will reinitiate the connection and allow your bot to join the meeting
+
+2. **Connection failures**
+   - Make sure ngrok is running with the correct configuration
+   - Verify that you've entered the correct ngrok URLs when prompted
+   - Check that your ngrok URLs are accessible (try opening in a browser)
+   - Make sure you're using the `wss://` protocol with ngrok URLs
+
+### Production Considerations
+
+For production deployments, you should:
+
+1. Set the `BASE_URL` environment variable to your server's public domain:
+   ```
+   export BASE_URL=https://your-server-domain.com
+   ```
+2. Ensure your server is accessible on the public internet
+3. Consider using HTTPS/WSS for secure connections in production
+
+
+---
+
+## Set Up
+
+Set up your development environment for Speaking Bots
+
+### Source: ./content/docs/speaking-bots/getting-started/set-up.mdx
+
+
+## Installation
+
+### 0. Clone Repository
+
+If you haven't already, clone the repository and navigate to it:
+
+```bash
+git clone https://github.com/Meeting-Baas/speaking-meeting-bot.git
+cd speaking-meeting-bot
+```
+
+### 1. Prerequisites
+
+- Python 3.11+
+- `grpc_tools` for protocol buffer compilation
+- Ngrok for local development (follow our [Ngrok Setup Guide](/docs/speaking-bots/getting-started/ngrok-setup))
+- Poetry for dependency management
+
+You'll also need system dependencies for scientific libraries:
+
+```bash
+# macOS (using Homebrew)
+brew install llvm cython
+
+# Ubuntu/Debian
+sudo apt-get install llvm python3-dev cython
+
+# Fedora/RHEL
+sudo dnf install llvm-devel python3-devel Cython
+```
+
+### 2. Set Up Poetry Environment
+
+```bash
+# Install Poetry (Unix/macOS)
+curl -sSL https://install.python-poetry.org | python3 -
+
+# Install Poetry (Windows)
+(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py -
+
+# Configure Poetry to use Python 3.11+
+poetry env use python3.11
+
+# Install dependencies with LLVM config path
+# On macOS:
+LLVM_CONFIG=$(brew --prefix llvm)/bin/llvm-config poetry install
+# On Linux (path may vary):
+# LLVM_CONFIG=/usr/bin/llvm-config poetry install
+
+# Activate virtual environment
+poetry shell
+```
+
+### 3. Compile Protocol Buffers
+
+```bash
+poetry run python -m grpc_tools.protoc --proto_path=./protobufs --python_out=./protobufs frames.proto
+```
+
+Protocol Buffers are used here by Pipecat to define a structured message format for real-time communication between components of the Speaking Bots system. Specifically, the [`frames.proto`](https://github.com/pipecat-ai/pipecat/blob/635aa6eb5bdee382729613b58279befdc5bc8eaf/src/pipecat/frames/frames.proto#L9) file defines three main message types:
+
+1. `TextFrame`: For handling text-based messages
+2. `AudioRawFrame`: For managing raw audio data with properties like sample rate and channels
+3. `TranscriptionFrame`: For handling speech-to-text transcription results
+
+Protocol Buffers is the backbone of consistent data serialization across services.
+Read more in the [official Protocol Buffer documentation](https://protobuf.dev/downloads/) and [this Python Protocol Buffers tutorial](https://www.blog.pythonlibrary.org/2023/08/30/an-intro-to-protocol-buffers-with-python/).
+
+### 4. Configure Environment
+
+Create a `.env` file based on the template:
+
+```bash
+cp env.example .env
+```
+
+Edit the `.env` file with your API keys. You'll need:
+
+**Required API Keys:**
+
+- `MEETING_BAAS_API_KEY`: For meeting platform integration
+- `OPENAI_API_KEY`: For the conversation LLM
+- `CARTESIA_API_KEY`: For text-to-speech
+- `GLADIA_API_KEY` or `DEEPGRAM_API_KEY`: For speech-to-text
+
+For production, also set:
+
+```
+BASE_URL=https://your-server-domain.com
+```
+
+See our full [Environment Variables Guide](/docs/speaking-bots/getting-started/environment-variables) for more details.
+
+### 5. Run the API Server
+
+The project now follows an API-first approach. There are two ways to run the server:
+
+```bash
+# Standard mode
+poetry run uvicorn app:app --reload --host 0.0.0.0 --port 8766
+
+# Local development mode with ngrok auto-configuration
+poetry run python run.py --local-dev
+```
+
+Once the server is running, you can access:
+
+- Interactive API docs: `http://localhost:8766/docs`
+- OpenAPI specification: `http://localhost:8766/openapi.json`
+
+To create a bot via the API:
+
+```bash
+curl -X POST http://localhost:8766/run-bots \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meeting_url": "https://meet.google.com/xxx-yyyy-zzz",
+    "personas": ["interviewer"],
+    "meeting_baas_api_key": "your-api-key"
+  }'
+```
+
+You can also use our CLI tools for testing:
+
+```bash
+poetry run python scripts/batch.py -c 1 --meeting-url LINK
+```
+
+Follow our [Command Line Guide](/docs/speaking-bots/command-line) for more examples and options.
+
+
+---
+
+## index
+
+### Source: ./content/docs/speaking-bots/reference/index.mdx
+
+# Speaking Bots API Reference
+
+This section contains detailed documentation for the Speaking Bots API, which allows you to programmatically create and manage speaking bots in your meetings.
+
+The Speaking Bots API provides endpoints to:
+
+- Have bots join meetings
+- Make bots leave meetings
+- Control bot behavior during meetings
+
+Each endpoint is documented with:
+
+- Endpoint URL and method
+- Request parameters and body schema
+- Response details
+- Example requests and responses
+
+Use the navigation to explore the available endpoints.
+
+
+---
+
 ## List Bots with Metadata
 
 ### Source: ./content/docs/api/reference/bots_with_metadata.mdx
@@ -3916,1173 +5495,600 @@ These changes are now live in production and available for immediate use.
 
 ---
 
-## Calendar Integration
-
-Integrate and manage calendar services with Meeting BaaS for automated meeting scheduling, recording, and analysis
-
-### Source: ./content/docs/mcp-servers/integrations/calendar-integration.mdx
-
-
-## Overview
-
-This guide covers how to integrate calendar services, manage meeting recordings, and utilize advanced features for meeting analysis and sharing. The system supports major calendar platforms including Google Calendar and Microsoft Outlook.
-
-## Recording Meetings
-
-### Creating Meeting Bots
-
-To record a meeting, you can create a bot that automatically joins and records your video conference:
-
-```bash
-# Basic meeting bot creation
-curl -X POST https://api.meetingbaas.com/v1/bots \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -d '{
-    "meetingUrl": "https://zoom.us/j/123456789",
-    "name": "Recording Bot",
-    "recordingMode": "gallery_view"
-  }'
-```
-
-### Checking Recording Status
-
-You can check the status of your meeting recordings using the bot ID:
-
-```bash
-curl -X GET https://api.meetingbaas.com/v1/bots/{BOT_ID}/status \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-## Calendar Integration
-
-### OAuth Setup
-
-#### Google Calendar OAuth Setup
-
-1. Visit the [Google Cloud Console](https://console.cloud.google.com)
-2. Create a new project or select an existing one
-3. Enable the Google Calendar API
-4. Configure OAuth consent screen
-5. Create OAuth 2.0 credentials (Client ID and Client Secret)
-6. Use the provided authorization flow to obtain a refresh token
-
-Required credentials:
-- Client ID
-- Client Secret
-- Refresh Token
-- Calendar ID (optional, defaults to primary calendar)
-
-#### Microsoft Calendar OAuth Setup
-
-1. Visit the [Azure Portal](https://portal.azure.com)
-2. Register a new application
-3. Add Calendar.Read and Calendar.ReadWrite permissions
-4. Create a client secret
-5. Configure redirect URIs
-6. Complete the OAuth flow to obtain refresh token
-
-### Calendar Integration Commands
-
-#### List Available Calendars
-
-```bash
-curl -X GET https://api.meetingbaas.com/v1/calendars \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "platform": "Google",
-    "clientId": "your-client-id",
-    "clientSecret": "your-client-secret",
-    "refreshToken": "your-refresh-token"
-  }'
-```
-
-#### Integrate Calendar
-
-```bash
-curl -X POST https://api.meetingbaas.com/v1/calendars \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "platform": "Google",
-    "clientId": "your-client-id",
-    "clientSecret": "your-client-secret",
-    "refreshToken": "your-refresh-token",
-    "calendarId": "primary@gmail.com"
-  }'
-```
-
-### Automated Recording Management
-
-#### Schedule Recording
-
-```bash
-curl -X POST https://api.meetingbaas.com/v1/recordings/schedule \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "eventId": "event-id",
-    "botConfig": {
-      "name": "Team Meeting Bot",
-      "recordingMode": "gallery_view",
-      "entryMessage": "Hello everyone, I'm here to record the meeting"
-    }
-  }'
-```
-
-#### View Scheduled Recordings
-
-```bash
-curl -X GET https://api.meetingbaas.com/v1/recordings/scheduled \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-#### Cancel Recording
-
-```bash
-curl -X DELETE https://api.meetingbaas.com/v1/recordings/{EVENT_ID} \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-## Meeting Content Analysis
-
-### Accessing Recordings
-
-All recordings are available through the Meeting BaaS viewer:
-
-```
-https://meetingbaas.com/viewer/{BOT_ID}
-```
-
-Features include:
-- Full video playback
-- Searchable transcripts
-- Speaker identification
-- Topic navigation
-- Timestamp sharing
-
-### Transcript Access
-
-```bash
-curl -X GET https://api.meetingbaas.com/v1/meetings/{BOT_ID}/transcript \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-### Key Moments Analysis
-
-```bash
-curl -X GET https://api.meetingbaas.com/v1/meetings/{BOT_ID}/moments \
-  -H "Authorization: Bearer YOUR_API_KEY"
-```
-
-## Advanced Features
-
-### QR Code Bot Avatars
-
-Create custom QR codes for bot avatars with various styles:
-- style_crystal
-- style_rounded
-- style_dot
-- style_corporate
-
-Example:
-```bash
-curl -X POST https://api.meetingbaas.com/v1/qr \
-  -H "Authorization: Bearer YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "type": "email",
-    "data": "contact@company.com",
-    "style": "style_crystal",
-    "prompt": "Professional blue corporate design"
-  }'
-```
-
-## Configuration
-
-### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| PORT | Server port | 7017 |
-| API_BASE_URL | Meeting BaaS API URL | https://api.meetingbaas.com/v1 |
-| DEFAULT_API_KEY | Default API key for testing | null |
-
-### Security Notes
-
-- All meeting recordings are automatically shared within your organization's email domain
-- API keys should be kept secure and never exposed in client-side code
-- OAuth credentials should be stored securely and never committed to version control
-- Regular credential rotation is recommended
-
-## Best Practices
-
-1. **Recording Management**
-   - Use descriptive bot names for easy identification
-   - Set appropriate entry messages to inform participants
-   - Regular cleanup of unused recordings
-
-2. **Calendar Integration**
-   - Maintain separate OAuth credentials for different environments
-   - Regularly verify calendar sync status
-   - Use specific calendar IDs instead of 'primary' when possible
-
-3. **Meeting Analysis**
-   - Tag important moments during meetings
-   - Use timestamp sharing for specific references
-   - Export transcripts for important meetings
-
-## Troubleshooting
-
-Common issues and solutions:
-
-1. **Calendar Sync Issues**
-   - Verify OAuth credentials
-   - Check calendar permissions
-   - Force resync using the API
-
-2. **Recording Failures**
-   - Verify meeting URL format
-   - Check bot permissions
-   - Ensure stable internet connection
-
-3. **Access Problems**
-   - Confirm API key validity
-   - Verify email domain matches
-   - Check organization permissions
-
-
----
-
-## Claude Desktop Integration
-
-Configure and integrate Claude Desktop with Meeting BaaS MCP servers for AI-powered meeting assistance and automation
-
-### Source: ./content/docs/mcp-servers/integrations/claude-desktop-integration.mdx
-
-
-This guide explains how to integrate Claude Desktop with Meeting BaaS MCP server for enhanced meeting capabilities.
-
-## Configuration Setup
-
-### Step 1: Edit Configuration File
-
-Open your Claude Desktop configuration file located at:
-
-```bash
-# For macOS
-~/Library/Application Support/Claude/claude_desktop_config.json
-
-# For Windows
-%APPDATA%\Claude\claude_desktop_config.json
-
-# For Linux
-~/.config/Claude/claude_desktop_config.json
-```
-
-### Step 2: Add MCP Server Configuration
-
-Add the following configuration to your `claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "meetingbaas": {
-      "command": "/bin/bash",
-      "args": [
-        "-c",
-        "cd /path/to/meeting-mcp && (npm run build 1>&2) && MCP_FROM_CLAUDE=true node dist/index.js"
-      ],
-      "headers": {
-        "x-api-key": "YOUR_API_KEY_FOR_MEETING_BAAS"
-      },
-      "botConfig": {
-        "name": "Meeting Assistant",
-        "image": "https://meetingbaas.com/static/972043b7d604bca0d4b0048c7dd67ad2/fc752/previewFeatures.avif",
-        "entryMessage": "Hello, I'm a bot from Meeting Baas. I'll be taking notes for this meeting.",
-        "deduplicationKey": "unique_key_to_override_restriction",
-        "nooneJoinedTimeout": 600,
-        "waitingRoomTimeout": 600,
-        "speechToTextProvider": "Gladia",
-        "speechToTextApiKey": "YOUR_SPEECH_TO_TEXT_API_KEY",
-        "extra": {
-          "meetingType": "sales",
-          "summaryPrompt": "Focus on action items and decision points",
-          "searchKeywords": ["budget", "timeline", "deliverables"],
-          "timeStampHighlights": [
-            {"time": "00:05:23", "note": "Discussion about Q2 sales numbers"},
-            {"time": "00:12:47", "note": "Team disagreement on marketing strategy"}
-          ],
-          "participants": ["John Smith", "Jane Doe", "Bob Johnson"],
-          "project": "Project Phoenix",
-          "department": "Engineering",
-          "priority": "High",
-          "followupDate": "2023-12-15",
-          "tags": ["technical", "planning", "retrospective"]
-        },
-        "calendarOAuth": {
-          "platform": "Google",
-          "clientId": "YOUR_OAUTH_CLIENT_ID",
-          "clientSecret": "YOUR_OAUTH_CLIENT_SECRET",
-          "refreshToken": "YOUR_REFRESH_TOKEN",
-          "rawCalendarId": "primary@gmail.com"
-        }
-      }
-    }
-  }
-}
-```
-
-## Configuration Parameters Explained
-
-### Core Configuration
-
-| Parameter | Description | Required |
-|-----------|-------------|----------|
-| `command` | Specifies the shell to execute the MCP server | Yes |
-| `args` | Array of command-line arguments for server execution | Yes |
-| `headers` | Authentication headers including API keys | Yes |
-
-### Bot Configuration (`botConfig`)
-
-| Parameter | Description | Required | Default |
-|-----------|-------------|----------|---------|
-| `name` | Display name of the bot in meetings | Yes | "Claude Assistant" |
-| `image` | URL for bot's avatar image | No | System default |
-| `entryMessage` | Bot's greeting message when joining meetings | No | - |
-| `deduplicationKey` | Key to bypass 5-minute rejoin restriction | No | - |
-| `nooneJoinedTimeout` | Timeout (seconds) if no participants join | No | 600 |
-| `waitingRoomTimeout` | Timeout (seconds) for waiting room | No | 600 |
-
-### Speech-to-Text Configuration
-
-| Parameter | Description | Required |
-|-----------|-------------|----------|
-| `speechToTextProvider` | Provider for transcription service ("Gladia", "Runpod", "Default") | No |
-| `speechToTextApiKey` | API key for the chosen provider | Required if provider specified |
-
-### Calendar Integration (`calendarOAuth`)
-
-| Parameter | Description | Required |
-|-----------|-------------|----------|
-| `platform` | Calendar platform ("Google" or "Microsoft") | Yes |
-| `clientId` | OAuth client ID | Yes |
-| `clientSecret` | OAuth client secret | Yes |
-| `refreshToken` | OAuth refresh token | Yes |
-| `rawCalendarId` | Specific calendar ID to integrate | No |
-
-### Extended Metadata (`extra`)
-
-The `extra` field allows for flexible metadata configuration to enhance AI capabilities:
-
-```json
-{
-  "meetingType": "Type of meeting (sales, technical, etc.)",
-  "summaryPrompt": "Custom prompt for meeting summaries",
-  "searchKeywords": ["Array of keywords to track"],
-  "timeStampHighlights": [
-    {
-      "time": "HH:MM:SS",
-      "note": "Description of highlight"
-    }
-  ],
-  "participants": ["Array of participant names"],
-  "project": "Project identifier",
-  "department": "Department name",
-  "priority": "Meeting priority level",
-  "followupDate": "YYYY-MM-DD",
-  "tags": ["Array of relevant tags"]
-}
-```
-
-## Security Considerations
-
-1. **API Key Management**:
-   - Use API keys associated with your corporate email account
-   - Store API keys securely
-   - Regularly rotate API keys
-   - Never commit API keys to version control
-
-2. **Access Control**:
-   - Recordings and bot logs are automatically shared with same-domain colleagues
-   - Implement proper access controls for sensitive meetings
-   - Regular audit of access patterns
-
-## QR Code API Integration
-
-The QR Code API uses the same header name (`x-api-key`) but requires separate configuration. Configure it using one of these methods:
-
-1. Environment Variable:
-   ```bash
-   export MEETING_BAAS_QR_API_KEY="your_api_key"
-   ```
-
-2. Direct Configuration:
-   ```json
-   {
-     "qrCodeApi": {
-       "apiKey": "YOUR_QR_API_KEY"
-     }
-   }
-   ```
-
-## Best Practices
-
-1. **Meeting Setup**:
-   - Configure appropriate timeouts
-   - Use meaningful bot names
-   - Set clear entry messages
-
-2. **Data Management**:
-   - Regular backup of configurations
-   - Periodic review of stored meetings
-   - Clean up unused recordings
-
-3. **Integration Maintenance**:
-   - Regular updates of dependencies
-   - Monitor API usage
-   - Keep OAuth tokens updated
-
-## Troubleshooting
-
-1. **Connection Issues**:
-   - Verify API key validity
-   - Check network connectivity
-   - Ensure correct server path
-
-2. **Bot Behavior**:
-   - Verify timeout settings
-   - Check log files for errors
-   - Confirm OAuth credentials if using calendar integration
-
-3. **Performance Issues**:
-   - Monitor system resources
-   - Check network bandwidth
-   - Verify speech-to-text provider status
-
-After configuration, restart Claude Desktop for changes to take effect.
-
-
----
-
-## Cursor Integration
-
-Configure and integrate Cursor IDE with Meeting BaaS MCP servers for AI-powered development assistance and code collaboration
-
-### Source: ./content/docs/mcp-servers/integrations/cursor-integration.mdx
-
-
-## Overview
-This guide explains how to integrate the Meeting BaaS Model Context Protocol (MCP) server with Cursor, an AI-powered IDE. This integration enables enhanced AI capabilities within your development environment.
-
-## Integration Steps
-
-### Setting Up Cursor Integration
-
-1. **Launch Cursor**
-   - Open the Cursor IDE on your system
-   - Ensure you're running the latest version for optimal compatibility
-
-2. **Access Settings**
-   - Click on the Settings icon (⚙️) in the bottom left corner
-   - Alternatively, use the keyboard shortcut `Ctrl+,` (Windows/Linux) or `Cmd+,` (macOS)
-
-3. **Configure Model Context Protocol**
-   - Navigate to "Model Context Protocol" section
-   - Click on "Add New Server"
-   - Enter the following configuration:
-     ```json
-     {
-       "name": "Meeting BaaS MCP",
-       "type": "sse",
-       "serverUrl": "http://localhost:7017/mcp"
-     }
-     ```
-   - If authentication is required, add headers in the format:
-     ```json
-     {
-       "Authorization": "Bearer your-token-here"
-     }
-     ```
-
-## Development Guide
-
-### Building the Project
-
-```bash
-# Build the project
-npm run build
-```
-This command compiles the TypeScript code and generates the production-ready build.
-
-### Testing
-
-```bash
-# Run MCP Inspector for testing
-npm run inspect
-```
-The MCP Inspector provides a visual interface to test and debug your MCP server integration.
-
-### Development Mode
-
-```bash
-# Start development server with auto-reload
-npm run dev
-```
-Features:
-- Hot reloading for code changes
-- Real-time debugging information
-- Automatic server restart on file changes
-
-## Log Management
-
-### Cleanup Command
-```bash
-npm run cleanup
-```
-
-The log management system includes sophisticated features:
-
-- **Automated Log Cleanup**
-  - Removes redundant log files
-  - Cleans cached data periodically
-  - Maintains optimal disk usage
-
-- **Smart Log Filtering**
-  - Filters out non-essential ping messages
-  - Preserves critical error and warning logs
-  - Implements log rotation for long-term management
-
-- **Performance Optimization**
-  - Reduces I/O operations
-  - Minimizes memory footprint
-  - Implements efficient log compression
-
-## Project Architecture
-
-```
-project-root/
-├── src/
-│   ├── index.ts           # Main application entry point
-│   ├── tools/             # MCP tool implementations
-│   ├── resources/         # Resource definitions and handlers
-│   ├── api/              # Meeting BaaS backend API client
-│   ├── types/            # TypeScript type definitions
-│   ├── config.ts         # Server configuration
-│   └── utils/
-│       ├── logging.ts    # Advanced logging system
-│       └── tinyDb.ts     # Persistent state management
-```
-
-### Key Components
-
-1. **Main Entry Point** (`src/index.ts`)
-   - Server initialization
-   - Route configuration
-   - Middleware setup
-
-2. **Tools Directory** (`src/tools/`)
-   - Custom MCP tool implementations
-   - Tool registration and management
-   - Tool validation logic
-
-3. **Resources** (`src/resources/`)
-   - Static resource definitions
-   - Resource loading and caching
-   - Asset management
-
-4. **API Client** (`src/api/`)
-   - Meeting BaaS backend integration
-   - API request handling
-   - Response processing
-
-5. **Type Definitions** (`src/types/`)
-   - Interface definitions
-   - Type guards
-   - Shared type utilities
-
-6. **Configuration** (`src/config.ts`)
-   - Environment-based configuration
-   - Server settings
-   - Integration parameters
-
-7. **Utilities** (`src/utils/`)
-   - Logging system with advanced filtering
-   - Database operations for bot state
-   - Helper functions and common utilities
-
-## Best Practices
-
-1. **Error Handling**
-   - Implement comprehensive error catching
-   - Provide detailed error messages
-   - Log errors with appropriate severity levels
-
-2. **Security**
-   - Use environment variables for sensitive data
-   - Implement proper authentication
-   - Regular security audits
-
-3. **Performance**
-   - Optimize resource usage
-   - Implement caching where appropriate
-   - Monitor server health metrics
-
-## Troubleshooting
-
-Common issues and solutions:
-
-1. **Connection Issues**
-   - Verify server URL is correct
-   - Check if the server is running
-   - Confirm network connectivity
-
-2. **Authentication Errors**
-   - Validate token format
-   - Check token expiration
-   - Verify header configuration
-
-3. **Performance Problems**
-   - Monitor log sizes
-   - Check system resources
-   - Review active connections
-
-
----
-
-## Meeting MCP
-
-Standalone MCP server for local deployment with Meeting BaaS integration
-
-### Source: ./content/docs/mcp-servers/mcp/meeting-mcp.mdx
-
-
-Meeting MCP is a standalone [Model Context Protocol](https://www.anthropic.com/news/model-context-protocol) server that provides AI assistants with access to Meeting BaaS data and capabilities. The server can be deployed locally or on your own infrastructure, making it ideal for use with Claude Desktop and other MCP clients.
-
-<Card
-  icon={<Github />}
-  title="GitHub Repository"
-  href="https://github.com/Meeting-Baas/meeting-mcp"
-  description="Clone the repository to deploy your own MCP server"
-  external
-/>
-
-## Features
-
-<Cards>
-  <Card title="Meeting Management" icon={<Video className="text-blue-400" />}>
-    Create, join, and manage meeting bots with automatic recording and
-    transcription.
-  </Card>
-  <Card title="Transcript Search" icon={<Search className="text-green-400" />}>
-    Search and analyze meeting transcripts for specific content or speakers.
-  </Card>
-  <Card
-    title="Calendar Integration"
-    icon={<Calendar className="text-purple-400" />}
-  >
-    Connect calendars and automatically schedule meeting recordings.
-  </Card>
-  <Card title="QR Code Generation" icon={<QrCode className="text-amber-400" />}>
-    Generate AI-powered QR code images that can be used as bot avatars.
-  </Card>
-  <Card
-    title="Key Moment Identification"
-    icon={<Clock className="text-teal-400" />}
-  >
-    Automatically identify and share important moments from meetings.
-  </Card>
-  <Card title="Link Sharing" icon={<Link className="text-indigo-400" />}>
-    Generate shareable links to meetings and specific timestamps.
-  </Card>
-  <Card title="Local Deployment" icon={<HardDrive className="text-red-400" />}>
-    Run completely on your own infrastructure for enhanced security and control.
-  </Card>
-</Cards>
-
-## Prerequisites
-
-Before getting started, you'll need:
-
-- Node.js (v16 or later)
-- npm
-- A [Meeting BaaS API key](https://meetingbaas.com)
-- (Optional) A QR Code AI API key for QR code generation
-
 ## Installation
 
-<Steps>
-  <Step title="Clone the Repository">
-    ```bash
-    git clone https://github.com/Meeting-Baas/meeting-mcp.git
-    cd meeting-mcp
-    ```
-  </Step>
-  <Step title="Install Dependencies">
-    ```bash
-    npm install
-    ```
-  </Step>
-  <Step title="Build the Project">
-    ```bash
-    npm run build
-    ```
-  </Step>
-  <Step title="Start the Server">
-    ```bash
-    npm run start
-    ```
-    By default, the server runs on port 7017 and exposes the MCP endpoint at http://localhost:7017/mcp.
-  </Step>
-</Steps>
+Learn how to configure Transcript Seeker.
 
-## Available Tools
+### Source: ./content/docs/transcript-seeker/getting-started/installation.mdx
 
-The server exposes several tools through the MCP protocol:
-
-<Accordions>
-  <Accordion title="Calendar Tools" icon={<Calendar />} defaultOpen>
-    - **oauthGuidance**: Get step-by-step instructions for setting up OAuth -
-    **listRawCalendars**: List available calendars before integration -
-    **setupCalendarOAuth**: Integrate a calendar using OAuth credentials -
-    **listCalendars**: List all integrated calendars - **getCalendar**: Get
-    detailed information about a specific calendar - **deleteCalendar**: Remove
-    a calendar integration - **resyncAllCalendars**: Force a refresh of all
-    connected calendars - **listUpcomingMeetings**: List upcoming meetings from
-    a calendar - **listEvents**: List calendar events with filtering options -
-    **getEvent**: Get detailed information about a specific event -
-    **scheduleRecording**: Schedule a bot to record an upcoming meeting -
-    **cancelRecording**: Cancel a previously scheduled recording -
-    **checkCalendarIntegration**: Diagnose calendar integration issues
-  </Accordion>
-
-<Accordion title="Meeting Tools" icon={<Video />}>
-  - **createBot**: Create a meeting bot that can join video conferences -
-  **getBots**: List all bots and their associated meetings -
-  **getBotsByMeeting**: Get bots for a specific meeting URL - **getRecording**:
-  Retrieve recording information - **getRecordingStatus**: Check the status of a
-  recording - **getMeetingData**: Get transcript and recording data
-</Accordion>
-
-<Accordion title="Transcript Tools" icon={<FileText />}>
-  - **getMeetingTranscript**: Get a complete meeting transcript with speaker
-  information - **findKeyMoments**: Automatically identify important moments in
-  a meeting
-</Accordion>
-
-<Accordion title="QR Code Tools" icon={<QrCode />}>
-  - **generateQRCode**: Create an AI-generated QR code image for use as a bot
-  avatar
-</Accordion>
-
-  <Accordion title="Link Sharing Tools" icon={<Link />}>
-    - **shareableMeetingLink**: Generate a formatted, shareable link to a
-    recording - **shareMeetingSegments**: Create links to multiple important
-    moments
-  </Accordion>
-</Accordions>
-
-## Authentication
-
-The server expects an API key in the `x-api-key` header for authentication. You can configure the default API key in the configuration file.
-
-Many tools also support direct authentication through parameters (named with "WithCredentials"), allowing you to provide the API key directly in the query rather than through headers.
-
-## Integration with Claude Desktop
 
 <Steps>
-  <Step title="Edit the Claude Desktop Configuration File">
-    ```bash
-    # On Mac/Linux
-    vim ~/Library/Application\ Support/Claude/claude_desktop_config.json
-    
-    # On Windows
-    notepad %APPDATA%\Claude\claude_desktop_config.json
-    ```
-  </Step>
-  
-  <Step title="Add the Meeting BaaS MCP Server Configuration">
-    ```json
-    {
-      "mcpServers": {
-        "meetingbaas": {
-          "command": "/bin/bash",
-          "args": [
-            "-c",
-            "cd /path/to/meeting-mcp && (npm run build 1>&2) && MCP_FROM_CLAUDE=true node dist/index.js"
-          ],
-          "headers": {
-            "x-api-key": "YOUR_API_KEY_FOR_MEETING_BAAS"
-          },
-          "botConfig": {
-            "name": "Meeting Assistant",
-            "image": "https://meetingbaas.com/static/972043b7d604bca0d4b0048c7dd67ad2/fc752/previewFeatures.avif",
-            "entryMessage": "Hello, I'm a bot from Meeting Baas. I'll be taking notes for this meeting.",
-            "deduplicationKey": "unique_key_to_override_restriction",
-            "nooneJoinedTimeout": 600,
-            "waitingRoomTimeout": 600,
-            "speechToTextProvider": "Gladia",
-            "speechToTextApiKey": "YOUR_SPEECH_TO_TEXT_API_KEY",
-            "extra": {
-              "meetingType": "sales",
-              "summaryPrompt": "Focus on action items and decision points",
-              "searchKeywords": ["budget", "timeline", "deliverables"]
-            }
-          }
-        }
-      }
-    }
-    ```
-    
-    <Callout>
-      Replace `/path/to/meeting-mcp` with the actual path to your local repository and `YOUR_API_KEY` with your actual Meeting BaaS API key.
-    </Callout>
-  </Step>
-  
-  <Step title="Restart Claude Desktop">
-    Close and reopen Claude Desktop to apply the changes.
-  </Step>
-</Steps>
+<Step>
+### Clone the Repo
 
-## QR Code API Key Configuration
+Create a new app with `create-turbo`, it requires Node.js 20+.
 
-The QR code generator tool requires an API key from [QR Code AI API](https://www.qrcode-ai-api.com/). There are several ways to provide this:
+<Tabs groupId='package-manager' persist items={['npm', 'pnpm', 'yarn']}>
 
-1. **Directly in the prompt**: Include your API key in the prompt when using the `generateQRCode` tool
-2. **As a parameter**: Provide your API key as the `apiKey` parameter
-3. **Environment variable**: Set the `QRCODE_API_KEY` environment variable
-4. **Claude Desktop config**: Add the API key to your Claude Desktop configuration file
-
-## Example Workflows
-
-<Tabs>
-  <Tab title="Recording a Meeting" value="recording">
-```
-# Create a bot for a meeting
-"Create a bot for my Zoom meeting at https://zoom.us/j/123456789"
-
-# Check recording status
-
-"What's the status of my meeting recording for the Zoom call I started earlier?"
-
-```
-  </Tab>
-  <Tab title="Calendar Integration" value="calendar">
+```bash tab="npm"
+npx create-turbo@latest -e https://github.com/Meeting-Baas/transcript-seeker
 ```
 
-# Get OAuth guidance
-
-"I want to integrate my Google Calendar. How do I get OAuth credentials?"
-
-# Set up calendar integration
-
-"Integrate my Google Calendar using these credentials:
-
-- Platform: Google
-- Client ID: my-client-id-123456789.apps.googleusercontent.com
-- Client Secret: my-client-secret-ABCDEF123456
-- Refresh Token: my-refresh-token-ABCDEF123456789
-- Raw Calendar ID: primary@gmail.com"
-
-# View upcoming meetings
-
-"Show me my upcoming meetings from calendar 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
-
-# Schedule recording
-
-"Schedule a recording for my team meeting with event ID 7a8b9c0d-1e2f-3a4b-5c6d-7e8f9a0b1c2d"
-
-```
-  </Tab>
-  <Tab title="Analyzing Content" value="analyzing">
+```bash tab="pnpm"
+pnpm dlx create-turbo@latest -e https://github.com/Meeting-Baas/transcript-seeker
 ```
 
-# Get a meeting transcript
-
-"Get the transcript from my team meeting with bot ID abc-123"
-
-# Find key moments
-
-"Identify key moments from yesterday's product planning meeting with bot ID xyz-456"
-
-# Share a specific moment
-
-"Create a shareable link to the part of meeting abc-123 at timestamp 12:45 where John was talking about the budget"
-
-```
-  </Tab>
-  <Tab title="QR Code Generation" value="qrcode">
+```bash tab="yarn"
+yarn dlx create-turbo@latest -e https://github.com/Meeting-Baas/transcript-seeker
 ```
 
-# Generate a QR code with contact information
-
-"Generate a QR code with the following parameters:
-
-- Type: email
-- To: john.doe@company.com
-- Prompt: Create a professional-looking QR code with abstract blue patterns
-- Style: style_crystal"
-
-# Use as a bot avatar
-
-"Join my Zoom meeting at https://zoom.us/j/123456789 with the following parameters:
-
-- Bot name: QR Code Assistant
-- Bot image: [URL from the generated QR code]
-- Entry message: Hello everyone, scan my avatar to get my contact information."
-
-````
-  </Tab>
 </Tabs>
 
-## Development
+It will ask you the following questions:
 
-For development purposes, you can:
+- Which package manager would you like to use? PNPM
 
-```bash
-# Run in development mode with auto-reload
+<Callout type="warn">
+  Use pnpm as the package manager or the installation will fail.
+</Callout>
+
+</Step>
+
+<Step>
+### Configure Environment Variables
+
+Copy the `.env.example` file to a `.env.development.local` file in the following folders within your project structure and add the necessary environment variables:
+
+To learn more about configuring the environment variables, follow this [guide](/docs/transcript-seeker/concepts/environment-variables).
+
+<Files>
+  <Folder name="apps" defaultOpen>
+    <Folder name="api" defaultOpen>
+      <File name=".env.development.local" />
+    </Folder>
+  </Folder>
+  <Folder name="apps" defaultOpen>
+    <Folder name="proxy" defaultOpen>
+      <File name=".env.development.local" />
+    </Folder>
+  </Folder>
+  <File name=".env.development.local" />
+  <File name="package.json" />
+</Files>
+
+After setting up the environment files, execute the following command to set the environment to development mode:
+
+```bash title="Terminal"
+export NODE_ENV="development"
+```
+
+</Step>
+
+<Step>
+### Run the App
+
+Now, start the development server:
+
+<Tabs groupId='package-manager' persist items={['pnpm', 'npm', 'yarn']}>
+
+```bash tab="pnpm"
+pnpm turbo run dev
+```
+
+```bash tab="npm"
 npm run dev
+```
 
-# Test with MCP Inspector
-npm run inspect
+```bash tab="yarn"
+yarn run dev
+```
 
-# Clean up logs
-npm run cleanup
-````
+</Tabs>
 
-## Project Structure
+<Callout border={false} type="warning">
 
-- `src/index.ts`: Main entry point
-- `src/tools/`: Tool implementations
-- `src/resources/`: Resource definitions
-- `src/api/`: API client for the Meeting BaaS backend
-- `src/types/`: TypeScript type definitions
-- `src/config.ts`: Server configuration
-- `src/utils/`: Utility functions
+If `pnpm run dev` doesn't work, you can try the following:
+
+<Tabs groupId='package-manager' persist items={['pnpm', 'npm', 'yarn']}>
+
+```bash tab="pnpm"
+pnpm add turbo --global
+turbo dev
+```
+
+```bash tab="npm"
+npm install turbo --global
+turbo dev
+```
+
+```bash tab="yarn"
+yarn install turbo --global
+turbo dev
+```
+
+</Tabs>
+</Callout>
+</Step>
+</Steps>
 
 
 ---
 
-## Vercel MCP
+## Architecture
 
-Enterprise-grade Model Context Protocol server for Meeting BaaS integration, optimized for Vercel deployment
+Learn more about the architecture of Transcript Seeker.
 
-### Source: ./content/docs/mcp-servers/mcp/vercel-mcp.mdx
+### Source: ./content/docs/transcript-seeker/concepts/architecture.mdx
 
 
-MCP on Vercel is an enterprise-grade [Model Context Protocol](https://www.anthropic.com/news/model-context-protocol) server that powers the [chat.meetingbaas.com](https://chat.meetingbaas.com) platform. Built as an enhanced fork of the Vercel MCP template, it provides comprehensive Meeting BaaS integration for advanced meeting automation, AI-powered interactions, and intelligent meeting management.
+Understanding the architecture of Transcript Seeker is crucial for both setting up and deploying Transcript Seeker. Below is a diagram illustrating the core components:
 
-<Card
-  icon={<Github />}
-  title="GitHub Repository"
-  href="https://github.com/Meeting-Baas/mcp-on-vercel"
-  description="Access the source code to deploy your own customized MCP server"
-  external
+<ImageZoom
+  src={'/assets/architecture.svg'}
+  width={1024}
+  height={1024}
+  className="dark:invert"
+  rmiz={{
+    classDialog: 'dark:[&_img]:invert',
+  }}
 />
 
-## Core Features
 
-<Cards>
-  <Card
-    title="Meeting BaaS SDK Integration"
-    icon={<Code className="text-blue-400" />}
-  >
-    Seamless integration with the TypeScript SDK providing type-safe access to all Meeting BaaS features including video management, bot control, and meeting automation.
-  </Card>
-  <Card
-    title="Advanced Bot Management"
-    icon={<MessageSquare className="text-green-400" />}
-  >
-    Comprehensive tools for deploying and managing AI-powered speaking agents with customizable personas, real-time transcription, and dynamic interaction capabilities.
-  </Card>
-  <Card
-    title="Intelligent Calendar Integration"
-    icon={<Calendar className="text-purple-400" />}
-  >
-    Smart calendar management with automated meeting scheduling, recording controls, and AI-assisted event organization across multiple platforms.
-  </Card>
-  <Card
-    title="Enterprise-Ready Architecture"
-    icon={<Cloud className="text-teal-400" />}
-  >
-    Built for scale with Vercel's serverless infrastructure, featuring Redis-backed session management, fluid compute optimization, and cross-platform compatibility.
-  </Card>
-</Cards>
+---
 
-## Technical Architecture
+## Environment Variables
 
-### SDK Integration
+Configuring Environment Variables for Transcript Seeker.
 
-The server leverages the official Meeting BaaS TypeScript SDK (`@meeting-baas/sdk`) which provides:
+### Source: ./content/docs/transcript-seeker/concepts/environment-variables.mdx
 
-- **Type Safety**: Complete TypeScript definitions for all API interactions
-- **Auto-Updates**: Synchronized with the latest OpenAPI specifications
-- **Cross-Platform Support**: Unified interface for Google Meet, Zoom, and Microsoft Teams
-- **Pre-built MCP Tools**: Ready-to-use AI system integrations
-- **Comprehensive API Access**: Type-safe functions for the entire Meeting BaaS API surface
 
-### System Requirements
+Let's learn how to configure environment variables for Transcript Seeker.
+Transcript Seeker uses `dotenv-cli` to load the environment variables, making it easy for development.
+Transcript Seeker follows this structure for different environments:
 
-**Required Components:**
-- Vercel account with deployment access
-- Meeting BaaS API key
-- Redis instance (for session state management)
-- Node.js v16 or higher (for local development)
+- `.env.development.local` for development
+- `.env.production.local` for production
 
-**Recommended Setup:**
-- Vercel Pro/Enterprise account for extended compute capabilities
-- Redis instance in the same region as your Vercel deployment
-- Fluid Compute enabled for optimal performance
+You can load a specific environment file by running the following command:
 
-## Deployment Guide
+```bash title="Terminal"
+export NODE_ENV="development"
+```
 
-<Tabs>
-  <Tab title="One-Click Deploy" value="one-click">
-    Deploy directly to Vercel with minimal configuration:
-    
-    <a href="https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FMeeting-Baas%2Fmcp-on-vercel&env=REDIS_URL&envDescription=Redis%20URL%20for%20session%20management" target="_blank">
-      <img src="https://vercel.com/button" alt="Deploy with Vercel" />
-    </a>
-    
-    **Required Configuration:**
-    1. Redis URL for session management
-    2. Meeting BaaS API key (optional for development)
-    3. Enable Fluid Compute in project settings
-    4. Configure max duration in `vercel.json` (Pro/Enterprise)
+Now, let's configure the environment variables.
 
-  </Tab>
-  <Tab title="Manual Deployment" value="manual">
-    For customized deployment with full control:
-    
-    ```bash
-    # Clone the repository
-    git clone https://github.com/Meeting-Baas/mcp-on-vercel.git
-    cd mcp-on-vercel
-    
-    # Install dependencies
-    npm install
-    
-    # Configure environment
-    cp .env.example .env
-    # Edit .env with required credentials
-    
-    # Deploy
-    npx vercel --prod
-    ```
+## Client
 
-    **Post-Deployment Steps:**
-    1. Configure environment variables in Vercel dashboard
-    2. Enable Fluid Compute
-    3. Adjust compute settings for your usage tier
-    4. Set up monitoring and alerts
+Create a `.env.development.local` file in the below directory of your project and add the following environment variables:
 
-  </Tab>
-</Tabs>
+<Files>
+  <Folder name="apps">
+    <Folder name="api" defaultOpen>
+        <File name="..." />
+      <File name=".env.development.local" />
+    </Folder>
+    <Folder name="proxy" defaultOpen>
+        <File name="..." />
+      <File name=".env.development.local" />
+    </Folder>
+    <Folder name="web">
+      <File name="..." />
+    </Folder>
+  </Folder>
+  <Folder name="packages">
+    <Folder name="db" defaultOpen>
+          <File name="..." />
 
-## Configuration
+    </Folder>
+    <Folder name="shared" defaultOpen>
+          <File name="..." />
+    </Folder>
+    <Folder name="ui" defaultOpen>
+      <File name="..." />
+    </Folder>
 
-### Environment Variables
+  </Folder>
+  <Folder name="tooling">
+    <Folder name="eslint" defaultOpen>
+          <File name="..." />
 
-| Variable | Required | Description | Example |
-|----------|----------|-------------|----------|
-| `REDIS_URL` | Yes | Redis instance URL | `redis://user:pass@host:port` |
-| `NODE_ENV` | No | Environment mode | `development` or `production` |
-| `LOG_LEVEL` | No | Logging verbosity | `info`, `debug`, `error` |
-| `BAAS_API_KEY` | Dev only | Meeting BaaS API key | `mbk_xxxx...` |
+    </Folder>
+    <Folder name="github" defaultOpen>
+          <File name="..." />
+    </Folder>
+    <Folder name="prettier" defaultOpen>
+      <File name="..." />
+    </Folder>
+        <Folder name="tailwind" defaultOpen>
+      <File name="..." />
+    </Folder>
+        <Folder name="typescript" defaultOpen>
+      <File name="..." />
+    </Folder>
 
-### Authentication Methods
+  </Folder>
+  <File name=".env.development.local" className="bg-fd-accent" />
+  <File name="package.json" />
+</Files>
 
-The server supports multiple authentication approaches in order of precedence:
+<Steps>
+<Step>
+### Vite Port Configuration
 
-1. **HTTP Headers:**
-   ```http
-   x-meeting-baas-api-key: your-api-key
-   x-meetingbaas-apikey: your-api-key
-   x-api-key: your-api-key
-   Authorization: Bearer your-api-key
-   ```
+These values are used by vite to configure the url the server listens on.
 
-2. **Request Body (POST):**
-   ```json
-   {
-     "apiKey": "your-api-key"
-   }
-   ```
+```txt title=".env.development.local"
+VITE_CLIENT_PORT=5173
+VITE_CLIENT_HOST=0.0.0.0
+```
 
-3. **Environment Variable (Development):**
-   ```bash
-   BAAS_API_KEY=your-api-key
-   ```
+</Step>
 
-<Callout type="warning">
-  Production deployments should use header or body authentication methods. Environment
-  variable authentication is restricted to development environments only.
+<Step>
+### Proxy Configuration
+
+This Proxy URL is used to forward requests from the client to the respective server, helping to avoid client-side CORS errors. An example proxy server is provided in the repository.
+
+```txt title=".env.development.local"
+VITE_PROXY_URL=http://localhost:3000
+```
+
+</Step>
+
+<Step>
+### API Configuration
+
+This API URL is used by the calendars functionality of Transcript Seeker. It allows the app to perform authentication and retrieve the user's calendar data.
+
+```txt title=".env.development.local"
+VITE_API_URL=http://localhost:3001
+```
+
+</Step>
+
+<Step>
+### S3 Configuration
+
+This environment variable is used to indicate to the client where the video recordings are stored.
+
+```txt title=".env.development.local"
+VITE_S3_PREFIX=https://s3.eu-west-3.amazonaws.com/meeting-baas-video
+```
+
+</Step>
+</Steps>
+
+## Proxy
+
+Create a `.env.development.local` file in the below directory of your project and add the following environment variables:
+
+<Files>
+  <Folder name="apps" defaultOpen>
+    <Folder name="api" >
+        <File name="..." />
+      <File name=".env.development.local" />
+    </Folder>
+    <Folder name="proxy" defaultOpen>
+        <File name="..." />
+      <File name=".env.development.local"   className="bg-fd-accent"  />
+    </Folder>
+    <Folder name="web">
+      <File name="..." />
+    </Folder>
+  </Folder>
+  <Folder name="packages">
+    <Folder name="db" defaultOpen>
+          <File name="..." />
+
+    </Folder>
+    <Folder name="shared" defaultOpen>
+          <File name="..." />
+    </Folder>
+    <Folder name="ui" defaultOpen>
+      <File name="..." />
+    </Folder>
+
+  </Folder>
+  <Folder name="tooling">
+    <Folder name="eslint" defaultOpen>
+          <File name="..." />
+
+    </Folder>
+    <Folder name="github" defaultOpen>
+          <File name="..." />
+    </Folder>
+    <Folder name="prettier" defaultOpen>
+      <File name="..." />
+    </Folder>
+        <Folder name="tailwind" defaultOpen>
+      <File name="..." />
+    </Folder>
+        <Folder name="typescript" defaultOpen>
+      <File name="..." />
+    </Folder>
+
+  </Folder>
+  <File name=".env.development.local" />
+  <File name="package.json" />
+</Files>
+
+<Steps>
+<Step>
+### MeetingBaas Proxy Configuration
+
+These values are used by the api to figure out the api url for baas servers.
+
+```txt title=".env.development.local"
+MEETINGBAAS_API_URL="https://api.meetingbaas.com"
+MEETINGBAAS_S3_URL="https://s3.eu-west-3.amazonaws.com/meeting-baas-video"
+```
+
+</Step>
+</Steps>
+
+## API
+
+Create a `.env.development.local` file in the below directory of your project and add the following environment variables:
+
+<Files>
+  <Folder name="apps" defaultOpen>
+    <Folder name="api" defaultOpen>
+        <File name="..." />
+      <File name=".env.development.local"  className="bg-fd-accent" />
+    </Folder>
+    <Folder name="proxy">
+        <File name="..." />
+      <File name=".env.development.local" />
+    </Folder>
+    <Folder name="web">
+      <File name="..." />
+    </Folder>
+  </Folder>
+  <Folder name="packages">
+    <Folder name="db" defaultOpen>
+          <File name="..." />
+
+    </Folder>
+    <Folder name="shared" defaultOpen>
+          <File name="..." />
+    </Folder>
+    <Folder name="ui" defaultOpen>
+      <File name="..." />
+    </Folder>
+
+  </Folder>
+  <Folder name="tooling">
+    <Folder name="eslint" defaultOpen>
+          <File name="..." />
+
+    </Folder>
+    <Folder name="github" defaultOpen>
+          <File name="..." />
+    </Folder>
+    <Folder name="prettier" defaultOpen>
+      <File name="..." />
+    </Folder>
+        <Folder name="tailwind" defaultOpen>
+      <File name="..." />
+    </Folder>
+        <Folder name="typescript" defaultOpen>
+      <File name="..." />
+    </Folder>
+
+  </Folder>
+  <File name=".env.development.local" />
+  <File name="package.json" />
+</Files>
+
+<Steps>
+<Step>
+### MeetingBaas Configuration
+
+These values are used by the api to figure out the api url for baas servers.
+
+```txt title=".env.development.local"
+NITRO_MEETINGBAAS_API_URL="https://api.meetingbaas.com"
+NITRO_MEETINGBAAS_S3_URL="https://s3.eu-west-3.amazonaws.com/meeting-baas-video"
+NITRO_TRUSTED_ORIGINS="http://localhost:5173" # comma separated list of trusted origins
+```
+
+</Step>
+
+<Step>
+### Google Authentication Configuration
+
+These values are used by the api to perform google authentication. Please follow the [guide](/docs/transcript-seeker/concepts/api/authentication) for more details:
+
+```txt title=".env.development.local"
+GOOGLE_CLIENT_ID=""
+GOOGLE_CLIENT_SECRET=""
+```
+
+</Step>
+
+<Step>
+### Turso Database Configuration
+
+These values are used by the api to store user autehtncation data. Please follow the [guide](/docs/transcript-seeker/concepts/api/database) for more details:
+
+```txt title=".env.development.local"
+TURSO_DATABASE_URL=""
+TURSO_AUTH_TOKEN=""
+```
+
+</Step>
+
+<Step>
+### Authentication Configuration
+
+<Callout>
+  When deploying to Google Cloud Run with a custom domain, you should set the
+  `BETTER_AUTH_URL` environment variable to the custom domain.
 </Callout>
 
-## Integration Guide
+These values are used by the api to perform authentication. Please follow the [guide](/docs/transcript-seeker/concepts/api/authentication) for more details:
 
-### Claude Desktop Integration
+```txt title=".env.development.local"
+BETTER_AUTH_SECRET=""
+BETTER_AUTH_URL="http://localhost:3001"
+API_TRUSTED_ORIGINS="http://localhost:5173"
+```
 
-Configure your MCP server in Claude Desktop:
+<Callout>
+  The `API_TRUSTED_ORIGINS` is not only used for authentication but also for
+  CORS configuration.
+</Callout>
 
-1. Navigate to Settings > Model Context Protocol
-2. Add new MCP Server with:
-   ```yaml
-   Name: Meeting BaaS MCP
-   URL: [Your Vercel Deployment URL]
-   Headers:
-     x-api-key: [Your Meeting BaaS API Key]
-   ```
+</Step>
 
-### Custom Development
+</Steps>
 
-Extend the server's capabilities:
 
-1. **Tool Customization:**
-   - Modify `/lib/tools` for custom Meeting BaaS integrations
-   - Add new tool definitions in `api/server.ts`
-
-2. **Prompt Engineering:**
-   - Update `/lib/prompts` for specialized use cases
-   - Configure context handling in `api/server.ts`
-
-3. **Testing:**
-   ```bash
-   # Start development server
-   npm run dev
-
-   # Run test client
-   node scripts/test-client.mjs http://localhost:3000
-   ```
-
-## Advanced Features
-
-### Meeting Management
-- Real-time meeting joining and leaving
-- Automated recording with transcription
-- Dynamic bot persona management
-- Resource cleanup and optimization
-
-### Calendar Integration
-- Multi-platform calendar support
-- Intelligent scheduling automation
-- Event management and updates
-- Configuration synchronization
-
-### Bot Management
-- Active bot monitoring and metrics
-- Detailed metadata tracking
-- Dynamic configuration updates
-- Performance optimization
+---
 
 ## Contributing
 
-This project is maintained as an enhanced fork of the [original Vercel MCP template](https://github.com/vercel-labs/mcp-on-vercel). Contributions are welcome through pull requests and issues on our repository.
+Contributing to Transcript Seeker
 
-<Callout type="info">
-  For production deployments, we recommend subscribing to our release notifications
-  to stay updated with the latest security patches and feature enhancements.
-</Callout>
+### Source: ./content/docs/transcript-seeker/guides/contributing.mdx
+
+
+Hey there! 👋 Welcome to the **Transcript-Seeker** project! We're absolutely thrilled that you're interested in contributing. Whether you're fixing a bug, adding a feature, or sharing an idea, your efforts help make our project better and more useful for everyone. Here are some easy-to-follow guidelines to help you dive in!
+
+## Table of Contents
+
+- [Issues](#issues)
+- [Pull Requests](#pull-requests)
+- [Local Setup](#local-setup)
+- [Environment Variables](#environment-variables)
+- [Conventional Commits](#conventional-commits)
+- [Code Formatting](#code-formatting)
+
+## Issues
+
+Have you found a bug, got a suggestion, or stumbled upon something that doesn't work as expected? No problem! Feel free to [open an issue](https://github.com/Meeting-Baas/transcript-seeker/issues). When submitting an issue, try to include a clear and concise title and as many details as possible. The more info you provide, the faster we can jump in and help!
+
+## Pull Requests
+
+We love pull requests! 🎉 If you'd like to make a contribution, whether it’s a bug fix, a feature, or a small improvement, follow these steps:
+
+1. **Fork the repo** to your GitHub account.
+2. **Create a new branch** with a meaningful name:
+   - For bug fixes: `fix/issue-123-bug-description`
+   - For new features: `feat/awesome-new-feature`
+3. Make your changes, and make sure you follow our [Conventional Commits](#conventional-commits) guidelines.
+4. **Push your branch** to your forked repository.
+5. Open a **pull request** from your branch to the `main` branch of this repo.
+6. Before submitting, make sure your code is clean by running:
+   ```bash
+   pnpm typecheck
+   ```
+   This will help catch any issues early on. 🚀
+
+## Local Setup
+
+Ready to jump into the code? Awesome! Please follow this [guide](/docs/transcript-seeker/getting-started/installation) to get started.
+
+## Environment Variables
+
+To learn more about configuring the environment variables, follow this [guide](/docs/transcript-seeker/concepts/environment-variables).
+
+## Conventional Commits
+
+We use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) to keep our commit history clean and organized. It makes it easier for everyone to understand what's been done at a glance. Commit messages should use the following format:
+
+```
+<type>(<scope>): <description>
+```
+
+For example:
+
+- `feat(homepage): redesign the layout`
+- `fix(styles): correct position of server status`
+
+Some common commit types:
+
+- `feat`: A new feature.
+- `fix`: A bug fix.
+- `docs`: Documentation changes.
+- `style`: Code style changes (formatting, missing semicolons, etc.).
+
+## Code Formatting
+
+To keep the codebase consistent and readable, we recommend running a few checks before opening a pull request:
+
+1. **Lint fixes**:
+
+   ```bash
+   pnpm lint:fix
+   ```
+
+2. **Run type checks** to ensure there are no type issues:
+   ```bash
+   pnpm typecheck
+   ```
+
+Your code should be well-tested, clear, and follow our best practices. Remember, every contribution makes a difference, and we deeply appreciate your help in making **Transcript-Seeker** better! 🎉
+
+Thanks a ton for contributing, and welcome aboard! If you need any help, don’t hesitate to ask. Let’s make something amazing together. 🚀
+
+
+---
+
+## Turso
+
+Learn how to create a turso database.
+
+### Source: ./content/docs/transcript-seeker/guides/turso.mdx
+
+
+    <div className="relative w-full h-none" style={{  paddingBottom: 'calc(55.443786982248525% + 41px)' }}>
+      <iframe
+        src="https://demo.arcade.software/qS6sJh2Y45to6tEogy8H?embed&embed_mobile=tab&embed_desktop=inline&show_copy_link=true"
+        title="Creating A Turso Database"
+        frameBorder="0"
+        loading="lazy"
+        allowFullScreen
+        allow="clipboard-write"
+        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', colorScheme: 'light' }}
+      />
+    </div>
+
+After creating the database, please push the schema onto the db:
+
+```bash
+cd apps/api
+pnpm db:push
+```
+
+
+---
+
+## SDK Reference
+
+Complete reference of all methods and types in the Meeting BaaS TypeScript SDK
+
+### Source: ./content/docs/typescript-sdk/reference/index.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+## Common
+
+- [Common](./reference/common)
+
+## Bots
+
+- [Bots](./reference/bots)
+
+## Calendars
+
+- [Calendars](./reference/calendars)
+
+## Webhooks
+
+- [Webhooks](./reference/webhooks)
 
 
 ---
@@ -5091,7 +6097,7 @@ This project is maintained as an enhanced fork of the [original Vercel MCP templ
 
 Comprehensive APIs and tools for managing calendar integrations with Meeting BaaS, including Google Calendar and Microsoft Calendar support
 
-### Source: ./content/docs/mcp-servers/tools/calender-tools.mdx
+### Source: ./content/docs/mcp-servers/meeting-mcp/tools/calender-tools.mdx
 
 
 Calendar Tools provide a robust set of APIs for integrating and managing calendar systems within your application. These tools support both Google Calendar and Microsoft Calendar integrations through OAuth authentication.
@@ -5511,7 +6517,7 @@ For additional support or questions:
 
 Tools and APIs for creating and managing shareable links to meeting recordings and segments, enabling easy sharing of meeting content and timestamps
 
-### Source: ./content/docs/mcp-servers/tools/link-sharing-tools.mdx
+### Source: ./content/docs/mcp-servers/meeting-mcp/tools/link-sharing-tools.mdx
 
 
 These tools help you create well-formatted, shareable links to meeting recordings and segments, making it easier to reference and share specific parts of meetings with your team.
@@ -5650,7 +6656,7 @@ const segments = await shareMeetingSegments({
 
 Comprehensive APIs and tools for managing automated meeting bots, including recording, transcription, and real-time audio streaming capabilities
 
-### Source: ./content/docs/mcp-servers/tools/meeting-tools.mdx
+### Source: ./content/docs/mcp-servers/meeting-mcp/tools/meeting-tools.mdx
 
 
 Meeting Tools provide a powerful set of APIs for managing automated meeting bots that can join, record, and transcribe video conferences. These tools enable seamless integration of meeting automation capabilities into your applications.
@@ -5918,7 +6924,7 @@ const response = await createBot({
 
 Tools and APIs for generating customizable, AI-powered QR codes that can be used as bot avatars or for sharing meeting links and contact information
 
-### Source: ./content/docs/mcp-servers/tools/qr-code-tools.mdx
+### Source: ./content/docs/mcp-servers/meeting-mcp/tools/qr-code-tools.mdx
 
 
 The `generateQRCode` tool creates AI-powered, visually appealing QR codes that can be used as bot avatars or for general purposes. These QR codes are not just functional but also aesthetically pleasing, combining art with utility.
@@ -6012,11 +7018,140 @@ For more information and support, visit our [API documentation](https://docs.qrc
 
 ---
 
+## Tools
+
+Available tools and example workflows for Meeting MCP
+
+### Source: ./content/docs/mcp-servers/meeting-mcp/tools/tools.mdx
+
+
+## Available Tools
+
+The Meeting MCP server exposes several tools through the MCP protocol:
+
+<Accordions>
+  <Accordion title="Calendar Tools" icon={<Calendar />} defaultOpen>
+    - **oauthGuidance**: Get step-by-step instructions for setting up OAuth
+    - **listRawCalendars**: List available calendars before integration
+    - **setupCalendarOAuth**: Integrate a calendar using OAuth credentials
+    - **listCalendars**: List all integrated calendars
+    - **getCalendar**: Get detailed information about a specific calendar
+    - **deleteCalendar**: Remove a calendar integration
+    - **resyncAllCalendars**: Force a refresh of all connected calendars
+    - **listUpcomingMeetings**: List upcoming meetings from a calendar
+    - **listEvents**: List calendar events with filtering options
+    - **getEvent**: Get detailed information about a specific event
+    - **scheduleRecording**: Schedule a bot to record an upcoming meeting
+    - **cancelRecording**: Cancel a previously scheduled recording
+    - **checkCalendarIntegration**: Diagnose calendar integration issues
+  </Accordion>
+
+  <Accordion title="Meeting Tools" icon={<Video />}>
+    - **createBot**: Create a meeting bot that can join video conferences
+    - **getBots**: List all bots and their associated meetings
+    - **getBotsByMeeting**: Get bots for a specific meeting URL
+    - **getRecording**: Retrieve recording information
+    - **getRecordingStatus**: Check the status of a recording
+    - **getMeetingData**: Get transcript and recording data
+  </Accordion>
+
+  <Accordion title="Transcript Tools" icon={<FileText />}>
+    - **getMeetingTranscript**: Get a complete meeting transcript with speaker information
+    - **findKeyMoments**: Automatically identify important moments in a meeting
+  </Accordion>
+
+  <Accordion title="QR Code Tools" icon={<QrCode />}>
+    - **generateQRCode**: Create an AI-generated QR code image for use as a bot avatar
+  </Accordion>
+
+  <Accordion title="Link Sharing Tools" icon={<Link />}>
+    - **shareableMeetingLink**: Generate a formatted, shareable link to a recording
+    - **shareMeetingSegments**: Create links to multiple important moments
+  </Accordion>
+</Accordions>
+
+## QR Code API Key Configuration
+
+The QR code generator tool requires an API key from [QR Code AI API](https://www.qrcode-ai-api.com/). There are several ways to provide this:
+
+1. **Directly in the prompt**: Include your API key in the prompt when using the `generateQRCode` tool
+2. **As a parameter**: Provide your API key as the `apiKey` parameter
+3. **Environment variable**: Set the `QRCODE_API_KEY` environment variable
+4. **Claude Desktop config**: Add the API key to your Claude Desktop configuration file
+
+## Example Workflows
+
+<Tabs>
+  <Tab title="Recording a Meeting" value="recording">
+```
+# Create a bot for a meeting
+"Create a bot for my Zoom meeting at https://zoom.us/j/123456789"
+
+# Check recording status
+"What's the status of my meeting recording for the Zoom call I started earlier?"
+```
+  </Tab>
+
+  <Tab title="Calendar Integration" value="calendar">
+```
+# Get OAuth guidance
+"I want to integrate my Google Calendar. How do I get OAuth credentials?"
+
+# Set up calendar integration
+"Integrate my Google Calendar using these credentials:
+- Platform: Google
+- Client ID: my-client-id-123456789.apps.googleusercontent.com
+- Client Secret: my-client-secret-ABCDEF123456
+- Refresh Token: my-refresh-token-ABCDEF123456789
+- Raw Calendar ID: primary@gmail.com"
+
+# View upcoming meetings
+"Show me my upcoming meetings from calendar 1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d"
+
+# Schedule recording
+"Schedule a recording for my team meeting with event ID 7a8b9c0d-1e2f-3a4b-5c6d-7e8f9a0b1c2d"
+```
+  </Tab>
+
+  <Tab title="Analyzing Content" value="analyzing">
+```
+# Get a meeting transcript
+"Get the transcript from my team meeting with bot ID abc-123"
+
+# Find key moments
+"Identify key moments from yesterday's product planning meeting with bot ID xyz-456"
+
+# Share a specific moment
+"Create a shareable link to the part of meeting abc-123 at timestamp 12:45 where John was talking about the budget"
+```
+  </Tab>
+
+  <Tab title="QR Code Generation" value="qrcode">
+```
+# Generate a QR code with contact information
+"Generate a QR code with the following parameters:
+- Type: email
+- To: john.doe@company.com
+- Prompt: Create a professional-looking QR code with abstract blue patterns
+- Style: style_crystal"
+
+# Use as a bot avatar
+"Join my Zoom meeting at https://zoom.us/j/123456789 with the following parameters:
+- Bot name: QR Code Assistant
+- Bot image: [URL from the generated QR code]
+- Entry message: Hello everyone, scan my avatar to get my contact information."
+```
+  </Tab>
+</Tabs>
+
+
+---
+
 ## Transcript Tools
 
 Tools and APIs for managing meeting transcripts, including retrieval, analysis, speaker identification, and key moment extraction capabilities
 
-### Source: ./content/docs/mcp-servers/tools/transcript-tools.mdx
+### Source: ./content/docs/mcp-servers/meeting-mcp/tools/transcript-tools.mdx
 
 
 Transcript Tools provide powerful capabilities for accessing, analyzing, and extracting insights from meeting recordings. These tools help you make the most of your meeting content through automated transcription and intelligent analysis.
@@ -6153,1112 +7288,50 @@ Both tools support integration with:
 
 ---
 
-## Environment Variables
+## Join Meeting
 
-Configure environment variables for Speaking Bots
-
-### Source: ./content/docs/speaking-bots/getting-started/environment-variables.mdx
-
-
-Speaking Bots requires several API keys and configuration values to function properly. Here's a quick setup guide:
-
-1. Copy the example environment file:
-
-```bash
-cp .env.example .env
-```
-
-{" "}
-
-<Callout type="warn">
-  Never commit your `.env` file to version control. It contains sensitive API
-  keys that should be kept private.
-</Callout>
-
-2. Add your credentials to `.env`: You'll need 4 required API keys for core functionality (MeetingBaas, OpenAI, Speech-to-Text, and Text-to-Speech). Additional keys can be added later for optional features.
-
-## Core Bot Functionality (Required)
-
-<Steps>
-<Step>
-### MeetingBaas Configuration
-
-Required for sending meeting bots as personas to various platforms:
-
-```txt
-MEETING_BAAS_API_KEY=your_meetingbaas_api_key_here
-```
-
-Get your API key by:
-
-1. Signing up for [MeetingBaas](https://meetingbaas.com)
-2. Accessing your API key from the MeetingBaas dashboard
-
-</Step>
-
-<Step>
-### OpenAI Configuration
-
-Powers in-meeting AI interactions and persona management:
-
-```txt
-OPENAI_API_KEY=your_openai_api_key_here
-```
-
-<Callout>
-  This key is used both for in-meeting interactions and persona creation functionality.
-</Callout>
-</Step>
-
-<Step>
-### Speech-to-Text Configuration
-
-Choose one of the following options:
-
-#### Option 1: Deepgram
-
-```txt
-DEEPGRAM_API_KEY=your_deepgram_api_key_here
-```
-
-#### Option 2: Gladia
-
-```txt
-GLADIA_API_KEY=your_gladia_api_key_here
-```
-
-</Step>
-
-<Step>
-### Text-to-Speech Configuration
-
-Required for voice synthesis and persona voices:
-
-```txt
-CARTESIA_API_KEY=your_cartesia_api_key_here
-CARTESIA_VOICE_ID="79a125e8-cd45-4c13-8a67-188112f4dd22"
-```
-
-</Step>
-</Steps>
-
-## Optional Features
-
-### Multiple Bots Support
-
-<Steps>
-<Step>
-Required for running multiple bots in local development:
-```txt
-NGROK_AUTHTOKEN=your_ngrok_auth_token_here
-```
-
-<Callout>
-  Follow our [Ngrok Setup Guide](/docs/speaking-bots/getting-started/ngrok-setup) to get your auth token.
-</Callout>
-</Step>
-</Steps>
-
-### Persona Creation
-
-<Steps>
-  <Step>Required for AI image generation and storage:</Step>
-</Steps>
-
-
----
-
-## Ngrok setup
-
-We create ngrok tunnel(s) for running several bots at once on your local machine
-
-### Source: ./content/docs/speaking-bots/getting-started/ngrok-setup.mdx
-
-
-## Local Setup
-
-For running one or more bots locally, you'll need an ngrok authtoken. Follow these steps:
-
-1. Sign up for a free account at [ngrok.com](https://dashboard.ngrok.com/signup)
-2. After signing up, get your authtoken from the [Your Authtoken page](https://dashboard.ngrok.com/get-started/your-authtoken)
-3. Add the token to your `.env` file or set it as an environment variable:
-
-```bash
-NGROK_AUTHTOKEN=your_ngrok_auth_token_here
-```
-
-That's it folks :)
-
-<Accordions>
-  <Accordion title="Configuration modification">
-
-We provide a ready-to-use configuration file in the repository at `config/ngrok/config.yml`. You can either use this file directly or create your own configuration.
-
-The default location for the ngrok configuration file varies by operating system:
-
-- Linux: `~/.config/ngrok/ngrok.yml`
-- macOS: `~/Library/Application Support/ngrok/ngrok.yml`
-- Windows: `%HOMEPATH%\AppData\Local\ngrok\ngrok.yml`
-
-To verify your configuration file location, you can run:
-
-```bash
-ngrok config check
-```
-
-If you want to create or edit your own configuration file, here's what it should contain:
-
-```yaml
-version: '3'
-agent:
-  authtoken: YOUR_AUTH_TOKEN
-
-tunnels:
-  proxy1:
-    proto: http
-    addr: 8766
-  proxy2:
-    proto: http
-    addr: 8768
-```
-
-For more detailed information about ngrok configuration options, see the [official ngrok configuration documentation](https://ngrok.com/docs/agent/config/).
-
-## Usage
-
-This sets up two separate tunnels (proxy1 and proxy2) that will be used by your bots to establish WebSocket connections with the meeting platforms. To start both tunnels simultaneously, run:
-
-```bash
-ngrok start --all --config config/ngrok/config.yml
-```
-
-The free tier of ngrok limits you to 2 concurrent tunnels, which means you can run up to 2 bots simultaneously in local development mode.
-
-  </Accordion>
-</Accordions>
-
-## WebSocket URL Resolution
-
-When running the server in local development mode, it will automatically detect and use your ngrok URLs. The server determines the WebSocket URL to use in the following priority order:
-
-1. User-provided URL in the request (if specified in the `websocket_url` field)
-2. `BASE_URL` environment variable (recommended for production)
-3. ngrok URL in local development mode
-4. Auto-detection from request headers (fallback, not reliable in production)
-
-To use local development mode with automatic ngrok detection:
-
-```bash
-# Start the API server with local development mode enabled
-poetry run python run.py --local-dev
-```
-
-## Troubleshooting WebSocket Connections
-
-### Common Issues
-
-1. **Timing Issues with ngrok and Meeting Baas Bots**
-
-   Sometimes, due to WebSocket connection delays through ngrok, the Meeting Baas bots may join the meeting before your local bot connects. If this happens:
-
-   - Simply press `Enter` to respawn your bot
-   - This will reinitiate the connection and allow your bot to join the meeting
-
-2. **Connection failures**
-   - Make sure ngrok is running with the correct configuration
-   - Verify that you've entered the correct ngrok URLs when prompted
-   - Check that your ngrok URLs are accessible (try opening in a browser)
-   - Make sure you're using the `wss://` protocol with ngrok URLs
-
-### Production Considerations
-
-For production deployments, you should:
-
-1. Set the `BASE_URL` environment variable to your server's public domain:
-   ```
-   export BASE_URL=https://your-server-domain.com
-   ```
-2. Ensure your server is accessible on the public internet
-3. Consider using HTTPS/WSS for secure connections in production
-
-
----
-
-## Set Up
-
-Set up your development environment for Speaking Bots
-
-### Source: ./content/docs/speaking-bots/getting-started/set-up.mdx
-
-
-## Installation
-
-### 0. Clone Repository
-
-If you haven't already, clone the repository and navigate to it:
-
-```bash
-git clone https://github.com/Meeting-Baas/speaking-meeting-bot.git
-cd speaking-meeting-bot
-```
-
-### 1. Prerequisites
-
-- Python 3.11+
-- `grpc_tools` for protocol buffer compilation
-- Ngrok for local development (follow our [Ngrok Setup Guide](/docs/speaking-bots/getting-started/ngrok-setup))
-- Poetry for dependency management
-
-You'll also need system dependencies for scientific libraries:
-
-```bash
-# macOS (using Homebrew)
-brew install llvm cython
-
-# Ubuntu/Debian
-sudo apt-get install llvm python3-dev cython
-
-# Fedora/RHEL
-sudo dnf install llvm-devel python3-devel Cython
-```
-
-### 2. Set Up Poetry Environment
-
-```bash
-# Install Poetry (Unix/macOS)
-curl -sSL https://install.python-poetry.org | python3 -
-
-# Install Poetry (Windows)
-(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py -
-
-# Configure Poetry to use Python 3.11+
-poetry env use python3.11
-
-# Install dependencies with LLVM config path
-# On macOS:
-LLVM_CONFIG=$(brew --prefix llvm)/bin/llvm-config poetry install
-# On Linux (path may vary):
-# LLVM_CONFIG=/usr/bin/llvm-config poetry install
-
-# Activate virtual environment
-poetry shell
-```
-
-### 3. Compile Protocol Buffers
-
-```bash
-poetry run python -m grpc_tools.protoc --proto_path=./protobufs --python_out=./protobufs frames.proto
-```
-
-Protocol Buffers are used here by Pipecat to define a structured message format for real-time communication between components of the Speaking Bots system. Specifically, the [`frames.proto`](https://github.com/pipecat-ai/pipecat/blob/635aa6eb5bdee382729613b58279befdc5bc8eaf/src/pipecat/frames/frames.proto#L9) file defines three main message types:
-
-1. `TextFrame`: For handling text-based messages
-2. `AudioRawFrame`: For managing raw audio data with properties like sample rate and channels
-3. `TranscriptionFrame`: For handling speech-to-text transcription results
-
-Protocol Buffers is the backbone of consistent data serialization across services.
-Read more in the [official Protocol Buffer documentation](https://protobuf.dev/downloads/) and [this Python Protocol Buffers tutorial](https://www.blog.pythonlibrary.org/2023/08/30/an-intro-to-protocol-buffers-with-python/).
-
-### 4. Configure Environment
-
-Create a `.env` file based on the template:
-
-```bash
-cp env.example .env
-```
-
-Edit the `.env` file with your API keys. You'll need:
-
-**Required API Keys:**
-
-- `MEETING_BAAS_API_KEY`: For meeting platform integration
-- `OPENAI_API_KEY`: For the conversation LLM
-- `CARTESIA_API_KEY`: For text-to-speech
-- `GLADIA_API_KEY` or `DEEPGRAM_API_KEY`: For speech-to-text
-
-For production, also set:
-
-```
-BASE_URL=https://your-server-domain.com
-```
-
-See our full [Environment Variables Guide](/docs/speaking-bots/getting-started/environment-variables) for more details.
-
-### 5. Run the API Server
-
-The project now follows an API-first approach. There are two ways to run the server:
-
-```bash
-# Standard mode
-poetry run uvicorn app:app --reload --host 0.0.0.0 --port 8766
-
-# Local development mode with ngrok auto-configuration
-poetry run python run.py --local-dev
-```
-
-Once the server is running, you can access:
-
-- Interactive API docs: `http://localhost:8766/docs`
-- OpenAPI specification: `http://localhost:8766/openapi.json`
-
-To create a bot via the API:
-
-```bash
-curl -X POST http://localhost:8766/run-bots \
-  -H "Content-Type: application/json" \
-  -d '{
-    "meeting_url": "https://meet.google.com/xxx-yyyy-zzz",
-    "personas": ["interviewer"],
-    "meeting_baas_api_key": "your-api-key"
-  }'
-```
-
-You can also use our CLI tools for testing:
-
-```bash
-poetry run python scripts/batch.py -c 1 --meeting-url LINK
-```
-
-Follow our [Command Line Guide](/docs/speaking-bots/command-line) for more examples and options.
-
-
----
-
-## index
-
-### Source: ./content/docs/speaking-bots/reference/index.mdx
-
-# Speaking Bots API Reference
-
-This section contains detailed documentation for the Speaking Bots API, which allows you to programmatically create and manage speaking bots in your meetings.
-
-The Speaking Bots API provides endpoints to:
-
-- Have bots join meetings
-- Make bots leave meetings
-- Control bot behavior during meetings
-
-Each endpoint is documented with:
-
-- Endpoint URL and method
-- Request parameters and body schema
-- Response details
-- Example requests and responses
-
-Use the navigation to explore the available endpoints.
-
-
----
-
-## Architecture
-
-Learn more about the architecture of Transcript Seeker.
-
-### Source: ./content/docs/transcript-seeker/concepts/architecture.mdx
-
-
-Understanding the architecture of Transcript Seeker is crucial for both setting up and deploying Transcript Seeker. Below is a diagram illustrating the core components:
-
-<ImageZoom
-  src={'/assets/architecture.svg'}
-  width={1024}
-  height={1024}
-  className="dark:invert"
-  rmiz={{
-    classDialog: 'dark:[&_img]:invert',
-  }}
-/>
-
-
----
-
-## Environment Variables
-
-Configuring Environment Variables for Transcript Seeker.
-
-### Source: ./content/docs/transcript-seeker/concepts/environment-variables.mdx
-
-
-Let's learn how to configure environment variables for Transcript Seeker.
-Transcript Seeker uses `dotenv-cli` to load the environment variables, making it easy for development.
-Transcript Seeker follows this structure for different environments:
-
-- `.env.development.local` for development
-- `.env.production.local` for production
-
-You can load a specific environment file by running the following command:
-
-```bash title="Terminal"
-export NODE_ENV="development"
-```
-
-Now, let's configure the environment variables.
-
-## Client
-
-Create a `.env.development.local` file in the below directory of your project and add the following environment variables:
-
-<Files>
-  <Folder name="apps">
-    <Folder name="api" defaultOpen>
-        <File name="..." />
-      <File name=".env.development.local" />
-    </Folder>
-    <Folder name="proxy" defaultOpen>
-        <File name="..." />
-      <File name=".env.development.local" />
-    </Folder>
-    <Folder name="web">
-      <File name="..." />
-    </Folder>
-  </Folder>
-  <Folder name="packages">
-    <Folder name="db" defaultOpen>
-          <File name="..." />
-
-    </Folder>
-    <Folder name="shared" defaultOpen>
-          <File name="..." />
-    </Folder>
-    <Folder name="ui" defaultOpen>
-      <File name="..." />
-    </Folder>
-
-  </Folder>
-  <Folder name="tooling">
-    <Folder name="eslint" defaultOpen>
-          <File name="..." />
-
-    </Folder>
-    <Folder name="github" defaultOpen>
-          <File name="..." />
-    </Folder>
-    <Folder name="prettier" defaultOpen>
-      <File name="..." />
-    </Folder>
-        <Folder name="tailwind" defaultOpen>
-      <File name="..." />
-    </Folder>
-        <Folder name="typescript" defaultOpen>
-      <File name="..." />
-    </Folder>
-
-  </Folder>
-  <File name=".env.development.local" className="bg-fd-accent" />
-  <File name="package.json" />
-</Files>
-
-<Steps>
-<Step>
-### Vite Port Configuration
-
-These values are used by vite to configure the url the server listens on.
-
-```txt title=".env.development.local"
-VITE_CLIENT_PORT=5173
-VITE_CLIENT_HOST=0.0.0.0
-```
-
-</Step>
-
-<Step>
-### Proxy Configuration
-
-This Proxy URL is used to forward requests from the client to the respective server, helping to avoid client-side CORS errors. An example proxy server is provided in the repository.
-
-```txt title=".env.development.local"
-VITE_PROXY_URL=http://localhost:3000
-```
-
-</Step>
-
-<Step>
-### API Configuration
-
-This API URL is used by the calendars functionality of Transcript Seeker. It allows the app to perform authentication and retrieve the user's calendar data.
-
-```txt title=".env.development.local"
-VITE_API_URL=http://localhost:3001
-```
-
-</Step>
-
-<Step>
-### S3 Configuration
-
-This environment variable is used to indicate to the client where the video recordings are stored.
-
-```txt title=".env.development.local"
-VITE_S3_PREFIX=https://s3.eu-west-3.amazonaws.com/meeting-baas-video
-```
-
-</Step>
-</Steps>
-
-## Proxy
-
-Create a `.env.development.local` file in the below directory of your project and add the following environment variables:
-
-<Files>
-  <Folder name="apps" defaultOpen>
-    <Folder name="api" >
-        <File name="..." />
-      <File name=".env.development.local" />
-    </Folder>
-    <Folder name="proxy" defaultOpen>
-        <File name="..." />
-      <File name=".env.development.local"   className="bg-fd-accent"  />
-    </Folder>
-    <Folder name="web">
-      <File name="..." />
-    </Folder>
-  </Folder>
-  <Folder name="packages">
-    <Folder name="db" defaultOpen>
-          <File name="..." />
-
-    </Folder>
-    <Folder name="shared" defaultOpen>
-          <File name="..." />
-    </Folder>
-    <Folder name="ui" defaultOpen>
-      <File name="..." />
-    </Folder>
-
-  </Folder>
-  <Folder name="tooling">
-    <Folder name="eslint" defaultOpen>
-          <File name="..." />
-
-    </Folder>
-    <Folder name="github" defaultOpen>
-          <File name="..." />
-    </Folder>
-    <Folder name="prettier" defaultOpen>
-      <File name="..." />
-    </Folder>
-        <Folder name="tailwind" defaultOpen>
-      <File name="..." />
-    </Folder>
-        <Folder name="typescript" defaultOpen>
-      <File name="..." />
-    </Folder>
-
-  </Folder>
-  <File name=".env.development.local" />
-  <File name="package.json" />
-</Files>
-
-<Steps>
-<Step>
-### MeetingBaas Proxy Configuration
-
-These values are used by the api to figure out the api url for baas servers.
-
-```txt title=".env.development.local"
-MEETINGBAAS_API_URL="https://api.meetingbaas.com"
-MEETINGBAAS_S3_URL="https://s3.eu-west-3.amazonaws.com/meeting-baas-video"
-```
-
-</Step>
-</Steps>
-
-## API
-
-Create a `.env.development.local` file in the below directory of your project and add the following environment variables:
-
-<Files>
-  <Folder name="apps" defaultOpen>
-    <Folder name="api" defaultOpen>
-        <File name="..." />
-      <File name=".env.development.local"  className="bg-fd-accent" />
-    </Folder>
-    <Folder name="proxy">
-        <File name="..." />
-      <File name=".env.development.local" />
-    </Folder>
-    <Folder name="web">
-      <File name="..." />
-    </Folder>
-  </Folder>
-  <Folder name="packages">
-    <Folder name="db" defaultOpen>
-          <File name="..." />
-
-    </Folder>
-    <Folder name="shared" defaultOpen>
-          <File name="..." />
-    </Folder>
-    <Folder name="ui" defaultOpen>
-      <File name="..." />
-    </Folder>
-
-  </Folder>
-  <Folder name="tooling">
-    <Folder name="eslint" defaultOpen>
-          <File name="..." />
-
-    </Folder>
-    <Folder name="github" defaultOpen>
-          <File name="..." />
-    </Folder>
-    <Folder name="prettier" defaultOpen>
-      <File name="..." />
-    </Folder>
-        <Folder name="tailwind" defaultOpen>
-      <File name="..." />
-    </Folder>
-        <Folder name="typescript" defaultOpen>
-      <File name="..." />
-    </Folder>
-
-  </Folder>
-  <File name=".env.development.local" />
-  <File name="package.json" />
-</Files>
-
-<Steps>
-<Step>
-### MeetingBaas Configuration
-
-These values are used by the api to figure out the api url for baas servers.
-
-```txt title=".env.development.local"
-NITRO_MEETINGBAAS_API_URL="https://api.meetingbaas.com"
-NITRO_MEETINGBAAS_S3_URL="https://s3.eu-west-3.amazonaws.com/meeting-baas-video"
-NITRO_TRUSTED_ORIGINS="http://localhost:5173" # comma separated list of trusted origins
-```
-
-</Step>
-
-<Step>
-### Google Authentication Configuration
-
-These values are used by the api to perform google authentication. Please follow the [guide](/docs/transcript-seeker/concepts/api/authentication) for more details:
-
-```txt title=".env.development.local"
-GOOGLE_CLIENT_ID=""
-GOOGLE_CLIENT_SECRET=""
-```
-
-</Step>
-
-<Step>
-### Turso Database Configuration
-
-These values are used by the api to store user autehtncation data. Please follow the [guide](/docs/transcript-seeker/concepts/api/database) for more details:
-
-```txt title=".env.development.local"
-TURSO_DATABASE_URL=""
-TURSO_AUTH_TOKEN=""
-```
-
-</Step>
-
-<Step>
-### Authentication Configuration
-
-<Callout>
-  When deploying to Google Cloud Run with a custom domain, you should set the
-  `BETTER_AUTH_URL` environment variable to the custom domain.
-</Callout>
-
-These values are used by the api to perform authentication. Please follow the [guide](/docs/transcript-seeker/concepts/api/authentication) for more details:
-
-```txt title=".env.development.local"
-BETTER_AUTH_SECRET=""
-BETTER_AUTH_URL="http://localhost:3001"
-API_TRUSTED_ORIGINS="http://localhost:5173"
-```
-
-<Callout>
-  The `API_TRUSTED_ORIGINS` is not only used for authentication but also for
-  CORS configuration.
-</Callout>
-
-</Step>
-
-</Steps>
-
-
----
-
-## Installation
-
-Learn how to configure Transcript Seeker.
-
-### Source: ./content/docs/transcript-seeker/getting-started/installation.mdx
-
-
-<Steps>
-<Step>
-### Clone the Repo
-
-Create a new app with `create-turbo`, it requires Node.js 20+.
-
-<Tabs groupId='package-manager' persist items={['npm', 'pnpm', 'yarn']}>
-
-```bash tab="npm"
-npx create-turbo@latest -e https://github.com/Meeting-Baas/transcript-seeker
-```
-
-```bash tab="pnpm"
-pnpm dlx create-turbo@latest -e https://github.com/Meeting-Baas/transcript-seeker
-```
-
-```bash tab="yarn"
-yarn dlx create-turbo@latest -e https://github.com/Meeting-Baas/transcript-seeker
-```
-
-</Tabs>
-
-It will ask you the following questions:
-
-- Which package manager would you like to use? PNPM
-
-<Callout type="warn">
-  Use pnpm as the package manager or the installation will fail.
-</Callout>
-
-</Step>
-
-<Step>
-### Configure Environment Variables
-
-Copy the `.env.example` file to a `.env.development.local` file in the following folders within your project structure and add the necessary environment variables:
-
-To learn more about configuring the environment variables, follow this [guide](/docs/transcript-seeker/concepts/environment-variables).
-
-<Files>
-  <Folder name="apps" defaultOpen>
-    <Folder name="api" defaultOpen>
-      <File name=".env.development.local" />
-    </Folder>
-  </Folder>
-  <Folder name="apps" defaultOpen>
-    <Folder name="proxy" defaultOpen>
-      <File name=".env.development.local" />
-    </Folder>
-  </Folder>
-  <File name=".env.development.local" />
-  <File name="package.json" />
-</Files>
-
-After setting up the environment files, execute the following command to set the environment to development mode:
-
-```bash title="Terminal"
-export NODE_ENV="development"
-```
-
-</Step>
-
-<Step>
-### Run the App
-
-Now, start the development server:
-
-<Tabs groupId='package-manager' persist items={['pnpm', 'npm', 'yarn']}>
-
-```bash tab="pnpm"
-pnpm turbo run dev
-```
-
-```bash tab="npm"
-npm run dev
-```
-
-```bash tab="yarn"
-yarn run dev
-```
-
-</Tabs>
-
-<Callout border={false} type="warning">
-
-If `pnpm run dev` doesn't work, you can try the following:
-
-<Tabs groupId='package-manager' persist items={['pnpm', 'npm', 'yarn']}>
-
-```bash tab="pnpm"
-pnpm add turbo --global
-turbo dev
-```
-
-```bash tab="npm"
-npm install turbo --global
-turbo dev
-```
-
-```bash tab="yarn"
-yarn install turbo --global
-turbo dev
-```
-
-</Tabs>
-</Callout>
-</Step>
-</Steps>
-
-
----
-
-## Contributing
-
-Contributing to Transcript Seeker
-
-### Source: ./content/docs/transcript-seeker/guides/contributing.mdx
-
-
-Hey there! 👋 Welcome to the **Transcript-Seeker** project! We're absolutely thrilled that you're interested in contributing. Whether you're fixing a bug, adding a feature, or sharing an idea, your efforts help make our project better and more useful for everyone. Here are some easy-to-follow guidelines to help you dive in!
-
-## Table of Contents
-
-- [Issues](#issues)
-- [Pull Requests](#pull-requests)
-- [Local Setup](#local-setup)
-- [Environment Variables](#environment-variables)
-- [Conventional Commits](#conventional-commits)
-- [Code Formatting](#code-formatting)
-
-## Issues
-
-Have you found a bug, got a suggestion, or stumbled upon something that doesn't work as expected? No problem! Feel free to [open an issue](https://github.com/Meeting-Baas/transcript-seeker/issues). When submitting an issue, try to include a clear and concise title and as many details as possible. The more info you provide, the faster we can jump in and help!
-
-## Pull Requests
-
-We love pull requests! 🎉 If you'd like to make a contribution, whether it’s a bug fix, a feature, or a small improvement, follow these steps:
-
-1. **Fork the repo** to your GitHub account.
-2. **Create a new branch** with a meaningful name:
-   - For bug fixes: `fix/issue-123-bug-description`
-   - For new features: `feat/awesome-new-feature`
-3. Make your changes, and make sure you follow our [Conventional Commits](#conventional-commits) guidelines.
-4. **Push your branch** to your forked repository.
-5. Open a **pull request** from your branch to the `main` branch of this repo.
-6. Before submitting, make sure your code is clean by running:
-   ```bash
-   pnpm typecheck
-   ```
-   This will help catch any issues early on. 🚀
-
-## Local Setup
-
-Ready to jump into the code? Awesome! Please follow this [guide](/docs/transcript-seeker/getting-started/installation) to get started.
-
-## Environment Variables
-
-To learn more about configuring the environment variables, follow this [guide](/docs/transcript-seeker/concepts/environment-variables).
-
-## Conventional Commits
-
-We use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) to keep our commit history clean and organized. It makes it easier for everyone to understand what's been done at a glance. Commit messages should use the following format:
-
-```
-<type>(<scope>): <description>
-```
-
-For example:
-
-- `feat(homepage): redesign the layout`
-- `fix(styles): correct position of server status`
-
-Some common commit types:
-
-- `feat`: A new feature.
-- `fix`: A bug fix.
-- `docs`: Documentation changes.
-- `style`: Code style changes (formatting, missing semicolons, etc.).
-
-## Code Formatting
-
-To keep the codebase consistent and readable, we recommend running a few checks before opening a pull request:
-
-1. **Lint fixes**:
-
-   ```bash
-   pnpm lint:fix
-   ```
-
-2. **Run type checks** to ensure there are no type issues:
-   ```bash
-   pnpm typecheck
-   ```
-
-Your code should be well-tested, clear, and follow our best practices. Remember, every contribution makes a difference, and we deeply appreciate your help in making **Transcript-Seeker** better! 🎉
-
-Thanks a ton for contributing, and welcome aboard! If you need any help, don’t hesitate to ask. Let’s make something amazing together. 🚀
-
-
----
-
-## Turso
-
-Learn how to create a turso database.
-
-### Source: ./content/docs/transcript-seeker/guides/turso.mdx
-
-
-    <div className="relative w-full h-none" style={{  paddingBottom: 'calc(55.443786982248525% + 41px)' }}>
-      <iframe
-        src="https://demo.arcade.software/qS6sJh2Y45to6tEogy8H?embed&embed_mobile=tab&embed_desktop=inline&show_copy_link=true"
-        title="Creating A Turso Database"
-        frameBorder="0"
-        loading="lazy"
-        allowFullScreen
-        allow="clipboard-write"
-        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', colorScheme: 'light' }}
-      />
-    </div>
-
-After creating the database, please push the schema onto the db:
-
-```bash
-cd apps/api
-pnpm db:push
-```
-
-
----
-
-## SDK Reference
-
-Complete reference of all methods and types in the Meeting BaaS TypeScript SDK
-
-### Source: ./content/docs/typescript-sdk/reference/index.mdx
+### Source: ./content/docs/speaking-bots/reference/bots/join_meeting_bots_post.mdx
 
 
 {/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
 
-## Common
+Create and deploy a speaking bot in a meeting.
 
-- [Common](./reference/common)
+Launches an AI-powered bot that joins a video meeting through MeetingBaas
+and processes audio using Pipecat's voice AI framework.
 
-## Bots
-
-- [Bots](./reference/bots)
-
-## Calendars
-
-- [Calendars](./reference/calendars)
-
-## Webhooks
-
-- [Webhooks](./reference/webhooks)
-
+<APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/bots","method":"post"}]} webhooks={[]} hasHead={false} />
 
 ---
 
-## SDK Update 4.0.4
+## Leave Bot
 
-Latest updates to the Meeting BaaS TypeScript SDK
-
-### Source: ./content/docs/typescript-sdk/updates/sdk-update-4.0.4.mdx
+### Source: ./content/docs/speaking-bots/reference/bots/leave_bot_bots__bot_id__delete.mdx
 
 
-<Callout type="info" icon={<Info className="h-5 w-5" />}>
-  April 23rd, 2025
-</Callout>
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
 
-We're excited to announce the release of version 4.0.4 of the Meeting BaaS TypeScript SDK.
+Remove a bot from a meeting by its ID.
 
-## Package Information
+This will:
+1. Call the MeetingBaas API to make the bot leave
+2. Close WebSocket connections if they exist
+3. Terminate the associated Pipecat process
 
-- **Version**: 4.0.4
-- **Description**: Official SDK for Meeting BaaS API - https://meetingbaas.com
-- **Homepage**: https://meetingbaas.com
-- **Repository**: git+https://github.com/meeting-baas/sdk-generator.git
-- **License**: MIT
-
-## Dependencies
-
-### Main Dependencies
-- `axios`: 1.8.3
-- `zod`: 3.24.2
-
-### Peer Dependencies
-
-
-## Migration Guide
-
-To update to version 4.0.4, run:
-
-<Tabs groupId='package-manager' persist items={['npm', 'pnpm', 'yarn']}>
-
-```bash tab="npm"
-npm install @meeting-baas/sdk@4.0.4
-```
-
-```bash tab="pnpm"
-pnpm add @meeting-baas/sdk@4.0.4
-```
-
-```bash tab="yarn"
-yarn add @meeting-baas/sdk@4.0.4
-```
-
-</Tabs>
-
-## Implementation Timeline
-
-This version is now available on npm.
-
+<APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/bots/{bot_id}","method":"delete"}]} webhooks={[]} hasHead={false} />
 
 ---
 
-## SDK Update 4.0.5
+## Health
 
-Latest updates to the Meeting BaaS TypeScript SDK
-
-### Source: ./content/docs/typescript-sdk/updates/sdk-update-4.0.5.mdx
+### Source: ./content/docs/speaking-bots/reference/system/health_health_get.mdx
 
 
-<Callout type="info" icon={<Info className="h-5 w-5" />}>
-  April 24th, 2025
-</Callout>
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
 
-We're excited to announce the release of version 4.0.5 of the Meeting BaaS TypeScript SDK.
+Health check endpoint
 
-## Package Information
-
-- **Version**: 4.0.5
-- **Description**: Official SDK for Meeting BaaS API - https://meetingbaas.com
-- **Homepage**: https://meetingbaas.com
-- **Repository**: git+https://github.com/meeting-baas/sdk-generator.git
-- **License**: MIT
-
-## Dependencies
-
-### Main Dependencies
-- `axios`: 1.8.3
-- `zod`: 3.24.2
-
-### Peer Dependencies
-
-
-## Migration Guide
-
-To update to version 4.0.5, run:
-
-<Tabs groupId='package-manager' persist items={['npm', 'pnpm', 'yarn']}>
-
-```bash tab="npm"
-npm install @meeting-baas/sdk@4.0.5
-```
-
-```bash tab="pnpm"
-pnpm add @meeting-baas/sdk@4.0.5
-```
-
-```bash tab="yarn"
-yarn add @meeting-baas/sdk@4.0.5
-```
-
-</Tabs>
-
-## Implementation Timeline
-
-This version is now available on npm.
-
+<APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/health","method":"get"}]} webhooks={[]} hasHead={false} />
 
 ---
 
@@ -8515,50 +8588,37 @@ Now that you understand webhooks and error handling:
 
 ---
 
-## Join Meeting
+## Database
 
-### Source: ./content/docs/speaking-bots/reference/bots/join_meeting_bots_post.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-Create and deploy a speaking bot in a meeting.
-
-Launches an AI-powered bot that joins a video meeting through MeetingBaas
-and processes audio using Pipecat's voice AI framework.
-
-<APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/bots","method":"post"}]} webhooks={[]} hasHead={false} />
-
----
-
-## Leave Bot
-
-### Source: ./content/docs/speaking-bots/reference/bots/leave_bot_bots__bot_id__delete.mdx
+### Source: ./content/docs/transcript-seeker/concepts/web/database.mdx
 
 
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+**Transcript Seeker** uses a PGLite database to store data, which is essential for its functionality. PGLite enables us to run PostgreSQL in the browser, allowing secure storage of user data. We use **Drizzle ORM** with PGLite to handle data management efficiently.
 
-Remove a bot from a meeting by its ID.
+<Callout>
+  This setup is used to store meeting data, API keys, and more. To learn more
+  about how authentication data is stored for calendars, visit [this
+  page](/docs/transcript-seeker/concepts/api/database).
+</Callout>
 
-This will:
-1. Call the MeetingBaas API to make the bot leave
-2. Close WebSocket connections if they exist
-3. Terminate the associated Pipecat process
+## Database Migration
 
-<APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/bots/{bot_id}","method":"delete"}]} webhooks={[]} hasHead={false} />
+To migrate the database after making changes, run the following commands:
 
----
+```bash
+pnpm db:generate
+pnpm db:migrate
+```
 
-## Health
+## Cleaning Migrations
 
-### Source: ./content/docs/speaking-bots/reference/system/health_health_get.mdx
+To remove all migrations, use the following commands:
 
+```bash
+cd packages/db
+rm -rf drizzle drizzle_ts
+```
 
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-Health check endpoint
-
-<APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/health","method":"get"}]} webhooks={[]} hasHead={false} />
 
 ---
 
@@ -8613,40 +8673,6 @@ To visualize the data in a user-friendly interface, use the command below:
 ```bash
 cd apps/api
 pnpm db:studio
-```
-
-
----
-
-## Database
-
-### Source: ./content/docs/transcript-seeker/concepts/web/database.mdx
-
-
-**Transcript Seeker** uses a PGLite database to store data, which is essential for its functionality. PGLite enables us to run PostgreSQL in the browser, allowing secure storage of user data. We use **Drizzle ORM** with PGLite to handle data management efficiently.
-
-<Callout>
-  This setup is used to store meeting data, API keys, and more. To learn more
-  about how authentication data is stored for calendars, visit [this
-  page](/docs/transcript-seeker/concepts/api/database).
-</Callout>
-
-## Database Migration
-
-To migrate the database after making changes, run the following commands:
-
-```bash
-pnpm db:generate
-pnpm db:migrate
-```
-
-## Cleaning Migrations
-
-To remove all migrations, use the following commands:
-
-```bash
-cd packages/db
-rm -rf drizzle drizzle_ts
 ```
 
 
@@ -10194,6 +10220,76 @@ Type: `RawAxiosRequestConfig`
 - [listCalendars](./listcalendars.mdx)
 - [getCalendar](./getcalendar.mdx)
 - [deleteCalendar](./deletecalendar.mdx)
+
+
+---
+
+## GetWebhookUrlResponse
+
+### Source: ./content/docs/typescript-sdk/reference/webhooks/getwebhookurlresponse.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+
+
+```typescript
+interface GetWebhookUrlResponse {
+  'webhook_url': string
+}
+```
+
+
+---
+
+## Webhooks
+
+Webhooks API Reference
+
+### Source: ./content/docs/typescript-sdk/reference/webhooks/index.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+- [GetWebhookUrlResponse](/docs/typescript-sdk/reference/webhooks/getwebhookurlresponse)
+- [PostWebhookUrlRequest](/docs/typescript-sdk/reference/webhooks/postwebhookurlrequest)
+- [RetryWebhookQuery](/docs/typescript-sdk/reference/webhooks/retrywebhookquery)
+
+
+---
+
+## PostWebhookUrlRequest
+
+### Source: ./content/docs/typescript-sdk/reference/webhooks/postwebhookurlrequest.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+
+
+```typescript
+interface PostWebhookUrlRequest {
+  'webhookUrl': string
+}
+```
+
+
+---
+
+## RetryWebhookQuery
+
+### Source: ./content/docs/typescript-sdk/reference/webhooks/retrywebhookquery.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+
+
+```typescript
+interface RetryWebhookQuery {
+  'botUuid': string
+}
+```
 
 
 ---
@@ -11873,76 +11969,6 @@ interface Word {
   'startTime': number
   'text': string
   'user_id': number
-}
-```
-
-
----
-
-## GetWebhookUrlResponse
-
-### Source: ./content/docs/typescript-sdk/reference/webhooks/getwebhookurlresponse.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface GetWebhookUrlResponse {
-  'webhook_url': string
-}
-```
-
-
----
-
-## Webhooks
-
-Webhooks API Reference
-
-### Source: ./content/docs/typescript-sdk/reference/webhooks/index.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-- [GetWebhookUrlResponse](/docs/typescript-sdk/reference/webhooks/getwebhookurlresponse)
-- [PostWebhookUrlRequest](/docs/typescript-sdk/reference/webhooks/postwebhookurlrequest)
-- [RetryWebhookQuery](/docs/typescript-sdk/reference/webhooks/retrywebhookquery)
-
-
----
-
-## PostWebhookUrlRequest
-
-### Source: ./content/docs/typescript-sdk/reference/webhooks/postwebhookurlrequest.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface PostWebhookUrlRequest {
-  'webhookUrl': string
-}
-```
-
-
----
-
-## RetryWebhookQuery
-
-### Source: ./content/docs/typescript-sdk/reference/webhooks/retrywebhookquery.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface RetryWebhookQuery {
-  'botUuid': string
 }
 ```
 

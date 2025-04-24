@@ -1,11 +1,21 @@
-import env from '@next/env';
-import { updateSearchIndexes } from './update-orama-index.mjs';
-import { updateOramaAi } from './update-orama-ai.mjs';
+import { run as generateLLMContent } from './generate-llm-content.mjs';
+import { generateAllUpdates } from './generate-updates.mjs';
 
-env.loadEnvConfig(process.cwd());
+async function postBuild() {
+  try {
+    console.log('Running post-build tasks...');
 
-async function main() {
-  await Promise.all([updateSearchIndexes(), updateOramaAi()]);
+    // First generate LLM content
+    await generateLLMContent();
+
+    // Then generate updates based on that content
+    await generateAllUpdates();
+
+    console.log('Post-build tasks completed successfully');
+  } catch (error) {
+    console.error('Error during post-build tasks:', error);
+    process.exit(1);
+  }
 }
 
-main().catch(console.error);
+postBuild();

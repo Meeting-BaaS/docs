@@ -174,6 +174,13 @@ export const categoryConfig: CategoryConfigMap = {
     "patterns": [
       "./content/docs/typescript-sdk/reference/webhooks/**/*.mdx"
     ]
+  },
+  "updates": {
+    "title": "updates Documentation",
+    "description": "Documentation for updates.",
+    "patterns": [
+      "./content/docs/updates/**/*.mdx"
+    ]
   }
 };
 
@@ -285,5 +292,9 @@ export const knownTxtPaths: string[][] = [
   [
     "llms",
     "typescript-sdk-webhooks"
+  ],
+  [
+    "llms",
+    "updates"
   ]
 ];

@@ -1,5 +1,5 @@
 import { cn } from '@/lib/cn';
-import { BotIcon, CaptionsIcon, ServerCog, Settings, WebhookIcon } from 'lucide-react';
+import { BotIcon, CaptionsIcon, MonitorUp, ServerCog, Settings, WebhookIcon } from 'lucide-react';
 import type { LinkProps } from 'next/link';
 import Link from 'next/link';
 
@@ -20,19 +20,38 @@ export default function DocsPage(): React.ReactElement {
           </Icon>
           <h2 className="mb-2 text-lg font-semibold">Meeting BaaS API</h2>
           <p className="text-fd-muted-foreground text-sm">
-            Send AI bots to Zoom, Teams, and Google Meet meetings using a no
-            frills API.
+            API Documentation and guides. Deploy AI bots to Zoom, Teams, and Google Meet meetings
           </p>
         </Item>
 
-        <Item href="/docs/transcript-seeker">
-          <Icon className="transcript-seeker">
-            <CaptionsIcon className="size-full" />
+
+        <Item href="/docs/updates">
+          <Icon className="updates">
+            <MonitorUp className="size-full" />
           </Icon>
-          <h2 className="mb-2 text-lg font-semibold">Transcript Seeker</h2>
+          <h2 className="mb-2 text-lg font-semibold">Updates</h2>
           <p className="text-fd-muted-foreground text-sm">
-            Open-source transcription playground. Powered by transcription APIs,
-            Meeting BaaS, and LLMs to chat with your transcripts.
+            Latest improvements, changes, and releases for all Meeting BaaS services
+          </p>
+        </Item>
+
+        <Item href="/docs/typescript-sdk">
+          <Icon className="typescript-sdk">
+            <Settings className="size-full" />
+          </Icon>
+          <h2 className="mb-2 text-lg font-semibold">TypeScript SDK</h2>
+          <p className="text-fd-muted-foreground text-sm">
+            Official TypeScript SDK for direct integration with the Meeting BaaS API
+          </p>
+        </Item>
+
+        <Item href="/docs/mcp-servers">
+          <Icon className="mcp-servers">
+            <ServerCog className="size-full" />
+          </Icon>
+          <h2 className="mb-2 text-lg font-semibold">MCP Servers</h2>
+          <p className="text-fd-muted-foreground text-sm">
+            Model Context Protocol servers for AI integration with Meeting BaaS services
           </p>
         </Item>
 
@@ -42,29 +61,17 @@ export default function DocsPage(): React.ReactElement {
           </Icon>
           <h2 className="mb-2 text-lg font-semibold">Speaking Bots</h2>
           <p className="text-fd-muted-foreground text-sm">
-            Speaking Bots for Google Meet, Microsoft Teams and Zoom. Powered by
-            Pipecat and Meeting BaaS.
+            AI-powered speaking agents for Google Meet, Microsoft Teams and Zoom, powered by Pipecat
           </p>
         </Item>
 
-        <Item href="/docs/typescript-sdk">
-          <Icon className="typescript-sdk">
-            <Settings className="size-full" />
+        <Item href="/docs/transcript-seeker">
+          <Icon className="transcript-seeker">
+            <CaptionsIcon className="size-full" />
           </Icon>
-          <h2 className="mb-2 text-lg font-semibold">Typescript SDK</h2>
+          <h2 className="mb-2 text-lg font-semibold">Transcript Seeker</h2>
           <p className="text-fd-muted-foreground text-sm">
-            Official SDK for interacting with the Meeting BaaS API
-          </p>
-        </Item>
-        
-        <Item href="/docs/mcp-servers">
-          <Icon className="mcp-servers">
-            <ServerCog className="size-full" />
-          </Icon>
-          <h2 className="mb-2 text-lg font-semibold">Model Context Protocol</h2>
-          <p className="text-fd-muted-foreground text-sm">
-            Powerful mechanism for managing meeting bots, integrations, and
-            interact with external tools.
+            Open-source platform for uploading, transcribing, and interacting with meeting recordings
           </p>
         </Item>
       </div>

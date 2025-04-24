@@ -1,9 +1,10 @@
 {
   "pages": [
     "api",
-    "transcript-seeker",
-    "speaking-bots",
+    "updates",
     "typescript-sdk",
-    "mcp-servers"
+    "mcp-servers",
+    "speaking-bots",
+    "transcript-seeker"
   ]
 }
