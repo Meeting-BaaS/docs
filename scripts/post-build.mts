@@ -1,5 +1,5 @@
-import { generateAllUpdates } from '../scripts-dist/updates/generate-updates.mjs';
 import { run as generateLLMContent } from './generate-llm-content.mjs';
+import { generateAllUpdates } from './updates/generate-updates.mjs';
 
 async function postBuild() {
   try {

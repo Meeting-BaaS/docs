@@ -2,9 +2,9 @@ import { execSync } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
-import * as constants from './constants.mjs';
-import * as generators from './generators.mjs';
-import * as utils from './utils.mjs';
+import * as constants from './constants';
+import * as generators from './generators';
+import * as utils from './utils';
 
 // Extract what we need from the constants module
 const {
@@ -31,7 +31,7 @@ export async function generateAllUpdates(): Promise<void> {
   // Generate updates for all services in parallel
   const generateServiceUpdate = generatorsObj.generateServiceUpdate;
   const updatePromises = SERVICES.map(
-    (service: import('./types.mjs').ServiceConfig) =>
+    (service: import('./types').ServiceConfig) =>
       generateServiceUpdate(service),
   );
   const updateResults = await Promise.all(updatePromises);
@@ -148,7 +148,7 @@ if (import.meta.url === pathToFileURL(process.argv[1]).href) {
  * Helper function to add untracked files and the new update file to git
  */
 function addToGit(
-  config: import('./types.mjs').ServiceConfig,
+  config: import('./types').ServiceConfig,
   updateFilename: string,
 ): string {
   const updateFilePath = join(UPDATES_DIR, updateFilename);

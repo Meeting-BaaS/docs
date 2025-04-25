@@ -16,8 +16,29 @@ if (!fs.existsSync(rootOutputDir)) {
   fs.mkdirSync(rootOutputDir, { recursive: true });
 }
 
+// Function to add .mjs extension to local imports
+function fixImports(filePath) {
+  let content = fs.readFileSync(filePath, 'utf8');
+
+  // This regex matches import statements for local files without extensions
+  const importRegex = /import\s+(?:[\w*\s{},]*\s+from\s+)?['"](\.\/.+?)['"];/g;
+
+  content = content.replace(importRegex, (match, importPath) => {
+    // Only add .mjs if there's no extension already
+    if (!path.extname(importPath)) {
+      return match
+        .replace(`'${importPath}'`, `'${importPath}.mjs'`)
+        .replace(`"${importPath}"`, `"${importPath}.mjs"`);
+    }
+    return match;
+  });
+
+  fs.writeFileSync(filePath, content);
+}
+
 // For each .mts file, transpile to .mjs using esbuild
 for (const mtsFile of mtsFiles) {
+  // Create correct relative path that preserves directory structure
   const relativePath = path.relative('scripts', mtsFile).replace(/\.mts$/, '');
   const outputFile = path.join(rootOutputDir, `${relativePath}.mjs`);
   const outputDir = path.dirname(outputFile);
@@ -33,6 +54,10 @@ for (const mtsFile of mtsFiles) {
   const esbuildCommand = `npx esbuild ${mtsFile} --format=esm --platform=node --outfile=${outputFile}`;
   try {
     execSync(esbuildCommand, { stdio: 'inherit' });
+
+    // Fix imports in the generated file
+    fixImports(outputFile);
+
     console.log(`  ✅ Successfully transpiled ${mtsFile}`);
   } catch (error) {
     console.error(`  ❌ Error transpiling ${mtsFile}:`, error);
@@ -57,6 +82,10 @@ for (const tsFile of tsUtilFiles) {
   const esbuildCommand = `npx esbuild ${tsFile} --format=esm --platform=node --outfile=${outputFile}`;
   try {
     execSync(esbuildCommand, { stdio: 'inherit' });
+
+    // Fix imports in the generated file
+    fixImports(outputFile);
+
     console.log(`  ✅ Successfully transpiled ${tsFile}`);
   } catch (error) {
     console.error(`  ❌ Error transpiling ${tsFile}:`, error);
