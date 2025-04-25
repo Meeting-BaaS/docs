@@ -1,13 +1,13 @@
-import '@/styles/globals.css';
-import type { Viewport } from 'next';
-import { GeistSans } from 'geist/font/sans';
-import { GeistMono } from 'geist/font/mono';
-import { baseUrl, createMetadata } from '@/lib/metadata';
 import { Body } from '@/app/layout.client';
-import { Providers } from './providers';
 import { AISearchTrigger } from '@/components/fumadocs/ai';
+import { baseUrl, createMetadata } from '@/lib/metadata';
+import '@/styles/globals.css';
+import { GeistMono } from 'geist/font/mono';
+import { GeistSans } from 'geist/font/sans';
 import { MessageCircle } from 'lucide-react';
+import type { Viewport } from 'next';
 import type { ReactNode } from 'react';
+import { Providers } from './providers';
 
 export const metadata = createMetadata({
   title: {
@@ -34,6 +34,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     >
       <Body>
         <Providers>
+          {/* <Banner id="meetingbaas-chat" variant="rainbow">
+            <strong>MeetingBaas Chat is now available!</strong> &mdash; <a href="https://chat.meetingbaas.com" className="underline hover:text-blue-300">https://chat.meetingbaas.com</a>
+          </Banner> */}
           {children}
           <AISearchTrigger>
             <MessageCircle className="size-4" />
