@@ -11689,48 +11689,6 @@ interface RetryWebhookQuery {
 
 ---
 
-## 2023-07-02
-
-### Source: ./content/docs/updates/2023-07-02.mdx
-
-# Microsoft Teams Integration
-
-<Callout type="info">July 2nd, 2023</Callout>
-
-We're excited to announce that Meeting BaaS now integrates with Microsoft Teams.
-
-This integration allows your application to:
-
-- Create and schedule Teams meetings
-- Generate participant links
-- Modify existing meetings
-- Join as a participant or moderator
-- Control in-meeting experience
-
-## Getting Started
-
-To use the Microsoft Teams integration, check our [Microsoft Teams API documentation](/docs/guides/microsoft-teams) for details on authentication, endpoints, and examples.
-
-If you're using our TypeScript SDK, you can access these features through the `MicrosoftTeams` class.
-
-```typescript
-import { MeetingBaaS } from '@meeting-baas/sdk';
-
-const api = new MeetingBaaS({
-  apiKey: 'your-api-key',
-});
-
-// Create a Microsoft Teams meeting
-const meeting = await api.microsoftTeams.createMeeting({
-  title: 'Product Demo',
-  startTime: new Date('2023-07-10T15:00:00Z'),
-  endTime: new Date('2023-07-10T16:00:00Z'),
-});
-```
-
-
----
-
 ## MeetingBaaS Updates
 
 Latest updates and changes to MeetingBaaS services
@@ -11738,55 +11696,41 @@ Latest updates and changes to MeetingBaaS services
 ### Source: ./content/docs/updates/index.mdx
 
 
-# Available LLM Content
+# MeetingBaaS Updates
 
-- [/llms/all](/llms/all) <Icon className="ml-1 inline-block" name="FilesIcon" /> - All MeetingBaas documentation content
-- [/llms/api](/llms/api) <Icon className="ml-1 inline-block" name="Api" /> - MeetingBaas API, the main purpose of the documentation
-- [/llms/calendars](/llms/calendars) <Icon className="ml-1 inline-block" name="Calendar" /> - Calendars API, for managing calendar integrations and events
-- [/llms/meetings](/llms/meetings) <Icon className="ml-1 inline-block" name="Video" /> - Meetings API, for scheduling and managing virtual meetings
-- [/llms/users](/llms/users) <Icon className="ml-1 inline-block" name="Users" /> - Users API, for user management and authentication
-- [/llms/webhooks](/llms/webhooks) <Icon className="ml-1 inline-block" name="Webhook" /> - Webhooks API, for event notifications and integrations
-- [/llms/sdk](/llms/sdk) <Icon className="ml-1 inline-block" name="Package" /> - MeetingBaas SDK, client libraries for various programming languages
-- [/llms/typescript-sdk](/llms/typescript-sdk) <Icon className="ml-1 inline-block" name="Code" /> - TypeScript SDK for MeetingBaas
-- [/llms/typescript-sdk-common](/llms/typescript-sdk-common) <Icon className="ml-1 inline-block" name="CodeSquare" /> - Common TypeScript SDK methods and types
-- [/llms/typescript-sdk-bots](/llms/typescript-sdk-bots) <Icon className="ml-1 inline-block" name="Bot" /> - Bot-related TypeScript SDK methods and types
-- [/llms/typescript-sdk-calendars](/llms/typescript-sdk-calendars) <Icon className="ml-1 inline-block" name="CalendarClock" /> - Calendar-related TypeScript SDK methods and types
-- [/llms/typescript-sdk-webhooks](/llms/typescript-sdk-webhooks) <Icon className="ml-1 inline-block" name="Link" /> - Webhook-related TypeScript SDK methods and types
-- [/llms/transcript-seeker](/llms/transcript-seeker) <Icon className="ml-1 inline-block" name="Album" /> - Transcript Seeker, the open-source transcription playground
-- [/llms/speaking-bots](/llms/speaking-bots) <Icon className="ml-1 inline-block" name="Brain" /> - Speaking Bots, the Pipecat-powered bots
+Find the latest updates and changes to MeetingBaaS services here.
 
-[All Content](/llms/all)
+## Available Documentation
+
+We provide comprehensive LLM-optimized documentation at these URLs:
+
+- [/llms/all](/llms/all) - All MeetingBaas documentation content
+- [/llms/api](/llms/api) - MeetingBaas API
+- [/llms/calendars](/llms/calendars) - Calendars API
+- [/llms/meetings](/llms/meetings) - Meetings API
+- [/llms/users](/llms/users) - Users API
+- [/llms/webhooks](/llms/webhooks) - Webhooks API
+- [/llms/typescript-sdk](/llms/typescript-sdk) - TypeScript SDK
+- [/llms/transcript-seeker](/llms/transcript-seeker) - Transcript Seeker
+- [/llms/speaking-bots](/llms/speaking-bots) - Speaking Bots
 
 ## Update Categories
 
 <Cards>
-  <Card title="API Updates" icon={<WebhookIcon />} href="/docs/updates/api">
+  <Card title="API Updates" href="/docs/updates/api">
     API changes and improvements
   </Card>
-  <Card
-    title="TypeScript SDK Updates"
-    icon={<FileCode />}
-    href="/docs/updates/typescript-sdk"
-  >
+  <Card title="TypeScript SDK Updates" href="/docs/updates/typescript-sdk">
     SDK releases and updates
   </Card>
-  <Card
-    title="MCP Servers Updates"
-    icon={<ServerCog />}
-    href="/docs/updates/mcp-servers"
-  >
+  <Card title="MCP Servers Updates" href="/docs/updates/mcp-servers">
     Model Context Protocol server changes
   </Card>
-  <Card
-    title="Speaking Bots Updates"
-    icon={<Bot />}
-    href="/docs/updates/speaking-bots"
-  >
+  <Card title="Speaking Bots Updates" href="/docs/updates/speaking-bots">
     Speaking bot features
   </Card>
   <Card
     title="Transcript Seeker Updates"
-    icon={<Captions />}
     href="/docs/updates/transcript-seeker"
   >
     Transcript platform improvements
@@ -11804,134 +11748,6 @@ Each update includes:
 - **Tags**: Categories for easier filtering (API, SDK, Feature, Bugfix, etc.)
 
 Updates may include code examples, screenshots, or links to detailed documentation when relevant.
-
-
----
-
-## llm-integration-2025-04-24
-
-### Source: ./content/docs/updates/llm-integration-2025-04-24.mdx
-
-# LLM Integration
-
-<Callout type="info">April 24th, 2025</Callout>
-
-Enhanced AI capabilities across all Meeting BaaS services.
-
-## Supported Services
-
-| Service    | AI Capabilities                                        | Documentation                                |
-| ---------- | ------------------------------------------------------ | -------------------------------------------- |
-| Api        | Enhanced content analysis, summarization, and insights | [Api Documentation](/docs/api)               |
-| Calendars  | Enhanced content analysis, summarization, and insights | [Calendars Documentation](/docs/calendars)   |
-| Mcp        | Enhanced content analysis, summarization, and insights | [Mcp Documentation](/docs/mcp)               |
-| Speaking   | Enhanced content analysis, summarization, and insights | [Speaking Documentation](/docs/speaking)     |
-| Transcript | Enhanced content analysis, summarization, and insights | [Transcript Documentation](/docs/transcript) |
-| Typescript | Enhanced content analysis, summarization, and insights | [Typescript Documentation](/docs/typescript) |
-| Webhooks   | Enhanced content analysis, summarization, and insights | [Webhooks Documentation](/docs/webhooks)     |
-
-All AI enhancements are now available in production.
-
-
----
-
-## minor-streaming-zoom-and-microsoft-teams
-
-### Source: ./content/docs/updates/minor-streaming-zoom-and-microsoft-teams.mdx
-
-# Meeting Clients Update
-
-<Callout type="info">January 4th, 2025</Callout>
-
-## Streaming API
-
-- New audio frequency specification option
-- **audio_frequency**: Choose between `16khz` or `24khz` (default: 24kHz)
-
-## Client Updates
-
-### Microsoft Teams
-
-- 50% bug reduction
-- Support for live Teams links (`https://teams.live.com/meet/...`)
-
-### Google Meet
-
-- 10% bug reduction
-
-### Zoom
-
-- Entirely new client implementation
-- Video capture coming in the next two weeks
-- Currently our most stable client
-
-All changes are now live in production.
-
-
----
-
-## SDK Update - Version 4.0.4
-
-Updates to Meeting BaaS TypeScript SDK v4.0.4
-
-### Source: ./content/docs/updates/sdk-update-4-0-4.mdx
-
-
-{/* 
-This file contains raw git diff information that will be processed by an LLM.
-*/}
-
-# TypeScript SDK 4.0.4 Released
-
-## SDK Version Information
-
-- Current SDK version: `4.0.4`
-
-
-## Package.json Changes
-
-<details>
-<summary>View Package Changes</summary>
-
-<pre>
-
-</pre>
-
-</details>
-
-No changes to SDK documentation. Content to be generated by LLM processing.
-
----
-
-## sdk-update-4.0.5
-
-### Source: ./content/docs/updates/sdk-update-4.0.5.mdx
-
-# TypeScript SDK 4.0.5
-
-<Callout type="info">April 24th, 2025</Callout>
-
-- **Version**: 4.0.5
-- **Description**: Official SDK for Meeting BaaS API - https://meetingbaas.com
-- **Repository**: git+https://github.com/meeting-baas/sdk-generator.git
-- **License**: MIT
-
-## Dependencies
-
-- `axios`: 1.8.3
-- `zod`: 3.24.2
-
-## Installation
-
-<Tabs items={['npm', 'pnpm', 'yarn']}>
-  <Tabs.Tab value="npm">
-    ```bash npm install @meeting-baas/sdk@4.0.5 ```
-  </Tabs.Tab>
-  <Tabs.Tab value="pnpm">```bash pnpm add @meeting-baas/sdk@4.0.5 ```</Tabs.Tab>
-  <Tabs.Tab value="yarn">```bash yarn add @meeting-baas/sdk@4.0.5 ```</Tabs.Tab>
-</Tabs>
-
-This version is now available on npm.
 
 
 ---

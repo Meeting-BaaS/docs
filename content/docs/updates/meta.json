@@ -6,11 +6,7 @@
   "sortBy": "date",
   "sortOrder": "desc",
   "pages": [
-    "llm-integration-2025-04-24",
-    "sdk-update-4.0.5",
     "sdk-update-4-0-4",
-    "minor-streaming-zoom-and-microsoft-teams",
-    "2023-07-02",
     "index"
   ]
 }
