@@ -4,8 +4,9 @@ const fs = require('fs');
 const path = require('path');
 const glob = require('fast-glob');
 
-// Find all .mts files
+// Find all .mts files and .ts files in scripts/updates
 const mtsFiles = glob.sync(['scripts/*.mts', 'scripts/**/*.mts']);
+const tsUtilFiles = glob.sync(['scripts/updates/*.ts']);
 
 console.log('Transpiling TypeScript files to JavaScript...');
 
@@ -15,19 +16,16 @@ if (!fs.existsSync(rootOutputDir)) {
   fs.mkdirSync(rootOutputDir, { recursive: true });
 }
 
-// For each .mts file, transpile to .mjs using tsc
+// For each .mts file, transpile to .mjs using esbuild
 for (const mtsFile of mtsFiles) {
-  // Get relative path from scripts folder
-  const relPath = path.relative('scripts', path.dirname(mtsFile));
-  const baseName = path.basename(mtsFile, '.mts');
+  const relativePath = path.relative('scripts', mtsFile).replace(/\.mts$/, '');
+  const outputFile = path.join(rootOutputDir, `${relativePath}.mjs`);
+  const outputDir = path.dirname(outputFile);
 
-  // Create target directory in scripts-dist
-  const targetDir = path.join(rootOutputDir, relPath);
-  if (!fs.existsSync(targetDir)) {
-    fs.mkdirSync(targetDir, { recursive: true });
+  // Ensure output directory exists
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
   }
-
-  const outputFile = path.join(targetDir, `${baseName}.mjs`);
 
   console.log(`Transpiling ${mtsFile} to ${outputFile}...`);
 
@@ -38,6 +36,30 @@ for (const mtsFile of mtsFiles) {
     console.log(`  ✅ Successfully transpiled ${mtsFile}`);
   } catch (error) {
     console.error(`  ❌ Error transpiling ${mtsFile}:`, error);
+    process.exit(1);
+  }
+}
+
+// For each utility .ts file, transpile to .mjs using esbuild
+for (const tsFile of tsUtilFiles) {
+  const relativePath = path.relative('scripts', tsFile).replace(/\.ts$/, '');
+  const outputFile = path.join(rootOutputDir, `${relativePath}.mjs`);
+  const outputDir = path.dirname(outputFile);
+
+  // Ensure output directory exists
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
+
+  console.log(`Transpiling ${tsFile} to ${outputFile}...`);
+
+  // Use esbuild for fast transpilation with ESM modules
+  const esbuildCommand = `npx esbuild ${tsFile} --format=esm --platform=node --outfile=${outputFile}`;
+  try {
+    execSync(esbuildCommand, { stdio: 'inherit' });
+    console.log(`  ✅ Successfully transpiled ${tsFile}`);
+  } catch (error) {
+    console.error(`  ❌ Error transpiling ${tsFile}:`, error);
     process.exit(1);
   }
 }
