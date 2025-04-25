@@ -120,6 +120,16 @@ async function generateServiceUpdate(
     return null;
   }
 
+  // Generate update filename
+  const updateFilename = `${config.serviceKey}-update-${CURRENT_DATE}.mdx`;
+  const updateFilePath = join(UPDATES_DIR, updateFilename);
+
+  // Skip if file already exists - don't overwrite
+  if (existsSync(updateFilePath)) {
+    console.log(`Update file already exists: ${updateFilePath}, skipping`);
+    return updateFilename; // Return the filename so it can be added to meta.json
+  }
+
   // Group changes by root folder
   const changesByFolder = allChanges.reduce(
     (acc, file) => {
@@ -139,10 +149,6 @@ async function generateServiceUpdate(
   const isSingleFileChange = allChanges.length === 1;
   const singleFile = allChanges[0];
 
-  // Generate update filename
-  const updateFilename = `${config.serviceKey}-update-${CURRENT_DATE}.mdx`;
-  const updateFilePath = join(UPDATES_DIR, updateFilename);
-
   // Generate metadata for the update
   const titleDate = format(new Date(), 'MMMM d, yyyy');
   let metaContent = `---
@@ -154,6 +160,8 @@ date: ${CURRENT_DATE}
 ---
 
 import { Callout } from "fumadocs-ui/components/callout";
+
+{/* This file contains raw git diff information that will be processed by an LLM. */}
 
 <Callout>
   This page was automatically generated on ${titleDate}.

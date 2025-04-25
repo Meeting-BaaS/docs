@@ -5,8 +5,5 @@
   "root": true,
   "sortBy": "date",
   "sortOrder": "desc",
-  "pages": [
-    "sdk-update-4-0-4",
-    "index"
-  ]
+  "pages": ["index"]
 }
