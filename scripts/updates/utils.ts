@@ -118,11 +118,22 @@ export async function updateMetaJson(newPages: string[]): Promise<void> {
       meta = JSON.parse(readFileSync(metaPath, 'utf-8')) as MetaJson;
     }
 
+    // Ensure index is the first page
+    if (!meta.pages.includes('index')) {
+      meta.pages.unshift('index');
+    } else if (meta.pages[0] !== 'index') {
+      // Remove index from current position
+      meta.pages = meta.pages.filter((page) => page !== 'index');
+      // Add it at the start
+      meta.pages.unshift('index');
+    }
+
     // Add new pages to the pages array if they don't already exist
     for (const page of validPages) {
       const pageName = page.replace('.mdx', '');
       if (!meta.pages.includes(pageName)) {
-        meta.pages.unshift(pageName); // Add to start of array for most recent
+        // Add new pages at the second position (after index)
+        meta.pages.splice(1, 0, pageName);
       }
     }
 
