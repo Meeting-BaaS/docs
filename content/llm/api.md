@@ -1888,55 +1888,6 @@ For security, always validate the API key in the `x-meeting-baas-api-key` header
 
 ---
 
-## April 23rd, 2025
-
-Latest changes to the Meeting BaaS API
-
-### Source: ./content/docs/api/updates/api-update-2025-04-23.mdx
-
-
-import { Info } from 'lucide-react';
-
-<Callout type="info" icon={<Info className="h-5 w-5" />}>
-  Paris, April 23rd, 2025.
-</Callout>
-
-We're excited to announce several improvements to our API endpoints.
-
-## Bots
-
-### [GET /bots/with/metadata](/docs/api/reference/bots_with_metadata)
-
-Simplified and improved the bot listing endpoint:
-- Streamlined response format for better readability
-- Maintains all filtering capabilities (`meeting_url`, `bot_name`, `created_after/before`, `speaker_name`)
-- Supports advanced filtering and sorting through `filter_by_extra` and `sort_by_extra`
-- Returns essential metadata including IDs, names, and meeting details
-
-### [GET /bots/:uuid/screenshots](/docs/api/reference/get_screenshots)
-
-New endpoint to retrieve screenshots captured during a bot's session:
-- Access screenshots taken while trying to access meetings
-- Useful for monitoring and verification purposes
-- Part of our expanded bot monitoring capabilities
-
-## Webhooks
-
-### GET /webhooks/calendar/webhook/documentation
-
-Documentation improvements and parameter updates:
-- Updated parameter notation from `{uuid}` to `:uuid` for consistency with REST API standards
-- Clarified the `affected_event_uuids` field documentation
-- Enhanced integration examples with calendar events
-- All endpoint references now use `:parameter` notation
-
-## Implementation Timeline
-
-These changes will be live in production on April 24th, 2025. The updates focus on improving documentation clarity, adding new monitoring capabilities, and maintaining consistent API patterns across our endpoints.
-
-
----
-
 ## Calendar API Enhancements
 
 Improved filtering, comprehensive event details, and calendar management
