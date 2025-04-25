@@ -8,19 +8,41 @@ icon: MonitorUp
 
 Find the latest updates and changes to MeetingBaaS services here.
 
+<Callout type="info">
+  We provide comprehensive LLM-optimized documentation for all our services.
+</Callout>
+
 ## Available Documentation
 
-We provide comprehensive LLM-optimized documentation at these URLs:
-
-- [/llms/all](/llms/all) - All MeetingBaas documentation content
-- [/llms/api](/llms/api) - MeetingBaas API
-- [/llms/calendars](/llms/calendars) - Calendars API
-- [/llms/meetings](/llms/meetings) - Meetings API
-- [/llms/users](/llms/users) - Users API
-- [/llms/webhooks](/llms/webhooks) - Webhooks API
-- [/llms/typescript-sdk](/llms/typescript-sdk) - TypeScript SDK
-- [/llms/transcript-seeker](/llms/transcript-seeker) - Transcript Seeker
-- [/llms/speaking-bots](/llms/speaking-bots) - Speaking Bots
+<Cards>
+  <Card title="All Documentation" href="/llms/all">
+    All MeetingBaas documentation content
+  </Card>
+  <Card title="API Reference" href="/llms/api">
+    MeetingBaas API
+  </Card>
+  <Card title="Calendars API" href="/llms/calendars">
+    Calendars API
+  </Card>
+  <Card title="Meetings API" href="/llms/meetings">
+    Meetings API
+  </Card>
+  <Card title="Users API" href="/llms/users">
+    Users API
+  </Card>
+  <Card title="Webhooks API" href="/llms/webhooks">
+    Webhooks API
+  </Card>
+  <Card title="TypeScript SDK" href="/llms/typescript-sdk">
+    TypeScript SDK
+  </Card>
+  <Card title="Transcript Seeker" href="/llms/transcript-seeker">
+    Transcript Seeker
+  </Card>
+  <Card title="Speaking Bots" href="/llms/speaking-bots">
+    Speaking Bots
+  </Card>
+</Cards>
 
 ## Update Categories
 
@@ -47,12 +69,29 @@ We provide comprehensive LLM-optimized documentation at these URLs:
 
 ## How Updates Are Organized
 
-Each update includes:
+<Steps>
+  <Step>**Date**: When the update was released</Step>
+  <Step>
+    **Service Icon**: Visual indicator of which service the update pertains to
+  </Step>
+  <Step>**Title**: Brief description of the update</Step>
+  <Step>
+    **Description**: Details about what changed and how to use new features
+  </Step>
+  <Step>
+    **Tags**: Categories for easier filtering (API, SDK, Feature, Bugfix, etc.)
+  </Step>
+</Steps>
 
-- **Date**: When the update was released
-- **Service Icon**: Visual indicator of which service the update pertains to
-- **Title**: Brief description of the update
-- **Description**: Details about what changed and how to use new features
-- **Tags**: Categories for easier filtering (API, SDK, Feature, Bugfix, etc.)
-
-Updates may include code examples, screenshots, or links to detailed documentation when relevant.
+<Tabs items={['Code Examples', 'Screenshots', 'Documentation Links']}>
+  <Tabs.Content value="Code Examples">
+    Updates may include code examples to demonstrate new features or API
+    changes.
+  </Tabs.Content>
+  <Tabs.Content value="Screenshots">
+    Some updates include screenshots to visualize UI changes or new features.
+  </Tabs.Content>
+  <Tabs.Content value="Documentation Links">
+    Updates often link to detailed documentation for more information.
+  </Tabs.Content>
+</Tabs>
