@@ -1,0 +1,244 @@
+---
+title: Speaking Bot Tools
+description: Tools for managing AI speaking bots in meetings
+icon: Mic
+---
+
+This section covers the tools available for managing AI speaking bots in meetings, including joining and leaving meetings with voice capabilities.
+
+## Available Personas
+
+The speaking bot can adopt various personas to match different meeting contexts. Here are the available personas:
+
+<Accordion title="View All Available Personas">
+  - 1940s Noir Detective
+  - Academic Warlord
+  - Ancient Alien Theorist
+  - Ancient Roman General
+  - Arctic Prospector
+  - Artisan Magnate
+  - Astral Plane Uber Driver
+  - BaaS Onboarder
+  - Bitcoin Maximalist
+  - Buddhist Monk
+  - Climate Engineer
+  - Corporate Girlboss
+  - C++ Veteran
+  - Crypto Patriarch
+  - Cyberpunk Grandma
+  - Data Baron
+  - Debate Champion
+  - Deep Sea Therapist
+  - Environmental Activist
+  - Factory Patriarch
+  - Fading Diplomat
+  - Forensic Accountant
+  - French Renaissance Painter
+  - Futuristic AI Philosopher
+  - Genetic Aristocrat
+  - Gladiator Chef
+  - Golang Minimalist
+  - Grafana Guru
+  - Haskell Purist
+  - Hospital Administrator
+  - Immigration Maximalist
+  - Intelligence Officer
+  - Interdimensional Therapist
+  - Intergalactic Barista
+  - Interviewer
+  - KGB Ballerina
+  - Lisp Enlightened
+  - Master Sommelier
+  - Media Cardinal
+  - Medieval Crypto Trader
+  - Medieval Plague Doctor
+  - Memory Merchant
+  - Military Strategist
+  - Mongolian Shepherd
+  - Neural Interface Mogul
+  - Ninja Librarian
+  - Oligarch Widow
+  - Pair Programmer
+  - Pharma Patriarch
+  - Pirate Queen
+  - Poker Champion
+  - Port Master
+  - Prehistoric Foodie
+  - Quantum Financier
+  - Quantum Mechanic
+  - Quantum Physicist
+  - Renaissance Gym Bro
+  - Renaissance SoundCloud Rapper
+  - Revolutionary Hacker
+  - Rust Evangelist
+  - Southern Grandma
+  - Space Exploration Robot
+  - Space Industrialist
+  - Stoic Philosopher
+  - Stone Age Tech Support
+  - Synthetic Food Baron
+  - Time Traveling Influencer
+  - Underground Banker
+  - Urban Mining Tycoon
+  - Vatican Cybersecurity Officer
+  - Victorian Etiquette Coach
+  - Victorian Serial Killer
+  - War Correspondent
+  - Waste Baron
+  - Water Merchant
+</Accordion>
+
+## joinSpeakingMeeting
+
+Sends an AI speaking bot to join a video meeting with voice AI capabilities.
+
+### Parameters
+- `meetingUrl` (string): URL of the meeting to join
+- `botName` (string): Name to display for the bot in the meeting
+- `meetingBaasApiKey` (string): Your MeetingBaas API key for authentication
+- `personas` (string[], optional): List of persona names to use (first available will be selected)
+- `botImage` (string, optional): URL of the image to use for the bot
+- `entryMessage` (string, optional): Message to send when joining the meeting
+- `enableTools` (boolean, optional): Whether to enable tools for the bot (defaults to true)
+- `extra` (object, optional): Custom data to attach to the bot
+
+### Example
+```typescript
+const response = await server.tools.joinSpeakingMeeting({
+  meetingUrl: "https://meet.example.com/123",
+  botName: "AI Assistant",
+  meetingBaasApiKey: "your-api-key",
+  personas: ["pair_programmer", "tech_support"],
+  botImage: "https://example.com/bot-avatar.png",
+  entryMessage: "Hello! I'm here to assist with the meeting.",
+  enableTools: true,
+  extra: {
+    role: "technical_assistant",
+    specialization: "code_review"
+  }
+});
+```
+
+### Response
+```typescript
+interface JoinResponse {
+  content: Array<{
+    type: string;
+    text: string;  // Contains the bot ID
+  }>;
+  isError?: boolean;
+}
+```
+
+## leaveSpeakingMeeting
+
+Removes a speaking bot from a meeting using its ID.
+
+### Parameters
+- `botId` (string): The MeetingBaas bot ID to remove from the meeting
+- `meetingBaasApiKey` (string): Your MeetingBaas API key for authentication
+
+### Example
+```typescript
+const response = await server.tools.leaveSpeakingMeeting({
+  botId: "bot-123-xyz",
+  meetingBaasApiKey: "your-api-key"
+});
+```
+
+## Error Handling
+
+Both tools implement comprehensive error handling:
+
+```typescript
+try {
+  const response = await server.tools.speakingBotOperation(params);
+  // Handle success
+} catch (error) {
+  console.error("Speaking bot operation failed:", error);
+  // Handle error appropriately
+}
+```
+
+## Best Practices
+
+1. **Persona Selection**: Choose appropriate personas based on meeting context
+2. **Bot Cleanup**: Always remove bots from meetings when they're no longer needed
+3. **API Key Security**: Never expose your MeetingBaas API key in client-side code
+4. **Error Recovery**: Implement retry logic for transient failures
+5. **Resource Management**: Monitor active speaking bots to avoid resource conflicts
+
+## Integration Example
+
+Here's a complete example of integrating speaking bot tools:
+
+```typescript
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
+import axios from "axios";
+
+const SPEAKING_API_URL = "https://speaking.meetingbaas.com";
+
+// Initialize server
+const server = new McpServer();
+
+// Register speaking bot tools
+registerJoinSpeakingTool(server);
+
+// Example usage
+async function manageSpeakingBot() {
+  try {
+    // Join meeting
+    const joinResponse = await server.tools.joinSpeakingMeeting({
+      meetingUrl: "https://meet.example.com/123",
+      botName: "AI Assistant",
+      meetingBaasApiKey: process.env.MEETING_BAAS_API_KEY,
+      personas: ["pair_programmer"],
+      entryMessage: "Ready to assist with the meeting!"
+    });
+
+    const botId = joinResponse.content[0].text.split(": ")[1];
+
+    // Later, leave the meeting
+    await server.tools.leaveSpeakingMeeting({
+      botId,
+      meetingBaasApiKey: process.env.MEETING_BAAS_API_KEY
+    });
+  } catch (error) {
+    console.error("Bot management failed:", error);
+  }
+}
+```
+
+## API Endpoints
+
+The speaking bot tools interact with the following endpoints:
+
+- **Create Bot**: `POST ${SPEAKING_API_URL}/bots`
+- **Remove Bot**: `DELETE ${SPEAKING_API_URL}/bots/{botId}`
+
+## Response Types
+
+### Success Response
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Successfully joined meeting with speaking bot ID: bot-123-xyz"
+    }
+  ]
+}
+```
+
+### Error Response
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Failed to join meeting with speaking bot: Invalid meeting URL"
+    }
+  ],
+  "isError": true
+}
+``` 

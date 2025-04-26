@@ -1,0 +1,192 @@
+---
+title: Server Configuration
+description: Configure and initialize the Chat MCP server
+icon: Settings
+---
+
+This section covers how to configure and initialize the Chat MCP server, including setting up the API handler and registering available tools.
+
+## API Handler Setup
+
+The Chat MCP server uses a centralized API handler to manage all tool registrations and capabilities. Here's how to set it up:
+
+```typescript
+import { initializeMcpApiHandler } from "../lib/mcp-api-handler";
+import registerTools from "./tools";
+
+const handler = initializeMcpApiHandler(
+  (server, apiKey) => {
+    // Register Meeting BaaS SDK tools with the provided API key
+    server = registerTools(server, apiKey);
+  },
+  {
+    capabilities: {
+      tools: {
+        // Meeting Management
+        joinMeeting: {
+          description: "Join's a meeting using the MeetingBaas api",
+        },
+        leaveMeeting: {
+          description: "Leave a meeting using the MeetingBaas api",
+        },
+        getMeetingData: {
+          description: "Get meeting data using the MeetingBaas api",
+        },
+        deleteData: {
+          description: "Delete meeting data using the MeetingBaas api",
+        },
+
+        // Calendar Management
+        createCalendar: {
+          description: "Create a calendar using the MeetingBaas api",
+        },
+        listCalendars: {
+          description: "List calendars using the MeetingBaas api",
+        },
+        getCalendar: {
+          description: "Get calendar using the MeetingBaas api",
+        },
+        deleteCalendar: {
+          description: "Delete calendar using the MeetingBaas api",
+        },
+        updateCalendar: {
+          description: "Update calendar using the MeetingBaas api",
+        },
+        resyncAllCalendars: {
+          description: "Resync all calendars using the MeetingBaas api",
+        },
+
+        // Bot Management
+        botsWithMetadata: {
+          description: "Get bots with metadata using the MeetingBaas api",
+        },
+
+        // Event Management
+        listEvents: {
+          description: "List events using the MeetingBaas api",
+        },
+        scheduleRecordEvent: {
+          description: "Schedule a recording using the MeetingBaas api",
+        },
+        unscheduleRecordEvent: {
+          description: "Unschedule a recording using the MeetingBaas api",
+        },
+
+        // Speaking Bot Management
+        joinSpeakingMeeting: {
+          description: "Join a speaking meeting using the MeetingBaas api",
+        },
+        leaveSpeakingMeeting: {
+          description: "Leave a speaking meeting using the MeetingBaas api",
+        },
+
+        // Utility Tools
+        echo: {
+          description: "Echo a message",
+        },
+      },
+    },
+  }
+);
+
+export default handler;
+```
+
+## Server Initialization
+
+The server initialization process involves several steps:
+
+1. **Import Dependencies**
+```typescript
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
+import { initializeMcpApiHandler } from "../lib/mcp-api-handler";
+```
+
+2. **Create Tool Registration Function**
+```typescript
+function registerTools(server: McpServer, apiKey: string): McpServer {
+  // Register various tool categories
+  server = registerMeetingTools(server, apiKey);
+  server = registerCalendarTools(server, apiKey);
+  server = registerSpeakingTools(server, apiKey);
+  server = registerUtilityTools(server);
+  
+  return server;
+}
+```
+
+3. **Configure Capabilities**
+```typescript
+const capabilities = {
+  tools: {
+    // Tool definitions as shown above
+  }
+};
+```
+
+## Available Capabilities
+
+The server exposes the following tool categories:
+
+### Meeting Management
+- `joinMeeting`
+- `leaveMeeting`
+- `getMeetingData`
+- `deleteData`
+
+### Calendar Management
+- `createCalendar`
+- `listCalendars`
+- `getCalendar`
+- `deleteCalendar`
+- `updateCalendar`
+- `resyncAllCalendars`
+
+### Bot Management
+- `botsWithMetadata`
+
+### Event Management
+- `listEvents`
+- `scheduleRecordEvent`
+- `unscheduleRecordEvent`
+
+### Speaking Bot Management
+- `joinSpeakingMeeting`
+- `leaveSpeakingMeeting`
+
+### Utility Tools
+- `echo`
+
+## Best Practices
+
+1. **Modular Registration**: Keep tool registrations modular and organized by category
+2. **Error Handling**: Implement proper error handling in the API handler
+3. **Capability Documentation**: Keep capability descriptions clear and concise
+4. **API Key Management**: Handle API keys securely
+5. **Logging**: Implement proper logging for debugging and monitoring
+
+## Example Usage
+
+Here's how to use the configured server in your application:
+
+```typescript
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
+import handler from "./handler";
+
+async function setupServer() {
+  const server = new McpServer();
+  const apiKey = process.env.MEETING_BAAS_API_KEY;
+
+  // Initialize handler with server and API key
+  await handler.initialize(server, apiKey);
+
+  return server;
+}
+
+// Start the server
+setupServer().then((server) => {
+  console.log("MCP server initialized with all capabilities");
+}).catch((error) => {
+  console.error("Failed to initialize MCP server:", error);
+});
+``` 

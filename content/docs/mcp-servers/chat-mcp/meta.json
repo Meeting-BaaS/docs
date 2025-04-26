@@ -1,0 +1,7 @@
+{
+  "title": "Chat MCP",
+  "description": "Standalone MCP server for local deployment with Meeting BaaS chat integration",
+  "icon": "MessageSquare",
+  "navigationTitle": "Chat MCP",
+  "pages": ["overview", "server-configuration", "tools"]
+}

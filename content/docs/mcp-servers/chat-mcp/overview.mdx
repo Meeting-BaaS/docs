@@ -1,0 +1,152 @@
+---
+title: Overview
+description: Introduction to Chat MCP - A Standalone MCP Server for Meeting BaaS Chat Integration
+icon: TableOfContents
+---
+
+Chat MCP is a standalone [Model Context Protocol](https://www.anthropic.com/news/model-context-protocol) server that provides AI assistants with access to Meeting BaaS chat capabilities. The server enables AI bots to join meetings, manage calendar integrations, and handle various meeting-related operations through a unified interface.
+
+<Card
+  icon={<Github />}
+  title="GitHub Repository"
+  href="https://github.com/Meeting-Baas/chat-mcp"
+  description="Clone the repository to deploy your own Chat MCP server"
+  external
+/>
+
+## Features
+
+<Cards>
+  <Card title="Meeting Management" icon={<Video className="text-blue-400" />}>
+    Join and leave meetings, manage bot presence, and handle meeting data.
+  </Card>
+  <Card title="Calendar Integration" icon={<Calendar className="text-purple-400" />}>
+    Create, manage, and sync calendar integrations for automated meeting handling.
+  </Card>
+  <Card title="Bot Management" icon={<Bot className="text-green-400" />}>
+    View and manage bot metadata, status, and configurations.
+  </Card>
+  <Card title="Speaking Bots" icon={<Mic className="text-yellow-400" />}>
+    Deploy AI bots with voice capabilities and customizable personas.
+  </Card>
+  <Card title="Event Scheduling" icon={<Clock className="text-amber-400" />}>
+    Schedule and manage recording events for meetings.
+  </Card>
+  <Card title="Data Management" icon={<Database className="text-teal-400" />}>
+    Handle meeting data, recordings, and transcriptions efficiently.
+  </Card>
+  <Card title="Utility Tools" icon={<Wrench className="text-gray-400" />}>
+    Testing and debugging utilities for server maintenance.
+  </Card>
+  <Card title="Local Deployment" icon={<HardDrive className="text-red-400" />}>
+    Run completely on your own infrastructure for enhanced security and control.
+  </Card>
+</Cards>
+
+## Prerequisites
+
+Before getting started, you'll need:
+
+- Node.js (v16 or later)
+- npm
+- A [Meeting BaaS API key](https://meetingbaas.com)
+- Access to Meeting BaaS API endpoints
+
+## Available Tools
+
+The Chat MCP server provides several tools for managing meetings and calendar integrations:
+
+### Meeting Management Tools
+- **joinSpeaking**: Join a meeting with speaking capabilities
+- **leaveMeeting**: Remove an AI bot from a meeting
+- **getMeetingData**: Retrieve data about a meeting
+- **deleteData**: Delete meeting-associated data
+- **botsWithMetadata**: Get information about all active bots
+
+### Speaking Bot Tools
+- **joinSpeakingMeeting**: Deploy an AI bot with voice capabilities
+- **leaveSpeakingMeeting**: Remove a speaking bot from a meeting
+
+### Calendar Management Tools
+- **createCalendar**: Set up new calendar integrations
+- **listCalendars**: View all configured calendars
+- **getCalendar**: Get specific calendar details
+- **deleteCalendar**: Remove calendar integrations
+- **updateCalendar**: Modify calendar configurations
+- **resyncAllCalendars**: Refresh all calendar connections
+
+### Event Management Tools
+- **listEvents**: View all scheduled events
+- **scheduleRecordEvent**: Set up automatic recording for events
+- **unscheduleRecordEvent**: Cancel scheduled recordings
+
+### Utility Tools
+- **echo**: Simple message echo for testing and debugging
+
+## Server Configuration
+
+The server requires proper configuration and initialization. Key aspects include:
+
+1. **API Handler Setup**: Configure the MCP API handler with all available tools
+2. **Tool Registration**: Register different categories of tools with the server
+3. **Capability Configuration**: Define and expose server capabilities
+4. **Authentication Setup**: Configure API key handling
+
+For detailed configuration instructions, see the [Server Configuration](./server-configuration) section.
+
+## Authentication
+
+The server requires authentication using an API key. This can be provided in two ways:
+1. Through the `x-api-key` header
+2. Directly in tool parameters using "WithCredentials" variants
+
+## Integration Example
+
+Here's how to initialize the Chat MCP server with your Meeting BaaS credentials:
+
+```typescript
+import { BaasClient } from "@meeting-baas/sdk/dist/baas/api/client";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
+
+const server = new McpServer();
+const apiKey = "YOUR_API_KEY";
+
+const baasClient = new BaasClient({
+  apiKey: apiKey,
+  baseUrl: "https://api.meetingbaas.com/",
+});
+
+// Register tools
+registerTools(server, apiKey);
+```
+
+## Development
+
+To start developing with Chat MCP:
+
+```bash
+# Install dependencies
+npm install
+
+# Build the project
+npm run build
+
+# Start the server
+npm run start
+```
+
+## Error Handling
+
+The server implements comprehensive error handling:
+- All operations are wrapped in try-catch blocks
+- Detailed error logging for debugging
+- Structured error responses with descriptive messages
+- Console logging for operation tracking
+
+## Best Practices
+
+1. **API Key Security**: Never hardcode API keys in your code
+2. **Error Monitoring**: Implement proper logging and monitoring
+3. **Calendar Sync**: Regularly sync calendars to maintain data consistency
+4. **Bot Management**: Clean up bot data after meetings
+5. **Event Scheduling**: Verify event details before scheduling recordings 

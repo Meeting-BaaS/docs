@@ -1,0 +1,12 @@
+{
+  "title": "Tools",
+  "description": "Available tools and utilities in Chat MCP",
+  "icon": "Wrench",
+  "pages": [
+    "meeting-management",
+    "calendar-management",
+    "event-management",
+    "speaking-bot",
+    "utility-tools"
+  ]
+}

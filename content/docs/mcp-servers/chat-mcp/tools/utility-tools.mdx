@@ -1,0 +1,112 @@
+---
+title: Utility Tools
+description: Utility tools for testing and debugging
+icon: Wrench
+---
+
+This section covers utility tools that help with testing, debugging, and basic operations.
+
+## echo
+
+A simple utility tool that echoes back the provided message. Useful for testing the MCP server functionality and connectivity.
+
+### Parameters
+- `message` (string): The message to echo back
+
+### Example
+```typescript
+const response = await server.tools.echo({
+  message: "Hello, MCP!"
+});
+```
+
+### Response
+```typescript
+interface EchoResponse {
+  content: Array<{
+    type: "text";
+    text: string;  // Format: "Tool echo: {message}"
+  }>;
+}
+```
+
+### Example Response
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Tool echo: Hello, MCP!"
+    }
+  ]
+}
+```
+
+## Implementation
+
+Here's how to implement the Echo tool in your MCP server:
+
+```typescript
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
+import { z } from "zod";
+
+export function registerEchoTool(server: McpServer): McpServer {
+  server.tool(
+    "echo",
+    "Echo back the provided message for testing purposes",
+    { message: z.string() },
+    async ({ message }: { message: string }) => ({
+      content: [
+        {
+          type: "text",
+          text: `Tool echo: ${message}`,
+        },
+      ],
+    })
+  );
+
+  return server;
+}
+```
+
+## Use Cases
+
+1. **Testing Server Setup**: Verify that your MCP server is properly configured
+2. **Connection Testing**: Check if the communication between client and server is working
+3. **Debugging**: Use as a simple way to debug message passing
+4. **Health Checks**: Implement basic health checks in your application
+
+## Best Practices
+
+1. **Input Validation**: Always validate the message parameter even though it's a simple echo
+2. **Error Handling**: Implement proper error handling even for simple tools
+3. **Testing**: Use the echo tool in your test suites to verify server functionality
+4. **Monitoring**: Log echo requests for debugging and monitoring purposes
+
+## Integration Example
+
+Here's a complete example of using the Echo tool in your application:
+
+```typescript
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
+
+// Initialize server
+const server = new McpServer();
+
+// Register echo tool
+registerEchoTool(server);
+
+// Example usage
+async function testEcho() {
+  try {
+    const response = await server.tools.echo({
+      message: "Testing MCP server connection"
+    });
+    
+    console.log(response.content[0].text);
+    // Output: "Tool echo: Testing MCP server connection"
+  } catch (error) {
+    console.error("Echo test failed:", error);
+  }
+}
+``` 

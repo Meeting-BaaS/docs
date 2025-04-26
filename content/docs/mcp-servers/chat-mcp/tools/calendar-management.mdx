@@ -1,0 +1,125 @@
+---
+title: Calendar Management Tools
+description: Tools for managing calendar integrations and synchronization
+icon: Calendar
+---
+
+This section covers the tools available for managing calendar integrations, including creating, updating, and syncing calendars.
+
+## createCalendar
+
+Creates a new calendar integration for automatic meeting recordings and bot scheduling.
+
+### Parameters
+- `oauthClientId` (string): OAuth client ID for the calendar service
+- `oauthClientSecret` (string): OAuth client secret for the calendar service
+- `oauthRefreshToken` (string): OAuth refresh token for authentication
+- `platform` (enum): Calendar platform ("Google" or "Microsoft")
+- `rawCalendarId` (string, optional): Specific calendar ID to integrate
+
+### Example
+```typescript
+const response = await server.tools.createCalendar({
+  oauthClientId: "client_id_here",
+  oauthClientSecret: "client_secret_here",
+  oauthRefreshToken: "refresh_token_here",
+  platform: "Google",
+  rawCalendarId: "primary"
+});
+```
+
+## listCalendars
+
+Retrieves a list of all configured calendar integrations.
+
+### Parameters
+None
+
+### Example
+```typescript
+const response = await server.tools.listCalendars();
+```
+
+## getCalendar
+
+Retrieves details about a specific calendar integration.
+
+### Parameters
+- `calendarId` (string): The unique identifier of the calendar
+
+### Example
+```typescript
+const response = await server.tools.getCalendar({
+  calendarId: "calendar-123-xyz"
+});
+```
+
+## deleteCalendar
+
+Removes a calendar integration from the system.
+
+### Parameters
+- `calendarId` (string): The unique identifier of the calendar to delete
+
+### Example
+```typescript
+const response = await server.tools.deleteCalendar({
+  calendarId: "calendar-123-xyz"
+});
+```
+
+## updateCalendar
+
+Modifies an existing calendar integration's configuration.
+
+### Parameters
+- `calendarId` (string): The unique identifier of the calendar
+- `oauthClientId` (string): Updated OAuth client ID
+- `oauthClientSecret` (string): Updated OAuth client secret
+- `oauthRefreshToken` (string): Updated OAuth refresh token
+- `platform` (enum): Calendar platform ("Google" or "Microsoft")
+
+### Example
+```typescript
+const response = await server.tools.updateCalendar({
+  calendarId: "calendar-123-xyz",
+  oauthClientId: "new_client_id",
+  oauthClientSecret: "new_client_secret",
+  oauthRefreshToken: "new_refresh_token",
+  platform: "Google"
+});
+```
+
+## resyncAllCalendars
+
+Forces a synchronization of all configured calendars to update their data.
+
+### Parameters
+None
+
+### Example
+```typescript
+const response = await server.tools.resyncAllCalendars();
+```
+
+## Error Handling
+
+Calendar operations include comprehensive error handling:
+
+```typescript
+try {
+  const response = await server.tools.calendarOperation(params);
+  // Handle success
+} catch (error) {
+  console.error("Calendar operation failed:", error);
+  // Handle error appropriately
+}
+```
+
+## Best Practices
+
+1. **Regular Sync**: Schedule periodic calendar synchronization using `resyncAllCalendars`
+2. **OAuth Management**: Securely store and rotate OAuth credentials
+3. **Platform Support**: Verify platform compatibility before creating integrations
+4. **Error Recovery**: Implement retry logic for transient failures
+5. **Cleanup**: Remove unused calendar integrations to maintain system efficiency 

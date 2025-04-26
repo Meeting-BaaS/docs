@@ -1,0 +1,103 @@
+---
+title: Meeting Management Tools
+description: Tools for managing meeting operations and bot interactions
+icon: Video
+---
+
+This section covers the tools available for managing meetings, including joining and leaving meetings, retrieving meeting data, and managing bot interactions.
+
+## joinSpeaking
+
+Joins a meeting with speaking capabilities. This tool allows an AI bot to join a meeting with the ability to speak and interact.
+
+### Parameters
+- `meetingUrl` (string): The URL of the meeting to join
+- `botName` (string): Name of the bot that will join the meeting
+- `extra` (object, optional): Additional configuration parameters
+
+### Example
+```typescript
+const response = await server.tools.joinSpeaking({
+  meetingUrl: "https://meet.example.com/123",
+  botName: "Assistant Bot",
+  extra: {
+    role: "note-taker"
+  }
+});
+```
+
+## leaveMeeting
+
+Removes an AI bot from a meeting. Use this when you want to end recording, stop transcription, or disconnect the bot.
+
+### Parameters
+- `botId` (string): The unique identifier of the bot to remove
+
+### Example
+```typescript
+const response = await server.tools.leaveMeeting({
+  botId: "bot-123-xyz"
+});
+```
+
+## getMeetingData
+
+Retrieves data about a meeting that a bot has joined, including status, recording information, and transcription data.
+
+### Parameters
+- `botId` (string): The unique identifier of the bot in the meeting
+
+### Example
+```typescript
+const response = await server.tools.getMeetingData({
+  botId: "bot-123-xyz"
+});
+```
+
+## deleteData
+
+Deletes data associated with a meeting bot, including recordings and transcription data.
+
+### Parameters
+- `botId` (string): The unique identifier of the bot whose data should be deleted
+
+### Example
+```typescript
+const response = await server.tools.deleteData({
+  botId: "bot-123-xyz"
+});
+```
+
+## botsWithMetadata
+
+Retrieves a list of all bots with their associated metadata, useful for monitoring bot activity and status.
+
+### Parameters
+None
+
+### Example
+```typescript
+const response = await server.tools.botsWithMetadata();
+```
+
+## Error Handling
+
+All meeting management tools implement comprehensive error handling:
+
+```typescript
+try {
+  const response = await server.tools.someOperation(params);
+  // Handle success
+} catch (error) {
+  console.error("Operation failed:", error);
+  // Handle error appropriately
+}
+```
+
+## Best Practices
+
+1. **Bot Cleanup**: Always call `leaveMeeting` when a bot's presence is no longer needed
+2. **Data Management**: Regularly clean up meeting data using `deleteData`
+3. **Error Handling**: Implement proper error handling for all operations
+4. **Monitoring**: Use `botsWithMetadata` to monitor active bots and their status
+5. **Resource Management**: Keep track of active bots and their meeting participation 
