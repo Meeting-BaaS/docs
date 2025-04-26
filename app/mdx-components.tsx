@@ -1,3 +1,4 @@
+import { Accordion, Accordions } from '@/components/fumadocs/accordion';
 import { Callout } from '@/components/fumadocs/callout';
 import { Tabs as CustomTabs, Tab } from '@/components/fumadocs/tabs';
 import { Banner } from 'fumadocs-ui/components/banner';
@@ -31,6 +32,8 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         Card: Card,
         Cards: Cards,
         Banner: Banner,
+        Accordion: Accordion,
+        Accordions: Accordions,
 
         // Icons
         Server,

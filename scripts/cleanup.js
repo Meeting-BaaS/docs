@@ -14,6 +14,13 @@ const EXCLUDED_FILES = [
   `${UPDATES_DIR}/index.mdx`, // Keep main index
 ];
 
+// File patterns that should be preserved (newly created components and libraries)
+const PRESERVE_PATTERNS = [
+  'components/fumadocs/',
+  'lib/fumadocs/',
+  'app/mdx-components.tsx',
+];
+
 // Get all update-related files in the updates directory
 function getUpdateFiles() {
   try {
@@ -43,7 +50,10 @@ function getServiceArtifacts() {
 
     // Filter to keep only service-related files (personas, reference, etc.)
     const serviceArtifacts = untrackedFiles.filter(
-      (file) => file.includes('reference/') || file.includes('personas/'),
+      (file) =>
+        (file.includes('reference/') || file.includes('personas/')) &&
+        // Exclude any files that match preserve patterns
+        !PRESERVE_PATTERNS.some((pattern) => file.includes(pattern)),
     );
 
     console.log(`Found ${serviceArtifacts.length} service artifacts`);
@@ -63,7 +73,12 @@ function getModifiedFiles() {
       .trim()
       .split('\n')
       .filter(Boolean)
-      .filter((file) => !EXCLUDED_FILES.includes(file));
+      .filter(
+        (file) =>
+          !EXCLUDED_FILES.includes(file) &&
+          // Exclude any files that match preserve patterns
+          !PRESERVE_PATTERNS.some((pattern) => file.includes(pattern)),
+      );
 
     console.log(`Found ${allModified.length} modified files`);
     return allModified;
@@ -99,11 +114,19 @@ try {
   const serviceArtifacts = getServiceArtifacts();
   const modifiedFiles = getModifiedFiles();
 
-  // 2. Revert changes to modified files
+  // 2. Revert changes to modified files, but skip files with preserve patterns
   if (modifiedFiles.length > 0) {
     console.log('Restoring modified files:');
     modifiedFiles.forEach((file) => console.log(`- ${file}`));
-    execSync(`git restore ${modifiedFiles.join(' ')}`, { stdio: 'inherit' });
+
+    // Handle each file individually to avoid command line length issues
+    modifiedFiles.forEach((file) => {
+      try {
+        execSync(`git restore "${file}"`, { stdio: 'inherit' });
+      } catch (err) {
+        console.error(`Error restoring ${file}: ${err.message}`);
+      }
+    });
   }
 
   // 3. Handle speaking-bots-openapi.json separately (in case we want to keep it)
@@ -132,8 +155,14 @@ try {
   if (serviceArtifacts.length > 0) {
     console.log('Removing service artifacts:');
     serviceArtifacts.forEach((file) => console.log(`- ${file}`));
-    execSync(`git clean -fd ${serviceArtifacts.join(' ')}`, {
-      stdio: 'inherit',
+
+    // Handle each file individually
+    serviceArtifacts.forEach((file) => {
+      try {
+        execSync(`git clean -f "${file}"`, { stdio: 'inherit' });
+      } catch (err) {
+        console.error(`Error cleaning ${file}: ${err.message}`);
+      }
     });
   }
 
