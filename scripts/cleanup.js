@@ -19,6 +19,8 @@ const PRESERVE_PATTERNS = [
   'components/fumadocs/',
   'lib/fumadocs/',
   'app/mdx-components.tsx',
+  'components/accordion.tsx',
+  'components/tabs.tsx',
 ];
 
 // Get all update-related files in the updates directory
@@ -51,7 +53,10 @@ function getServiceArtifacts() {
     // Filter to keep only service-related files (personas, reference, etc.)
     const serviceArtifacts = untrackedFiles.filter(
       (file) =>
-        (file.includes('reference/') || file.includes('personas/')) &&
+        // Only include specific directories we know are related to updates
+        (file.startsWith('content/docs/updates/') ||
+          file.startsWith('content/docs/reference/') ||
+          file.startsWith('content/docs/personas/')) &&
         // Exclude any files that match preserve patterns
         !PRESERVE_PATTERNS.some((pattern) => file.includes(pattern)),
     );
@@ -75,6 +80,12 @@ function getModifiedFiles() {
       .filter(Boolean)
       .filter(
         (file) =>
+          // Only include files in update-related directories
+          (file.startsWith('content/docs/updates/') ||
+            file.startsWith('content/docs/reference/') ||
+            file.startsWith('content/docs/personas/') ||
+            file === 'speaking-bots-openapi.json' ||
+            file === META_JSON_PATH) &&
           !EXCLUDED_FILES.includes(file) &&
           // Exclude any files that match preserve patterns
           !PRESERVE_PATTERNS.some((pattern) => file.includes(pattern)),
