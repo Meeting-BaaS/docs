@@ -126,44 +126,60 @@ const capabilities = {
 
 ## Available Capabilities
 
-The server exposes the following tool categories:
-
 ### Meeting Management
-- `joinMeeting`
-- `leaveMeeting`
-- `getMeetingData`
-- `deleteData`
+
+<Cards cols={1}>
+  <Card title="Core Meeting Controls" icon="users">
+    - `joinMeeting`: Join meetings across supported platforms
+    - `leaveMeeting`: Gracefully exit active meetings
+    - `getMeetingData`: Retrieve comprehensive meeting information
+    - `deleteData`: Clean up meeting-related resources
+  </Card>
+</Cards>
 
 ### Calendar Management
-- `createCalendar`
-- `listCalendars`
-- `getCalendar`
-- `deleteCalendar`
-- `updateCalendar`
-- `resyncAllCalendars`
+
+<Cards cols={1}>
+  <Card title="Calendar Operations" icon="calendar">
+    - `createCalendar`: Set up new calendars with custom configurations
+    - `listCalendars`: View all available calendars
+    - `getCalendar`: Retrieve detailed calendar information
+    - `deleteCalendar`: Remove unused calendars
+    - `updateCalendar`: Modify existing calendar settings
+    - `resyncAllCalendars`: Force synchronization across platforms
+  </Card>
+</Cards>
 
 ### Bot Management
-- `botsWithMetadata`
+
+<Cards cols={1}>
+  <Card title="Bot Intelligence" icon="robot">
+    - `botsWithMetadata`: Access detailed bot information and analytics
+    - `joinSpeakingMeeting`: Enable voice interaction capabilities
+    - `leaveSpeakingMeeting`: Gracefully disconnect voice features
+  </Card>
+</Cards>
 
 ### Event Management
-- `listEvents`
-- `scheduleRecordEvent`
-- `unscheduleRecordEvent`
 
-### Speaking Bot Management
-- `joinSpeakingMeeting`
-- `leaveSpeakingMeeting`
+<Cards cols={1}>
+  <Card title="Event Orchestration" icon="calendar-check">
+    - `listEvents`: View all scheduled and ongoing events
+    - `scheduleRecordEvent`: Set up automated recording sessions
+    - `unscheduleRecordEvent`: Cancel planned recordings
+  </Card>
+</Cards>
 
-### Utility Tools
-- `echo`
+### Utility Features
 
-## Best Practices
-
-1. **Modular Registration**: Keep tool registrations modular and organized by category
-2. **Error Handling**: Implement proper error handling in the API handler
-3. **Capability Documentation**: Keep capability descriptions clear and concise
-4. **API Key Management**: Handle API keys securely
-5. **Logging**: Implement proper logging for debugging and monitoring
+<Cards cols={1}>
+  <Card title="System Utilities" icon="wrench">
+    - `echo`: Test connectivity and response handling
+    - Built-in error handling and logging
+    - Secure API key management
+    - Performance monitoring capabilities
+  </Card>
+</Cards>
 
 ## Example Usage
 
