@@ -1,26 +1,119 @@
-# my-app
+# Meeting BaaS Documentation
 
-This is a Next.js application generated with
-[Create Fumadocs](https://github.com/fuma-nama/fumadocs).
+This is a Next.js application using Fumadocs for generating and maintaining Meeting BaaS service documentation.
+
+## Development
 
 Run development server:
 
 ```bash
-npm run dev
-# or
+# Start development server
 pnpm dev
-# or
-yarn dev
+
+# Build for production
+pnpm build
 ```
 
 Open http://localhost:3000 with your browser to see the result.
 
-## Learn More
+## Documentation Updates
 
-To learn more about Next.js and Fumadocs, take a look at the following
-resources:
+The project includes several scripts for managing documentation updates:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js
-  features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-- [Fumadocs](https://fumadocs.vercel.app) - learn about Fumadocs
+### Git Diff Updates
+
+Updates are automatically generated from git diff files in the `git_greppers` directory. These updates include service-specific styling with colored icons in the sidebar.
+
+#### Basic Commands
+
+```bash
+# Clean all git update files
+pnpm clean:git-updates
+
+# Generate git diff updates
+pnpm test:git-updates
+
+# Setup git updates - cleans and regenerates
+pnpm setup:git-updates
+```
+
+#### Common Workflows
+
+1. **Full Rebuild (recommended for first run)**:
+
+   ```bash
+   # Transpile TypeScript, clean updates, generate all updates, run dev server
+   pnpm transpile && pnpm clean:git-updates && pnpm test:all-updates && pnpm dev
+   ```
+
+2. **Update After Code Changes**:
+
+   ```bash
+   # Transpile and regenerate all updates
+   pnpm transpile && pnpm test:all-updates
+   ```
+
+3. **Clean Start for Development**:
+   ```bash
+   # Clean everything, transpile, and run dev
+   pnpm clean && pnpm transpile && pnpm dev
+   ```
+
+### Service Updates
+
+Service updates track changes in specific service directories and generate appropriate documentation updates.
+
+```bash
+# Generate updates for services
+pnpm test:updates
+
+# Run all update generators (git diffs + services)
+pnpm test:all-updates
+
+# Clean updates but keep OpenAPI docs
+pnpm clean:updates:keep-openapi
+
+# Clean all updates
+pnpm clean:updates
+```
+
+### Other Scripts
+
+```bash
+# Transpile TypeScript files
+pnpm transpile
+
+# Run pre-build operations
+pnpm build:pre
+
+# Run post-build operations
+pnpm build:post
+
+# Run linting
+pnpm lint
+```
+
+## Project Structure
+
+```
+meeting-baas-docs/
+├── app/                # Next.js app directory
+├── content/
+│   └── docs/
+│       └── updates/    # Generated update files
+├── git_greppers/       # Git diff files used for updates
+│   ├── meeting-baas-git-diffs/
+│   ├── sdk-generator-git-diffs/
+│   └── ...
+├── scripts/
+│   └── updates/
+│       ├── templates/  # Templates for generated files
+│       │   ├── components/  # Directory for reusable components
+│       │   ├── git-updates.mdx.template
+│       │   ├── service-update.mdx.template
+│       │   └── index.mdx.template
+│       ├── generate-git-diff-updates.mts  # Git updates generator
+│       ├── generators.ts                 # Service updates generator
+│       └── ...
+└── ...
+```
