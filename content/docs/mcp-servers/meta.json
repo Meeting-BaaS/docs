@@ -9,7 +9,6 @@
     "vercel-mcp",
     "chat-mcp",
     "tools",
-    "integrations",
-    "updates"
+    "integrations"
   ]
 }

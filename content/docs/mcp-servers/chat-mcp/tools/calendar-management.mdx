@@ -1,113 +1,200 @@
 ---
 title: Calendar Management Tools
-description: Tools for managing calendar integrations and synchronization
+description: Tools for managing calendar integrations and synchronization with Google and Microsoft calendars
 icon: Calendar
 ---
 
-This section covers the tools available for managing calendar integrations, including creating, updating, and syncing calendars.
+This section covers the tools available for managing calendar integrations in your Meeting BaaS implementation. These tools enable you to create, manage, and synchronize calendar integrations for automated meeting recordings and bot scheduling.
 
-## createCalendar
+## Available Tools
 
-Creates a new calendar integration for automatic meeting recordings and bot scheduling.
+### createCalendar
 
-### Parameters
-- `oauthClientId` (string): OAuth client ID for the calendar service
-- `oauthClientSecret` (string): OAuth client secret for the calendar service
-- `oauthRefreshToken` (string): OAuth refresh token for authentication
-- `platform` (enum): Calendar platform ("Google" or "Microsoft")
-- `rawCalendarId` (string, optional): Specific calendar ID to integrate
+Creates a new calendar integration for your Meeting BaaS instance.
 
-### Example
+#### Use Cases
+- Setting up automatic meeting recordings
+- Configuring calendar-based bot scheduling
+- Enabling recurring meeting coverage
+
+#### Parameters
+- `oauthClientId` (string): OAuth client ID for authentication with the calendar service
+- `oauthClientSecret` (string): OAuth client secret for secure authentication
+- `oauthRefreshToken` (string): OAuth refresh token for maintaining persistent access
+- `platform` (enum): Calendar service provider, must be either "Google" or "Microsoft"
+- `rawCalendarId` (string, optional): Specific calendar ID to integrate. If not provided, defaults to primary calendar
+
+#### Response
+- Success: Returns a confirmation message indicating successful calendar creation
+- Error: Returns an error message if creation fails
+
+#### Example
 ```typescript
-const response = await server.tools.createCalendar({
-  oauthClientId: "client_id_here",
-  oauthClientSecret: "client_secret_here",
-  oauthRefreshToken: "refresh_token_here",
-  platform: "Google",
-  rawCalendarId: "primary"
-});
+try {
+  const response = await server.tools.createCalendar({
+    oauthClientId: "your_client_id",
+    oauthClientSecret: "your_client_secret",
+    oauthRefreshToken: "your_refresh_token",
+    platform: "Google",
+    rawCalendarId: "primary"
+  });
+  console.log("Calendar created successfully");
+} catch (error) {
+  console.error("Failed to create calendar:", error);
+}
 ```
 
-## listCalendars
+### listCalendars
 
-Retrieves a list of all configured calendar integrations.
+Retrieves a list of all configured calendar integrations in your system.
 
-### Parameters
-None
+#### Use Cases
+- Viewing all configured calendars
+- Checking calendar integration status
+- Managing multiple calendar integrations
 
-### Example
+#### Parameters
+None required
+
+#### Response
+- Success: Returns a JSON object containing all configured calendars
+- Error: Returns an error message if listing fails
+
+#### Example
 ```typescript
-const response = await server.tools.listCalendars();
+try {
+  const response = await server.tools.listCalendars();
+  console.log("Configured calendars:", response);
+} catch (error) {
+  console.error("Failed to list calendars:", error);
+}
 ```
 
-## getCalendar
+### getCalendar
 
-Retrieves details about a specific calendar integration.
+Retrieves detailed information about a specific calendar integration.
 
-### Parameters
-- `calendarId` (string): The unique identifier of the calendar
+#### Use Cases
+- Viewing specific calendar configuration
+- Checking individual calendar status
+- Verifying calendar settings
 
-### Example
+#### Parameters
+- `calendarId` (string): The unique identifier of the calendar to retrieve
+
+#### Response
+- Success: Returns detailed information about the requested calendar
+- Error: Returns an error message if retrieval fails
+
+#### Example
 ```typescript
-const response = await server.tools.getCalendar({
-  calendarId: "calendar-123-xyz"
-});
+try {
+  const response = await server.tools.getCalendar({
+    calendarId: "calendar-123-xyz"
+  });
+  console.log("Calendar details:", response);
+} catch (error) {
+  console.error("Failed to get calendar:", error);
+}
 ```
 
-## deleteCalendar
+### deleteCalendar
 
-Removes a calendar integration from the system.
+Removes a calendar integration from your system.
 
-### Parameters
+#### Use Cases
+- Removing unwanted calendar connections
+- Stopping automatic recordings for specific calendars
+- Cleaning up calendar integration data
+
+#### Parameters
 - `calendarId` (string): The unique identifier of the calendar to delete
 
-### Example
+#### Response
+- Success: Returns a confirmation of calendar deletion
+- Error: Returns an error message if deletion fails
+
+#### Example
 ```typescript
-const response = await server.tools.deleteCalendar({
-  calendarId: "calendar-123-xyz"
-});
+try {
+  const response = await server.tools.deleteCalendar({
+    calendarId: "calendar-123-xyz"
+  });
+  console.log("Calendar deleted successfully");
+} catch (error) {
+  console.error("Failed to delete calendar:", error);
+}
 ```
 
-## updateCalendar
+### updateCalendar
 
-Modifies an existing calendar integration's configuration.
+Updates an existing calendar integration's configuration.
 
-### Parameters
-- `calendarId` (string): The unique identifier of the calendar
-- `oauthClientId` (string): Updated OAuth client ID
-- `oauthClientSecret` (string): Updated OAuth client secret
-- `oauthRefreshToken` (string): Updated OAuth refresh token
-- `platform` (enum): Calendar platform ("Google" or "Microsoft")
+#### Use Cases
+- Modifying calendar settings
+- Updating connection details
+- Changing calendar configuration
 
-### Example
+#### Parameters
+- `calendarId` (string): The unique identifier of the calendar to update
+- `oauthClientId` (string): Updated OAuth client ID for authentication
+- `oauthClientSecret` (string): Updated OAuth client secret for secure authentication
+- `oauthRefreshToken` (string): Updated OAuth refresh token for maintaining persistent access
+- `platform` (enum): Calendar service provider, must be either "Google" or "Microsoft"
+
+#### Response
+- Success: Returns a confirmation message indicating successful calendar update
+- Error: Returns an error message if update fails
+
+#### Example
 ```typescript
-const response = await server.tools.updateCalendar({
-  calendarId: "calendar-123-xyz",
-  oauthClientId: "new_client_id",
-  oauthClientSecret: "new_client_secret",
-  oauthRefreshToken: "new_refresh_token",
-  platform: "Google"
-});
+try {
+  const response = await server.tools.updateCalendar({
+    calendarId: "calendar-123-xyz",
+    oauthClientId: "updated_client_id",
+    oauthClientSecret: "updated_client_secret",
+    oauthRefreshToken: "updated_refresh_token",
+    platform: "Google"
+  });
+  console.log("Calendar updated successfully");
+} catch (error) {
+  console.error("Failed to update calendar:", error);
+}
 ```
 
-## resyncAllCalendars
+### resyncAllCalendars
 
-Forces a synchronization of all configured calendars to update their data.
+Forces a synchronization of all configured calendar integrations.
 
-### Parameters
-None
+#### Use Cases
+- Updating calendar data manually
+- Fixing synchronization issues
+- Refreshing all calendar connections
 
-### Example
+#### Parameters
+None required
+
+#### Response
+- Success: Returns a confirmation of successful resynchronization
+- Error: Returns an error message if resync fails
+
+#### Example
 ```typescript
-const response = await server.tools.resyncAllCalendars();
+try {
+  const response = await server.tools.resyncAllCalendars();
+  console.log("All calendars resynced successfully");
+} catch (error) {
+  console.error("Failed to resync calendars:", error);
+}
 ```
 
 ## Error Handling
 
-Calendar operations include comprehensive error handling:
+All calendar management tools include comprehensive error handling. It's recommended to implement try-catch blocks when using these tools:
 
 ```typescript
 try {
+  // Calendar operation
   const response = await server.tools.calendarOperation(params);
   // Handle success
 } catch (error) {

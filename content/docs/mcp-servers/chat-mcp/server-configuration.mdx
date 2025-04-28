@@ -1,28 +1,30 @@
 ---
 title: Server Configuration
-description: Configure and initialize the Chat MCP server
+description: A comprehensive guide to configuring and initializing the Chat MCP server
 icon: Settings
 ---
 
-This section covers how to configure and initialize the Chat MCP server, including setting up the API handler and registering available tools.
+This comprehensive guide covers the setup, configuration, and initialization of the Chat MCP server, including detailed explanations of API handler setup, tool registration, and available capabilities.
 
 ## API Handler Setup
 
-The Chat MCP server uses a centralized API handler to manage all tool registrations and capabilities. Here's how to set it up:
+The Chat MCP server utilizes a centralized API handler to manage tool registrations and server capabilities. Below is a detailed explanation of how to set up the API handler:
 
 ```typescript
 import { initializeMcpApiHandler } from "../lib/mcp-api-handler";
 import registerTools from "./tools";
 
 const handler = initializeMcpApiHandler(
+  // Tool Registration Callback
   (server, apiKey) => {
     // Register Meeting BaaS SDK tools with the provided API key
     server = registerTools(server, apiKey);
   },
+  // Server Capabilities Configuration
   {
     capabilities: {
       tools: {
-        // Meeting Management
+        // Meeting Management Tools
         joinMeeting: {
           description: "Join's a meeting using the MeetingBaas api",
         },
@@ -36,7 +38,7 @@ const handler = initializeMcpApiHandler(
           description: "Delete meeting data using the MeetingBaas api",
         },
 
-        // Calendar Management
+        // Calendar Management Tools
         createCalendar: {
           description: "Create a calendar using the MeetingBaas api",
         },
@@ -56,12 +58,12 @@ const handler = initializeMcpApiHandler(
           description: "Resync all calendars using the MeetingBaas api",
         },
 
-        // Bot Management
+        // Bot Management Tools
         botsWithMetadata: {
           description: "Get bots with metadata using the MeetingBaas api",
         },
 
-        // Event Management
+        // Event Management Tools
         listEvents: {
           description: "List events using the MeetingBaas api",
         },
@@ -72,7 +74,7 @@ const handler = initializeMcpApiHandler(
           description: "Unschedule a recording using the MeetingBaas api",
         },
 
-        // Speaking Bot Management
+        // Speaking Bot Management Tools
         joinSpeakingMeeting: {
           description: "Join a speaking meeting using the MeetingBaas api",
         },
@@ -82,7 +84,7 @@ const handler = initializeMcpApiHandler(
 
         // Utility Tools
         echo: {
-          description: "Echo a message",
+          description: "Echo a message for testing purposes",
         },
       },
     },
@@ -94,18 +96,20 @@ export default handler;
 
 ## Server Initialization
 
-The server initialization process involves several steps:
+The server initialization process consists of three crucial steps:
 
-1. **Import Dependencies**
+### 1. Import Required Dependencies
+
 ```typescript
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
 import { initializeMcpApiHandler } from "../lib/mcp-api-handler";
 ```
 
-2. **Create Tool Registration Function**
+### 2. Create Tool Registration Function
+
 ```typescript
 function registerTools(server: McpServer, apiKey: string): McpServer {
-  // Register various tool categories
+  // Register tools by category
   server = registerMeetingTools(server, apiKey);
   server = registerCalendarTools(server, apiKey);
   server = registerSpeakingTools(server, apiKey);
@@ -115,94 +119,245 @@ function registerTools(server: McpServer, apiKey: string): McpServer {
 }
 ```
 
-3. **Configure Capabilities**
-```typescript
-const capabilities = {
-  tools: {
-    // Tool definitions as shown above
-  }
-};
-```
-
 ## Available Capabilities
 
 ### Meeting Management
 
-<Cards cols={1}>
-  <Card title="Core Meeting Controls" icon="users">
-    - `joinMeeting`: Join meetings across supported platforms
-    - `leaveMeeting`: Gracefully exit active meetings
-    - `getMeetingData`: Retrieve comprehensive meeting information
-    - `deleteData`: Clean up meeting-related resources
-  </Card>
-</Cards>
+<Card title="Core Meeting Controls" icon="users">
+  <div className="space-y-4">
+    <div className="border-b pb-4">
+      <h4 className="font-semibold text-lg mb-2">Join Meeting (`joinMeeting`)</h4>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>Enables seamless participant joining across multiple meeting platforms</li>
+        <li>Handles secure authentication and connection setup</li>
+        <li>Supports various meeting providers (Zoom, Teams, etc.)</li>
+      </ul>
+    </div>
+
+    <div className="border-b pb-4">
+      <h4 className="font-semibold text-lg mb-2">Leave Meeting (`leaveMeeting`)</h4>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>Provides graceful exit handling from active meetings</li>
+        <li>Ensures proper cleanup of session resources</li>
+        <li>Manages participant departure notifications</li>
+      </ul>
+    </div>
+
+    <div className="border-b pb-4">
+      <h4 className="font-semibold text-lg mb-2">Meeting Data (`getMeetingData`)</h4>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>Retrieves comprehensive meeting information and analytics</li>
+        <li>Includes detailed participant data and engagement metrics</li>
+        <li>Provides meeting duration and technical statistics</li>
+      </ul>
+    </div>
+
+    <div>
+      <h4 className="font-semibold text-lg mb-2">Data Cleanup (`deleteData`)</h4>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>Manages efficient meeting resource cleanup</li>
+        <li>Ensures data privacy and GDPR compliance</li>
+        <li>Optimizes storage through automated cleanup processes</li>
+      </ul>
+    </div>
+  </div>
+</Card>
 
 ### Calendar Management
 
-<Cards cols={1}>
-  <Card title="Calendar Operations" icon="calendar">
-    - `createCalendar`: Set up new calendars with custom configurations
-    - `listCalendars`: View all available calendars
-    - `getCalendar`: Retrieve detailed calendar information
-    - `deleteCalendar`: Remove unused calendars
-    - `updateCalendar`: Modify existing calendar settings
-    - `resyncAllCalendars`: Force synchronization across platforms
-  </Card>
-</Cards>
+<Card title="Calendar Operations" icon="calendar">
+  <div className="space-y-4">
+    <div className="border-b pb-4">
+      <h4 className="font-semibold text-lg mb-2">Calendar Creation and Setup</h4>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>
+          Create Calendar (`createCalendar`)
+          <ul className="list-circle pl-6 mt-1">
+            <li>Set up new calendars with custom configurations</li>
+            <li>Define calendar properties and access controls</li>
+            <li>Configure timezone and availability settings</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <div className="border-b pb-4">
+      <h4 className="font-semibold text-lg mb-2">Calendar Management Tools</h4>
+      <ul className="list-disc pl-6 space-y-2">
+        <li>
+          List Calendars (`listCalendars`)
+          <ul className="list-circle pl-6 mt-1">
+            <li>View all available calendars with filtering options</li>
+            <li>Sort and organize calendar listings</li>
+          </ul>
+        </li>
+        <li>
+          Calendar Details (`getCalendar`)
+          <ul className="list-circle pl-6 mt-1">
+            <li>Access detailed calendar information and settings</li>
+            <li>View calendar permissions and sharing status</li>
+          </ul>
+        </li>
+        <li>
+          Calendar Updates (`updateCalendar`)
+          <ul className="list-circle pl-6 mt-1">
+            <li>Modify existing calendar configurations</li>
+            <li>Update access controls and sharing settings</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <div>
+      <h4 className="font-semibold text-lg mb-2">Synchronization Features</h4>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>
+          Full Sync (`resyncAllCalendars`)
+          <ul className="list-circle pl-6 mt-1">
+            <li>Force synchronization across all connected platforms</li>
+            <li>Ensure data consistency and real-time updates</li>
+            <li>Resolve conflicts and maintain data integrity</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</Card>
 
 ### Bot Management
 
-<Cards cols={1}>
-  <Card title="Bot Intelligence" icon="robot">
-    - `botsWithMetadata`: Access detailed bot information and analytics
-    - `joinSpeakingMeeting`: Enable voice interaction capabilities
-    - `leaveSpeakingMeeting`: Gracefully disconnect voice features
-  </Card>
-</Cards>
+<Card title="Bot Intelligence" icon="robot">
+  <div className="space-y-4">
+    <div className="border-b pb-4">
+      <h4 className="font-semibold text-lg mb-2">Bot Information Management</h4>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>
+          Metadata Access (`botsWithMetadata`)
+          <ul className="list-circle pl-6 mt-1">
+            <li>Retrieve comprehensive bot information and status</li>
+            <li>Access real-time performance analytics</li>
+            <li>Monitor bot health and activity metrics</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <div>
+      <h4 className="font-semibold text-lg mb-2">Voice Integration Features</h4>
+      <ul className="list-disc pl-6 space-y-2">
+        <li>
+          Meeting Voice Control
+          <ul className="list-circle pl-6 mt-1">
+            <li>`joinSpeakingMeeting`: Initialize voice interaction capabilities</li>
+            <li>`leaveSpeakingMeeting`: Gracefully terminate voice sessions</li>
+            <li>Real-time voice processing and response handling</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</Card>
 
 ### Event Management
 
-<Cards cols={1}>
-  <Card title="Event Orchestration" icon="calendar-check">
-    - `listEvents`: View all scheduled and ongoing events
-    - `scheduleRecordEvent`: Set up automated recording sessions
-    - `unscheduleRecordEvent`: Cancel planned recordings
-  </Card>
-</Cards>
+<Card title="Event Orchestration" icon="calendar-check">
+  <div className="space-y-4">
+    <div className="border-b pb-4">
+      <h4 className="font-semibold text-lg mb-2">Event Management Tools</h4>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>
+          Event Listing (`listEvents`)
+          <ul className="list-circle pl-6 mt-1">
+            <li>Comprehensive view of all scheduled and ongoing events</li>
+            <li>Advanced filtering and sorting capabilities</li>
+            <li>Real-time event status monitoring</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <div>
+      <h4 className="font-semibold text-lg mb-2">Recording Management</h4>
+      <ul className="list-disc pl-6 space-y-2">
+        <li>
+          Schedule Management
+          <ul className="list-circle pl-6 mt-1">
+            <li>`scheduleRecordEvent`: Configure automated recording sessions</li>
+            <li>`unscheduleRecordEvent`: Modify or cancel planned recordings</li>
+            <li>Manage recording settings and storage options</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</Card>
 
 ### Utility Features
 
-<Cards cols={1}>
-  <Card title="System Utilities" icon="wrench">
-    - `echo`: Test connectivity and response handling
-    - Built-in error handling and logging
-    - Secure API key management
-    - Performance monitoring capabilities
-  </Card>
-</Cards>
+<Card title="System Utilities" icon="wrench">
+  <div className="space-y-4">
+    <div className="border-b pb-4">
+      <h4 className="font-semibold text-lg mb-2">System Health Monitoring</h4>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>
+          Connectivity Testing (`echo`)
+          <ul className="list-circle pl-6 mt-1">
+            <li>Real-time system connectivity verification</li>
+            <li>Response time monitoring and latency checks</li>
+            <li>Service availability testing</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
 
-## Example Usage
+    <div className="border-b pb-4">
+      <h4 className="font-semibold text-lg mb-2">Security Features</h4>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>Secure API key management and rotation</li>
+        <li>Authentication and authorization handling</li>
+        <li>Access control and permission management</li>
+      </ul>
+    </div>
 
-Here's how to use the configured server in your application:
+    <div>
+      <h4 className="font-semibold text-lg mb-2">Performance Monitoring</h4>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>Resource utilization tracking and optimization</li>
+        <li>System metrics and analytics</li>
+        <li>Performance bottleneck identification</li>
+      </ul>
+    </div>
+  </div>
+</Card>
+
+## Implementation Example 
+
+Here's a complete example demonstrating how to implement and use the configured server in your application:
 
 ```typescript
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
 import handler from "./handler";
 
 async function setupServer() {
+  // Initialize the MCP server instance
   const server = new McpServer();
+  
+  // Retrieve API key from environment variables
   const apiKey = process.env.MEETING_BAAS_API_KEY;
 
-  // Initialize handler with server and API key
+  // Initialize the handler with server and API key
   await handler.initialize(server, apiKey);
 
   return server;
 }
 
-// Start the server
-setupServer().then((server) => {
-  console.log("MCP server initialized with all capabilities");
-}).catch((error) => {
-  console.error("Failed to initialize MCP server:", error);
-});
-``` 
+// Start the server with error handling
+setupServer()
+  .then((server) => {
+    console.log("✅ MCP server successfully initialized with all capabilities");
+  })
+  .catch((error) => {
+    console.error("❌ Failed to initialize MCP server:", error);
+    process.exit(1);
+  });
+```

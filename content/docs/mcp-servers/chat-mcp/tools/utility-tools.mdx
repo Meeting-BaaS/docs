@@ -1,26 +1,46 @@
 ---
 title: Utility Tools
-description: Utility tools for testing and debugging
+description: Essential utility tools for testing, debugging, and system maintenance
 icon: Wrench
 ---
 
-This section covers utility tools that help with testing, debugging, and basic operations.
+The MCP (Model Context Protocol) server provides a set of utility tools designed to facilitate testing, debugging, and basic system operations. These tools are essential for developers to ensure proper functionality and maintain their MCP server implementations.
 
-## echo
+## Available Tools
 
-A simple utility tool that echoes back the provided message. Useful for testing the MCP server functionality and connectivity.
+### Echo Tool
 
-### Parameters
-- `message` (string): The message to echo back
+The Echo tool is a fundamental utility that provides a simple way to verify server connectivity and test basic functionality. It reflects back any message sent to it, making it ideal for testing and debugging purposes.
 
-### Example
-```typescript
-const response = await server.tools.echo({
-  message: "Hello, MCP!"
-});
-```
+#### Purpose and Use Cases
 
-### Response
+1. **Server Verification**
+   - Test initial server setup and configuration
+   - Verify server responsiveness
+   - Debug communication channels
+
+2. **Health Monitoring**
+   - Implement basic health checks
+   - Monitor server latency
+   - Validate message passing functionality
+
+3. **Development and Testing**
+   - Debug message formatting
+   - Test error handling
+   - Verify client-server communication
+
+#### Technical Specification
+
+##### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `message` | string | Yes | The message to be echoed back by the server |
+
+##### Response Format
+
+The Echo tool returns a response in the following structure:
+
 ```typescript
 interface EchoResponse {
   content: Array<{
@@ -30,21 +50,9 @@ interface EchoResponse {
 }
 ```
 
-### Example Response
-```json
-{
-  "content": [
-    {
-      "type": "text",
-      "text": "Tool echo: Hello, MCP!"
-    }
-  ]
-}
-```
+#### Implementation Guide
 
-## Implementation
-
-Here's how to implement the Echo tool in your MCP server:
+Below is a complete implementation example of the Echo tool using the MCP SDK:
 
 ```typescript
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
@@ -69,38 +77,52 @@ export function registerEchoTool(server: McpServer): McpServer {
 }
 ```
 
-## Use Cases
+#### Usage Examples
 
-1. **Testing Server Setup**: Verify that your MCP server is properly configured
-2. **Connection Testing**: Check if the communication between client and server is working
-3. **Debugging**: Use as a simple way to debug message passing
-4. **Health Checks**: Implement basic health checks in your application
+1. **Basic Echo Test**
+```typescript
+const response = await server.tools.echo({
+  message: "Hello, MCP!"
+});
 
+// Expected Response:
+// {
+//   "content": [
+//     {
+//       "type": "text",
+//       "text": "Tool echo: Hello, MCP!"
+//     }
+//   ]
+// }
+```
 
-## Integration Example
-
-Here's a complete example of using the Echo tool in your application:
-
+2. **Integration Example**
 ```typescript
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
 
-// Initialize server
+// Initialize MCP server
 const server = new McpServer();
 
-// Register echo tool
+// Register the echo tool
 registerEchoTool(server);
 
-// Example usage
-async function testEcho() {
+// Example usage with error handling
+async function testEchoTool() {
   try {
     const response = await server.tools.echo({
       message: "Testing MCP server connection"
     });
     
-    console.log(response.content[0].text);
-    // Output: "Tool echo: Testing MCP server connection"
+    console.log("Echo response:", response.content[0].text);
+    return response;
   } catch (error) {
     console.error("Echo test failed:", error);
+    throw error;
   }
 }
-``` 
+
+// Execute the test
+testEchoTool()
+  .then(() => console.log("Echo test completed successfully"))
+  .catch(() => console.log("Echo test failed"));
+```

@@ -1,95 +1,185 @@
 ---
 title: Meeting Management Tools
-description: Tools for managing meeting operations and bot interactions
+description: Comprehensive guide for managing meetings and bot interactions in the Meeting Control Platform
 icon: Video
 ---
 
-This section covers the tools available for managing meetings, including joining and leaving meetings, retrieving meeting data, and managing bot interactions.
+The Meeting Management Tools provide a robust set of functionalities for controlling and managing meeting operations through AI bots. These tools enable seamless integration of AI assistants into meetings, allowing them to join, participate, collect data, and manage meeting resources effectively.
 
-## joinSpeaking
+## Available Tools
 
-Joins a meeting with speaking capabilities. This tool allows an AI bot to join a meeting with the ability to speak and interact.
+### 1. joinSpeaking
 
-### Parameters
-- `meetingUrl` (string): The URL of the meeting to join
-- `botName` (string): Name of the bot that will join the meeting
-- `extra` (object, optional): Additional configuration parameters
+**Purpose**: Enables an AI bot to join a meeting with full speaking capabilities, allowing real-time voice interaction.
 
-### Example
+#### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `meetingUrl` | string | Yes | The URL of the meeting to join |
+| `botName` | string | Yes | Display name for the bot in the meeting |
+| `extra` | object | No | Additional configuration options |
+
+#### Example Usage
+
 ```typescript
-const response = await server.tools.joinSpeaking({
-  meetingUrl: "https://meet.example.com/123",
-  botName: "Assistant Bot",
-  extra: {
-    role: "note-taker"
-  }
-});
+try {
+  const response = await server.tools.joinSpeaking({
+    meetingUrl: "https://meet.example.com/123",
+    botName: "Assistant Bot",
+    extra: {
+      role: "note-taker",
+      capabilities: ["transcription", "recording"]
+    }
+  });
+  console.log("Bot joined successfully:", response);
+} catch (error) {
+  console.error("Failed to join meeting:", error);
+}
 ```
 
-## leaveMeeting
+#### Response
+The tool returns a response object containing:
+- `botId`: Unique identifier for the bot instance
+- `status`: Current connection status
+- `joinedAt`: Timestamp of when the bot joined
 
-Removes an AI bot from a meeting. Use this when you want to end recording, stop transcription, or disconnect the bot.
+### 2. leaveMeeting
 
-### Parameters
-- `botId` (string): The unique identifier of the bot to remove
+**Purpose**: Gracefully removes an AI bot from an active meeting, ensuring proper cleanup of resources.
 
-### Example
+#### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `botId` | string | Yes | Unique identifier of the bot to remove |
+
+#### Example Usage
+
 ```typescript
-const response = await server.tools.leaveMeeting({
-  botId: "bot-123-xyz"
-});
+try {
+  const response = await server.tools.leaveMeeting({
+    botId: "bot-123-xyz"
+  });
+  console.log("Bot left successfully:", response);
+} catch (error) {
+  console.error("Failed to leave meeting:", error);
+}
 ```
 
-## getMeetingData
+### 3. getMeetingData
 
-Retrieves data about a meeting that a bot has joined, including status, recording information, and transcription data.
+**Purpose**: Retrieves comprehensive meeting data including transcriptions, recordings, and bot status information.
 
-### Parameters
-- `botId` (string): The unique identifier of the bot in the meeting
+#### Parameters
 
-### Example
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `botId` | string | Yes | Bot identifier to fetch associated meeting data |
+
+#### Example Usage
+
 ```typescript
-const response = await server.tools.getMeetingData({
-  botId: "bot-123-xyz"
-});
+try {
+  const meetingData = await server.tools.getMeetingData({
+    botId: "bot-123-xyz"
+  });
+  console.log("Meeting data retrieved:", meetingData);
+} catch (error) {
+  console.error("Failed to fetch meeting data:", error);
+}
 ```
 
-## deleteData
-
-Deletes data associated with a meeting bot, including recordings and transcription data.
-
-### Parameters
-- `botId` (string): The unique identifier of the bot whose data should be deleted
-
-### Example
+#### Response Structure
 ```typescript
-const response = await server.tools.deleteData({
-  botId: "bot-123-xyz"
-});
+interface MeetingData {
+  meetingId: string;
+  status: 'active' | 'ended';
+  duration: number;
+  participants: number;
+  transcription?: {
+    text: string;
+    timestamp: number;
+  }[];
+  recording?: {
+    url: string;
+    duration: number;
+    format: string;
+  };
+}
 ```
 
-## botsWithMetadata
+### 4. deleteData
 
-Retrieves a list of all bots with their associated metadata, useful for monitoring bot activity and status.
+**Purpose**: Permanently removes all data associated with a specific bot instance, including recordings and transcriptions.
 
-### Parameters
-None
+#### Parameters
 
-### Example
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `botId` | string | Yes | Identifier of the bot whose data should be deleted |
+
+#### Example Usage
+
 ```typescript
-const response = await server.tools.botsWithMetadata();
+try {
+  await server.tools.deleteData({
+    botId: "bot-123-xyz"
+  });
+  console.log("Data deleted successfully");
+} catch (error) {
+  console.error("Failed to delete data:", error);
+}
+```
+
+### 5. botsWithMetadata
+
+**Purpose**: Retrieves a comprehensive list of all active bots and their associated metadata.
+
+#### Parameters
+This tool takes no parameters.
+
+#### Example Usage
+
+```typescript
+try {
+  const botsList = await server.tools.botsWithMetadata();
+  console.log("Active bots:", botsList);
+} catch (error) {
+  console.error("Failed to fetch bots:", error);
+}
+```
+
+#### Response Structure
+```typescript
+interface BotMetadata {
+  botId: string;
+  name: string;
+  status: 'active' | 'inactive';
+  joinedAt: string;
+  meetingUrl: string;
+  capabilities: string[];
+}
 ```
 
 ## Error Handling
 
-All meeting management tools implement comprehensive error handling:
+All tools implement robust error handling with specific error types:
 
 ```typescript
 try {
-  const response = await server.tools.someOperation(params);
-  // Handle success
+  const result = await server.tools.someOperation(params);
+  // Handle success case
 } catch (error) {
-  console.error("Operation failed:", error);
-  // Handle error appropriately
+  if (error instanceof MeetingConnectionError) {
+    // Handle connection issues
+    console.error("Connection failed:", error.message);
+  } else if (error instanceof AuthenticationError) {
+    // Handle authentication issues
+    console.error("Authentication failed:", error.message);
+  } else {
+    // Handle other types of errors
+    console.error("Operation failed:", error);
+  }
 }
 ```
