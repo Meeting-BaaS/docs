@@ -1,0 +1,131 @@
+#KEY#DATE# 2025-04-22
+#KEY#MAX_DIFF_LINES# 100
+#KEY#EXCLUDES# pnpm.lock, TypeScript build files, Rust build files
+
+#KEY#START_COMMIT#
+=================================================================
+#KEY#COMMIT_HASH# 2dd5c40809a73cbb5d848f302db1276d5cc9b549
+#KEY#COMMIT_DATE# 2025-04-22 09:10:24 -0500
+#KEY#COMMIT_AUTHOR# Malte Ubl
+#KEY#COMMIT_MESSAGE# Stateless MCP (#7)
+#KEY#RELATED_PR_MR# None found
+
+#KEY#CHANGED_FILES#
+- api/server.ts
+- package.json
+- tsconfig.json
+
+#KEY#DIFF_RANGE# FROM: 88c3703c0b7aa3ab7035d107c58c64ff08860216 TO: 2dd5c40809a73cbb5d848f302db1276d5cc9b549
+=================================================================
+
+#KEY#GIT_DIFF#
+
+diff --git a/api/server.ts b/api/server.ts
+index 60aa960..3459a78 100644
+--- a/api/server.ts
++++ b/api/server.ts
+@@ -1,67 +1,22 @@
+-import { BaasClient, MpcClient } from "@meeting-baas/sdk";
+ import { z } from "zod";
+ import { initializeMcpApiHandler } from "../lib/mcp-api-handler";
+ 
+-// Initialize the BaaS client
+-const baasClient = new BaasClient({
+-  apiKey: process.env.MEETING_BAAS_API_KEY || "",
+-});
+-
+-// Initialize MPC client for tool registration
+-const mpcClient = new MpcClient({
+-  serverUrl: process.env.MPC_SERVER_URL || "",
+-});
+-
+-interface ToolParameter {
+-  name: string;
+-  required?: boolean;
+-  schema?: {
+-    type: string;
+-  };
+-}
+-
+-// Helper function to convert MPC parameter definition to Zod schema
+-function convertToZodSchema(parameters: ToolParameter[]): z.ZodRawShape {
+-  const schema: z.ZodRawShape = {};
+-  for (const param of parameters) {
+-    if (param.required) {
+-      schema[param.name] = z.string(); // Default to string for now, can be expanded based on param.schema.type
+-    } else {
+-      schema[param.name] = z.string().optional();
+-    }
+-  }
+-  return schema;
+-}
+-
+ const handler = initializeMcpApiHandler(
+-  async (server) => {
+-    // Register all Meeting BaaS tools automatically
+-    const tools = mpcClient.getRegisteredTools();
+-    for (const tool of tools) {
+-      const paramsSchema = convertToZodSchema(tool.parameters || []);
+-      server.tool(tool.name, paramsSchema, async (params) => {
+-        // Handle tool execution here
+-        return {
+-          content: [{ type: "text", text: `Tool ${tool.name} executed` }],
+-        };
+-      });
+-    }
+-
+-    // Keep the existing echo tool as an example
++  (server) => {
++    // Add more tools, resources, and prompts here
+     server.tool("echo", { message: z.string() }, async ({ message }) => ({
+       content: [{ type: "text", text: `Tool echo: ${message}` }],
+     }));
+   },
+   {
+     capabilities: {
+       tools: {
+         echo: {
+           description: "Echo a message",
+         },
+-        // Meeting BaaS tools will be automatically added to capabilities
+       },
+     },
+   }
+ );
+ 
+ export default handler;
+diff --git a/package.json b/package.json
+index 5b4c25c..4d6d926 100644
+--- a/package.json
++++ b/package.json
+@@ -1,26 +1,23 @@
+ {
+   "name": "mcp-on-vercel",
+   "version": "1.0.0",
+   "description": "",
+   "main": "index.js",
+   "scripts": {
+-    "test": "echo \"Error: no test specified\" && exit 1",
+-    "build": "tsc"
++    "test": "echo \"Error: no test specified\" && exit 1"
+   },
+   "keywords": [],
+   "author": "",
+   "license": "ISC",
+   "packageManager": "pnpm@8.15.7+sha512.c85cd21b6da10332156b1ca2aa79c0a61ee7ad2eb0453b88ab299289e9e8ca93e6091232b25c07cbf61f6df77128d9c849e5c9ac6e44854dbd211c49f3a67adc",
+   "dependencies": {
+-    "@meeting-baas/sdk": "^0.2.0",
+-    "@modelcontextprotocol/sdk": "^1.6.1",
++    "@modelcontextprotocol/sdk": "^1.10.2",
+     "content-type": "^1.0.5",
+     "raw-body": "^3.0.0",
+     "redis": "^4.7.0",
+     "zod": "^3.24.2"
+   },
+   "devDependencies": {
+-    "@types/node": "^20.11.24",
+-    "@types/content-type": "^1.0.5"
++    "@types/node": "^22.13.10"
+   }
+ }
+#KEY#END_COMMIT#

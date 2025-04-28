@@ -1,0 +1,190 @@
+#KEY#DATE# 2025-03-10
+#KEY#MAX_DIFF_LINES# 100
+#KEY#EXCLUDES# pnpm.lock, TypeScript build files, Rust build files
+
+#KEY#START_COMMIT#
+=================================================================
+#KEY#COMMIT_HASH# d44c0c5baa0931414b166546bc45ac97d15ce460
+#KEY#COMMIT_DATE# 2025-03-10 18:49:31 -0700
+#KEY#COMMIT_AUTHOR# Malte Ubl
+#KEY#COMMIT_MESSAGE# Formatting
+#KEY#RELATED_PR_MR# None found
+
+#KEY#CHANGED_FILES#
+- lib/mcp-api-handler.ts
+
+#KEY#DIFF_RANGE# FROM: 5f1a5611cfaff3aeb4b264d3adc14e58d02413b8 TO: d44c0c5baa0931414b166546bc45ac97d15ce460
+=================================================================
+
+#KEY#GIT_DIFF#
+
+diff --git a/lib/mcp-api-handler.ts b/lib/mcp-api-handler.ts
+index 1319841..87d97c6 100644
+--- a/lib/mcp-api-handler.ts
++++ b/lib/mcp-api-handler.ts
+@@ -120,160 +120,164 @@ export function initializeMcpApiHandler(
+           logInContext(
+             "log",
+             `Request ${sessionId}:${request.requestId} succeeded: ${body}`
+           );
+         } else {
+           logInContext(
+             "error",
+             `Message for ${sessionId}:${request.requestId} failed with status ${status}: ${body}`
+           );
+         }
+       };
+ 
+       const interval = setInterval(() => {
+         for (const log of logs) {
+           console[log.type].call(console, ...log.messages);
+         }
+         logs = [];
+       }, 100);
+ 
+       await redis.subscribe(`requests:${sessionId}`, handleMessage);
+       console.log(`Subscribed to requests:${sessionId}`);
+ 
+       let timeout: NodeJS.Timeout;
+       let resolveTimeout: (value: unknown) => void;
+       const waitPromise = new Promise((resolve) => {
+         resolveTimeout = resolve;
+         timeout = setTimeout(() => {
+           resolve("max duration reached");
+         }, (maxDuration - 5) * 1000);
+       });
+ 
+       async function cleanup() {
+         clearTimeout(timeout);
+         clearInterval(interval);
+         await redis.unsubscribe(`requests:${sessionId}`, handleMessage);
+         console.log("Done");
+         res.statusCode = 200;
+         res.end();
+       }
+       req.on("close", () => resolveTimeout("client hang up"));
+ 
+       await server.connect(transport);
+       const closeReason = await waitPromise;
+       console.log(closeReason);
+       await cleanup();
+     } else if (url.pathname === "/message") {
+       console.log("Received message");
+ 
+       const body = await getRawBody(req, {
+         length: req.headers["content-length"],
+         encoding: "utf-8",
+       });
+ 
+       const sessionId = url.searchParams.get("sessionId") || "";
+       if (!sessionId) {
+         res.statusCode = 400;
+         res.end("No sessionId provided");
+         return;
+       }
+       const requestId = crypto.randomUUID();
+       const serializedRequest: SerializedRequest = {
+         requestId,
+         url: req.url || "",
+         method: req.method || "",
+         body: body,
+         headers: req.headers,
+       };
+ 
+       // Handles responses from the /sse endpoint.
+       await redis.subscribe(
+         `responses:${sessionId}:${requestId}`,
+         (message) => {
+           clearTimeout(timeout);
+           const response = JSON.parse(message) as {
+             status: number;
+             body: string;
+           };
+           res.statusCode = response.status;
+           res.end(response.body);
+         }
+       );
+ 
+       // Queue the request in Redis so that a subscriber can pick it up.
+       // One queue per session.
+       await redisPublisher.publish(
+         `requests:${sessionId}`,
+         JSON.stringify(serializedRequest)
+       );
+       console.log(`Published requests:${sessionId}`, serializedRequest);
+ 
+       let timeout = setTimeout(async () => {
+         await redis.unsubscribe(`responses:${sessionId}:${requestId}`);
+         res.statusCode = 408;
+         res.end("Request timed out");
+       }, 10 * 1000);
+ 
+       res.on("close", async () => {
+         clearTimeout(timeout);
+         await redis.unsubscribe(`responses:${sessionId}:${requestId}`);
+       });
++    } else if (url.pathname === "/") {
++    } else if (url.pathname === "/") {
++      res.statusCode = 200;
++      res.end("Hello, world!");
+     } else {
+       res.statusCode = 404;
+       res.end("Not found");
+     }
+   };
+ }
+ 
+ // Define the options interface
+ interface FakeIncomingMessageOptions {
+   method?: string;
+   url?: string;
+   headers?: IncomingHttpHeaders;
+   body?: string | Buffer | Record<string, any> | null;
+   socket?: Socket;
+ }
+ 
+ // Create a fake IncomingMessage
+ function createFakeIncomingMessage(
+   options: FakeIncomingMessageOptions = {}
+ ): IncomingMessage {
+   const {
+     method = "GET",
+     url = "/",
+     headers = {},
+     body = null,
+     socket = new Socket(),
+   } = options;
+ 
+   // Create a readable stream that will be used as the base for IncomingMessage
+   const readable = new Readable();
+   readable._read = (): void => {}; // Required implementation
+ 
+   // Add the body content if provided
+   if (body) {
+     if (typeof body === "string") {
+       readable.push(body);
+     } else if (Buffer.isBuffer(body)) {
+       readable.push(body);
+     } else {
+       readable.push(JSON.stringify(body));
+     }
+     readable.push(null); // Signal the end of the stream
+   }
+ 
+   // Create the IncomingMessage instance
+   const req = new IncomingMessage(socket);
+ 
+   // Set the properties
+   req.method = method;
+   req.url = url;
+   req.headers = headers;
+ 
+   // Copy over the stream methods
+   req.push = readable.push.bind(readable);
+   req.read = readable.read.bind(readable);
+   req.on = readable.on.bind(readable);
+   req.pipe = readable.pipe.bind(readable);
+ 
+   return req;
+ }
+#KEY#END_COMMIT#
