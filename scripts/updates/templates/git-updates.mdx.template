@@ -1,0 +1,16 @@
+---
+title: "{{SERVICE_NAME}} Updates - {{DATE}}"
+description: "Automatic documentation updates from {{SERVICE_NAME}} Git activity."
+service: "{{SERVICE_KEY}}"
+icon: "{{SERVICE_ICON}}"
+tags: [{{TAGS}}]
+---
+
+<Callout type="warn">
+  <p>This page contains automatically generated documentation based on Git activity.</p>
+  <p>Information may need review and could be updated in future releases.</p>
+</Callout>
+
+# {{SERVICE_NAME}} Updates - {{DATE}}
+
+{{CONTENT}} 

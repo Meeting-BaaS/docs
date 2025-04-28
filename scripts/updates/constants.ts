@@ -14,38 +14,40 @@ export const SERVICES: ServiceConfig[] = [
   {
     name: 'API',
     dirPattern: API_REF_PATH,
-    icon: 'Server',
+    icon: 'Webhook',
     serviceKey: 'api',
     additionalTags: ['api-reference'],
   },
   {
     name: 'TypeScript SDK',
     dirPattern: 'content/docs/typescript-sdk',
-    icon: 'Braces',
+    icon: 'Settings',
     serviceKey: 'sdk',
     additionalTags: ['sdk', 'typescript'],
   },
   {
-    name: 'LLM Integration',
-    dirPattern: LLM_CONTENT_DIR,
-    icon: 'BrainCircuit',
-    serviceKey: 'llm',
-    additionalTags: ['llm', 'ai'],
-    excludePatterns: ['content/llm/all.md'],
-  },
-  {
     name: 'Speaking Bots',
     dirPattern: 'content/docs/speaking-bots',
-    icon: 'Brain',
+    icon: 'Bot',
     serviceKey: 'speaking-bots',
     additionalTags: ['bots', 'persona'],
   },
   {
     name: 'MCP Servers',
     dirPattern: 'content/docs/mcp-servers',
-    icon: 'Server',
+    icon: 'ServerCog',
     serviceKey: 'mcp-servers',
     additionalTags: ['mcp', 'server'],
   },
+  {
+    name: 'Transcript Seeker',
+    dirPattern: 'content/docs/transcript-seeker',
+    icon: 'Captions',
+    serviceKey: 'transcript-seeker',
+    additionalTags: ['transcript', 'seeker'],
+  },
   // Add other services as needed
 ];
+
+// Also export as default to ensure it's accessible
+export default SERVICES;

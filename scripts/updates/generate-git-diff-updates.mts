@@ -6,14 +6,53 @@ import { basename, join } from 'path';
 const GIT_GREPPERS_DIR = join(process.cwd(), 'git_greppers');
 const UPDATES_DIR = join(process.cwd(), 'content', 'docs', 'updates');
 const META_JSON_PATH = join(UPDATES_DIR, 'meta.json');
+const GIT_UPDATES_FILE_PREFIX = 'git-updates-'; // Global variable for file prefix
+const TEMPLATES_DIR = join(process.cwd(), 'scripts', 'updates', 'templates');
 
-// Map git diff folders to service keys with hardcoded icons
-const GIT_DIFF_FOLDER_MAP: Record<string, { icon: string; name: string }> = {
-  'meeting-baas-git-diffs': { icon: 'Server', name: 'Meeting BaaS API' },
-  'speaking-meeting-bot-git-diffs': { icon: 'Brain', name: 'Speaking Bots' },
-  'sdk-generator-git-diffs': { icon: 'Braces', name: 'TypeScript SDK' },
-  'mcp-on-vercel-git-diffs': { icon: 'ServerCog', name: 'MCP Servers' },
-  // Add more mappings as new git diff folders are added
+// Export constants for use in other files
+export { GIT_UPDATES_FILE_PREFIX };
+
+// Define ServiceConfig interface to match constants.ts
+interface ServiceConfig {
+  name: string;
+  icon: string;
+  serviceKey: string;
+  dirPattern?: string;
+  additionalTags?: string[];
+}
+
+// Map git diff folders to service configs - consistent with index.mdx components
+const GIT_DIFF_FOLDER_MAP: Record<string, ServiceConfig> = {
+  'meeting-baas-git-diffs': {
+    name: 'API',
+    icon: 'Webhook', // Matches <WebhookIcon /> in index.mdx
+    serviceKey: 'api',
+    additionalTags: ['api-reference'],
+  },
+  'speaking-meeting-bot-git-diffs': {
+    name: 'Speaking Bots',
+    icon: 'Bot', // Matches <BotIcon /> in index.mdx
+    serviceKey: 'speaking-bots',
+    additionalTags: ['bots', 'persona'],
+  },
+  'sdk-generator-git-diffs': {
+    name: 'TypeScript SDK',
+    icon: 'Settings', // Matches <Settings /> in index.mdx
+    serviceKey: 'sdk',
+    additionalTags: ['sdk', 'typescript'],
+  },
+  'mcp-on-vercel-git-diffs': {
+    name: 'MCP Servers',
+    icon: 'ServerCog', // Matches <ServerCog /> in index.mdx
+    serviceKey: 'mcp-servers',
+    additionalTags: ['mcp', 'server'],
+  },
+  'transcript-seeker-git-diffs': {
+    name: 'Transcript Seeker',
+    icon: 'Captions', // Matches <CaptionsIcon /> in index.mdx
+    serviceKey: 'transcript-seeker',
+    additionalTags: ['transcript', 'seeker'],
+  },
 };
 
 interface CommitInfo {
@@ -29,14 +68,15 @@ interface CommitInfo {
 /**
  * Get service information by folder name
  */
-function getServiceByFolder(folderName: string): {
-  icon: string;
-  name: string;
-} {
+function getServiceByFolder(folderName: string): ServiceConfig {
   const mapping = GIT_DIFF_FOLDER_MAP[folderName];
 
   if (!mapping) {
-    return { icon: 'Git', name: folderName };
+    return {
+      name: folderName,
+      icon: 'Git',
+      serviceKey: 'git-update',
+    };
   }
 
   return mapping;
@@ -228,10 +268,11 @@ function getDirectoryName(path: string): string {
 }
 
 /**
- * Escapes special characters that might cause issues in MDX
+ * Escapes special characters that might cause issues in MDX and cleans up problematic content
  */
 function escapeMdxContent(text: string): string {
-  return text
+  // First handle basic character escaping
+  let escapedText = text
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/\{/g, '&#123;')
@@ -239,6 +280,26 @@ function escapeMdxContent(text: string): string {
     .replace(/!/g, '&#33;')
     .replace(/\[/g, '&#91;')
     .replace(/\]/g, '&#93;');
+
+  // Fix specific issues:
+
+  // 1. ShikiError: Replace ANY problematic code language specifiers
+  escapedText = escapedText.replace(/```suggestion:[-+\d]+/g, '```text');
+  escapedText = escapedText.replace(
+    /```(diff|idiff|version|suggestion)/g,
+    '```text',
+  );
+
+  // 2. Sanitize any potentially malformed code block markers
+  escapedText = escapedText.replace(/```([^a-zA-Z0-9\s])/g, '```text$1');
+
+  // 3. Process links to avoid nested <a> tags (convert to plain text)
+  escapedText = escapedText.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+
+  // 4. Remove any HTML tags that might cause rendering issues
+  escapedText = escapedText.replace(/<\/?a[^>]*>/g, '');
+
+  return escapedText;
 }
 
 /**
@@ -250,7 +311,7 @@ function generateUpdatePage(
   repoPath: string,
 ): string {
   const formattedDate = format(new Date(date), 'MMMM do, yyyy');
-  const fileName = `git-updates-${date}`;
+  const fileName = `${GIT_UPDATES_FILE_PREFIX}${date}`;
   const filePath = join(UPDATES_DIR, `${fileName}.mdx`);
 
   // Get folder name from repo path
@@ -294,25 +355,16 @@ function generateUpdatePage(
     }
   });
 
-  // Generate content
-  let content = `---
-title: ${formattedDate}
-description: Changes from recent development in ${serviceInfo.name}
-icon: ${serviceInfo.icon}
----
+  // Generate tags string for frontmatter
+  const tagsArray = ['git', ...(serviceInfo.additionalTags ?? [])];
+  const tagsString = tagsArray.map((tag) => `'${tag}'`).join(', ');
 
-<Callout type="info" icon={<Info className="h-5 w-5" />}>
-  Paris, ${formattedDate}.
-</Callout>
+  // Generate commit sections for each category
+  let categorySections = '';
 
-These changes were extracted from recent development activity in the ${serviceInfo.name} repository.
-
-`;
-
-  // Add each category of commits
   Object.entries(categorizedCommits).forEach(([category, categoryCommits]) => {
     if (categoryCommits.length > 0) {
-      content += `## ${category}\n\n`;
+      categorySections += `## ${category}\n\n`;
 
       categoryCommits.forEach((commit) => {
         // Clean up commit message (remove merge prefix if present)
@@ -323,36 +375,65 @@ These changes were extracted from recent development activity in the ${serviceIn
           message = commit.message; // Use original if cleaning emptied it
         }
 
-        content += `### ${message}\n\n`;
+        categorySections += `### ${message}\n\n`;
 
         if (commit.relatedPrMr && !commit.relatedPrMr.includes('None found')) {
-          content += `<Callout type="note">
+          categorySections += `<Callout type="note">
 ${commit.relatedPrMr}
 </Callout>\n\n`;
         }
 
         if (commit.changedFiles && commit.changedFiles.length > 0) {
-          content += `#### Changed Files\n\n`;
+          categorySections += `#### Changed Files\n\n`;
           commit.changedFiles.forEach((file) => {
             const icon = getFileIcon(file);
-            content += `- ${icon} \`${file}\`\n`;
+            categorySections += `- ${icon} \`${file}\`\n`;
           });
-          content += '\n';
+          categorySections += '\n';
         }
 
-        // Add PR/MR comments in a code block
+        // Add PR/MR comments in a safe way
         if (commit.comments && commit.comments.length > 0) {
-          content += `#### PR/MR Comments\n\n`;
-          content += `\`\`\`text\n`; // Specify text format to avoid MDX parsing
+          categorySections += `#### PR/MR Comments\n\n`;
+          categorySections += `<Accordions type="single">\n`;
+          categorySections += `  <Accordion title="View PR/MR Comments">\n`;
+          categorySections += `    <div className="not-prose my-2 overflow-auto border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-950">\n`;
+          categorySections += `      <pre className="text-sm whitespace-pre-wrap">\n`;
           commit.comments.forEach((comment) => {
             // Escape any problematic characters for MDX
-            content += `${escapeMdxContent(comment)}\n`;
+            categorySections += `        ${escapeMdxContent(comment)}\n`;
           });
-          content += `\`\`\`\n\n`;
+          categorySections += `      </pre>\n`;
+          categorySections += `    </div>\n`;
+          categorySections += `  </Accordion>\n`;
+          categorySections += `</Accordions>\n\n`;
         }
       });
     }
   });
+
+  // Read template file
+  const templatePath = join(TEMPLATES_DIR, 'git-updates.mdx.template');
+
+  // Template file is required - check if it exists
+  if (!existsSync(templatePath)) {
+    throw new Error(
+      `Template file not found: ${templatePath}. The templates directory must be included in your project.`,
+    );
+  }
+
+  // Use template file
+  const templateContent = readFileSync(templatePath, 'utf-8');
+
+  // Replace template variables with actual values
+  const content = templateContent
+    .replace(/\{\{DATE\}\}/g, formattedDate)
+    .replace(/\{\{DATE_RAW\}\}/g, date)
+    .replace(/\{\{SERVICE_NAME\}\}/g, serviceInfo.name)
+    .replace(/\{\{SERVICE_ICON\}\}/g, serviceInfo.icon)
+    .replace(/\{\{SERVICE_KEY\}\}/g, serviceInfo.serviceKey)
+    .replace(/\{\{TAGS\}\}/g, tagsString)
+    .replace(/\{\{CONTENT\}\}/g, categorySections);
 
   // Write the file
   writeFileSync(filePath, content);
@@ -402,15 +483,25 @@ function updateMetaJson(newPages: string[]): void {
 
   meta.pages.sort((a: string, b: string) => {
     // Keep non-git-updates pages at the end
-    if (!a.startsWith('git-updates-') && b.startsWith('git-updates-')) return 1;
-    if (a.startsWith('git-updates-') && !b.startsWith('git-updates-'))
+    if (
+      !a.startsWith(GIT_UPDATES_FILE_PREFIX) &&
+      b.startsWith(GIT_UPDATES_FILE_PREFIX)
+    )
+      return 1;
+    if (
+      a.startsWith(GIT_UPDATES_FILE_PREFIX) &&
+      !b.startsWith(GIT_UPDATES_FILE_PREFIX)
+    )
       return -1;
-    if (!a.startsWith('git-updates-') && !b.startsWith('git-updates-'))
+    if (
+      !a.startsWith(GIT_UPDATES_FILE_PREFIX) &&
+      !b.startsWith(GIT_UPDATES_FILE_PREFIX)
+    )
       return 0;
 
     // Extract dates from page names
-    const dateA = a.replace('git-updates-', '');
-    const dateB = b.replace('git-updates-', '');
+    const dateA = a.replace(GIT_UPDATES_FILE_PREFIX, '');
+    const dateB = b.replace(GIT_UPDATES_FILE_PREFIX, '');
 
     // Compare dates (newest first)
     return dateB.localeCompare(dateA);
@@ -447,7 +538,7 @@ export async function generateGitDiffUpdates(): Promise<string[]> {
       const date = match[1];
 
       // Check if an update for this date already exists
-      const updateFileName = `git-updates-${date}`;
+      const updateFileName = `${GIT_UPDATES_FILE_PREFIX}${date}`;
       const updateFilePath = join(UPDATES_DIR, `${updateFileName}.mdx`);
 
       if (!existsSync(updateFilePath)) {

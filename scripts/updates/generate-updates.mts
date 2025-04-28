@@ -2,13 +2,12 @@ import { execSync } from 'child_process';
 import { existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
-import * as constants from './constants';
+import SERVICES_DEFAULT, * as constants from './constants';
 import * as generators from './generators';
 import * as utils from './utils';
 
 // Extract what we need from the constants module
 const {
-  SERVICES,
   CURRENT_DATE,
   UPDATES_DIR,
   META_JSON_PATH,
@@ -16,6 +15,9 @@ const {
   API_REF_PATH,
   PACKAGE_JSON_PATH,
 } = constants;
+
+// Get SERVICES safely, either from the named export or default export
+const SERVICES = constants.SERVICES || SERVICES_DEFAULT;
 
 /**
  * Main function to generate updates for all configured services
