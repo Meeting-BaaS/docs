@@ -1,8 +1,11 @@
 import { Accordion, Accordions } from '@/components/fumadocs/accordion';
 import { Callout } from '@/components/fumadocs/callout';
+import { ServiceCard, ServicesCompact, ServicesList } from '@/components/fumadocs/services-list';
 import { Tabs as CustomTabs, Tab } from '@/components/fumadocs/tabs';
+import { ServiceIcon } from '@/components/ui/service-icon';
 import { Banner } from 'fumadocs-ui/components/banner';
 import { Card, Cards } from 'fumadocs-ui/components/card';
+import { File, Files, Folder } from 'fumadocs-ui/components/files';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 import {
     Braces,
@@ -11,6 +14,7 @@ import {
     Calendar,
     Code,
     FileCode,
+    GitBranch,
     MonitorUp,
     Server,
     TerminalSquare,
@@ -34,6 +38,15 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         Banner: Banner,
         Accordion: Accordion,
         Accordions: Accordions,
+        Files: Files,
+        File: File,
+        Folder: Folder,
+
+        // Our custom service components
+        ServicesList,
+        ServicesCompact,
+        ServiceCard,
+        ServiceIcon,
 
         // Icons
         Server,
@@ -46,6 +59,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         TerminalSquare,
         Webhook,
         Calendar,
-        User
+        User,
+        GitBranch
     };
 } 
