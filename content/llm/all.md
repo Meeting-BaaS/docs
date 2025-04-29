@@ -1284,10 +1284,15 @@ This modular approach allows you to implement each component at your own pace an
 
 ## Introduction
 
-Deploy AI for video meetings through a single unified API.
+Get started with the Meeting BaaS API
 
 ### Source: ./content/docs/api/index.mdx
 
+
+<Callout type="info">
+  We provide detailed documentation optimized for both human readers and AI assistants. For more information about our LLM integration, see
+  [LLMs](../llms/available).
+</Callout>
 
 **Meeting BaaS** 🐟 provides _Meetings Bots As A Service_, with integrated transcription.
 
@@ -1888,55 +1893,6 @@ For security, always validate the API key in the `x-meeting-baas-api-key` header
 
 ---
 
-## April 23rd, 2025
-
-Latest changes to the Meeting BaaS API
-
-### Source: ./content/docs/api/updates/api-update-2025-04-23.mdx
-
-
-import { Info } from 'lucide-react';
-
-<Callout type="info" icon={<Info className="h-5 w-5" />}>
-  Paris, April 23rd, 2025.
-</Callout>
-
-We're excited to announce several improvements to our API endpoints.
-
-## Bots
-
-### [GET /bots/with/metadata](/docs/api/reference/bots_with_metadata)
-
-Simplified and improved the bot listing endpoint:
-- Streamlined response format for better readability
-- Maintains all filtering capabilities (`meeting_url`, `bot_name`, `created_after/before`, `speaker_name`)
-- Supports advanced filtering and sorting through `filter_by_extra` and `sort_by_extra`
-- Returns essential metadata including IDs, names, and meeting details
-
-### [GET /bots/:uuid/screenshots](/docs/api/reference/get_screenshots)
-
-New endpoint to retrieve screenshots captured during a bot's session:
-- Access screenshots taken while trying to access meetings
-- Useful for monitoring and verification purposes
-- Part of our expanded bot monitoring capabilities
-
-## Webhooks
-
-### GET /webhooks/calendar/webhook/documentation
-
-Documentation improvements and parameter updates:
-- Updated parameter notation from `{uuid}` to `:uuid` for consistency with REST API standards
-- Clarified the `affected_event_uuids` field documentation
-- Enhanced integration examples with calendar events
-- All endpoint references now use `:parameter` notation
-
-## Implementation Timeline
-
-These changes will be live in production on April 24th, 2025. The updates focus on improving documentation clarity, adding new monitoring capabilities, and maintaining consistent API patterns across our endpoints.
-
-
----
-
 ## Calendar API Enhancements
 
 Improved filtering, comprehensive event details, and calendar management
@@ -2171,12 +2127,1478 @@ These changes are now live in production and available for immediate use.
 
 ---
 
+## Chat MCP Overview
+
+A Comprehensive Guide to Chat MCP - The Standalone Model Context Protocol Server for Meeting BaaS Integration
+
+### Source: ./content/docs/mcp-servers/chat-mcp/overview.mdx
+
+
+Chat MCP (Model Context Protocol) is a specialized server implementation that bridges AI assistants with Meeting BaaS's powerful chat and meeting capabilities. By implementing the [Model Context Protocol](https://www.anthropic.com/news/model-context-protocol), it enables AI-powered bots to seamlessly participate in meetings, manage calendars, and handle sophisticated meeting operations through a unified, standardized interface.
+
+## Key Features and Capabilities
+
+<Cards>
+  <Card title="Meeting Management" icon={<Video className="text-blue-400" />}>
+    Comprehensive meeting control including joining, leaving, and real-time presence management. Supports full meeting lifecycle operations and data handling.
+  </Card>
+  <Card title="Calendar Integration" icon={<Calendar className="text-purple-400" />}>
+    Robust calendar synchronization with support for multiple providers. Enables automated meeting scheduling, updates, and calendar event management.
+  </Card>
+  <Card title="Advanced Bot Management" icon={<Bot className="text-green-400" />}>
+    Complete bot lifecycle management including status monitoring, configuration updates, and metadata handling. Supports multiple bot personas and behaviors.
+  </Card>
+  <Card title="Voice-Enabled AI Bots" icon={<Mic className="text-yellow-400" />}>
+    Create and manage AI bots with advanced speech capabilities. Includes customizable voices, speaking patterns, and interactive responses.
+  </Card>
+  <Card title="Intelligent Event Scheduling" icon={<Clock className="text-amber-400" />}>
+    Automated event and recording management with smart scheduling capabilities and conflict resolution.
+  </Card>
+  <Card title="Development Tools" icon={<Wrench className="text-gray-400" />}>
+    Comprehensive testing suite and debugging utilities for development and maintenance. Includes logging, monitoring, and diagnostic tools.
+  </Card>
+</Cards>
+
+## Technical Prerequisites
+
+1. **Runtime Environment**
+   - Node.js: Version 16.x or higher
+   - NPM: Latest stable version
+   - Operating System: Windows, Linux, or macOS
+
+2. **Network Requirements**
+   - Stable internet connection
+   - Access to Meeting BaaS API endpoints
+   - Firewall rules allowing WebSocket connections
+
+## Account Requirements
+
+1. **Meeting BaaS Account**
+   - Active subscription
+   - API access enabled
+   - Appropriate service tier for intended usage
+
+2. **Authentication**
+   - Valid API key from [Meeting BaaS Dashboard](https://meetingbaas.com)
+   - Properly configured endpoint access
+   - Whitelisted IP addresses (if required)
+
+## Authentication Methods
+
+Chat MCP supports two primary authentication methods:
+
+### 1. Header-based Authentication
+```typescript
+// Using x-api-key header
+headers: {
+  'x-api-key': 'YOUR_API_KEY'
+}
+```
+
+### 2. Parameter-based Authentication
+```typescript
+// Using WithCredentials variants in tool parameters
+{
+  credentials: {
+    apiKey: 'YOUR_API_KEY'
+  }
+}
+```
+
+## Implementation Guide
+
+### Basic Server Setup
+
+```typescript
+import { BaasClient } from "@meeting-baas/sdk/dist/baas/api/client";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
+
+// Initialize the MCP server
+const server = new McpServer();
+
+// Configure your API key (use environment variables in production)
+const apiKey = process.env.MEETING_BAAS_API_KEY;
+
+// Initialize the BaaS client
+const baasClient = new BaasClient({
+  apiKey: apiKey,
+  baseUrl: "https://api.meetingbaas.com/",
+});
+
+// Register required tools and middleware
+registerTools(server, apiKey);
+```
+
+### Development Workflow
+
+1. **Initial Setup**
+   ```bash
+   # Install project dependencies
+   npm install
+
+   # Build the project
+   npm run build
+
+   # Start the development server
+   npm run start
+   ```
+
+2. **Configuration**
+   - Set up environment variables
+   - Configure logging levels
+   - Set up development tools
+
+
+
+
+
+---
+
+## Server Configuration
+
+A comprehensive guide to configuring and initializing the Chat MCP server
+
+### Source: ./content/docs/mcp-servers/chat-mcp/server-configuration.mdx
+
+
+This comprehensive guide covers the setup, configuration, and initialization of the Chat MCP server, including detailed explanations of API handler setup, tool registration, and available capabilities.
+
+## API Handler Setup
+
+The Chat MCP server utilizes a centralized API handler to manage tool registrations and server capabilities. Below is a detailed explanation of how to set up the API handler:
+
+```typescript
+import { initializeMcpApiHandler } from "../lib/mcp-api-handler";
+import registerTools from "./tools";
+
+const handler = initializeMcpApiHandler(
+  // Tool Registration Callback
+  (server, apiKey) => {
+    // Register Meeting BaaS SDK tools with the provided API key
+    server = registerTools(server, apiKey);
+  },
+  // Server Capabilities Configuration
+  {
+    capabilities: {
+      tools: {
+        // Meeting Management Tools
+        joinMeeting: {
+          description: "Join's a meeting using the MeetingBaas api",
+        },
+        leaveMeeting: {
+          description: "Leave a meeting using the MeetingBaas api",
+        },
+        getMeetingData: {
+          description: "Get meeting data using the MeetingBaas api",
+        },
+        deleteData: {
+          description: "Delete meeting data using the MeetingBaas api",
+        },
+
+        // Calendar Management Tools
+        createCalendar: {
+          description: "Create a calendar using the MeetingBaas api",
+        },
+        listCalendars: {
+          description: "List calendars using the MeetingBaas api",
+        },
+        getCalendar: {
+          description: "Get calendar using the MeetingBaas api",
+        },
+        deleteCalendar: {
+          description: "Delete calendar using the MeetingBaas api",
+        },
+        updateCalendar: {
+          description: "Update calendar using the MeetingBaas api",
+        },
+        resyncAllCalendars: {
+          description: "Resync all calendars using the MeetingBaas api",
+        },
+
+        // Bot Management Tools
+        botsWithMetadata: {
+          description: "Get bots with metadata using the MeetingBaas api",
+        },
+
+        // Event Management Tools
+        listEvents: {
+          description: "List events using the MeetingBaas api",
+        },
+        scheduleRecordEvent: {
+          description: "Schedule a recording using the MeetingBaas api",
+        },
+        unscheduleRecordEvent: {
+          description: "Unschedule a recording using the MeetingBaas api",
+        },
+
+        // Speaking Bot Management Tools
+        joinSpeakingMeeting: {
+          description: "Join a speaking meeting using the MeetingBaas api",
+        },
+        leaveSpeakingMeeting: {
+          description: "Leave a speaking meeting using the MeetingBaas api",
+        },
+
+        // Utility Tools
+        echo: {
+          description: "Echo a message for testing purposes",
+        },
+      },
+    },
+  }
+);
+
+export default handler;
+```
+
+## Server Initialization
+
+The server initialization process consists of three crucial steps:
+
+### 1. Import Required Dependencies
+
+```typescript
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
+import { initializeMcpApiHandler } from "../lib/mcp-api-handler";
+```
+
+### 2. Create Tool Registration Function
+
+```typescript
+function registerTools(server: McpServer, apiKey: string): McpServer {
+  // Register tools by category
+  server = registerMeetingTools(server, apiKey);
+  server = registerCalendarTools(server, apiKey);
+  server = registerSpeakingTools(server, apiKey);
+  server = registerUtilityTools(server);
+  
+  return server;
+}
+```
+
+## Available Capabilities
+
+### Meeting Management
+
+<Card title="Core Meeting Controls" icon="users">
+  <div className="space-y-4">
+    <div className="border-b pb-4">
+      <h4 className="font-semibold text-lg mb-2">Join Meeting (`joinMeeting`)</h4>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>Enables seamless participant joining across multiple meeting platforms</li>
+        <li>Handles secure authentication and connection setup</li>
+        <li>Supports various meeting providers (Zoom, Teams, etc.)</li>
+      </ul>
+    </div>
+
+    <div className="border-b pb-4">
+      <h4 className="font-semibold text-lg mb-2">Leave Meeting (`leaveMeeting`)</h4>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>Provides graceful exit handling from active meetings</li>
+        <li>Ensures proper cleanup of session resources</li>
+        <li>Manages participant departure notifications</li>
+      </ul>
+    </div>
+
+    <div className="border-b pb-4">
+      <h4 className="font-semibold text-lg mb-2">Meeting Data (`getMeetingData`)</h4>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>Retrieves comprehensive meeting information and analytics</li>
+        <li>Includes detailed participant data and engagement metrics</li>
+        <li>Provides meeting duration and technical statistics</li>
+      </ul>
+    </div>
+
+    <div>
+      <h4 className="font-semibold text-lg mb-2">Data Cleanup (`deleteData`)</h4>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>Manages efficient meeting resource cleanup</li>
+        <li>Ensures data privacy and GDPR compliance</li>
+        <li>Optimizes storage through automated cleanup processes</li>
+      </ul>
+    </div>
+  </div>
+</Card>
+
+### Calendar Management
+
+<Card title="Calendar Operations" icon="calendar">
+  <div className="space-y-4">
+    <div className="border-b pb-4">
+      <h4 className="font-semibold text-lg mb-2">Calendar Creation and Setup</h4>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>
+          Create Calendar (`createCalendar`)
+          <ul className="list-circle pl-6 mt-1">
+            <li>Set up new calendars with custom configurations</li>
+            <li>Define calendar properties and access controls</li>
+            <li>Configure timezone and availability settings</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <div className="border-b pb-4">
+      <h4 className="font-semibold text-lg mb-2">Calendar Management Tools</h4>
+      <ul className="list-disc pl-6 space-y-2">
+        <li>
+          List Calendars (`listCalendars`)
+          <ul className="list-circle pl-6 mt-1">
+            <li>View all available calendars with filtering options</li>
+            <li>Sort and organize calendar listings</li>
+          </ul>
+        </li>
+        <li>
+          Calendar Details (`getCalendar`)
+          <ul className="list-circle pl-6 mt-1">
+            <li>Access detailed calendar information and settings</li>
+            <li>View calendar permissions and sharing status</li>
+          </ul>
+        </li>
+        <li>
+          Calendar Updates (`updateCalendar`)
+          <ul className="list-circle pl-6 mt-1">
+            <li>Modify existing calendar configurations</li>
+            <li>Update access controls and sharing settings</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <div>
+      <h4 className="font-semibold text-lg mb-2">Synchronization Features</h4>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>
+          Full Sync (`resyncAllCalendars`)
+          <ul className="list-circle pl-6 mt-1">
+            <li>Force synchronization across all connected platforms</li>
+            <li>Ensure data consistency and real-time updates</li>
+            <li>Resolve conflicts and maintain data integrity</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</Card>
+
+### Bot Management
+
+<Card title="Bot Intelligence" icon="robot">
+  <div className="space-y-4">
+    <div className="border-b pb-4">
+      <h4 className="font-semibold text-lg mb-2">Bot Information Management</h4>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>
+          Metadata Access (`botsWithMetadata`)
+          <ul className="list-circle pl-6 mt-1">
+            <li>Retrieve comprehensive bot information and status</li>
+            <li>Access real-time performance analytics</li>
+            <li>Monitor bot health and activity metrics</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <div>
+      <h4 className="font-semibold text-lg mb-2">Voice Integration Features</h4>
+      <ul className="list-disc pl-6 space-y-2">
+        <li>
+          Meeting Voice Control
+          <ul className="list-circle pl-6 mt-1">
+            <li>`joinSpeakingMeeting`: Initialize voice interaction capabilities</li>
+            <li>`leaveSpeakingMeeting`: Gracefully terminate voice sessions</li>
+            <li>Real-time voice processing and response handling</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</Card>
+
+### Event Management
+
+<Card title="Event Orchestration" icon="calendar-check">
+  <div className="space-y-4">
+    <div className="border-b pb-4">
+      <h4 className="font-semibold text-lg mb-2">Event Management Tools</h4>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>
+          Event Listing (`listEvents`)
+          <ul className="list-circle pl-6 mt-1">
+            <li>Comprehensive view of all scheduled and ongoing events</li>
+            <li>Advanced filtering and sorting capabilities</li>
+            <li>Real-time event status monitoring</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <div>
+      <h4 className="font-semibold text-lg mb-2">Recording Management</h4>
+      <ul className="list-disc pl-6 space-y-2">
+        <li>
+          Schedule Management
+          <ul className="list-circle pl-6 mt-1">
+            <li>`scheduleRecordEvent`: Configure automated recording sessions</li>
+            <li>`unscheduleRecordEvent`: Modify or cancel planned recordings</li>
+            <li>Manage recording settings and storage options</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</Card>
+
+### Utility Features
+
+<Card title="System Utilities" icon="wrench">
+  <div className="space-y-4">
+    <div className="border-b pb-4">
+      <h4 className="font-semibold text-lg mb-2">System Health Monitoring</h4>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>
+          Connectivity Testing (`echo`)
+          <ul className="list-circle pl-6 mt-1">
+            <li>Real-time system connectivity verification</li>
+            <li>Response time monitoring and latency checks</li>
+            <li>Service availability testing</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+
+    <div className="border-b pb-4">
+      <h4 className="font-semibold text-lg mb-2">Security Features</h4>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>Secure API key management and rotation</li>
+        <li>Authentication and authorization handling</li>
+        <li>Access control and permission management</li>
+      </ul>
+    </div>
+
+    <div>
+      <h4 className="font-semibold text-lg mb-2">Performance Monitoring</h4>
+      <ul className="list-disc pl-6 space-y-1">
+        <li>Resource utilization tracking and optimization</li>
+        <li>System metrics and analytics</li>
+        <li>Performance bottleneck identification</li>
+      </ul>
+    </div>
+  </div>
+</Card>
+
+## Implementation Example 
+
+Here's a complete example demonstrating how to implement and use the configured server in your application:
+
+```typescript
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
+import handler from "./handler";
+
+async function setupServer() {
+  // Initialize the MCP server instance
+  const server = new McpServer();
+  
+  // Retrieve API key from environment variables
+  const apiKey = process.env.MEETING_BAAS_API_KEY;
+
+  // Initialize the handler with server and API key
+  await handler.initialize(server, apiKey);
+
+  return server;
+}
+
+// Start the server with error handling
+setupServer()
+  .then((server) => {
+    console.log("✅ MCP server successfully initialized with all capabilities");
+  })
+  .catch((error) => {
+    console.error("❌ Failed to initialize MCP server:", error);
+    process.exit(1);
+  });
+```
+
+
+---
+
+## Calendar Management Tools
+
+Tools for managing calendar integrations and synchronization with Google and Microsoft calendars
+
+### Source: ./content/docs/mcp-servers/chat-mcp/tools/calendar-management.mdx
+
+
+This section covers the tools available for managing calendar integrations in your Meeting BaaS implementation. These tools enable you to create, manage, and synchronize calendar integrations for automated meeting recordings and bot scheduling.
+
+## Available Tools
+
+### createCalendar
+
+Creates a new calendar integration for your Meeting BaaS instance.
+
+#### Use Cases
+- Setting up automatic meeting recordings
+- Configuring calendar-based bot scheduling
+- Enabling recurring meeting coverage
+
+#### Parameters
+- `oauthClientId` (string): OAuth client ID for authentication with the calendar service
+- `oauthClientSecret` (string): OAuth client secret for secure authentication
+- `oauthRefreshToken` (string): OAuth refresh token for maintaining persistent access
+- `platform` (enum): Calendar service provider, must be either "Google" or "Microsoft"
+- `rawCalendarId` (string, optional): Specific calendar ID to integrate. If not provided, defaults to primary calendar
+
+#### Response
+- Success: Returns a confirmation message indicating successful calendar creation
+- Error: Returns an error message if creation fails
+
+#### Example
+```typescript
+try {
+  const response = await server.tools.createCalendar({
+    oauthClientId: "your_client_id",
+    oauthClientSecret: "your_client_secret",
+    oauthRefreshToken: "your_refresh_token",
+    platform: "Google",
+    rawCalendarId: "primary"
+  });
+  console.log("Calendar created successfully");
+} catch (error) {
+  console.error("Failed to create calendar:", error);
+}
+```
+
+### listCalendars
+
+Retrieves a list of all configured calendar integrations in your system.
+
+#### Use Cases
+- Viewing all configured calendars
+- Checking calendar integration status
+- Managing multiple calendar integrations
+
+#### Parameters
+None required
+
+#### Response
+- Success: Returns a JSON object containing all configured calendars
+- Error: Returns an error message if listing fails
+
+#### Example
+```typescript
+try {
+  const response = await server.tools.listCalendars();
+  console.log("Configured calendars:", response);
+} catch (error) {
+  console.error("Failed to list calendars:", error);
+}
+```
+
+### getCalendar
+
+Retrieves detailed information about a specific calendar integration.
+
+#### Use Cases
+- Viewing specific calendar configuration
+- Checking individual calendar status
+- Verifying calendar settings
+
+#### Parameters
+- `calendarId` (string): The unique identifier of the calendar to retrieve
+
+#### Response
+- Success: Returns detailed information about the requested calendar
+- Error: Returns an error message if retrieval fails
+
+#### Example
+```typescript
+try {
+  const response = await server.tools.getCalendar({
+    calendarId: "calendar-123-xyz"
+  });
+  console.log("Calendar details:", response);
+} catch (error) {
+  console.error("Failed to get calendar:", error);
+}
+```
+
+### deleteCalendar
+
+Removes a calendar integration from your system.
+
+#### Use Cases
+- Removing unwanted calendar connections
+- Stopping automatic recordings for specific calendars
+- Cleaning up calendar integration data
+
+#### Parameters
+- `calendarId` (string): The unique identifier of the calendar to delete
+
+#### Response
+- Success: Returns a confirmation of calendar deletion
+- Error: Returns an error message if deletion fails
+
+#### Example
+```typescript
+try {
+  const response = await server.tools.deleteCalendar({
+    calendarId: "calendar-123-xyz"
+  });
+  console.log("Calendar deleted successfully");
+} catch (error) {
+  console.error("Failed to delete calendar:", error);
+}
+```
+
+### updateCalendar
+
+Updates an existing calendar integration's configuration.
+
+#### Use Cases
+- Modifying calendar settings
+- Updating connection details
+- Changing calendar configuration
+
+#### Parameters
+- `calendarId` (string): The unique identifier of the calendar to update
+- `oauthClientId` (string): Updated OAuth client ID for authentication
+- `oauthClientSecret` (string): Updated OAuth client secret for secure authentication
+- `oauthRefreshToken` (string): Updated OAuth refresh token for maintaining persistent access
+- `platform` (enum): Calendar service provider, must be either "Google" or "Microsoft"
+
+#### Response
+- Success: Returns a confirmation message indicating successful calendar update
+- Error: Returns an error message if update fails
+
+#### Example
+```typescript
+try {
+  const response = await server.tools.updateCalendar({
+    calendarId: "calendar-123-xyz",
+    oauthClientId: "updated_client_id",
+    oauthClientSecret: "updated_client_secret",
+    oauthRefreshToken: "updated_refresh_token",
+    platform: "Google"
+  });
+  console.log("Calendar updated successfully");
+} catch (error) {
+  console.error("Failed to update calendar:", error);
+}
+```
+
+### resyncAllCalendars
+
+Forces a synchronization of all configured calendar integrations.
+
+#### Use Cases
+- Updating calendar data manually
+- Fixing synchronization issues
+- Refreshing all calendar connections
+
+#### Parameters
+None required
+
+#### Response
+- Success: Returns a confirmation of successful resynchronization
+- Error: Returns an error message if resync fails
+
+#### Example
+```typescript
+try {
+  const response = await server.tools.resyncAllCalendars();
+  console.log("All calendars resynced successfully");
+} catch (error) {
+  console.error("Failed to resync calendars:", error);
+}
+```
+
+## Error Handling
+
+All calendar management tools include comprehensive error handling. It's recommended to implement try-catch blocks when using these tools:
+
+```typescript
+try {
+  // Calendar operation
+  const response = await server.tools.calendarOperation(params);
+  // Handle success
+} catch (error) {
+  console.error("Calendar operation failed:", error);
+  // Handle error appropriately
+}
+```
+
+---
+
+## Event Management Tools
+
+Tools for managing meeting events and recordings
+
+### Source: ./content/docs/mcp-servers/chat-mcp/tools/event-management.mdx
+
+
+This section covers the comprehensive suite of tools available for managing meeting events, including scheduling recordings, managing calendar events, and handling automated bot activities.
+
+## Available Tools
+
+### listEvents
+
+Lists all scheduled events from a specified calendar. This tool is particularly useful when you need to:
+- View upcoming recordings
+- Check scheduled transcriptions
+- Monitor planned bot activities
+
+#### Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `calendarId` | string | Yes | The unique identifier of the calendar to list events from |
+
+#### Response Format
+The tool returns a structured response containing the list of events:
+
+```typescript
+interface EventResponse {
+  content: Array<{
+    type: string;
+    text: string; // JSON stringified event data
+  }>;
+  isError?: boolean;
+}
+```
+
+#### Example Usage
+```typescript
+try {
+  const response = await server.tools.listEvents({
+    calendarId: "calendar-123-xyz"
+  });
+  
+  // Response will contain list of events
+  console.log(response.content[0].text);
+} catch (error) {
+  // Handle error
+}
+```
+
+### scheduleRecordEvent
+
+Configures automatic recording for a specific calendar event. Use this tool when you need to:
+- Set up automatic recording for meetings
+- Schedule future transcriptions
+- Plan meeting recordings with specific configurations
+
+#### Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `eventUuid` | string | Yes | Unique identifier of the event to be recorded |
+| `botName` | string | Yes | Name of the recording bot that will handle the session |
+| `extra` | object | No | Additional configuration parameters for recording |
+| `allOccurrences` | boolean | No | Whether to schedule recording for all instances of a recurring event |
+
+#### Extra Configuration Options
+The `extra` parameter can include various recording configurations:
+```typescript
+{
+  quality: "high" | "medium" | "low",
+  transcription: boolean,
+  // Additional configuration options as needed
+}
+```
+
+#### Example Usage
+```typescript
+try {
+  const response = await server.tools.scheduleRecordEvent({
+    eventUuid: "event-123-xyz",
+    botName: "Recording Bot",
+    extra: {
+      quality: "high",
+      transcription: true
+    },
+    allOccurrences: false
+  });
+  
+  // Handle successful scheduling
+  console.log(response.content[0].text);
+} catch (error) {
+  // Handle error
+}
+```
+
+### unscheduleRecordEvent
+
+Cancels previously scheduled recordings for calendar events. This tool is useful when you need to:
+- Cancel automatic recording
+- Stop planned transcription
+- Remove scheduled bot activity
+
+#### Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `eventUuid` | string | Yes | Unique identifier of the event |
+| `allOccurrences` | boolean | No | Whether to cancel recordings for all instances of a recurring event |
+
+#### Example Usage
+```typescript
+try {
+  const response = await server.tools.unscheduleRecordEvent({
+    eventUuid: "event-123-xyz",
+    allOccurrences: false
+  });
+  
+  // Handle successful cancellation
+  console.log(response.content[0].text);
+} catch (error) {
+  // Handle error
+}
+```
+
+## Error Handling
+
+All event management tools include comprehensive error handling. Here's the recommended pattern:
+
+```typescript
+try {
+  const response = await server.tools.eventOperation(params);
+  if (response.isError) {
+    // Handle error response
+    console.error(response.content[0].text);
+    return;
+  }
+  // Handle success
+  console.log(response.content[0].text);
+} catch (error) {
+  // Handle unexpected errors
+  console.error("Operation failed:", error);
+}
+```
+
+## Response Structure
+
+All tools return responses in a consistent format:
+
+```typescript
+interface EventResponse {
+  content: Array<{
+    type: string;
+    text: string;
+  }>;
+  isError?: boolean;
+}
+```
+
+### Success Response Example
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Successfully completed the operation"
+    }
+  ]
+}
+```
+
+### Error Response Example
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Operation failed: Detailed error message"
+    }
+  ],
+  "isError": true
+}
+```
+
+---
+
+## Meeting Management Tools
+
+Comprehensive guide for managing meetings and bot interactions in the Meeting Control Platform
+
+### Source: ./content/docs/mcp-servers/chat-mcp/tools/meeting-management.mdx
+
+
+The Meeting Management Tools provide a robust set of functionalities for controlling and managing meeting operations through AI bots. These tools enable seamless integration of AI assistants into meetings, allowing them to join, participate, collect data, and manage meeting resources effectively.
+
+## Available Tools
+
+### 1. joinSpeaking
+
+**Purpose**: Enables an AI bot to join a meeting with full speaking capabilities, allowing real-time voice interaction.
+
+#### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `meetingUrl` | string | Yes | The URL of the meeting to join |
+| `botName` | string | Yes | Display name for the bot in the meeting |
+| `extra` | object | No | Additional configuration options |
+
+#### Example Usage
+
+```typescript
+try {
+  const response = await server.tools.joinSpeaking({
+    meetingUrl: "https://meet.example.com/123",
+    botName: "Assistant Bot",
+    extra: {
+      role: "note-taker",
+      capabilities: ["transcription", "recording"]
+    }
+  });
+  console.log("Bot joined successfully:", response);
+} catch (error) {
+  console.error("Failed to join meeting:", error);
+}
+```
+
+#### Response
+The tool returns a response object containing:
+- `botId`: Unique identifier for the bot instance
+- `status`: Current connection status
+- `joinedAt`: Timestamp of when the bot joined
+
+### 2. leaveMeeting
+
+**Purpose**: Gracefully removes an AI bot from an active meeting, ensuring proper cleanup of resources.
+
+#### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `botId` | string | Yes | Unique identifier of the bot to remove |
+
+#### Example Usage
+
+```typescript
+try {
+  const response = await server.tools.leaveMeeting({
+    botId: "bot-123-xyz"
+  });
+  console.log("Bot left successfully:", response);
+} catch (error) {
+  console.error("Failed to leave meeting:", error);
+}
+```
+
+### 3. getMeetingData
+
+**Purpose**: Retrieves comprehensive meeting data including transcriptions, recordings, and bot status information.
+
+#### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `botId` | string | Yes | Bot identifier to fetch associated meeting data |
+
+#### Example Usage
+
+```typescript
+try {
+  const meetingData = await server.tools.getMeetingData({
+    botId: "bot-123-xyz"
+  });
+  console.log("Meeting data retrieved:", meetingData);
+} catch (error) {
+  console.error("Failed to fetch meeting data:", error);
+}
+```
+
+#### Response Structure
+```typescript
+interface MeetingData {
+  meetingId: string;
+  status: 'active' | 'ended';
+  duration: number;
+  participants: number;
+  transcription?: {
+    text: string;
+    timestamp: number;
+  }[];
+  recording?: {
+    url: string;
+    duration: number;
+    format: string;
+  };
+}
+```
+
+### 4. deleteData
+
+**Purpose**: Permanently removes all data associated with a specific bot instance, including recordings and transcriptions.
+
+#### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `botId` | string | Yes | Identifier of the bot whose data should be deleted |
+
+#### Example Usage
+
+```typescript
+try {
+  await server.tools.deleteData({
+    botId: "bot-123-xyz"
+  });
+  console.log("Data deleted successfully");
+} catch (error) {
+  console.error("Failed to delete data:", error);
+}
+```
+
+### 5. botsWithMetadata
+
+**Purpose**: Retrieves a comprehensive list of all active bots and their associated metadata.
+
+#### Parameters
+This tool takes no parameters.
+
+#### Example Usage
+
+```typescript
+try {
+  const botsList = await server.tools.botsWithMetadata();
+  console.log("Active bots:", botsList);
+} catch (error) {
+  console.error("Failed to fetch bots:", error);
+}
+```
+
+#### Response Structure
+```typescript
+interface BotMetadata {
+  botId: string;
+  name: string;
+  status: 'active' | 'inactive';
+  joinedAt: string;
+  meetingUrl: string;
+  capabilities: string[];
+}
+```
+
+## Error Handling
+
+All tools implement robust error handling with specific error types:
+
+```typescript
+try {
+  const result = await server.tools.someOperation(params);
+  // Handle success case
+} catch (error) {
+  if (error instanceof MeetingConnectionError) {
+    // Handle connection issues
+    console.error("Connection failed:", error.message);
+  } else if (error instanceof AuthenticationError) {
+    // Handle authentication issues
+    console.error("Authentication failed:", error.message);
+  } else {
+    // Handle other types of errors
+    console.error("Operation failed:", error);
+  }
+}
+```
+
+---
+
+## Speaking Bot Tools
+
+A comprehensive guide to managing AI speaking bots in your meetings
+
+### Source: ./content/docs/mcp-servers/chat-mcp/tools/speaking-bot.mdx
+
+
+Speaking Bot Tools provide a powerful interface for integrating AI-powered voice participants into your meetings. These tools enable you to create interactive, voice-capable AI bots that can join your video meetings, adopt specific personas, and engage in real-time conversations.
+
+## Core Functionality
+
+### Available Personas
+
+The speaking bot system offers a diverse range of personas to suit different meeting contexts and requirements. Each persona comes with its unique communication style, expertise, and personality traits.
+
+<Accordions type="single">
+  <Accordion title="Browse Available Personas">
+    <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
+      <div className="space-y-2">
+        <h4 className="font-medium">Technical Roles</h4>
+        <ul className="list-disc pl-4">
+          <li>C++ Veteran</li>
+          <li>Golang Minimalist</li>
+          <li>Grafana Guru</li>
+          <li>Haskell Purist</li>
+          <li>Lisp Enlightened</li>
+          <li>Pair Programmer</li>
+          <li>Rust Evangelist</li>
+        </ul>
+      </div>
+      <div className="space-y-2">
+        <h4 className="font-medium">Business Roles</h4>
+        <ul className="list-disc pl-4">
+          <li>BaaS Onboarder</li>
+          <li>Corporate Girlboss</li>
+          <li>Data Baron</li>
+          <li>Factory Patriarch</li>
+          <li>Hospital Administrator</li>
+          <li>Interviewer</li>
+        </ul>
+      </div>
+      <div className="space-y-2">
+        <h4 className="font-medium">Specialty Roles</h4>
+        <ul className="list-disc pl-4">
+          <li>Academic Warlord</li>
+          <li>Climate Engineer</li>
+          <li>Deep Sea Therapist</li>
+          <li>Futuristic AI Philosopher</li>
+          <li>Military Strategist</li>
+          <li>Quantum Physicist</li>
+        </ul>
+      </div>
+    </div>
+    
+    <details>
+      <summary className="mt-4 cursor-pointer text-sm text-gray-600">View Complete Persona List</summary>
+      <ul className="mt-2 columns-2 md:columns-3 list-disc pl-4">
+        {/* Original complete list of personas */}
+        <li>1940s Noir Detective</li>
+        <li>Ancient Alien Theorist</li>
+        <li>Ancient Roman General</li>
+        <li>Arctic Prospector</li>
+        {/* ... rest of the personas ... */}
+      </ul>
+    </details>
+  </Accordion>
+</Accordions>
+
+## API Reference
+
+### joinSpeakingMeeting
+
+Creates and sends an AI speaking bot to join a video meeting.
+
+#### Request Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `meetingUrl` | string | Yes | The URL of the meeting to join |
+| `botName` | string | Yes | Display name for the bot in the meeting |
+| `meetingBaasApiKey` | string | Yes | Your MeetingBaas API authentication key |
+| `personas` | string[] | No | Array of preferred personas (first available will be used) |
+| `botImage` | string | No | Custom avatar URL for the bot |
+| `entryMessage` | string | No | Initial message when joining |
+| `enableTools` | boolean | No | Enable bot tools (default: true) |
+| `extra` | object | No | Additional custom configuration |
+
+#### Example Usage
+
+```typescript
+const response = await server.tools.joinSpeakingMeeting({
+  meetingUrl: 'https://meet.example.com/123',
+  botName: 'AI Assistant',
+  meetingBaasApiKey: process.env.MEETING_BAAS_API_KEY,
+  personas: ['pair_programmer', 'tech_support'],
+  botImage: 'https://example.com/bot-avatar.png',
+  entryMessage: "Hello! I'm here to assist with the meeting.",
+  enableTools: true,
+  extra: {
+    role: 'technical_assistant',
+    specialization: 'code_review'
+  }
+});
+```
+
+#### Response Structure
+
+```typescript
+interface JoinResponse {
+  content: Array<{
+    type: string;
+    text: string; // Contains the bot ID
+  }>;
+  isError?: boolean;
+}
+```
+
+### leaveSpeakingMeeting
+
+Removes a speaking bot from an active meeting.
+
+#### Request Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `botId` | string | Yes | The unique ID of the bot to remove |
+| `meetingBaasApiKey` | string | Yes | Your MeetingBaas API authentication key |
+
+#### Example Usage
+
+```typescript
+const response = await server.tools.leaveSpeakingMeeting({
+  botId: 'bot-123-xyz',
+  meetingBaasApiKey: process.env.MEETING_BAAS_API_KEY
+});
+```
+
+## Implementation Guide
+
+### Error Handling
+
+Implement robust error handling to manage potential issues:
+
+```typescript
+try {
+  const response = await server.tools.joinSpeakingMeeting(params);
+  console.log('Bot joined successfully:', response.content[0].text);
+} catch (error) {
+  console.error('Failed to join meeting:', error);
+  // Implement appropriate error recovery
+}
+```
+
+## Complete Integration Example
+
+Here's a comprehensive example showing how to integrate the speaking bot tools:
+
+```typescript
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp';
+import { config } from 'dotenv';
+
+// Load environment variables
+config();
+
+// Initialize server
+const server = new McpServer();
+
+async function manageSpeakingBot() {
+  let botId;
+  
+  try {
+    // Join meeting
+    const joinResponse = await server.tools.joinSpeakingMeeting({
+      meetingUrl: 'https://meet.example.com/123',
+      botName: 'AI Assistant',
+      meetingBaasApiKey: process.env.MEETING_BAAS_API_KEY,
+      personas: ['pair_programmer'],
+      entryMessage: 'Ready to assist with the meeting!'
+    });
+
+    // Extract bot ID from response
+    botId = joinResponse.content[0].text.split(': ')[1];
+    
+    // Set up cleanup handler
+    process.on('SIGINT', async () => {
+      if (botId) {
+        await cleanupBot(botId);
+        process.exit(0);
+      }
+    });
+
+  } catch (error) {
+    console.error('Failed to manage bot:', error);
+    if (botId) {
+      await cleanupBot(botId);
+    }
+  }
+}
+
+async function cleanupBot(botId: string) {
+  try {
+    await server.tools.leaveSpeakingMeeting({
+      botId,
+      meetingBaasApiKey: process.env.MEETING_BAAS_API_KEY
+    });
+    console.log('Bot cleanup successful');
+  } catch (error) {
+    console.error('Bot cleanup failed:', error);
+  }
+}
+```
+
+## API Endpoints Reference
+
+The speaking bot tools interact with the following endpoints:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/bots` | POST | Create and deploy a new speaking bot |
+| `/bots/{botId}` | DELETE | Remove an active speaking bot |
+
+## Response Types
+
+### Success Response
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Successfully joined meeting with speaking bot ID: bot-123-xyz"
+    }
+  ]
+}
+```
+
+### Error Response
+
+```json
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "Failed to join meeting with speaking bot: Invalid meeting URL"
+    }
+  ],
+  "isError": true
+}
+```
+
+
+---
+
+## Utility Tools
+
+Essential utility tools for testing, debugging, and system maintenance
+
+### Source: ./content/docs/mcp-servers/chat-mcp/tools/utility-tools.mdx
+
+
+The MCP (Model Context Protocol) server provides a set of utility tools designed to facilitate testing, debugging, and basic system operations. These tools are essential for developers to ensure proper functionality and maintain their MCP server implementations.
+
+## Available Tools
+
+### Echo Tool
+
+The Echo tool is a fundamental utility that provides a simple way to verify server connectivity and test basic functionality. It reflects back any message sent to it, making it ideal for testing and debugging purposes.
+
+#### Purpose and Use Cases
+
+1. **Server Verification**
+   - Test initial server setup and configuration
+   - Verify server responsiveness
+   - Debug communication channels
+
+2. **Health Monitoring**
+   - Implement basic health checks
+   - Monitor server latency
+   - Validate message passing functionality
+
+3. **Development and Testing**
+   - Debug message formatting
+   - Test error handling
+   - Verify client-server communication
+
+#### Technical Specification
+
+##### Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `message` | string | Yes | The message to be echoed back by the server |
+
+##### Response Format
+
+The Echo tool returns a response in the following structure:
+
+```typescript
+interface EchoResponse {
+  content: Array<{
+    type: "text";
+    text: string;  // Format: "Tool echo: {message}"
+  }>;
+}
+```
+
+#### Implementation Guide
+
+Below is a complete implementation example of the Echo tool using the MCP SDK:
+
+```typescript
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
+import { z } from "zod";
+
+export function registerEchoTool(server: McpServer): McpServer {
+  server.tool(
+    "echo",
+    "Echo back the provided message for testing purposes",
+    { message: z.string() },
+    async ({ message }: { message: string }) => ({
+      content: [
+        {
+          type: "text",
+          text: `Tool echo: ${message}`,
+        },
+      ],
+    })
+  );
+
+  return server;
+}
+```
+
+#### Usage Examples
+
+1. **Basic Echo Test**
+```typescript
+const response = await server.tools.echo({
+  message: "Hello, MCP!"
+});
+
+// Expected Response:
+// {
+//   "content": [
+//     {
+//       "type": "text",
+//       "text": "Tool echo: Hello, MCP!"
+//     }
+//   ]
+// }
+```
+
+2. **Integration Example**
+```typescript
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
+
+// Initialize MCP server
+const server = new McpServer();
+
+// Register the echo tool
+registerEchoTool(server);
+
+// Example usage with error handling
+async function testEchoTool() {
+  try {
+    const response = await server.tools.echo({
+      message: "Testing MCP server connection"
+    });
+    
+    console.log("Echo response:", response.content[0].text);
+    return response;
+  } catch (error) {
+    console.error("Echo test failed:", error);
+    throw error;
+  }
+}
+
+// Execute the test
+testEchoTool()
+  .then(() => console.log("Echo test completed successfully"))
+  .catch(() => console.log("Echo test failed"));
+```
+
+---
+
 ## Introduction
 
 Get started with Model Context Protocol servers for Meeting BaaS
 
 ### Source: ./content/docs/mcp-servers/index.mdx
 
+
+<Callout type="info">
+  We provide detailed documentation optimized for both human readers and AI assistants. For more information about our LLM integration, see
+  [LLMs](../llms/available).
+</Callout>
 
 ## What is Model Context Protocol?
 
@@ -4091,16 +5513,6 @@ Both tools support integration with:
 
 ---
 
-## Updates
-
-Latest updates, improvements, and changes to the Model Context Protocol (MCP) servers
-
-### Source: ./content/docs/mcp-servers/updates/index.mdx
-
-
-
----
-
 ## Features
 
 Core features and capabilities of Vercel MCP for Meeting BaaS
@@ -4949,6 +6361,11 @@ Deploy AI-powered speaking agents in video meetings
 
 ### Source: ./content/docs/speaking-bots/index.mdx
 
+
+<Callout type="info">
+  We provide detailed documentation optimized for both human readers and AI assistants. For more information about our LLM integration, see
+  [LLMs](../llms/available).
+</Callout>
 
 This small open-source API demonstrates the capabilities of [MeetingBaas](https://meetingbaas.com) 🐟's video meeting APIs by integrating with [Pipecat](https://github.com/pipecat-ai/pipecat)'s Python framework for building voice and multimodal conversational agents:
 
@@ -6365,10 +7782,15 @@ pnpm db:push
 
 ## Introduction
 
-Getting Started with Transcript Seeker
+Get started with Transcript Seeker for Meeting BaaS
 
 ### Source: ./content/docs/transcript-seeker/index.mdx
 
+
+<Callout type="info">
+  We provide detailed documentation optimized for both human readers and AI assistants. For more information about our LLM integration, see
+  [LLMs](../llms/available).
+</Callout>
 
 ## Introduction
 
@@ -8269,10 +9691,15 @@ For more information about webhooks, see the [Webhooks documentation](/docs/type
 
 ## Introduction
 
-Official SDK for interacting with the Meeting BaaS API
+Get started with the Meeting BaaS TypeScript SDK
 
 ### Source: ./content/docs/typescript-sdk/index.mdx
 
+
+<Callout type="info">
+  We provide detailed documentation optimized for both human readers and AI assistants. For more information about our LLM integration, see
+  [LLMs](../llms/available).
+</Callout>
 
 ## Introduction
 
@@ -11689,65 +13116,30 @@ interface RetryWebhookQuery {
 
 ---
 
-## MeetingBaaS Updates
+## Updates
 
-Latest updates and changes to MeetingBaaS services
+Latest updates, improvements, and changes to Meeting BaaS services
 
 ### Source: ./content/docs/updates/index.mdx
 
 
-# MeetingBaaS Updates
+# Meeting BaaS Updates
 
-Find the latest updates and changes to MeetingBaaS services here.
-
-## Available Documentation
-
-We provide comprehensive LLM-optimized documentation at these URLs:
-
-- [/llms/all](/llms/all) - All MeetingBaas documentation content
-- [/llms/api](/llms/api) - MeetingBaas API
-- [/llms/calendars](/llms/calendars) - Calendars API
-- [/llms/meetings](/llms/meetings) - Meetings API
-- [/llms/users](/llms/users) - Users API
-- [/llms/webhooks](/llms/webhooks) - Webhooks API
-- [/llms/typescript-sdk](/llms/typescript-sdk) - TypeScript SDK
-- [/llms/transcript-seeker](/llms/transcript-seeker) - Transcript Seeker
-- [/llms/speaking-bots](/llms/speaking-bots) - Speaking Bots
+This section contains the latest updates, improvements, and changes to Meeting BaaS services.
+Stay up-to-date with new features, bug fixes, and important announcements.
 
 ## Update Categories
 
-<Cards>
-  <Card title="API Updates" href="/docs/updates/api">
-    API changes and improvements
-  </Card>
-  <Card title="TypeScript SDK Updates" href="/docs/updates/typescript-sdk">
-    SDK releases and updates
-  </Card>
-  <Card title="MCP Servers Updates" href="/docs/updates/mcp-servers">
-    Model Context Protocol server changes
-  </Card>
-  <Card title="Speaking Bots Updates" href="/docs/updates/speaking-bots">
-    Speaking bot features
-  </Card>
-  <Card
-    title="Transcript Seeker Updates"
-    href="/docs/updates/transcript-seeker"
-  >
-    Transcript platform improvements
-  </Card>
-</Cards>
+<ServicesListSSR />
 
 ## How Updates Are Organized
 
-Each update includes:
+1. **Date**: When the update was released
+2. **Content Type**: Features, bug fixes, improvements
+3. **Service**: Which Meeting BaaS service was updated
+4. **Commit Details**: Information about the specific changes made
 
-- **Date**: When the update was released
-- **Service Icon**: Visual indicator of which service the update pertains to
-- **Title**: Brief description of the update
-- **Description**: Details about what changed and how to use new features
-- **Tags**: Categories for easier filtering (API, SDK, Feature, Bugfix, etc.)
-
-Updates may include code examples, screenshots, or links to detailed documentation when relevant.
+Click on any update in the sidebar to view detailed information about that update.
 
 
 ---
