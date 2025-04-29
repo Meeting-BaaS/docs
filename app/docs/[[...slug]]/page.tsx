@@ -1,35 +1,36 @@
-import type { Metadata } from 'next';
+import { File, Files, Folder } from '@/components/fumadocs/files';
+import { ServiceIcon } from '@/components/ui/service-icon';
+import { ServiceCardSSR, ServicesCompactSSR, ServicesListSSR } from '@/components/ui/services-list-ssr';
+import { owner, repo } from '@/lib/github';
+import { createMetadata } from '@/lib/metadata';
+import { metadataImage } from '@/lib/metadata-image';
+import { openapi, source } from '@/lib/source';
+import { Mermaid } from '@theguild/remark-mermaid/mermaid';
+import { Popup, PopupContent, PopupTrigger } from 'fumadocs-twoslash/ui';
+import { createGenerator } from 'fumadocs-typescript';
+import { AutoTypeTable } from 'fumadocs-typescript/ui';
+import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
+import { Callout } from 'fumadocs-ui/components/callout';
+import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
+import { Step, Steps } from 'fumadocs-ui/components/steps';
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+import defaultMdxComponents from 'fumadocs-ui/mdx';
 import {
-  DocsPage,
   DocsBody,
-  DocsTitle,
-  DocsDescription,
   DocsCategory,
+  DocsDescription,
+  DocsPage,
+  DocsTitle
 } from 'fumadocs-ui/page';
+import type { MDXComponents } from 'mdx/types';
+import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import {
   type ComponentProps,
   type FC,
-  type ReactElement,
-  type ReactNode,
+  type ReactElement
 } from 'react';
-import { Popup, PopupContent, PopupTrigger } from 'fumadocs-twoslash/ui';
-import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
-import { Callout } from 'fumadocs-ui/components/callout';
-import { TypeTable } from 'fumadocs-ui/components/type-table';
-import { Accordion, Accordions } from 'fumadocs-ui/components/accordion';
-import { Step, Steps } from 'fumadocs-ui/components/steps';
-import { ImageZoom } from 'fumadocs-ui/components/image-zoom'
-import { createMetadata } from '@/lib/metadata';
-import { openapi, source } from '@/lib/source';
-import { metadataImage } from '@/lib/metadata-image';
-import { Files, File, Folder } from '@/components/fumadocs/files';
-import { Mermaid } from '@theguild/remark-mermaid/mermaid';
-import type { MDXComponents } from 'mdx/types';
-import defaultMdxComponents from 'fumadocs-ui/mdx';
-import { AutoTypeTable } from 'fumadocs-typescript/ui';
-import { createGenerator } from 'fumadocs-typescript';
-import { repo, owner } from '@/lib/github';
 
 const generator = createGenerator();
 
@@ -45,6 +46,56 @@ export default async function Page(props: {
 
   const path = `content/docs/${page.file.path}`;
   const { body: Mdx, toc, lastModified } = await page.data.load();
+
+  // Service property should now be directly accessible from the schema
+  const serviceKey = page.data.service;
+
+  // Get the current slug to check if this is the updates page
+  const isUpdatesPage = params.slug && params.slug.length === 1 && params.slug[0] === 'updates';
+  console.log("Current page slug:", params.slug, "Is updates page:", isUpdatesPage);
+
+  // Create the MDX components object with enhanced logging
+  const mdxComponents = {
+    ...defaultMdxComponents,
+    ...((await import('lucide-react')) as unknown as MDXComponents),
+    Popup,
+    PopupContent,
+    PopupTrigger,
+    Tabs,
+    Tab,
+    Mermaid,
+    TypeTable,
+    AutoTypeTable: (props: any) => (
+      <AutoTypeTable generator={generator} {...props} />
+    ),
+    Accordion,
+    Accordions,
+    Step,
+    Steps,
+    File,
+    Folder,
+    Files,
+    blockquote: Callout as unknown as FC<ComponentProps<'blockquote'>>,
+    APIPage: openapi.APIPage,
+    DocsCategory: ({ slugs = params.slug }: { slugs?: string[] }) => (
+      <DocsCategory page={source.getPage(slugs)!} from={source} />
+    ),
+    ImageZoom,
+    // Custom components for services
+    ServicesListSSR,
+    ServicesList: ServicesListSSR, // Add this extra mapping just in case
+    ServicesCompactSSR,
+    ServicesCompact: ServicesCompactSSR,
+    ServiceCardSSR,
+    ServiceCard: ServiceCardSSR,
+    ServiceIcon,
+    ...(await import(
+      '@/content/docs/api/community-and-support.client'
+    )),
+  };
+
+  // Log the available components for debugging
+  console.log("Available MDX components:", Object.keys(mdxComponents));
 
   return (
     <DocsPage
@@ -65,41 +116,18 @@ export default async function Page(props: {
         className: 'max-sm:pb-16',
       }}
     >
-      <DocsTitle>{page.data.title}</DocsTitle>
+      <DocsTitle>
+        {serviceKey && (
+          <ServiceIcon
+            serviceKey={serviceKey}
+            className="inline-block mr-2 h-6 w-6"
+          />
+        )}
+        {page.data.title}
+      </DocsTitle>
       <DocsDescription>{page.data.description}</DocsDescription>
       <DocsBody className="text-fd-foreground/80">
-        <Mdx
-          components={{
-            ...defaultMdxComponents,
-            ...((await import('lucide-react')) as unknown as MDXComponents),
-            Popup,
-            PopupContent,
-            PopupTrigger,
-            Tabs,
-            Tab,
-            Mermaid,
-            TypeTable,
-            AutoTypeTable: (props) => (
-              <AutoTypeTable generator={generator} {...props} />
-            ),
-            Accordion,
-            Accordions,
-            Step,
-            Steps,
-            File,
-            Folder,
-            Files,
-            blockquote: Callout as unknown as FC<ComponentProps<'blockquote'>>,
-            APIPage: openapi.APIPage,
-            DocsCategory: ({ slugs = params.slug }: { slugs?: string[] }) => (
-              <DocsCategory page={source.getPage(slugs)!} from={source} />
-            ),
-            ImageZoom,
-            ...(await import(
-              '@/content/docs/api/community-and-support.client'
-            )),
-          }}
-        />
+        <Mdx components={mdxComponents} />
         {page.data.index ? <DocsCategory page={page} from={source} /> : null}
       </DocsBody>
     </DocsPage>
@@ -123,7 +151,7 @@ export async function generateMetadata(props: {
       title: page.data.title,
       description,
       openGraph: {
-        url: `/docs/${page.slugs.join('/')}`,
+        url: `/${page.slugs.join('/')}`,
       },
     }),
   );
