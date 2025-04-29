@@ -925,3 +925,930 @@ Note: Be mindful of the bot's finite context window. It's strongly recommended t
 
 #KEY#GIT_DIFF_SKIPPED# (--no-diff flag used)
 #KEY#END_COMMIT#
+#KEY#START_COMMIT#
+=================================================================
+#KEY#COMMIT_HASH# 6c3872644bc7aa6be109ab1c7a91d5cf740d624d
+#KEY#COMMIT_DATE# 2025-04-17 17:26:02 +0200
+#KEY#COMMIT_AUTHOR# Lazare Rossillon
+#KEY#COMMIT_MESSAGE# Merge pull request #7 from Meeting-Baas/fix/compile-export-types
+#KEY#RELATED_PR_MR# GitHub PR #7 (https://github.com/Meeting-Baas/sdk-generator/pull/7)
+
+#KEY#CHANGED_FILES#
+- src/generated/baas/README.md
+- src/generated/baas/package.json
+
+#KEY#PR_MR_COMMENTS#
+PR COMMENTS:
+<!-- This is an auto-generated comment: summarize by coderabbit.ai -->
+<!-- This is an auto-generated comment: failure by coderabbit.ai -->
+
+> [!CAUTION]
+> ## Review failed
+> 
+> The pull request is closed.
+
+<!-- end of auto-generated comment: failure by coderabbit.ai -->
+<!-- walkthrough_start -->
+
+## Summary by CodeRabbit
+
+- **Documentation**
+  - Updated documentation to reference version 4.0.3.
+- **Chores**
+  - Bumped package version to 4.0.3.
+  - Refined package export mappings to better support type declarations and both ESM and CommonJS module systems.
+- **New Features**
+  - Added TypeScript ESM support for declaration files, generating corresponding `.d.mts` files.
+## Walkthrough
+
+This update increments the version number from 4.0.2 to 4.0.3 across configuration, documentation, and package metadata files. The package export mapping in `package.json` for the `baas` subpath is refined to explicitly define type, ESM, and CommonJS entry points. The build script is enhanced to generate `.d.mts` files for ESM-compatible TypeScript declarations, complementing the existing `.mjs` outputs. Documentation is updated to reference the new version, and the OpenAPI generator configuration is aligned with the version change.
+
+## Changes
+
+| File(s)                                             | Change Summary                                                                                                   |
+|-----------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
+| openapi-generator-config.json, rules/openapi-generator/openapi-generator-readme.md | Updated OpenAPI generator version references from 4.0.2 to 4.0.3.                                                |
+| package.json                                        | Incremented package version to 4.0.3; refined "exports" for `./dist/baas/*` to specify "types", "import", "require". |
+| scripts/copy-generated.js                           | Added `"declaration": true` to TypeScript compiler options; extended script to generate `.d.mts` files for ESM type declarations. |
+
+## Sequence Diagram(s)
+
+```mermaid
+sequenceDiagram
+    participant Script as copy-generated.js
+    participant TSC as TypeScript Compiler
+    participant FS as File System
+
+    Script->>TSC: Compile sources with declaration: true
+    TSC->>FS: Output .js, .mjs, .d.ts files
+    Script->>FS: For each .d.ts file, create .d.mts file re-exporting from .js
+```
+
+## Possibly related PRs
+
+- Meeting-Baas/sdk-generator#6: Updates OpenAPI generator version and enhances handling of JavaScript/TypeScript outputs, including ESM-compatible file generation in the build script.
+
+## Poem
+
+> Hopping from two to three, a version leap so spry,  
+> With types and modules neatly mapped, we reach for the sky!  
+> Now ESM and CommonJS both find their way,  
+> While declarations in `.d.mts` come out to play.  
+> A patch so tidy, a hop so light—  
+> This bunny’s code is versioned right! 🐇✨
+
+<!-- walkthrough_end -->
+<!-- internal state start -->
+
+
+<!-- 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 -->
+
+<!-- internal state end -->
+<!-- announcements_start -->
+
+> [!TIP]
+> <details>
+> <summary>⚡💬 Agentic Chat (Pro Plan, General Availability)</summary>
+> 
+> - We're introducing multi-step agentic chat in review comments and issue comments, within and outside of PR's. This feature enhances review and issue discussions with the CodeRabbit agentic chat by enabling advanced interactions, including the ability to create pull requests directly from comments and add commits to existing pull requests.
+> 
+> </details>
+
+<!-- announcements_end -->
+
+---
+
+<details>
+<summary>📜 Recent review details</summary>
+
+**Configuration used: CodeRabbit UI**
+**Review profile: ASSERTIVE**
+**Plan: Pro**
+
+<details>
+<summary>📥 Commits</summary>
+
+Reviewing files that changed from the base of the PR and between 53fbc3152188d7f7c808f951fe65e85e5401e5d9 and 17081e78690e942a234c57926467ca825eb11351.
+
+</details>
+
+<details>
+<summary>📒 Files selected for processing (4)</summary>
+
+* `openapi-generator-config.json` (1 hunks)
+* `package.json` (2 hunks)
+* `rules/openapi-generator/openapi-generator-readme.md` (1 hunks)
+* `scripts/copy-generated.js` (2 hunks)
+
+</details>
+
+</details>
+<!-- finishing_touch_checkbox_start -->
+
+<details>
+<summary>✨ Finishing Touches</summary>
+
+- [ ] <!-- {"checkboxId": "7962f53c-55bc-4827-bfbf-6a18da830691"} --> 📝 Generate Docstrings
+
+</details>
+
+<!-- finishing_touch_checkbox_end -->
+<!-- tips_start -->
+
+---
+
+Thanks for using CodeRabbit! It's free for OSS, and your support helps us grow. If you like it, consider giving us a shout-out.
+
+<details>
+<summary>❤️ Share</summary>
+
+- [X](https://twitter.com/intent/tweet?text=I%20just%20used%20%40coderabbitai%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20the%20proprietary%20code.%20Check%20it%20out%3A&url=https%3A//coderabbit.ai)
+- [Mastodon](https://mastodon.social/share?text=I%20just%20used%20%40coderabbitai%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20the%20proprietary%20code.%20Check%20it%20out%3A%20https%3A%2F%2Fcoderabbit.ai)
+- [Reddit](https://www.reddit.com/submit?title=Great%20tool%20for%20code%20review%20-%20CodeRabbit&text=I%20just%20used%20CodeRabbit%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20proprietary%20code.%20Check%20it%20out%3A%20https%3A//coderabbit.ai)
+- [LinkedIn](https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fcoderabbit.ai&mini=true&title=Great%20tool%20for%20code%20review%20-%20CodeRabbit&summary=I%20just%20used%20CodeRabbit%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20proprietary%20code)
+
+</details>
+
+<details>
+<summary>🪧 Tips</summary>
+
+### Chat
+
+There are 3 ways to chat with [CodeRabbit](https://coderabbit.ai?utm_source=oss&utm_medium=github&utm_campaign=Meeting-Baas/sdk-generator&utm_content=7):
+
+- Review comments: Directly reply to a review comment made by CodeRabbit. Example:
+  - `I pushed a fix in commit <commit_id>, please review it.`
+  - `Generate unit testing code for this file.`
+  - `Open a follow-up GitHub issue for this discussion.`
+- Files and specific lines of code (under the "Files changed" tab): Tag `@coderabbitai` in a new review comment at the desired location with your query. Examples:
+  - `@coderabbitai generate unit testing code for this file.`
+  -	`@coderabbitai modularize this function.`
+- PR comments: Tag `@coderabbitai` in a new PR comment to ask questions about the PR branch. For the best results, please provide a very specific query, as very limited context is provided in this mode. Examples:
+  - `@coderabbitai gather interesting stats about this repository and render them as a table. Additionally, render a pie chart showing the language distribution in the codebase.`
+  - `@coderabbitai read src/utils.ts and generate unit testing code.`
+  - `@coderabbitai read the files in the src/scheduler package and generate a class diagram using mermaid and a README in the markdown format.`
+  - `@coderabbitai help me debug CodeRabbit configuration file.`
+
+Note: Be mindful of the bot's finite context window. It's strongly recommended to break down tasks such as reading entire modules into smaller chunks. For a focused discussion, use review comments to chat about specific files and their changes, instead of using the PR comments.
+
+### CodeRabbit Commands (Invoked using PR comments)
+
+- `@coderabbitai pause` to pause the reviews on a PR.
+- `@coderabbitai resume` to resume the paused reviews.
+- `@coderabbitai review` to trigger an incremental review. This is useful when automatic reviews are disabled for the repository.
+- `@coderabbitai full review` to do a full review from scratch and review all the files again.
+- `@coderabbitai summary` to regenerate the summary of the PR.
+- `@coderabbitai generate docstrings` to [generate docstrings](https://docs.coderabbit.ai/finishing-touches/docstrings) for this PR.
+- `@coderabbitai resolve` resolve all the CodeRabbit review comments.
+- `@coderabbitai configuration` to show the current CodeRabbit configuration for the repository.
+- `@coderabbitai help` to get help.
+
+### Other keywords and placeholders
+
+- Add `@coderabbitai ignore` anywhere in the PR description to prevent this PR from being reviewed.
+- Add `@coderabbitai summary` to generate the high-level summary at a specific location in the PR description.
+- Add `@coderabbitai` anywhere in the PR title to generate the title automatically.
+
+### CodeRabbit Configuration File (`.coderabbit.yaml`)
+
+- You can programmatically configure CodeRabbit by adding a `.coderabbit.yaml` file to the root of your repository.
+- Please see the [configuration documentation](https://docs.coderabbit.ai/guides/configure-coderabbit) for more information.
+- If your editor has YAML language server enabled, you can add the path at the top of this file to enable auto-completion and validation: `# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json`
+
+### Documentation and Community
+
+- Visit our [Documentation](https://docs.coderabbit.ai) for detailed information on how to use CodeRabbit.
+- Join our [Discord Community](http://discord.gg/coderabbit) to get help, request features, and share feedback.
+- Follow us on [X/Twitter](https://twitter.com/coderabbitai) for updates and announcements.
+
+</details>
+
+<!-- tips_end -->
+
+
+
+#KEY#DIFF_RANGE# FROM: 5acc8008c3dc5e7b18592b223d11a53fe8a171cc TO: 6c3872644bc7aa6be109ab1c7a91d5cf740d624d
+=================================================================
+
+#KEY#GIT_DIFF_SKIPPED# (--no-diff flag used)
+#KEY#END_COMMIT#
+#KEY#START_COMMIT#
+=================================================================
+#KEY#COMMIT_HASH# 53fbc3152188d7f7c808f951fe65e85e5401e5d9
+#KEY#COMMIT_DATE# 2025-04-17 17:03:59 +0200
+#KEY#COMMIT_AUTHOR# Lazare Rossillon
+#KEY#COMMIT_MESSAGE# Merge pull request #6 from Meeting-Baas/fix_publication_with_javascript
+#KEY#RELATED_PR_MR# GitHub PR #6 (https://github.com/Meeting-Baas/sdk-generator/pull/6)
+
+#KEY#CHANGED_FILES#
+- package.json
+- scripts/copy-generated.js
+
+#KEY#PR_MR_COMMENTS#
+PR COMMENTS:
+<!-- This is an auto-generated comment: summarize by coderabbit.ai -->
+<!-- walkthrough_start -->
+
+## Summary by CodeRabbit
+
+- **Chores**
+	- Updated version numbers to 4.0.2 in configuration and package files.
+	- Improved the build process for OpenAPI client TypeScript files, streamlining compilation and ESM support for generated code.
+## Walkthrough
+
+This update increments the version number from "4.0.1" to "4.0.2" in both the OpenAPI generator configuration and the `package.json` file. Additionally, the `scripts/copy-generated.js` script was refactored to streamline the compilation process for OpenAPI-generated TypeScript files. The new approach improves handling of CommonJS and ESM modules by generating proxy `.mjs` files and using a dedicated compilation script, simplifying the build steps and reducing manual code transformation.
+
+## Changes
+
+| File(s)                                    | Change Summary                                                                                                            |
+|---------------------------------------------|---------------------------------------------------------------------------------------------------------------------------|
+| openapi-generator-config.json, package.json | Updated the version field from "4.0.1" to "4.0.2".                                                                        |
+| scripts/copy-generated.js                   | Refactored the build process for OpenAPI TypeScript files: modularized compilation, improved ESM support, and cleanup.    |
+
+## Sequence Diagram(s)
+
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant Script as copy-generated.js
+    participant Compile as compile-openapi.js
+    participant TSC as TypeScript Compiler
+    participant FS as File System
+
+    Dev->>Script: Run copy-generated.js
+    Script->>Compile: Generate compile-openapi.js
+    Script->>TSC: Invoke with temp tsconfig (CommonJS)
+    TSC->>FS: Output compiled .js files
+    Script->>FS: Generate package.json ("type": "commonjs")
+    Script->>FS: Create .mjs proxy files for ESM
+    Script->>FS: Cleanup temp files
+```
+
+## Poem
+
+> A hop, a skip, a version bump anew,  
+> From 4.0.1 to .2, our journey flew.  
+> Scripts now cleaner, modules neatly spun,  
+> Compiling with care, the build is more fun!  
+> With proxy files hopping into place,  
+> This bunny’s proud of a streamlined race.  
+> 🐇✨
+
+<!-- walkthrough_end -->
+
+<!-- announcements_start -->
+
+> [!TIP]
+> <details>
+> <summary>⚡💬 Agentic Chat (Pro Plan, General Availability)</summary>
+> 
+> - We're introducing multi-step agentic chat in review comments and issue comments, within and outside of PR's. This feature enhances review and issue discussions with the CodeRabbit agentic chat by enabling advanced interactions, including the ability to create pull requests directly from comments and add commits to existing pull requests.
+> 
+> </details>
+
+<!-- announcements_end -->
+<!-- internal state start -->
+
+
+<!-- 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 -->
+
+<!-- internal state end -->
+<!-- finishing_touch_checkbox_start -->
+
+<details>
+<summary>✨ Finishing Touches</summary>
+
+- [ ] <!-- {"checkboxId": "7962f53c-55bc-4827-bfbf-6a18da830691"} --> 📝 Generate Docstrings
+
+</details>
+
+<!-- finishing_touch_checkbox_end -->
+<!-- tips_start -->
+
+---
+
+Thanks for using CodeRabbit! It's free for OSS, and your support helps us grow. If you like it, consider giving us a shout-out.
+
+<details>
+<summary>❤️ Share</summary>
+
+- [X](https://twitter.com/intent/tweet?text=I%20just%20used%20%40coderabbitai%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20the%20proprietary%20code.%20Check%20it%20out%3A&url=https%3A//coderabbit.ai)
+- [Mastodon](https://mastodon.social/share?text=I%20just%20used%20%40coderabbitai%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20the%20proprietary%20code.%20Check%20it%20out%3A%20https%3A%2F%2Fcoderabbit.ai)
+- [Reddit](https://www.reddit.com/submit?title=Great%20tool%20for%20code%20review%20-%20CodeRabbit&text=I%20just%20used%20CodeRabbit%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20proprietary%20code.%20Check%20it%20out%3A%20https%3A//coderabbit.ai)
+- [LinkedIn](https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fcoderabbit.ai&mini=true&title=Great%20tool%20for%20code%20review%20-%20CodeRabbit&summary=I%20just%20used%20CodeRabbit%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20proprietary%20code)
+
+</details>
+
+<details>
+<summary>🪧 Tips</summary>
+
+### Chat
+
+There are 3 ways to chat with [CodeRabbit](https://coderabbit.ai?utm_source=oss&utm_medium=github&utm_campaign=Meeting-Baas/sdk-generator&utm_content=6):
+
+- Review comments: Directly reply to a review comment made by CodeRabbit. Example:
+  - `I pushed a fix in commit <commit_id>, please review it.`
+  - `Generate unit testing code for this file.`
+  - `Open a follow-up GitHub issue for this discussion.`
+- Files and specific lines of code (under the "Files changed" tab): Tag `@coderabbitai` in a new review comment at the desired location with your query. Examples:
+  - `@coderabbitai generate unit testing code for this file.`
+  -	`@coderabbitai modularize this function.`
+- PR comments: Tag `@coderabbitai` in a new PR comment to ask questions about the PR branch. For the best results, please provide a very specific query, as very limited context is provided in this mode. Examples:
+  - `@coderabbitai gather interesting stats about this repository and render them as a table. Additionally, render a pie chart showing the language distribution in the codebase.`
+  - `@coderabbitai read src/utils.ts and generate unit testing code.`
+  - `@coderabbitai read the files in the src/scheduler package and generate a class diagram using mermaid and a README in the markdown format.`
+  - `@coderabbitai help me debug CodeRabbit configuration file.`
+
+Note: Be mindful of the bot's finite context window. It's strongly recommended to break down tasks such as reading entire modules into smaller chunks. For a focused discussion, use review comments to chat about specific files and their changes, instead of using the PR comments.
+
+### CodeRabbit Commands (Invoked using PR comments)
+
+- `@coderabbitai pause` to pause the reviews on a PR.
+- `@coderabbitai resume` to resume the paused reviews.
+- `@coderabbitai review` to trigger an incremental review. This is useful when automatic reviews are disabled for the repository.
+- `@coderabbitai full review` to do a full review from scratch and review all the files again.
+- `@coderabbitai summary` to regenerate the summary of the PR.
+- `@coderabbitai generate docstrings` to [generate docstrings](https://docs.coderabbit.ai/finishing-touches/docstrings) for this PR.
+- `@coderabbitai resolve` resolve all the CodeRabbit review comments.
+- `@coderabbitai configuration` to show the current CodeRabbit configuration for the repository.
+- `@coderabbitai help` to get help.
+
+### Other keywords and placeholders
+
+- Add `@coderabbitai ignore` anywhere in the PR description to prevent this PR from being reviewed.
+- Add `@coderabbitai summary` to generate the high-level summary at a specific location in the PR description.
+- Add `@coderabbitai` anywhere in the PR title to generate the title automatically.
+
+### CodeRabbit Configuration File (`.coderabbit.yaml`)
+
+- You can programmatically configure CodeRabbit by adding a `.coderabbit.yaml` file to the root of your repository.
+- Please see the [configuration documentation](https://docs.coderabbit.ai/guides/configure-coderabbit) for more information.
+- If your editor has YAML language server enabled, you can add the path at the top of this file to enable auto-completion and validation: `# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json`
+
+### Documentation and Community
+
+- Visit our [Documentation](https://docs.coderabbit.ai) for detailed information on how to use CodeRabbit.
+- Join our [Discord Community](http://discord.gg/coderabbit) to get help, request features, and share feedback.
+- Follow us on [X/Twitter](https://twitter.com/coderabbitai) for updates and announcements.
+
+</details>
+
+<!-- tips_end -->
+
+PR REVIEWS:
+**Actionable comments posted: 3**
+
+<details>
+<summary>🔭 Outside diff range comments (1)</summary><blockquote>
+
+<details>
+<summary>scripts/copy-generated.js (1)</summary><blockquote>
+
+`21-22`: _🛠️ Refactor suggestion_
+
+**`rm -rf` is not cross‑platform – prefer `fs.rmSync` or `rimraf`**
+
+`execSync("rm -rf dist/*")` will break on Windows shells and requires a POSIX‐compatible environment.
+
+```diff
+-execSync("rm -rf dist/*", { stdio: "inherit" });
++// Node ≥ 14
++fs.rmSync(DIST_DIR, { recursive: true, force: true });
++fs.mkdirSync(DIST_DIR, { recursive: true });
+```
+
+</blockquote></details>
+
+</blockquote></details>
+
+<details>
+<summary>📜 Review details</summary>
+
+**Configuration used: CodeRabbit UI**
+**Review profile: ASSERTIVE**
+**Plan: Pro**
+
+<details>
+<summary>📥 Commits</summary>
+
+Reviewing files that changed from the base of the PR and between 57cf4eddc91ab4fa3373f7f86e1dde862172dce5 and 23039bb3840069ef79f3da61f290f64c1229ab70.
+
+</details>
+
+<details>
+<summary>⛔ Files ignored due to path filters (2)</summary>
+
+* `pnpm-lock.yaml` is excluded by `!**/pnpm-lock.yaml`
+* `src/generated/baas/README.md` is excluded by `!**/generated/**`
+
+</details>
+
+<details>
+<summary>📒 Files selected for processing (3)</summary>
+
+* `openapi-generator-config.json` (1 hunks)
+* `package.json` (1 hunks)
+* `scripts/copy-generated.js` (2 hunks)
+
+</details>
+
+<details>
+<summary>🧰 Additional context used</summary>
+
+<details>
+<summary>🪛 Biome (1.9.4)</summary>
+
+<details>
+<summary>scripts/copy-generated.js</summary>
+
+[error] 120-120: Template literals are preferred over string concatenation.
+
+Unsafe fix: Use a template literal.
+
+
+(lint/style/useTemplate)
+
+</details>
+
+</details>
+
+</details>
+
+<details>
+<summary>🔇 Additional comments (2)</summary><blockquote>
+
+<details>
+<summary>package.json (1)</summary>
+
+`3-3`: **Version bump looks correct and consistent**
+
+`"version": "4.0.2"` matches the changelog in the other files.  
+No further action required.
+
+</details>
+<details>
+<summary>openapi-generator-config.json (1)</summary>
+
+`4-4`: **Config version aligned with package.json**
+
+Keeping the generator’s `npmVersion` in sync avoids accidental mismatches during publish.
+
+</details>
+
+</blockquote></details>
+
+</details>
+
+<!-- This is an auto-generated comment by CodeRabbit for review status -->
+
+
+
+#KEY#DIFF_RANGE# FROM: e0748cbf073a2ac252c6f3005848725aa491984a TO: 53fbc3152188d7f7c808f951fe65e85e5401e5d9
+=================================================================
+
+#KEY#GIT_DIFF_SKIPPED# (--no-diff flag used)
+#KEY#END_COMMIT#
+#KEY#START_COMMIT#
+=================================================================
+#KEY#COMMIT_HASH# 57cf4eddc91ab4fa3373f7f86e1dde862172dce5
+#KEY#COMMIT_DATE# 2025-04-17 16:39:03 +0200
+#KEY#COMMIT_AUTHOR# Lazare Rossillon
+#KEY#COMMIT_MESSAGE# Merge pull request #5 from Meeting-Baas/fix_publication_with_javascript
+#KEY#RELATED_PR_MR# GitHub PR #5 (https://github.com/Meeting-Baas/sdk-generator/pull/5)
+
+#KEY#CHANGED_FILES#
+- scripts/copy-generated.js
+
+#KEY#PR_MR_COMMENTS#
+PR COMMENTS:
+<!-- This is an auto-generated comment: summarize by coderabbit.ai -->
+<!-- This is an auto-generated comment: failure by coderabbit.ai -->
+
+> [!CAUTION]
+> ## Review failed
+> 
+> The pull request is closed.
+
+<!-- end of auto-generated comment: failure by coderabbit.ai -->
+<!-- walkthrough_start -->
+
+## Summary by CodeRabbit
+
+- **Chores**
+  - Updated package version to 4.0.1.
+  - Enhanced the build process to compile generated files for both CommonJS and ESM module formats.
+  - Added a warning file in the output directory advising users to import from the main package entry point.
+
+- **Documentation**
+  - Included usage guidance in the output directory to prevent direct imports from generated files.
+## Walkthrough
+
+This update increments the version numbers in both the OpenAPI generator configuration and the package manifest from 4.0.0 to 4.0.1. The build script for copying generated files has been significantly enhanced: it now compiles TypeScript sources into both CommonJS and ES module formats, transforms output files for ESM compatibility, adds error handling for missing sources, cleans up temporary files, and generates a warning file in the output directory. No changes were made to exported or public API entities.
+
+## Changes
+
+| File(s)                                          | Change Summary                                                                                                                      |
+|--------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------|
+| openapi-generator-config.json, package.json       | Incremented npm/package version from 4.0.0 to 4.0.1.                                                                                |
+| scripts/copy-generated.js                        | Enhanced build script: added TypeScript compilation for CJS and ESM, ESM conversion, error handling, cleanup, and warning file.      |
+
+## Poem
+
+> A hop, a skip, a version bump,
+> The scripts now leap, no longer slump.
+> TypeScript builds for all to see,
+> With warnings clear as they can be.
+> From 4.0.0 to .1 we go,
+> The bunny’s code is set to flow!
+> 🐇✨
+
+<!-- walkthrough_end -->
+<!-- internal state start -->
+
+
+<!-- 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 -->
+
+<!-- internal state end -->
+<!-- announcements_start -->
+
+> [!TIP]
+> <details>
+> <summary>⚡💬 Agentic Chat (Pro Plan, General Availability)</summary>
+> 
+> - We're introducing multi-step agentic chat in review comments and issue comments, within and outside of PR's. This feature enhances review and issue discussions with the CodeRabbit agentic chat by enabling advanced interactions, including the ability to create pull requests directly from comments and add commits to existing pull requests.
+> 
+> </details>
+
+<!-- announcements_end -->
+
+---
+
+<details>
+<summary>📜 Recent review details</summary>
+
+**Configuration used: CodeRabbit UI**
+**Review profile: ASSERTIVE**
+**Plan: Pro**
+
+<details>
+<summary>📥 Commits</summary>
+
+Reviewing files that changed from the base of the PR and between 62835e518d9bbdeb3e843f63ec374c161e58d539 and 25e2375deb0f6e1cfac7a99a5ff8bcb1a7e3c6d8.
+
+</details>
+
+<details>
+<summary>⛔ Files ignored due to path filters (3)</summary>
+
+* `pnpm-lock.yaml` is excluded by `!**/pnpm-lock.yaml`
+* `src/generated/baas/README.md` is excluded by `!**/generated/**`
+* `src/generated/baas/package.json` is excluded by `!**/generated/**`
+
+</details>
+
+<details>
+<summary>📒 Files selected for processing (3)</summary>
+
+* `openapi-generator-config.json` (1 hunks)
+* `package.json` (1 hunks)
+* `scripts/copy-generated.js` (1 hunks)
+
+</details>
+
+</details>
+<!-- finishing_touch_checkbox_start -->
+
+<details>
+<summary>✨ Finishing Touches</summary>
+
+- [ ] <!-- {"checkboxId": "7962f53c-55bc-4827-bfbf-6a18da830691"} --> 📝 Generate Docstrings
+
+</details>
+
+<!-- finishing_touch_checkbox_end -->
+<!-- tips_start -->
+
+---
+
+Thanks for using CodeRabbit! It's free for OSS, and your support helps us grow. If you like it, consider giving us a shout-out.
+
+<details>
+<summary>❤️ Share</summary>
+
+- [X](https://twitter.com/intent/tweet?text=I%20just%20used%20%40coderabbitai%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20the%20proprietary%20code.%20Check%20it%20out%3A&url=https%3A//coderabbit.ai)
+- [Mastodon](https://mastodon.social/share?text=I%20just%20used%20%40coderabbitai%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20the%20proprietary%20code.%20Check%20it%20out%3A%20https%3A%2F%2Fcoderabbit.ai)
+- [Reddit](https://www.reddit.com/submit?title=Great%20tool%20for%20code%20review%20-%20CodeRabbit&text=I%20just%20used%20CodeRabbit%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20proprietary%20code.%20Check%20it%20out%3A%20https%3A//coderabbit.ai)
+- [LinkedIn](https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fcoderabbit.ai&mini=true&title=Great%20tool%20for%20code%20review%20-%20CodeRabbit&summary=I%20just%20used%20CodeRabbit%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20proprietary%20code)
+
+</details>
+
+<details>
+<summary>🪧 Tips</summary>
+
+### Chat
+
+There are 3 ways to chat with [CodeRabbit](https://coderabbit.ai?utm_source=oss&utm_medium=github&utm_campaign=Meeting-Baas/sdk-generator&utm_content=5):
+
+- Review comments: Directly reply to a review comment made by CodeRabbit. Example:
+  - `I pushed a fix in commit <commit_id>, please review it.`
+  - `Generate unit testing code for this file.`
+  - `Open a follow-up GitHub issue for this discussion.`
+- Files and specific lines of code (under the "Files changed" tab): Tag `@coderabbitai` in a new review comment at the desired location with your query. Examples:
+  - `@coderabbitai generate unit testing code for this file.`
+  -	`@coderabbitai modularize this function.`
+- PR comments: Tag `@coderabbitai` in a new PR comment to ask questions about the PR branch. For the best results, please provide a very specific query, as very limited context is provided in this mode. Examples:
+  - `@coderabbitai gather interesting stats about this repository and render them as a table. Additionally, render a pie chart showing the language distribution in the codebase.`
+  - `@coderabbitai read src/utils.ts and generate unit testing code.`
+  - `@coderabbitai read the files in the src/scheduler package and generate a class diagram using mermaid and a README in the markdown format.`
+  - `@coderabbitai help me debug CodeRabbit configuration file.`
+
+Note: Be mindful of the bot's finite context window. It's strongly recommended to break down tasks such as reading entire modules into smaller chunks. For a focused discussion, use review comments to chat about specific files and their changes, instead of using the PR comments.
+
+### CodeRabbit Commands (Invoked using PR comments)
+
+- `@coderabbitai pause` to pause the reviews on a PR.
+- `@coderabbitai resume` to resume the paused reviews.
+- `@coderabbitai review` to trigger an incremental review. This is useful when automatic reviews are disabled for the repository.
+- `@coderabbitai full review` to do a full review from scratch and review all the files again.
+- `@coderabbitai summary` to regenerate the summary of the PR.
+- `@coderabbitai generate docstrings` to [generate docstrings](https://docs.coderabbit.ai/finishing-touches/docstrings) for this PR.
+- `@coderabbitai resolve` resolve all the CodeRabbit review comments.
+- `@coderabbitai configuration` to show the current CodeRabbit configuration for the repository.
+- `@coderabbitai help` to get help.
+
+### Other keywords and placeholders
+
+- Add `@coderabbitai ignore` anywhere in the PR description to prevent this PR from being reviewed.
+- Add `@coderabbitai summary` to generate the high-level summary at a specific location in the PR description.
+- Add `@coderabbitai` anywhere in the PR title to generate the title automatically.
+
+### CodeRabbit Configuration File (`.coderabbit.yaml`)
+
+- You can programmatically configure CodeRabbit by adding a `.coderabbit.yaml` file to the root of your repository.
+- Please see the [configuration documentation](https://docs.coderabbit.ai/guides/configure-coderabbit) for more information.
+- If your editor has YAML language server enabled, you can add the path at the top of this file to enable auto-completion and validation: `# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json`
+
+### Documentation and Community
+
+- Visit our [Documentation](https://docs.coderabbit.ai) for detailed information on how to use CodeRabbit.
+- Join our [Discord Community](http://discord.gg/coderabbit) to get help, request features, and share feedback.
+- Follow us on [X/Twitter](https://twitter.com/coderabbitai) for updates and announcements.
+
+</details>
+
+<!-- tips_end -->
+
+
+
+#KEY#DIFF_RANGE# FROM: c750414632c850c81d0f75648c52018944fa115f TO: 57cf4eddc91ab4fa3373f7f86e1dde862172dce5
+=================================================================
+
+#KEY#GIT_DIFF_SKIPPED# (--no-diff flag used)
+#KEY#END_COMMIT#
+#KEY#START_COMMIT#
+=================================================================
+#KEY#COMMIT_HASH# c8ef5fd486da1b3278fa15466a9883bb886799f1
+#KEY#COMMIT_DATE# 2025-04-17 15:50:08 +0200
+#KEY#COMMIT_AUTHOR# Lazare Rossillon
+#KEY#COMMIT_MESSAGE# Merge pull request #4 from Meeting-Baas/better_exports
+#KEY#RELATED_PR_MR# GitHub PR #4 (https://github.com/Meeting-Baas/sdk-generator/pull/4)
+
+#KEY#CHANGED_FILES#
+- src/generated/baas/README.md
+
+#KEY#PR_MR_COMMENTS#
+PR COMMENTS:
+<!-- This is an auto-generated comment: summarize by coderabbit.ai -->
+<!-- walkthrough_start -->
+
+## Summary by CodeRabbit
+
+- **Chores**
+	- Updated package version to 4.0.0.
+	- Added a new subpath export, allowing direct imports from the `dist/baas` directory.
+## Walkthrough
+
+This update increments the version numbers in both the `openapi-generator-config.json` and `package.json` files from 0.3.9 to 4.0.0, marking a major release. Additionally, the `package.json` file now includes a new subpath export, allowing direct imports from the `dist/baas` directory. No source code or logic changes were introduced, and no public API signatures were altered.
+
+## Changes
+
+| File(s)                                      | Change Summary                                                                                 |
+|----------------------------------------------|-----------------------------------------------------------------------------------------------|
+| openapi-generator-config.json                | Updated `npmVersion` from "0.3.9" to "4.0.0".                                                 |
+| package.json                                 | Updated version from 0.3.9 to 4.0.0; added subpath export for `"./dist/baas/*"` in "exports". |
+
+## Possibly related PRs
+
+- Meeting-Baas/sdk-generator#3: Updates the package and OpenAPI generator config versions, similar to this PR, but does not add new subpath exports.
+
+## Poem
+
+> A hop to four-point-oh, what a leap!
+> New exports for baas, a promise to keep.
+> Version numbers climb, the config aligns,
+> Rabbits rejoice as the package shines.
+> With every release, we bound ahead,
+> In fields of code, where features are bred! 🐇✨
+
+<!-- walkthrough_end -->
+
+<!-- announcements_start -->
+
+> [!TIP]
+> <details>
+> <summary>⚡💬 Agentic Chat (Pro Plan, General Availability)</summary>
+> 
+> - We're introducing multi-step agentic chat in review comments and issue comments, within and outside of PR's. This feature enhances review and issue discussions with the CodeRabbit agentic chat by enabling advanced interactions, including the ability to create pull requests directly from comments and add commits to existing pull requests.
+> 
+> </details>
+
+<!-- announcements_end -->
+
+---
+
+<details>
+<summary>📜 Recent review details</summary>
+
+**Configuration used: CodeRabbit UI**
+**Review profile: ASSERTIVE**
+**Plan: Pro**
+
+<details>
+<summary>📥 Commits</summary>
+
+Reviewing files that changed from the base of the PR and between 1d5ee22bd813ec1f9f3870987f8b959737dfefd8 and ed4e994e31e8147ec0b1e5fe88d2a014cc5c6a22.
+
+</details>
+
+<details>
+<summary>⛔ Files ignored due to path filters (3)</summary>
+
+* `pnpm-lock.yaml` is excluded by `!**/pnpm-lock.yaml`
+* `src/generated/baas/README.md` is excluded by `!**/generated/**`
+* `src/generated/baas/package.json` is excluded by `!**/generated/**`
+
+</details>
+
+<details>
+<summary>📒 Files selected for processing (2)</summary>
+
+* `openapi-generator-config.json` (1 hunks)
+* `package.json` (2 hunks)
+
+</details>
+
+<details>
+<summary>🔇 Additional comments (3)</summary><blockquote>
+
+<details>
+<summary>openapi-generator-config.json (1)</summary>
+
+`4-4`: **Version consistency across configs**  
+The `npmVersion` field has been correctly bumped from `0.3.9` to `4.0.0`, matching the package’s major release. No additional changes in this file seem necessary.
+
+</details>
+<details>
+<summary>package.json (2)</summary>
+
+`3-3`: **Confirm major version bump**  
+Updated the package version to `4.0.0`, indicating a breaking change. Please ensure that changelogs, release notes, and any CI/CD workflows (e.g., version-based tagging or publishing steps) are updated to reflect this new major version.
+
+---
+
+`13-15`: <details>
+<summary>❓ Verification inconclusive</summary>
+
+**Review subpath export mapping**  
+Adding `"./dist/baas/*": "./dist/baas/*"` enables direct imports from the generated SDK. Verify that this wildcard export resolves correctly for both ESM/CJS consumers and TypeScript (i.e., that `.js`, `.mjs`, and `.d.ts` files are all discoverable). Optionally, you could define explicit conditional exports for clarity:
+
+```diff
+-    "./dist/baas/*": "./dist/baas/*"
++    "./dist/baas/*.js": "./dist/baas/*.js",
++    "./dist/baas/*.mjs": "./dist/baas/*.mjs",
++    "./dist/baas/*.d.ts": "./dist/baas/*.d.ts"
+```
+
+---
+
+🏁 Script executed:
+
+```shell
+#!/bin/bash
+echo "Export mappings in package.json:"
+rg -A10 '"exports"' package.json
+
+echo
+echo "List of files in dist/baas directory:"
+find dist/baas -maxdepth 1 -type f
+```
+
+Length of output: 522
+
+---
+
+
+
+</details>
+
+**Verify wildcard export mapping in package.json**  
+I couldn’t find a `dist/baas` directory in the repo—please confirm that the `./dist/baas/*` export points to real files in your published package (including `.js`, `.mjs`, and `.d.ts`). If you’re relying on wildcard exports, ensure your build output includes those files under `dist/baas/`.  
+
+Suggested explicit conditional exports for clarity:
+
+```diff
+-    "./dist/baas/*": "./dist/baas/*"
++    "./dist/baas/*.js":   "./dist/baas/*.js",
++    "./dist/baas/*.mjs":  "./dist/baas/*.mjs",
++    "./dist/baas/*.d.ts": "./dist/baas/*.d.ts"
+```
+
+</details>
+
+</blockquote></details>
+
+</details>
+<!-- internal state start -->
+
+
+<!-- DwQgtGAEAqAWCWBnSTIEMB26CuAXA9mAOYCmGJATmriQCaQDG+Ats2bgFyQAOFk+AIwBWJBrngA3EsgEBPRvlqU0AgfFwA6NPEgQAfACgjoCEejqANiS4AhErhp8SAD274KuRAYBy2ZgMouABYDAFVEQMgAGTQALzQKEjAggCYjfWNwKDJ6fAAzHAJiMmUaeiZWdi5efmFRcSkZeSYlKlV1LR0Mkyg4VFRMQsJScioyhUqMTkgqAHdIRD9mBPk5BVaVNU1tXTBDTNMDfG4yNG54YtHqdzAmDDz4Ig0hRHwMDgMAIm+DAGJfyAAQQAkpdSnQFksVvwCgxYJhSF4DHASPwMBZmvCMKQUMhBthuLRqKiCJBcLBUQADDDcZgANUoiHgb0pkAeJAs9HgWHJVOOp3OYLGNzuDyeLxZCnuj2wY2ZWAeVg0MApkCkFCZb0gszQyG5DESbCmELyFBYkEpnwADBoAMwaACcn1ZpMtQQ0NqtzuV3nw/F5fFFMrlWuO4jeyHckAs+CI8AY2soqOYing7NoGiMRn+QIsjmo8uQpN5kCUDAsCQLEZhkBcbg8EKj3GwAgs8drU3U8GkRl95Ez30+6UO3DQDAA1mhSM9Xu8vj8cyChcT6ItWND8owsYizKrRxOp6j1ZqsDrkASieNTeabfaHWS/e7PQAaFAYWjxgvY9CQZZCKOJFYuokMqwI8qqnx1u4nifGy3acq+aCQOQ8yLAIo7krWrjQdquroLQSi0K+yzcOc36WhoAD0H6ILglECGguqUQAVM6D4Wp8VE0XRDFMaxlLKn0yBwgiqJoBYMazMJEZ+IyNYlvuk44qS8DMPWuC/oo2BWMgH6JGIGJsmazBkqqlLcfRjGIKyen1O48jYEy34KWOSkkAA5MgaEYbAWHqYgPp+vgAZbqJRZ+ogBrwNwnivkoJzvmQDDdogr5RmwuBoJeSGzEmv5ZSBWZ/ACgJ5qUhbsSWZYViGGCRgUUENrkfDNq27bsF2PYGFAfaogAFCWInYtI6CJNGqnqBCxZmYph4zpKGVZdQSGYPQjUaSRZFEKlyHBexLSotVlbhnV/B8EyRAYNQsrSAAlAOPzdXsBzZO+NZoHgwwlGMEIVEa0xzJC64UKszSKMo7TbF0z09BMzDqAA+vAtCIAjiQSN2uW0AjtEJBpGQGLDdBBCQDoOiTtoAIwkAAHJTQQAOyiFaAjUwArHktM07QKRoFa9MMAwbMMAAbGgKQpLs+yw39iPI6j6OY3QCM5FLQA== -->
+
+<!-- internal state end -->
+<!-- tips_start -->
+
+---
+
+Thanks for using CodeRabbit! It's free for OSS, and your support helps us grow. If you like it, consider giving us a shout-out.
+
+<details>
+<summary>❤️ Share</summary>
+
+- [X](https://twitter.com/intent/tweet?text=I%20just%20used%20%40coderabbitai%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20the%20proprietary%20code.%20Check%20it%20out%3A&url=https%3A//coderabbit.ai)
+- [Mastodon](https://mastodon.social/share?text=I%20just%20used%20%40coderabbitai%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20the%20proprietary%20code.%20Check%20it%20out%3A%20https%3A%2F%2Fcoderabbit.ai)
+- [Reddit](https://www.reddit.com/submit?title=Great%20tool%20for%20code%20review%20-%20CodeRabbit&text=I%20just%20used%20CodeRabbit%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20proprietary%20code.%20Check%20it%20out%3A%20https%3A//coderabbit.ai)
+- [LinkedIn](https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fcoderabbit.ai&mini=true&title=Great%20tool%20for%20code%20review%20-%20CodeRabbit&summary=I%20just%20used%20CodeRabbit%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20proprietary%20code)
+
+</details>
+
+<details>
+<summary>🪧 Tips</summary>
+
+### Chat
+
+There are 3 ways to chat with [CodeRabbit](https://coderabbit.ai?utm_source=oss&utm_medium=github&utm_campaign=Meeting-Baas/sdk-generator&utm_content=4):
+
+- Review comments: Directly reply to a review comment made by CodeRabbit. Example:
+  - `I pushed a fix in commit <commit_id>, please review it.`
+  - `Generate unit testing code for this file.`
+  - `Open a follow-up GitHub issue for this discussion.`
+- Files and specific lines of code (under the "Files changed" tab): Tag `@coderabbitai` in a new review comment at the desired location with your query. Examples:
+  - `@coderabbitai generate unit testing code for this file.`
+  -	`@coderabbitai modularize this function.`
+- PR comments: Tag `@coderabbitai` in a new PR comment to ask questions about the PR branch. For the best results, please provide a very specific query, as very limited context is provided in this mode. Examples:
+  - `@coderabbitai gather interesting stats about this repository and render them as a table. Additionally, render a pie chart showing the language distribution in the codebase.`
+  - `@coderabbitai read src/utils.ts and generate unit testing code.`
+  - `@coderabbitai read the files in the src/scheduler package and generate a class diagram using mermaid and a README in the markdown format.`
+  - `@coderabbitai help me debug CodeRabbit configuration file.`
+
+Note: Be mindful of the bot's finite context window. It's strongly recommended to break down tasks such as reading entire modules into smaller chunks. For a focused discussion, use review comments to chat about specific files and their changes, instead of using the PR comments.
+
+### CodeRabbit Commands (Invoked using PR comments)
+
+- `@coderabbitai pause` to pause the reviews on a PR.
+- `@coderabbitai resume` to resume the paused reviews.
+- `@coderabbitai review` to trigger an incremental review. This is useful when automatic reviews are disabled for the repository.
+- `@coderabbitai full review` to do a full review from scratch and review all the files again.
+- `@coderabbitai summary` to regenerate the summary of the PR.
+- `@coderabbitai generate docstrings` to [generate docstrings](https://docs.coderabbit.ai/finishing-touches/docstrings) for this PR.
+- `@coderabbitai resolve` resolve all the CodeRabbit review comments.
+- `@coderabbitai configuration` to show the current CodeRabbit configuration for the repository.
+- `@coderabbitai help` to get help.
+
+### Other keywords and placeholders
+
+- Add `@coderabbitai ignore` anywhere in the PR description to prevent this PR from being reviewed.
+- Add `@coderabbitai summary` to generate the high-level summary at a specific location in the PR description.
+- Add `@coderabbitai` anywhere in the PR title to generate the title automatically.
+
+### CodeRabbit Configuration File (`.coderabbit.yaml`)
+
+- You can programmatically configure CodeRabbit by adding a `.coderabbit.yaml` file to the root of your repository.
+- Please see the [configuration documentation](https://docs.coderabbit.ai/guides/configure-coderabbit) for more information.
+- If your editor has YAML language server enabled, you can add the path at the top of this file to enable auto-completion and validation: `# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json`
+
+### Documentation and Community
+
+- Visit our [Documentation](https://docs.coderabbit.ai) for detailed information on how to use CodeRabbit.
+- Join our [Discord Community](http://discord.gg/coderabbit) to get help, request features, and share feedback.
+- Follow us on [X/Twitter](https://twitter.com/coderabbitai) for updates and announcements.
+
+</details>
+
+<!-- tips_end -->
+
+
+
+#KEY#DIFF_RANGE# FROM: 62835e518d9bbdeb3e843f63ec374c161e58d539 TO: c8ef5fd486da1b3278fa15466a9883bb886799f1
+=================================================================
+
+#KEY#GIT_DIFF_SKIPPED# (--no-diff flag used)
+#KEY#END_COMMIT#

@@ -17,10 +17,22 @@ DEBUG_LEVEL=1
 # Define repositories to process
 # Format: "path_to_repo name_for_output"
 REPOSITORIES=(
+  # Main API repository
   "/Users/lazrossi/Spoke/meeting-baas"
+  
+  # Speaking bots repository
   "/Users/lazrossi/Spoke/speaking-meeting-bot"
+  
+  # SDK generator repository
   "/Users/lazrossi/Documents/code/mcp-s/sdk-generator"
+  
+  # MCP server repositories
   "/Users/lazrossi/Documents/code/mcp-s/mcp-on-vercel"
+  "/Users/lazrossi/Documents/code/mcp-s/mcp-on-vercel-documentation"
+  "/Users/lazrossi/Documents/code/mcp-baas"
+  
+  # Add any new repositories below (path without trailing slash)
+  # "/path/to/new/repository"
 )
 
 # Color codes for better output
