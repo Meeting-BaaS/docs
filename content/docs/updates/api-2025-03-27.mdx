@@ -38,18 +38,14 @@ date: March 27, 2025
 
 ### Error Handling Enhancements
 
-<Accordion items={[
-  {
-    value: 'error-conversion',
-    title: 'Unified Error Conversion',
-    content: 'Implemented `From<Box<dyn Error + Send + Sync>>` for MeetingBotError to improve error handling and readability.'
-  },
-  {
-    value: 'transcription-errors',
-    title: 'Transcription Error Management',
-    content: 'Added more robust error logging and handling for transcription processes, including provider-specific error tracking.'
-  }
-]} />
+<Accordions>
+  <Accordion title="Unified Error Conversion" value="error-conversion">
+    Implemented `From<Box<dyn Error + Send + Sync>>` for MeetingBotError to improve error handling and readability.
+  </Accordion>
+  <Accordion title="Transcription Error Management" value="transcription-errors">
+    Added more robust error logging and handling for transcription processes, including provider-specific error tracking.
+  </Accordion>
+</Accordions>
 
 ## Detailed Improvements
 

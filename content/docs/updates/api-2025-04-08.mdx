@@ -35,28 +35,23 @@ These updates reflect recent improvements to our API service and related infrast
 
 <Steps>
   <Step>Improved log upload mechanism to S3 bucket</Step>
-  <Step>Enhanced screenshot utility with:
-    - Timestamp-based naming
-    - Disabled CSS animations
-    - Improved image compression
+  <Step>
+    Enhanced screenshot utility with timestamp-based naming, disabled CSS animations, and improved image compression
   </Step>
   <Step>Added robust error handling for screenshot and log processes</Step>
 </Steps>
 
 ### Dialog Management
 
-<Accordion items={[
-  {
-    value: 'dialog-observer',
-    title: 'Dialog Observer Improvements',
-    content: 'Implemented more resilient dialog handling with:
+<Accordions>
+  <Accordion title="Dialog Observer Improvements" value="dialog-observer">
+    Implemented more resilient dialog handling with:
     - Provider-specific mechanisms
     - Safety checks for page availability
     - Cleanup of existing observers
-    - Multiple selector strategies'
-  }
-]}>
-</Accordion>
+    - Multiple selector strategies
+  </Accordion>
+</Accordions>
 
 ## Changed Files
 

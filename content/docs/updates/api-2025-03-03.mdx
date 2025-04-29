@@ -35,18 +35,14 @@ date: March 3, 2025
 
 ### Notable Modifications
 
-<Accordion items={[
-  {
-    value: 'token-management',
-    title: 'Token and Email Handling',
-    content: 'Fixed issues related to insufficient token detection and email cooldown checks.'
-  },
-  {
-    value: 'streaming-improvements',
-    title: 'Streaming and Service Enhancements',
-    content: 'Refined streaming service, improved error handling, and updated instance management processes.'
-  }
-]} />
+<Accordions>
+  <Accordion title="Token and Email Handling" value="token-management">
+    Fixed issues related to insufficient token detection and email cooldown checks.
+  </Accordion>
+  <Accordion title="Streaming and Service Enhancements" value="streaming-improvements">
+    Refined streaming service, improved error handling, and updated instance management processes.
+  </Accordion>
+</Accordions>
 
 <Callout type="warn">
   Internal updates that do not directly impact external API specifications.
