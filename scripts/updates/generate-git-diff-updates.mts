@@ -351,7 +351,9 @@ async function generateUpdatePage(
 
   // Check if any of the commits are from update-openapi branches
   const isApiUpdate = parsedData.commits.some(
-    (commit) => commit.branch && commit.branch.includes('update-openapi'),
+    (commit) =>
+      (commit.relatedPrMr && commit.relatedPrMr.includes('update-openapi-')) ||
+      (commit.branch && commit.branch.includes('update-openapi')),
   );
 
   if (isApiUpdate) {
@@ -545,8 +547,11 @@ export async function generateGitDiffUpdates(): Promise<string[]> {
 
       // Check if any of the commits are from update-openapi branches
       const isApiUpdate = commits.some((commit) => {
+        // Check for OpenAPI updates in related PR/MR or branch name
         return (
-          commit.relatedPrMr && commit.relatedPrMr.includes('update-openapi-')
+          (commit.relatedPrMr &&
+            commit.relatedPrMr.includes('update-openapi-')) ||
+          (commit.branch && commit.branch.includes('update-openapi'))
         );
       });
 
@@ -556,8 +561,8 @@ export async function generateGitDiffUpdates(): Promise<string[]> {
       // Get service info for this folder
       const serviceInfo = getServiceByFolder(folderName);
 
-      // Set the correct service key based on whether this is an API update
-      const finalServiceKey = isApiUpdate ? 'api' : 'production';
+      // Use the service key based on the actual service, preserving API updates special handling
+      const finalServiceKey = isApiUpdate ? 'api' : serviceInfo.serviceKey;
 
       // Check if an update for this service and date already exists
       const updateFileName = `${finalServiceKey}-${date}`;
@@ -585,14 +590,14 @@ export async function generateGitDiffUpdates(): Promise<string[]> {
             commits,
           };
           await generateUpdatePage(parsedData, diffFile, serviceInfo);
-          generatedPages.push(`${serviceInfo.serviceKey}-${date}`);
+          generatedPages.push(`${finalServiceKey}-${date}`);
           if (isApiUpdate) {
             console.log(
               `Generated update page for API on ${date} with ${commits.length} commits from OpenAPI branch`,
             );
           } else {
             console.log(
-              `Generated update page for Production Updates on ${date} with ${commits.length} commits`,
+              `Generated update page for ${serviceInfo.serviceName} on ${date} with ${commits.length} commits`,
             );
           }
         } else {
@@ -603,7 +608,7 @@ export async function generateGitDiffUpdates(): Promise<string[]> {
           console.log(`Update for API on ${date} already exists, skipping`);
         } else {
           console.log(
-            `Update for Production Updates on ${date} already exists, skipping`,
+            `Update for ${serviceInfo.serviceName} on ${date} already exists, skipping`,
           );
         }
       }

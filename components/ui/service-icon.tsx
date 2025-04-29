@@ -7,6 +7,7 @@ import {
     ServerCog,
     Settings,
     Webhook,
+    Zap,
     type LucideIcon
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -20,6 +21,7 @@ const serviceColors: Record<string, { light: string, dark: string }> = {
     'mcp-servers': { light: '#f97316', dark: '#fb923c' }, // orange-500/400
     'transcript-seeker': { light: '#14b8a6', dark: '#2dd4bf' }, // teal-500/400
     'git': { light: '#6b7280', dark: '#9ca3af' }, // gray-500/400
+    'production': { light: '#f59e0b', dark: '#fbbf24' }, // amber-500/400
     // Add more services as needed
 };
 
@@ -31,6 +33,7 @@ const serviceIcons: Record<string, LucideIcon> = {
     'mcp-servers': ServerCog,
     'transcript-seeker': Captions,
     'git': GitBranch,
+    'production': Zap,
     // Add more icons as needed
 };
 

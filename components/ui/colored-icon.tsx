@@ -7,6 +7,7 @@ import {
     ServerCog,
     Settings,
     Webhook,
+    Zap,
     type LucideIcon,
     type LucideProps
 } from 'lucide-react';
@@ -20,6 +21,7 @@ export const serviceColors: Record<string, string> = {
     'mcp-servers': 'text-orange-500',
     'transcript-seeker': 'text-teal-500',
     'git': 'text-gray-500',
+    'production': 'text-amber-500',
 };
 
 // Map icon names to icon components
@@ -29,12 +31,14 @@ export const iconComponents: Record<string, LucideIcon> = {
     'ServerCog': ServerCog,
     'Settings': Settings,
     'Captions': Captions,
-    'GitBranch': GitBranch
+    'GitBranch': GitBranch,
+    'Zap': Zap
 };
 
 // Map service keys to icon names
 export const serviceIcons: Record<string, string> = {
     'api': 'Webhook',
+    'production': 'Zap',
     'speaking-bots': 'Bot',
     'sdk': 'Settings',
     'mcp-servers': 'ServerCog',

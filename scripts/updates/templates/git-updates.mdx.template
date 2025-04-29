@@ -1,16 +1,26 @@
 ---
-title: "{{DATE}}"
-description: "Automatically generated documentation based on Git activity related to the {{SERVICE_NAME}} service."
-icon: {{SERVICE_ICON}}
+title: "{{SERVICE_NAME}} - {{DATE}}"
+description: "Automatically generated documentation based on Git activity."
+icon: "{{SERVICE_ICON}}"
 service: {{SERVICE_KEY}}
 date: {{DATE}}
 ---
-
-import { Callout } from "fumadocs-ui/components/callout";
 
 <Callout type="warn">
   This page contains automatically generated documentation based on Git activity related to the {{SERVICE_NAME}} service. 
   For the latest version of this content, please refer to the latest Git update.
 </Callout>
 
-{{CONTENT}} 
+# {{SERVICE_NAME}} Updates - {{DATE}}
+
+## Commits
+
+{{COMMIT_LIST}}
+
+## Changed Files
+
+{{CHANGED_FILES_LIST}}
+
+## Pull Request Comments
+
+{{PR_COMMENTS}} 

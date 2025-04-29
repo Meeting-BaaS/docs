@@ -13,17 +13,23 @@ import { join } from 'path';
 const UPDATES_DIR = join(process.cwd(), 'content', 'docs', 'updates');
 const META_JSON_PATH = join(UPDATES_DIR, 'meta.json');
 const GIT_UPDATES_FILE_PREFIX = 'git-updates-'; // Legacy format
+const PRODUCTION_PREFIX = 'production-'; // New format causing issues
 const TEMPLATES_DIR = join(process.cwd(), 'scripts/updates/templates');
 
-// Regex patterns to match both legacy and new update files
+// Regex patterns to match different types of update files
 // Legacy pattern matches exact prefix followed by a date in YYYY-MM-DD format
 const LEGACY_UPDATES_PATTERN = new RegExp(
   `^${GIT_UPDATES_FILE_PREFIX}\\d{4}-\\d{2}-\\d{2}\\.mdx$`,
 );
 
-// New pattern matches any service key followed by a date in YYYY-MM-DD format
+// Production pattern matches production- prefix followed by a date
+const PRODUCTION_UPDATES_PATTERN = new RegExp(
+  `^${PRODUCTION_PREFIX}\\d{4}-\\d{2}-\\d{2}\\.mdx$`,
+);
+
+// Service pattern matches any service key followed by a date (excluding production-)
 const SERVICE_UPDATES_PATTERN = new RegExp(
-  `^[a-z-]+-\\d{4}-\\d{2}-\\d{2}\\.mdx$`,
+  `^(?!${PRODUCTION_PREFIX})[a-z-]+-\\d{4}-\\d{2}-\\d{2}\\.mdx$`,
 );
 
 /**
@@ -104,19 +110,24 @@ function cleanGitUpdates(): void {
   // Read all files in the updates directory
   const files = readdirSync(UPDATES_DIR);
   let legacyCount = 0;
+  let productionCount = 0;
   let serviceCount = 0;
   const modifiedFiles: string[] = [];
 
-  // Delete files that match either pattern
+  // Delete files that match any of our patterns
   files.forEach((file) => {
+    const filePath = join(UPDATES_DIR, file);
+
     if (LEGACY_UPDATES_PATTERN.test(file)) {
       console.log(`Removing legacy file: ${file}`);
-      const filePath = join(UPDATES_DIR, file);
       unlinkSync(filePath);
       legacyCount++;
+    } else if (PRODUCTION_UPDATES_PATTERN.test(file)) {
+      console.log(`Removing production file: ${file}`);
+      unlinkSync(filePath);
+      productionCount++;
     } else if (SERVICE_UPDATES_PATTERN.test(file)) {
       console.log(`Removing service file: ${file}`);
-      const filePath = join(UPDATES_DIR, file);
       unlinkSync(filePath);
       serviceCount++;
     } else if (file !== 'index.mdx' && file !== 'meta.json') {
@@ -124,12 +135,15 @@ function cleanGitUpdates(): void {
     }
   });
 
-  console.log(
-    `Deleted ${legacyCount} legacy update files and ${serviceCount} service update files`,
-  );
+  console.log(`Deleted:
+  - ${legacyCount} legacy update files (${GIT_UPDATES_FILE_PREFIX}*)
+  - ${productionCount} production update files (${PRODUCTION_PREFIX}*)
+  - ${serviceCount} service-specific update files`);
 
   if (modifiedFiles.length > 0) {
-    console.log(`Found ${modifiedFiles.length} modified files:`);
+    console.log(
+      `Found ${modifiedFiles.length} other files that were not cleaned:`,
+    );
     modifiedFiles.forEach((file) => console.log(`- ${file}`));
   }
 
