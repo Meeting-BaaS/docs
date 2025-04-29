@@ -24,3 +24,7 @@ date: {{DATE}}
 ## Pull Request Comments
 
 {{PR_COMMENTS}} 
+
+## Code Diffs
+
+{{CODE_DIFFS}} 

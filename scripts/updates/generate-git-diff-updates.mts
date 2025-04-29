@@ -417,6 +417,13 @@ async function generateUpdatePage(
     })
     .join('\n\n');
 
+  // Generate code diffs (this is the new addition)
+  const codeDiffs = `<Callout type="info">
+  Code diffs require the \`--with-diff --include-code\` flags when running git_grepper.sh.
+  
+  For detailed diffs, please use the git command line or a git UI tool to view changes between commits.
+</Callout>`;
+
   // Replace placeholders in template
   let content = template
     .replace(/\{\{DATE\}\}/g, displayDate)
@@ -439,6 +446,12 @@ async function generateUpdatePage(
   content = content.replace(
     /\{\{PR_COMMENTS\}\}/g,
     prComments || 'No pull request comments.',
+  );
+
+  // Replace the CODE_DIFFS placeholder
+  content = content.replace(
+    /\{\{CODE_DIFFS\}\}/g,
+    codeDiffs || 'No code diffs available.',
   );
 
   await writeFileSync(outputPath, content);
