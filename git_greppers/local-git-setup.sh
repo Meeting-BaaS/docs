@@ -4,36 +4,23 @@
 # It runs git_grepper.sh against multiple repositories and then runs the update generation
 # Author: Based on repositories used by lazrossi's setup
 
+
+# REPLACE THESE PATHS WITH YOURS THANKS
+
+# Define repository paths
+MEETING_BAAS_PATH="/Users/lazrossi/Spoke/meeting-baas"
+SPEAKING_BOT_PATH="/Users/lazrossi/Spoke/speaking-meeting-bot"
+SDK_GENERATOR_PATH="/Users/lazrossi/Documents/code/mcp-s/sdk-generator"
+MCP_VERCEL_PATH="/Users/lazrossi/Documents/code/mcp-s/mcp-on-vercel"
+MCP_DOCS_PATH="/Users/lazrossi/Documents/code/mcp-s/mcp-on-vercel-documentation"
+MCP_BAAS_PATH="/Users/lazrossi/Documents/code/mcp-baas"
+
 # Get the directory of this script
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 cd "$SCRIPT_DIR"
 
-# Set default flags for git_grepper.sh
-FLAGS="--no-diff --only-with-pr-mr"
-
 # Set debug level (1 for normal, 2 for verbose, 3 for very verbose)
 DEBUG_LEVEL=1
-
-# Define repositories to process
-# Format: "path_to_repo name_for_output"
-REPOSITORIES=(
-  # Main API repository
-  "/Users/lazrossi/Spoke/meeting-baas"
-  
-  # Speaking bots repository
-  "/Users/lazrossi/Spoke/speaking-meeting-bot"
-  
-  # SDK generator repository
-  "/Users/lazrossi/Documents/code/mcp-s/sdk-generator"
-  
-  # MCP server repositories
-  "/Users/lazrossi/Documents/code/mcp-s/mcp-on-vercel"
-  "/Users/lazrossi/Documents/code/mcp-s/mcp-on-vercel-documentation"
-  "/Users/lazrossi/Documents/code/mcp-baas"
-  
-  # Add any new repositories below (path without trailing slash)
-  # "/path/to/new/repository"
-)
 
 # Color codes for better output
 GREEN='\033[0;32m'
@@ -51,25 +38,80 @@ fi
 # Make sure git_grepper.sh is executable
 chmod +x "$SCRIPT_DIR/git_grepper.sh"
 
-# Process each repository
+# Process each repository with custom flags
 echo -e "${BLUE}Starting git diff generation for all repositories...${NC}"
-for REPO_PATH in "${REPOSITORIES[@]}"; do
-    # Check if repository exists
-    if [ ! -d "$REPO_PATH" ]; then
-        echo -e "${YELLOW}Warning: Repository path not found: $REPO_PATH - skipping${NC}"
-        continue
-    fi
-    
+
+# Main API repository
+REPO_PATH="$MEETING_BAAS_PATH"
+if [ -d "$REPO_PATH" ]; then
     REPO_NAME=$(basename "$REPO_PATH")
     echo -e "${GREEN}Processing repository: $REPO_NAME${NC}"
-    
-    # Run git_grepper.sh with specified flags
-    echo -e "${BLUE}Running: ./git_grepper.sh $REPO_PATH $DEBUG_LEVEL $FLAGS${NC}"
-    ./git_grepper.sh "$REPO_PATH" "$DEBUG_LEVEL" $FLAGS
-    
+    ./git_grepper.sh "$REPO_PATH" "$DEBUG_LEVEL" --no-diff --only-with-pr-mr
     echo -e "${GREEN}Completed processing for: $REPO_NAME${NC}"
     echo "-------------------------------------------"
-done
+else
+    echo -e "${YELLOW}Warning: Repository path not found: $REPO_PATH - skipping${NC}"
+fi
+
+# Speaking bots repository - with diffs
+REPO_PATH="$SPEAKING_BOT_PATH"
+if [ -d "$REPO_PATH" ]; then
+    REPO_NAME=$(basename "$REPO_PATH") 
+    echo -e "${GREEN}Processing repository: $REPO_NAME${NC}"
+    ./git_grepper.sh "$REPO_PATH" "$DEBUG_LEVEL" --with-diff --include-code --only-with-pr-mr
+    echo -e "${GREEN}Completed processing for: $REPO_NAME${NC}"
+    echo "-------------------------------------------"
+else
+    echo -e "${YELLOW}Warning: Repository path not found: $REPO_PATH - skipping${NC}"
+fi
+
+# SDK generator repository - with diffs
+REPO_PATH="$SDK_GENERATOR_PATH"
+if [ -d "$REPO_PATH" ]; then
+    REPO_NAME=$(basename "$REPO_PATH")
+    echo -e "${GREEN}Processing repository: $REPO_NAME${NC}"
+    ./git_grepper.sh "$REPO_PATH" "$DEBUG_LEVEL" --with-diff --include-code --only-with-pr-mr
+    echo -e "${GREEN}Completed processing for: $REPO_NAME${NC}"
+    echo "-------------------------------------------"
+else
+    echo -e "${YELLOW}Warning: Repository path not found: $REPO_PATH - skipping${NC}"
+fi
+
+# MCP server repository
+REPO_PATH="$MCP_VERCEL_PATH"
+if [ -d "$REPO_PATH" ]; then
+    REPO_NAME=$(basename "$REPO_PATH")
+    echo -e "${GREEN}Processing repository: $REPO_NAME${NC}"
+    ./git_grepper.sh "$REPO_PATH" "$DEBUG_LEVEL" --no-diff --only-with-pr-mr
+    echo -e "${GREEN}Completed processing for: $REPO_NAME${NC}"
+    echo "-------------------------------------------"
+else
+    echo -e "${YELLOW}Warning: Repository path not found: $REPO_PATH - skipping${NC}"
+fi
+
+# MCP documentation repository - with diffs
+REPO_PATH="$MCP_DOCS_PATH"
+if [ -d "$REPO_PATH" ]; then
+    REPO_NAME=$(basename "$REPO_PATH")
+    echo -e "${GREEN}Processing repository: $REPO_NAME${NC}"
+    ./git_grepper.sh "$REPO_PATH" "$DEBUG_LEVEL" --with-diff --include-code --only-with-pr-mr
+    echo -e "${GREEN}Completed processing for: $REPO_NAME${NC}"
+    echo "-------------------------------------------"
+else
+    echo -e "${YELLOW}Warning: Repository path not found: $REPO_PATH - skipping${NC}"
+fi
+
+# MCP BaaS repository
+REPO_PATH="$MCP_BAAS_PATH"
+if [ -d "$REPO_PATH" ]; then
+    REPO_NAME=$(basename "$REPO_PATH") 
+    echo -e "${GREEN}Processing repository: $REPO_NAME${NC}"
+    ./git_grepper.sh "$REPO_PATH" "$DEBUG_LEVEL" --no-diff --only-with-pr-mr
+    echo -e "${GREEN}Completed processing for: $REPO_NAME${NC}"
+    echo "-------------------------------------------"
+else
+    echo -e "${YELLOW}Warning: Repository path not found: $REPO_PATH - skipping${NC}"
+fi
 
 # Return to the project root directory
 cd ../../
