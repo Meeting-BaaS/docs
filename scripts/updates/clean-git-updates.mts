@@ -105,7 +105,7 @@ function cleanGitUpdates(): void {
   const files = readdirSync(UPDATES_DIR);
   let legacyCount = 0;
   let serviceCount = 0;
-  const modifiedFiles = [];
+  const modifiedFiles: string[] = [];
 
   // Delete files that match either pattern
   files.forEach((file) => {
