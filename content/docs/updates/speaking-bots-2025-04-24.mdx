@@ -1,0 +1,442 @@
+---
+title: "April 24, 2025"
+description: "Speaking Bots - Automatically generated documentation based on Git activity."
+icon: "Bot"
+service: speaking-bots
+date: April 24, 2025
+---
+
+<Callout type="warn">
+  This page contains automatically generated documentation based on Git activity related to the Speaking Bots service. 
+  For the latest version of this content, please refer to the latest Git update.
+</Callout>
+
+# Speaking Bots Updates - April 24, 2025
+
+## Commits
+
+### Merge pull request #12 from Muskan180203/image-api-update
+
+**Author:** Lazare Rossillon
+
+**Date:** 2025-04-24 23:27:27 +0200
+
+**Hash:** `dbf51593cda347257127cd8fec4e1110dd5d443b`
+
+**Related PR/MR:** GitHub PR #12 (https://github.com/Meeting-Baas/speaking-meeting-bot/pull/12)
+
+
+
+## Changed Files
+
+- 📁 `app/routes.py`
+
+## Pull Request Comments
+
+### Comments for "Merge pull request #12 from Muskan180203/image-api-update"
+
+> PR DESCRIPTION:
+
+> API can generate new images based on the name and description/prompt describing about image. It can update the image of existing personas.
+
+> PR COMMENTS:
+
+> &lt;&#33;-- This is an auto-generated comment: summarize by coderabbit.ai --&gt;
+
+> &lt;&#33;-- walkthrough_start --&gt;
+
+> ## Summary by CodeRabbit
+
+> - **New Features**
+
+> - The persona image generation now includes the persona's name in the response.
+
+> - **Improvements**
+
+> - Enhanced image generation prompt for more precise results.
+
+> - **Bug Fixes**
+
+> - Improved error handling during image generation and upload.
+
+> - **Removals**
+
+> - The image prompt is no longer included in the response.
+
+> ## Walkthrough
+
+> This change set updates the persona image generation functionality. The `PersonaImageResponse` model replaces the `prompt` field with a required `name` field. The `generate_persona_image` endpoint now uses the `name` attribute from the request for prompt construction and image generation, omitting the `prompt` from the response. The `ImageService` class introduces a new `generate_persona_image` method that generates, downloads, uploads, and returns the URL of a persona image using the provided `name`. The previous `process_image` method is removed.
+
+> ## Changes
+
+> | File(s)                                 | Summary of Changes                                                                                                                      |
+
+> |------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+
+> | app/models.py                            | Added `name` field and removed `prompt` field from `PersonaImageResponse` model.                                                        |
+
+> | app/routes.py                            | Updated `generate_persona_image` endpoint to use `name`, changed prompt construction, response now includes `name` and omits `prompt`.  |
+
+> | app/services/image_service.py            | Added `generate_persona_image` method using `name`, removed `process_image` method, added error handling and image upload logic.         |
+
+> ## Sequence Diagram(s)
+
+> ```mermaid
+
+> sequenceDiagram
+
+> participant Client
+
+> participant API (generate_persona_image)
+
+> participant ImageService
+
+> participant ReplicateAPI
+
+> participant UTFS
+
+> Client-&gt;&gt;API (generate_persona_image): POST request with name
+
+> API-&gt;&gt;ImageService: generate_persona_image(name, prompt, ...)
+
+> ImageService-&gt;&gt;ReplicateAPI: Generate image with prompt
+
+> ReplicateAPI--&gt;&gt;ImageService: Returns image URL
+
+> ImageService-&gt;&gt;UTFS: Upload image file
+
+> UTFS--&gt;&gt;ImageService: Returns uploaded image URL
+
+> ImageService--&gt;&gt;API: Returns image URL
+
+> API--&gt;&gt;Client: Returns PersonaImageResponse (with name, image_url, generated_at)
+
+> ```
+
+> ## Possibly related PRs
+
+> - Meeting-Baas/speaking-meeting-bot#11: Introduced the `PersonaImageRequest` and `PersonaImageResponse` models (with `prompt`), added persona image generation route, and implemented both `generate_persona_image` and `process_image` methods in `ImageService`. This PR directly refactors and extends that functionality by changing model fields, endpoint usage, and service methods.
+
+> ## Poem
+
+> &gt; In the land of code where images bloom,
+
+> &gt; A persona’s name now lights the room.
+
+> &gt; The prompt has gone, the face remains,
+
+> &gt; Through new service flows and updated chains.
+
+> &gt; Rabbits cheer as models grow,
+
+> &gt; With every hop, new features show&#33; 🐇✨
+
+> &lt;&#33;-- walkthrough_end --&gt;
+
+> &lt;&#33;-- internal state start --&gt;
+
+> &lt;&#33;-- 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= --&gt;
+
+> &lt;&#33;-- internal state end --&gt;
+
+> &lt;&#33;-- finishing_touch_checkbox_start --&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;✨ Finishing Touches&lt;/summary&gt;
+
+> - &#91; &#93; &lt;&#33;-- &#123;"checkboxId": "7962f53c-55bc-4827-bfbf-6a18da830691"&#125; --&gt; 📝 Generate Docstrings
+
+> &lt;/details&gt;
+
+> &lt;&#33;-- finishing_touch_checkbox_end --&gt;
+
+> &lt;&#33;-- tips_start --&gt;
+
+> ---
+
+> Thanks for using CodeRabbit&#33; It's free for OSS, and your support helps us grow. If you like it, consider giving us a shout-out.
+
+> &lt;details&gt;
+
+> &lt;summary&gt;❤️ Share&lt;/summary&gt;
+
+> - &#91;X&#93;(https://twitter.com/intent/tweet?text=I%20just%20used%20%40coderabbitai%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20the%20proprietary%20code.%20Check%20it%20out%3A&url=https%3A//coderabbit.ai)
+
+> - &#91;Mastodon&#93;(https://mastodon.social/share?text=I%20just%20used%20%40coderabbitai%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20the%20proprietary%20code.%20Check%20it%20out%3A%20https%3A%2F%2Fcoderabbit.ai)
+
+> - &#91;Reddit&#93;(https://www.reddit.com/submit?title=Great%20tool%20for%20code%20review%20-%20CodeRabbit&text=I%20just%20used%20CodeRabbit%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20proprietary%20code.%20Check%20it%20out%3A%20https%3A//coderabbit.ai)
+
+> - &#91;LinkedIn&#93;(https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fcoderabbit.ai&mini=true&title=Great%20tool%20for%20code%20review%20-%20CodeRabbit&summary=I%20just%20used%20CodeRabbit%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20proprietary%20code)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪧 Tips&lt;/summary&gt;
+
+> ### Chat
+
+> There are 3 ways to chat with &#91;CodeRabbit&#93;(https://coderabbit.ai?utm_source=oss&utm_medium=github&utm_campaign=Meeting-Baas/speaking-meeting-bot&utm_content=12):
+
+> - Review comments: Directly reply to a review comment made by CodeRabbit. Example:
+
+> - `I pushed a fix in commit &lt;commit_id&gt;, please review it.`
+
+> - `Generate unit testing code for this file.`
+
+> - `Open a follow-up GitHub issue for this discussion.`
+
+> - Files and specific lines of code (under the "Files changed" tab): Tag `@coderabbitai` in a new review comment at the desired location with your query. Examples:
+
+> - `@coderabbitai generate unit testing code for this file.`
+
+> -	`@coderabbitai modularize this function.`
+
+> - PR comments: Tag `@coderabbitai` in a new PR comment to ask questions about the PR branch. For the best results, please provide a very specific query, as very limited context is provided in this mode. Examples:
+
+> - `@coderabbitai gather interesting stats about this repository and render them as a table. Additionally, render a pie chart showing the language distribution in the codebase.`
+
+> - `@coderabbitai read src/utils.ts and generate unit testing code.`
+
+> - `@coderabbitai read the files in the src/scheduler package and generate a class diagram using mermaid and a README in the markdown format.`
+
+> - `@coderabbitai help me debug CodeRabbit configuration file.`
+
+> Note: Be mindful of the bot's finite context window. It's strongly recommended to break down tasks such as reading entire modules into smaller chunks. For a focused discussion, use review comments to chat about specific files and their changes, instead of using the PR comments.
+
+> ### CodeRabbit Commands (Invoked using PR comments)
+
+> - `@coderabbitai pause` to pause the reviews on a PR.
+
+> - `@coderabbitai resume` to resume the paused reviews.
+
+> - `@coderabbitai review` to trigger an incremental review. This is useful when automatic reviews are disabled for the repository.
+
+> - `@coderabbitai full review` to do a full review from scratch and review all the files again.
+
+> - `@coderabbitai summary` to regenerate the summary of the PR.
+
+> - `@coderabbitai generate docstrings` to &#91;generate docstrings&#93;(https://docs.coderabbit.ai/finishing-touches/docstrings) for this PR.
+
+> - `@coderabbitai generate sequence diagram` to generate a sequence diagram of the changes in this PR.
+
+> - `@coderabbitai resolve` resolve all the CodeRabbit review comments.
+
+> - `@coderabbitai configuration` to show the current CodeRabbit configuration for the repository.
+
+> - `@coderabbitai help` to get help.
+
+> ### Other keywords and placeholders
+
+> - Add `@coderabbitai ignore` anywhere in the PR description to prevent this PR from being reviewed.
+
+> - Add `@coderabbitai summary` to generate the high-level summary at a specific location in the PR description.
+
+> - Add `@coderabbitai` anywhere in the PR title to generate the title automatically.
+
+> ### CodeRabbit Configuration File (`.coderabbit.yaml`)
+
+> - You can programmatically configure CodeRabbit by adding a `.coderabbit.yaml` file to the root of your repository.
+
+> - Please see the &#91;configuration documentation&#93;(https://docs.coderabbit.ai/guides/configure-coderabbit) for more information.
+
+> - If your editor has YAML language server enabled, you can add the path at the top of this file to enable auto-completion and validation: `# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json`
+
+> ### Documentation and Community
+
+> - Visit our &#91;Documentation&#93;(https://docs.coderabbit.ai) for detailed information on how to use CodeRabbit.
+
+> - Join our &#91;Discord Community&#93;(http://discord.gg/coderabbit) to get help, request features, and share feedback.
+
+> - Follow us on &#91;X/Twitter&#93;(https://twitter.com/coderabbitai) for updates and announcements.
+
+> &lt;/details&gt;
+
+> &lt;&#33;-- tips_end --&gt;
+
+> PR REVIEWS:
+
+> **Actionable comments posted: 6**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📜 Review details&lt;/summary&gt;
+
+> **Configuration used: CodeRabbit UI**
+
+> **Review profile: ASSERTIVE**
+
+> **Plan: Pro**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📥 Commits&lt;/summary&gt;
+
+> Reviewing files that changed from the base of the PR and between 6db47bee7ca6274a6808db2ce50d0004c9906d72 and 3939e53df9f3e80c2066c6e5c5f2ec09b0b059d3.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📒 Files selected for processing (3)&lt;/summary&gt;
+
+> * `app/models.py` (1 hunks)
+
+> * `app/routes.py` (3 hunks)
+
+> * `app/services/image_service.py` (2 hunks)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Additional context used&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧬 Code Graph Analysis (2)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;app/services/image_service.py (2)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;app/routes.py (1)&lt;/summary&gt;
+
+> * `generate_persona_image` (342-392)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;config/image_uploader.py (1)&lt;/summary&gt;
+
+> * `upload_file` (54-169)
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;app/routes.py (2)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;app/services/image_service.py (1)&lt;/summary&gt;
+
+> * `generate_persona_image` (36-98)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;app/models.py (1)&lt;/summary&gt;
+
+> * `PersonaImageResponse` (79-88)
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;&lt;details&gt;
+
+> &lt;summary&gt;🪛 Ruff (0.8.2)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;app/routes.py&lt;/summary&gt;
+
+> 7-7: `io.BytesIO` imported but unused
+
+> Remove unused import: `io.BytesIO`
+
+> (F401)
+
+> ---
+
+> 10-10: `fastapi.responses.StreamingResponse` imported but unused
+
+> Remove unused import: `fastapi.responses.StreamingResponse`
+
+> (F401)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🔇 Additional comments (7)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;app/services/image_service.py (2)&lt;/summary&gt;
+
+> `44-64`: **Image generation configuration looks good.**
+
+> The Replicate SDXL model configuration is comprehensive with appropriate parameters.
+
+> ---
+
+> `66-74`: **Thorough output validation.**
+
+> Good practice to verify that output exists and has the expected format before proceeding.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;app/models.py (1)&lt;/summary&gt;
+
+> `81-81`: **Field update aligns well with the new API design.**
+
+> Changing from `prompt` to `name` field in the response model matches the new focus on persona name in the image generation workflow.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;app/routes.py (4)&lt;/summary&gt;
+
+> `347-349`: **Good use of the name parameter in prompt construction.**
+
+> The name is now properly used to construct the persona image prompt.
+
+> ---
+
+> `362-362`: **Improved prompt guidelines for better image quality.**
+
+> The updated guidelines specifying "only face and shoulders, centered, neutral background, avoid borders" should result in more consistent and appropriate persona images.
+
+> ---
+
+> `365-370`: **API parameters correctly aligned with service method.**
+
+> The parameters match the new service method signature, with explicit naming of the `name` parameter.
+
+> ---
+
+> `372-376`: **Response model correctly updated.**
+
+> The response now returns the `name` instead of `prompt`, matching the updated model.
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;&#33;-- This is an auto-generated comment by CodeRabbit for review status --&gt; 
+
+## Code Diffs
+
+<Callout type="info">
+  Code diffs require the `--with-diff --include-code` flags when running git_grepper.sh.
+  
+  For detailed diffs, please use the git command line or a git UI tool to view changes between commits.
+</Callout> 

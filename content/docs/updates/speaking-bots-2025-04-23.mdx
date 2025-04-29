@@ -1,0 +1,858 @@
+---
+title: "April 23, 2025"
+description: "Speaking Bots - Automatically generated documentation based on Git activity."
+icon: "Bot"
+service: speaking-bots
+date: April 23, 2025
+---
+
+<Callout type="warn">
+  This page contains automatically generated documentation based on Git activity related to the Speaking Bots service. 
+  For the latest version of this content, please refer to the latest Git update.
+</Callout>
+
+# Speaking Bots Updates - April 23, 2025
+
+## Commits
+
+### Merge pull request #11 from Muskan180203/image-generation-api
+
+**Author:** Lazare Rossillon
+
+**Date:** 2025-04-23 11:10:57 +0200
+
+**Hash:** `6db47bee7ca6274a6808db2ce50d0004c9906d72`
+
+**Related PR/MR:** GitHub PR #11 (https://github.com/Meeting-Baas/speaking-meeting-bot/pull/11)
+
+
+
+## Changed Files
+
+- 📁 `app/models.py`
+- 📁 `app/routes.py`
+- 📁 `app/services/image_service.py`
+
+## Pull Request Comments
+
+### Comments for "Merge pull request #11 from Muskan180203/image-generation-api"
+
+> PR DESCRIPTION:
+
+> … image service
+
+> PR COMMENTS:
+
+> &lt;&#33;-- This is an auto-generated comment: summarize by coderabbit.ai --&gt;
+
+> &lt;&#33;-- This is an auto-generated comment: rate limited by coderabbit.ai --&gt;
+
+> &gt; &#91;&#33;WARNING&#93;
+
+> &gt; ## Rate limit exceeded
+
+> &gt;
+
+> &gt; @Lazare-42 has exceeded the limit for the number of commits or files that can be reviewed per hour. Please wait **27 minutes and 54 seconds** before requesting another review.
+
+> &gt;
+
+> &gt; &lt;details&gt;
+
+> &gt; &lt;summary&gt;⌛ How to resolve this issue?&lt;/summary&gt;
+
+> &gt;
+
+> &gt; After the wait time has elapsed, a review can be triggered using the `@coderabbitai review` command as a PR comment. Alternatively, push new commits to this PR.
+
+> &gt;
+
+> &gt; We recommend that you space out your commits to avoid hitting the rate limit.
+
+> &gt;
+
+> &gt; &lt;/details&gt;
+
+> &gt;
+
+> &gt;
+
+> &gt; &lt;details&gt;
+
+> &gt; &lt;summary&gt;🚦 How do rate limits work?&lt;/summary&gt;
+
+> &gt;
+
+> &gt; CodeRabbit enforces hourly rate limits for each developer per organization.
+
+> &gt;
+
+> &gt; Our paid plans have higher rate limits than the trial, open-source and free plans. In all cases, we re-allow further reviews after a brief timeout.
+
+> &gt;
+
+> &gt; Please see our &#91;FAQ&#93;(https://docs.coderabbit.ai/faq) for further information.
+
+> &gt;
+
+> &gt; &lt;/details&gt;
+
+> &gt;
+
+> &gt; &lt;details&gt;
+
+> &gt; &lt;summary&gt;📥 Commits&lt;/summary&gt;
+
+> &gt;
+
+> &gt; Reviewing files that changed from the base of the PR and between c976dffee3465cb2a409dcb8c342d701f73c00c3 and d27d0112befbc336316fcba6c105fc70c43d6c35.
+
+> &gt;
+
+> &gt; &lt;/details&gt;
+
+> &gt;
+
+> &gt; &lt;details&gt;
+
+> &gt; &lt;summary&gt;📒 Files selected for processing (3)&lt;/summary&gt;
+
+> &gt;
+
+> &gt; * `app/models.py` (2 hunks)
+
+> &gt; * `app/routes.py` (3 hunks)
+
+> &gt; * `app/services/image_service.py` (1 hunks)
+
+> &gt;
+
+> &gt; &lt;/details&gt;
+
+> &lt;&#33;-- end of auto-generated comment: rate limited by coderabbit.ai --&gt;
+
+> &lt;&#33;-- walkthrough_start --&gt;
+
+> ## Summary by CodeRabbit
+
+> - **New Features**
+
+> - Added the ability to generate persona images via a new endpoint, returning an image URL, prompt used, and timestamp.
+
+> - Introduced support for specifying persona details such as name, description, gender, and characteristics when generating images.
+
+> - **Bug Fixes**
+
+> - Improved error handling for persona image generation requests, with clear responses for invalid input, network issues, and unexpected errors.
+
+> ## Summary by CodeRabbit
+
+> - **New Features**
+
+> - Introduced a new API endpoint to generate persona images based on user-provided details.
+
+> - Users can submit persona information and receive a professionally generated image, along with the prompt used and a timestamp.
+
+> - **Bug Fixes**
+
+> - Improved error handling for image generation requests, providing clear error messages for failed operations.
+
+> ## Walkthrough
+
+> The changes introduce a new feature for persona image generation using an external AI image service. Two new Pydantic models are added to define the request and response schemas for the image generation API. A new POST endpoint `/personas/generate-image` is implemented, which constructs a descriptive prompt from user input and invokes a newly created `ImageService`. The `ImageService` integrates with the Replicate API to generate images, uploads them to UTFS, and returns the final image URL. The endpoint handles errors and returns structured responses, with supporting imports and error logging added as needed.
+
+> ## Changes
+
+> | File(s)                          | Change Summary                                                                                                           |
+
+> |---------------------------------|--------------------------------------------------------------------------------------------------------------------------|
+
+> | `app/models.py`                 | Added `PersonaImageRequest` and `PersonaImageResponse` Pydantic models for persona image generation request/response schemas. |
+
+> | `app/routes.py`                 | Added a new POST endpoint `/personas/generate-image` that accepts persona details, generates a prompt, calls the image service, and returns the image URL and metadata. Includes error handling and logging. |
+
+> | `app/services/image_service.py` | Introduced `ImageService` class to handle image generation via Replicate API and uploading to UTFS. Added methods for generating persona images and processing images. Created a global `image_service` instance. |
+
+> ## Sequence Diagram(s)
+
+> ```mermaid
+
+> sequenceDiagram
+
+> participant Client
+
+> participant API (routes.py)
+
+> participant ImageService
+
+> participant ReplicateAPI
+
+> participant UTFSUploader
+
+> Client-&gt;&gt;API (routes.py): POST /personas/generate-image (PersonaImageRequest)
+
+> API (routes.py)-&gt;&gt;ImageService: generate_persona_image(prompt, style, size)
+
+> ImageService-&gt;&gt;ReplicateAPI: Generate image (prompt, style, size)
+
+> ReplicateAPI--&gt;&gt;ImageService: Image URL
+
+> ImageService-&gt;&gt;ImageService: Download image, save temp file
+
+> ImageService-&gt;&gt;UTFSUploader: Upload image file
+
+> UTFSUploader--&gt;&gt;ImageService: Uploaded image URL
+
+> ImageService--&gt;&gt;API (routes.py): Uploaded image URL
+
+> API (routes.py)--&gt;&gt;Client: PersonaImageResponse (image_url, prompt, generated_at)
+
+> ```
+
+> ## Poem
+
+> &gt; 🐰
+
+> &gt; A prompt is spun with careful cheer,
+
+> &gt; To paint a face both bright and clear.
+
+> &gt; Replicate dreams, UTFS uploads,
+
+> &gt; A portrait appears as the endpoint explodes&#33;
+
+> &gt; Now with a single API call,
+
+> &gt; Your persona’s image stands proud and tall.
+
+> &gt; Hooray for new features—let’s hop and install&#33;
+
+> &lt;&#33;-- walkthrough_end --&gt;
+
+> &lt;&#33;-- internal state start --&gt;
+
+> &lt;&#33;-- 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= --&gt;
+
+> &lt;&#33;-- internal state end --&gt;
+
+> &lt;&#33;-- tips_start --&gt;
+
+> ---
+
+> Thanks for using CodeRabbit&#33; It's free for OSS, and your support helps us grow. If you like it, consider giving us a shout-out.
+
+> &lt;details&gt;
+
+> &lt;summary&gt;❤️ Share&lt;/summary&gt;
+
+> - &#91;X&#93;(https://twitter.com/intent/tweet?text=I%20just%20used%20%40coderabbitai%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20the%20proprietary%20code.%20Check%20it%20out%3A&url=https%3A//coderabbit.ai)
+
+> - &#91;Mastodon&#93;(https://mastodon.social/share?text=I%20just%20used%20%40coderabbitai%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20the%20proprietary%20code.%20Check%20it%20out%3A%20https%3A%2F%2Fcoderabbit.ai)
+
+> - &#91;Reddit&#93;(https://www.reddit.com/submit?title=Great%20tool%20for%20code%20review%20-%20CodeRabbit&text=I%20just%20used%20CodeRabbit%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20proprietary%20code.%20Check%20it%20out%3A%20https%3A//coderabbit.ai)
+
+> - &#91;LinkedIn&#93;(https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fcoderabbit.ai&mini=true&title=Great%20tool%20for%20code%20review%20-%20CodeRabbit&summary=I%20just%20used%20CodeRabbit%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20proprietary%20code)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪧 Tips&lt;/summary&gt;
+
+> ### Chat
+
+> There are 3 ways to chat with &#91;CodeRabbit&#93;(https://coderabbit.ai?utm_source=oss&utm_medium=github&utm_campaign=Meeting-Baas/speaking-meeting-bot&utm_content=11):
+
+> - Review comments: Directly reply to a review comment made by CodeRabbit. Example:
+
+> - `I pushed a fix in commit &lt;commit_id&gt;, please review it.`
+
+> - `Generate unit testing code for this file.`
+
+> - `Open a follow-up GitHub issue for this discussion.`
+
+> - Files and specific lines of code (under the "Files changed" tab): Tag `@coderabbitai` in a new review comment at the desired location with your query. Examples:
+
+> - `@coderabbitai generate unit testing code for this file.`
+
+> -	`@coderabbitai modularize this function.`
+
+> - PR comments: Tag `@coderabbitai` in a new PR comment to ask questions about the PR branch. For the best results, please provide a very specific query, as very limited context is provided in this mode. Examples:
+
+> - `@coderabbitai gather interesting stats about this repository and render them as a table. Additionally, render a pie chart showing the language distribution in the codebase.`
+
+> - `@coderabbitai read src/utils.ts and generate unit testing code.`
+
+> - `@coderabbitai read the files in the src/scheduler package and generate a class diagram using mermaid and a README in the markdown format.`
+
+> - `@coderabbitai help me debug CodeRabbit configuration file.`
+
+> Note: Be mindful of the bot's finite context window. It's strongly recommended to break down tasks such as reading entire modules into smaller chunks. For a focused discussion, use review comments to chat about specific files and their changes, instead of using the PR comments.
+
+> ### CodeRabbit Commands (Invoked using PR comments)
+
+> - `@coderabbitai pause` to pause the reviews on a PR.
+
+> - `@coderabbitai resume` to resume the paused reviews.
+
+> - `@coderabbitai review` to trigger an incremental review. This is useful when automatic reviews are disabled for the repository.
+
+> - `@coderabbitai full review` to do a full review from scratch and review all the files again.
+
+> - `@coderabbitai summary` to regenerate the summary of the PR.
+
+> - `@coderabbitai generate docstrings` to &#91;generate docstrings&#93;(https://docs.coderabbit.ai/finishing-touches/docstrings) for this PR.
+
+> - `@coderabbitai generate sequence diagram` to generate a sequence diagram of the changes in this PR.
+
+> - `@coderabbitai resolve` resolve all the CodeRabbit review comments.
+
+> - `@coderabbitai configuration` to show the current CodeRabbit configuration for the repository.
+
+> - `@coderabbitai help` to get help.
+
+> ### Other keywords and placeholders
+
+> - Add `@coderabbitai ignore` anywhere in the PR description to prevent this PR from being reviewed.
+
+> - Add `@coderabbitai summary` to generate the high-level summary at a specific location in the PR description.
+
+> - Add `@coderabbitai` anywhere in the PR title to generate the title automatically.
+
+> ### CodeRabbit Configuration File (`.coderabbit.yaml`)
+
+> - You can programmatically configure CodeRabbit by adding a `.coderabbit.yaml` file to the root of your repository.
+
+> - Please see the &#91;configuration documentation&#93;(https://docs.coderabbit.ai/guides/configure-coderabbit) for more information.
+
+> - If your editor has YAML language server enabled, you can add the path at the top of this file to enable auto-completion and validation: `# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json`
+
+> ### Documentation and Community
+
+> - Visit our &#91;Documentation&#93;(https://docs.coderabbit.ai) for detailed information on how to use CodeRabbit.
+
+> - Join our &#91;Discord Community&#93;(http://discord.gg/coderabbit) to get help, request features, and share feedback.
+
+> - Follow us on &#91;X/Twitter&#93;(https://twitter.com/coderabbitai) for updates and announcements.
+
+> &lt;/details&gt;
+
+> &lt;&#33;-- tips_end --&gt;
+
+> PR REVIEWS:
+
+> **Actionable comments posted: 11**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🔭 Outside diff range comments (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;app/routes.py (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> `342-388`: _🛠️ Refactor suggestion_
+
+> **Make endpoint asynchronous for consistency.**
+
+> Unlike other endpoints in this file, the `generate_persona_image` function is not defined as `async`. This inconsistency could lead to blocking behavior during image generation.
+
+> ```text
+
+> - def generate_persona_image(request: PersonaImageRequest) -&gt; PersonaImageResponse:
+
+> + async def generate_persona_image(request: PersonaImageRequest) -&gt; PersonaImageResponse:
+
+> ```
+
+> This will require making the image generation process non-blocking, which may involve additional changes to the `ImageService` class.
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📜 Review details&lt;/summary&gt;
+
+> **Configuration used: CodeRabbit UI**
+
+> **Review profile: ASSERTIVE**
+
+> **Plan: Pro**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📥 Commits&lt;/summary&gt;
+
+> Reviewing files that changed from the base of the PR and between d830cb99a24646e3c2afab3ed15d9e61328668d3 and c3c8d46c97ae1d974f8c0a2168450f3b4edc32e8.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📒 Files selected for processing (3)&lt;/summary&gt;
+
+> * `app/models.py` (2 hunks)
+
+> * `app/routes.py` (3 hunks)
+
+> * `app/services/image_service.py` (1 hunks)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Additional context used&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧬 Code Graph Analysis (1)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;app/routes.py (2)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;app/models.py (2)&lt;/summary&gt;
+
+> * `PersonaImageRequest` (72-77)
+
+> * `PersonaImageResponse` (80-84)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;app/services/image_service.py (1)&lt;/summary&gt;
+
+> * `generate_persona_image` (32-93)
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;&lt;details&gt;
+
+> &lt;summary&gt;🪛 Ruff (0.8.2)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;app/routes.py&lt;/summary&gt;
+
+> 10-10: `pydantic.BaseModel` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 10-10: `pydantic.Field` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 10-10: `pydantic.HttpUrl` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;app/models.py&lt;/summary&gt;
+
+> 4-4: `datetime.datetime` imported but unused
+
+> Remove unused import: `datetime.datetime`
+
+> (F401)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;&#33;-- This is an auto-generated comment by CodeRabbit for review status --&gt;
+
+> **Actionable comments posted: 5**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;♻️ Duplicate comments (5)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;app/routes.py (2)&lt;/summary&gt;&lt;blockquote&gt;
+
+> `348-349`: _⚠️ Potential issue_
+
+> **Remove debug print statements.**
+
+> There are debug print statements that should be removed before production deployment.
+
+> ```text
+
+> - print(1)
+
+> - print(request.name)
+
+> ```
+
+> ---
+
+> `346-367`: _🧹 Nitpick (assertive)_
+
+> **Use string formatting more efficiently for prompt construction.**
+
+> The current approach to building prompts by joining parts is verbose and could potentially create inconsistent formatting.
+
+> Consider using f-strings and conditionals more effectively:
+
+> ```text
+
+> - # Build the prompt from available fields
+
+> - prompt_parts = &#91;&#93;
+
+> -
+
+> - print(1)
+
+> - print(request.name)
+
+> - # Add name and description
+
+> - prompt_parts.append(f"A detailed professional portrait of a single person named &#123;request.name&#125;")
+
+> -
+
+> - # Add gender if specified
+
+> - if request.gender:
+
+> -     prompt_parts.append(f"&#123;request.gender.capitalize()&#125;")
+
+> -
+
+> - # Add description if present
+
+> - if request.description:
+
+> -     prompt_parts.append(f"who &#123;request.description.strip().rstrip('.')&#125;")
+
+> -
+
+> - # Add characteristics
+
+> - if request.characteristics:
+
+> -     traits = ", ".join(request.characteristics)
+
+> -     prompt_parts.append(f"with features like &#123;traits&#125;")
+
+> -
+
+> - # Final combined prompt — clean, direct, and structured
+
+> - prompt = ". ".join(prompt_parts) + ". High quality, single person, centered, studio lighting, neutral background, avoid borders."
+
+> + # Build the prompt using a more concise approach
+
+> + prompt = f"A detailed professional portrait of a single person named &#123;request.name&#125;"
+
+> +
+
+> + if request.gender:
+
+> +     prompt += f". &#123;request.gender.capitalize()&#125;"
+
+> +
+
+> + if request.description:
+
+> +     cleaned_desc = request.description.strip().rstrip('.')
+
+> +     prompt += f". Who &#123;cleaned_desc&#125;"
+
+> +
+
+> + if request.characteristics and len(request.characteristics) &gt; 0:
+
+> +     traits = ", ".join(request.characteristics)
+
+> +     prompt += f". With features like &#123;traits&#125;"
+
+> +
+
+> + # Add standard quality guidelines
+
+> + prompt += ". High quality, single person, centered, studio lighting, neutral background, avoid borders."
+
+> ```
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;app/services/image_service.py (3)&lt;/summary&gt;&lt;blockquote&gt;
+
+> `35-62`: _🧹 Nitpick (assertive)_
+
+> **Consider version control for the Replicate model.**
+
+> The code currently uses a specific hash for the SDXL model. While this ensures reproducibility, it makes updating to newer versions challenging as it requires code changes.
+
+> Consider moving the model identifier to a configuration variable:
+
+> ```text
+
+> + # In config file or environment variables
+
+> + REPLICATE_SDXL_MODEL = os.getenv(
+
+> +     "REPLICATE_SDXL_MODEL",
+
+> +     "stability-ai/sdxl:7762fd07cf82c948538e41f63f77d685e02b063e37e496e96eefd46c929f9bdc"
+
+> + )
+
+> # In the generate_persona_image method
+
+> - output = replicate.run(
+
+> -     "stability-ai/sdxl:7762fd07cf82c948538e41f63f77d685e02b063e37e496e96eefd46c929f9bdc",
+
+> + output = replicate.run(
+
+> +     REPLICATE_SDXL_MODEL,
+
+> ```
+
+> ---
+
+> `79-81`: _⚠️ Potential issue_
+
+> **Avoid race conditions with temporary files.**
+
+> Using a fixed filename (`temp_generated_image.png`) could cause race conditions when multiple requests are processed concurrently. Two different requests could overwrite each other's temporary files.
+
+> Use a unique filename for each request:
+
+> ```text
+
+> - # Save to temporary file
+
+> - temp_path = "temp_generated_image.png"
+
+> + # Save to temporary file with unique name
+
+> + import uuid
+
+> + temp_path = f"temp_generated_image_&#123;uuid.uuid4()&#125;.png"
+
+> ```
+
+> ---
+
+> `107-108`: _🧹 Nitpick (assertive)_
+
+> **Global service instance may complicate testing.**
+
+> Creating a global instance of `ImageService` is convenient but might make unit testing more challenging.
+
+> Consider using dependency injection pattern for better testability:
+
+> ```text
+
+> - # Create global instance
+
+> - image_service = ImageService()
+
+> + # In a separate file (e.g., app/dependencies.py)
+
+> + def get_image_service():
+
+> +     return ImageService()
+
+> +
+
+> + # Global instance for convenience
+
+> + image_service = get_image_service()
+
+> ```
+
+> Then in routes, you could use FastAPI's dependency injection system to allow for easier mocking during tests.
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📜 Review details&lt;/summary&gt;
+
+> **Configuration used: CodeRabbit UI**
+
+> **Review profile: ASSERTIVE**
+
+> **Plan: Pro**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📥 Commits&lt;/summary&gt;
+
+> Reviewing files that changed from the base of the PR and between c3c8d46c97ae1d974f8c0a2168450f3b4edc32e8 and c976dffee3465cb2a409dcb8c342d701f73c00c3.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📒 Files selected for processing (2)&lt;/summary&gt;
+
+> * `app/routes.py` (3 hunks)
+
+> * `app/services/image_service.py` (1 hunks)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Additional context used&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧬 Code Graph Analysis (1)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;app/services/image_service.py (2)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;config/image_uploader.py (2)&lt;/summary&gt;
+
+> * `UTFSUploader` (17-235)
+
+> * `upload_file` (54-169)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;app/routes.py (1)&lt;/summary&gt;
+
+> * `generate_persona_image` (342-396)
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;&lt;details&gt;
+
+> &lt;summary&gt;🪛 Ruff (0.8.2)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;app/routes.py&lt;/summary&gt;
+
+> 10-10: `pydantic.BaseModel` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 10-10: `pydantic.Field` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 10-10: `pydantic.HttpUrl` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🔇 Additional comments (6)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;app/routes.py (5)&lt;/summary&gt;
+
+> `333-341`: **LGTM: Well-defined endpoint route with proper documentation.**
+
+> The endpoint definition follows good practices with clear route path, response model specification, HTTP status codes, and response documentation.
+
+> ---
+
+> `342-344`: **Function signature and docstring are clear and concise.**
+
+> The function signature properly specifies the request model and return type, with a concise docstring describing its purpose.
+
+> ---
+
+> `370-374`: **LGTM: Clear API call to image service with fixed parameters.**
+
+> The service call is well-structured with named parameters and appropriate fixed values for style and size.
+
+> ---
+
+> `376-380`: **LGTM: Well-structured response construction.**
+
+> The response construction properly includes all required fields (image URL, prompt, and timestamp).
+
+> ---
+
+> `382-396`: **LGTM: Excellent error handling with specific status codes.**
+
+> The error handling implementation distinguishes between different types of errors and returns appropriate HTTP status codes. This is a significant improvement over generic error handling.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;app/services/image_service.py (1)&lt;/summary&gt;
+
+> `1-17`: **LGTM: Good module setup with clear imports and environment loading.**
+
+> The module has a clear docstring and imports all necessary dependencies. Loading environment variables early is a good practice.
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;&#33;-- This is an auto-generated comment by CodeRabbit for review status --&gt; 
+
+## Code Diffs
+
+<Callout type="info">
+  Code diffs require the `--with-diff --include-code` flags when running git_grepper.sh.
+  
+  For detailed diffs, please use the git command line or a git UI tool to view changes between commits.
+</Callout> 

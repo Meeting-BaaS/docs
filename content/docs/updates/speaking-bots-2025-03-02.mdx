@@ -1,0 +1,3902 @@
+---
+title: "March 2, 2025"
+description: "Speaking Bots - Automatically generated documentation based on Git activity."
+icon: "Bot"
+service: speaking-bots
+date: March 2, 2025
+---
+
+<Callout type="warn">
+  This page contains automatically generated documentation based on Git activity related to the Speaking Bots service. 
+  For the latest version of this content, please refer to the latest Git update.
+</Callout>
+
+# Speaking Bots Updates - March 2, 2025
+
+## Commits
+
+### specify meeting baas URL to test pre prod and more
+
+**Author:** Lazare Rossillon
+
+**Date:** 2025-03-02 18:26:05 +0100
+
+**Hash:** `583e807fc65970b9fa89c3073489a60793d8e040`
+
+**Related PR/MR:** GitHub PR #6: feat: Add FastAPI endpoint for running bots (https://github.com/Meeting-Baas/speaking-meeting-bot/pull/6)
+
+
+
+## Changed Files
+
+- 📄 `README.md`
+- 📁 `api.py`
+- 🤖 `meetingbaas_pipecat/bot/bot.py`
+- 🤖 `meetingbaas_pipecat/bot/runner.py`
+- 📁 `poetry.lock`
+- 📁 `pyproject.toml`
+- 📁 `scripts/batch.py`
+- 📁 `scripts/meetingbaas.py`
+- 📁 `scripts/meetingbaas_api.py`
+
+## Pull Request Comments
+
+### Comments for "specify meeting baas URL to test pre prod and more"
+
+> PR COMMENTS:
+
+> &lt;&#33;-- This is an auto-generated comment: summarize by coderabbit.ai --&gt;
+
+> &lt;&#33;-- walkthrough_start --&gt;
+
+> ## Summary by CodeRabbit
+
+> - **New Features**
+
+> - Introduced a new API with real-time communication endpoints that support dynamic bot creation.
+
+> - Expanded command-line options to configure meeting URLs, WebSocket connections, and bot identifiers.
+
+> - **Documentation**
+
+> - Updated documentation to showcase the API-first architecture, new endpoints, and deployment instructions.
+
+> - **Refactor**
+
+> - Transitioned the bot execution model to an asynchronous framework for enhanced responsiveness.
+
+> ## Walkthrough
+
+> A new FastAPI application is implemented in `api.py`, introducing a POST endpoint at `/run-bots` that accepts a request body defined by the `BotRequest` model. The model includes mandatory fields (`count`, `meeting_url`) and optional fields (`personas`, `recorder_only`, `websocket_url`). The endpoint checks for the presence of `websocket_url` and initializes a WebSocket server if it is not provided, executing bot logic asynchronously via `create_meeting_bot`. Additionally, a WebSocket endpoint at `/ws/&#123;client_id&#125;` is established for client connections, and a root GET endpoint confirms the API's operational status.
+
+> ## Changes
+
+> | File                           | Change Summary                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+
+> |--------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+
+> | `api.py`                       | - Introduced a FastAPI application with a POST endpoint `/run-bots`.&lt;br&gt;- Added `BotRequest` model with fields `count`, `meeting_url`, `personas`, `recorder_only`, and `websocket_url`.&lt;br&gt;- Implemented `async def run_bots(request: BotRequest)` to handle bot execution.&lt;br&gt;- Created a WebSocket endpoint `/ws/&#123;client_id&#125;` for client connections.&lt;br&gt;- Added `ConnectionManager` class for WebSocket management.&lt;br&gt;- Implemented a root GET endpoint to confirm API status.&lt;br&gt;- Started server using Uvicorn. |
+
+> | `protobufs/frames_pb2.py`     | - Reformatted `DESCRIPTOR` variable and serialized fields in various frame types.&lt;br&gt;- Changed string literals in `BuildTopDescriptorsAndMessages` from double to single quotes.&lt;br&gt;- Removed spaces around assignment operators in serialized field assignments.                                                                                                                                                                                                                  |
+
+> | `pyproject.toml`              | - Added script entry `api = "api:start_server"` for starting the API server.&lt;br&gt;- Added dependencies: `fastapi` (`&gt;=0.115.0,&lt;0.116.0`), `uvicorn` (`^0.27.1`), and `websockets` (`&gt;=13.1,&lt;14.0`).&lt;br&gt;- Reformatted existing `replicate` dependency without changing its version.                                                                                                                                                                                                 |
+
+> | `scripts/batch.py`            | - Removed ngrok-related functionality, including the `create_ngrok_tunnel` method and `listeners` attribute from `BotProxyManager`.&lt;br&gt;- Updated `cleanup` method to eliminate ngrok tunnel references.&lt;br&gt;- Modified `async_main` to accept parameters directly instead of relying on command-line arguments.                                                                                                                                                                          |
+
+> | `scripts/meetingbaas.py`      | - Restructured code to implement an asynchronous `main` function for the MeetingBaas bot.&lt;br&gt;- Removed functions for user input and bot management, integrating their logic into the new `main` function.&lt;br&gt;- Updated command-line argument parsing to require `meeting_url`, `persona_name`, and `websocket_url`, while retaining `recorder_only` and `speak_first` flags.&lt;br&gt;- Removed `BotManager` class.                                                                                     |
+
+> | `meetingbaas_pipecat/bot/bot.py` | - Added `create_baas_bot` function to integrate with the MeetingBaas API for bot creation, handling configuration and API calls.&lt;br&gt;- Updated `main` function to extract MeetingBaas parameters and call `create_baas_bot`.                                                                                                                                                                                                                                          |
+
+> | `meetingbaas_pipecat/bot/runner.py` | - Updated `configure` function to include new command-line arguments: `--meeting-url`, `--websocket-url`, `--bot-id`, and `--recorder-only`, enhancing bot configurability.                                                                                                                                                                                                                                          |
+
+> | `README.md`                    | - Added a new section titled "API-First Architecture" detailing the FastAPI server and its endpoints.&lt;br&gt;- Defined new API endpoints: `GET /` for health checks and `POST /run-bots` for initiating bot instances.&lt;br&gt;- Updated sections for running the API server and future development plans.                                                                                                                                                                                                 |
+
+> ## Sequence Diagram(s)
+
+> ```mermaid
+
+> sequenceDiagram
+
+> participant C as Client
+
+> participant API as FastAPI (api.py)
+
+> participant BPM as BotProxyManager
+
+> participant WS as WebSocket Server
+
+> C-&gt;&gt;API: POST /run-bots with BotRequest payload
+
+> API-&gt;&gt;API: Parse and validate BotRequest
+
+> API-&gt;&gt;API: Build command-line arguments from request data
+
+> API-&gt;&gt;BPM: Initialize BotProxyManager and trigger async_main
+
+> BPM--&gt;&gt;API: Acknowledge bot task initiation
+
+> API--&gt;&gt;C: Respond with bot start status message
+
+> API-&gt;&gt;WS: Initialize WebSocket server if no websocket_url
+
+> ```
+
+> ## Poem
+
+> &gt; I'm just a rabbit, hopping through code,
+
+> &gt; New bots are running on this vibrant road.
+
+> &gt; With websockets buzzing and APIs bright,
+
+> &gt; I dance through the logic, a joyful sight.
+
+> &gt; Asynchronous wonders take flight, 🐰💻,
+
+> &gt; In this coding garden, everything feels right&#33;
+
+> &lt;&#33;-- walkthrough_end --&gt;
+
+> &lt;&#33;-- internal state start --&gt;
+
+> &lt;&#33;-- DwQgtGAEAqAWCWBnSTIEMB26CuAXA9mAOYCmGJATmriQCaQDG+Ats2bgFyQAOFk+AIwBWJBrngA3EsgEBPRvlqU0AgfFwA6NPEgQAfACgjoCEejqANiS4AzEtS4BBWvQBiaRLkcAFAJKQyWm58eAxcSBt8PgpsDAxQokgBfFxEAwA5bGYBSi4ANgMAVURcyABZbEQAa0wARgAOAAYAJkaAZiN9Y3AoQP4bHAJiMmUaeiZWdi5efmFRcSkZeSYlKlV1LR0ukyg4VFRMQcJScioxhUmwrioAd0hELOY0Cnk5BVWVNU1tXTBDbtMBjQ3HgGm4sg4BgARDCDABiOGQRy+Yanah0e6PZ7yfADBiwTCkNIGRyQch3dyeHz+YHcCzwBjUeD4LD7MIURTYBgY0KQXCwEiQAAGwNB4KFEXgVgANBF7LhsBQEuhIN4APIAZWgAQwQRCYXQ4SFAHoYhgwMlUhL+dR0AxudxUiqKCQAI7YaThZK0eRKGyhDFvfmCoUAIRSACU3R7PBLmIoSBYNDAEMh40oLCgMAwLNglMh/YnaMgHvj0MghUxYrghbKhWwSOIMEQAPqKiy14XcSiIFkeTtCl1MCirFssiyyAc3EgCXsMKqNtsUDt1htN1sCNAeFuilsLyd1y0t+BPUgD9gvFtsRCINBn2WYehCkgAD1wVCFybggsCwVC4QkNB6VodFkGDHgXRKbNBVxYVp1nfB50XdsBzXBIlxXdBdWFNDmxbTdt13fdO0fLN1HgUCkhSRgXSZFlIEqZVwMrWiaCvEhG3Qy0JRsWIxGZDBk1JQpCl8AARFBkBOUYMUiPhwMtB9sPA/0KE8Hgez7ST7kTeYeQGXh8AkeAlFoL8BXQbg6QZOisCA3sAk8FR6UQAUwJufBIAAdRnDVEIXcJf31VIuBNG5EGNABvHN4HYY9aAAXx4qJGHpdgFDieYBOQUiTRBbtGVwKKYrikykoiFLvHgArbSYTL+JZRBzJDABhFlyAajAykwO9KAlHMPDTHqiW83z/MbDKOvERrZVCHM82VNh+UUAsUrqqaEllWgkHWrLm1lKDtubJJQmxLD6BoN9IGvW8iSU+gBA5NBaEZTxFukW7pGanSKCkPhUDq/0iEVDECEgM1IBudRYEgQpjOHDB7sgFq1QjDVrpM2grBuZ5BQOFxQc8oCLHwO4GA5G8wCieAiF5F13U9JrIAAGXwIhaeO/ZmDpEg2DCUHYA5bAiFgfA8D5CzaXpQqBIqvh43iAglWO7hFWCEomqMBEkQsGgzmyvlPPApQBv1xr+gCF9ggoc4UtVgRpZ1cRxGkTpkYsQb0AJ2hQoGm9kfarKWW6jBeooCVeRFEEwUnAwoBaj3/ee0zfcT5Bw1wKMGc8AAKUMPBIMoEwsABKCOsCjsVY6gMpG1F+hk7oUKPFkbNID9cHYnwlJEBz+mY04SAM6zgey6zYVRRjoU4/KOvFC9lOJ8QVuGHbkgBngucApbIL/xzzfxsHnyBD8pDcFlEqwnirhPAoMfI8n8UZ9r5aG+95vl7bjv8tEagWwPs++8Zxb0bFwY+p8AoXzSlfEyN93z3wro/aukBXB8WmnZd+woO5ORti2Eov1KA51Fp4OBfAAC8kAoSNA0NQ2hUJZTW0Hv+SAFCmiNEaAgie0cn4wihJ0QEhkCACGwDYCKNgqDXhbNwAQzQY6Ql4fCREyJUQyXoA8VgZ1YL4kJK7Aw3527wBsAMVypM0yKEMTZdBYEjYWSFIIwQIixESOkFImRU9JQyggieZ4Up5ChAkPgCwxljoqSiE8XA64LbMTEgAUQ1C1CMvhvDQFRhKQCSpnKClIuBfBFF6QAC9ZKxQsMWC26TmSVAiM4vkshuxM30dTDmQFrrYF1lKAM5ZEA0wwHzcIsEhSxPiYk5JqTIAEhkBxLALo6RoG5PQKG/IVRdObFYSA9JyCyhuAgVZTx/zaHiCEiyt42A/TyfAQp4wWQ0DCEJFw5E+wWAnLKHJ75lT0j1vZOWEsQyhmwFKWg0B8DcDEtIcm1UlaIEcLqWuN5eqIB4mg2WjJHljLQFIJIkzGAEmbLJDkzB25iwdoKd0KRpCG3uAkVZJKaD1KOZQM5FzJRFk6d03pq0+BChbNAGJAANaArgIyODKDEgcLZHCFDEr4VGjgvICqFSKusXLBXpCGUk6AUr0hyuFSRbCnKtUitRei+ynkchkHBuvMJ1BzhgxdPGdFiBuCzLJc8MWylJY3lZelIFowogX2xRzRI4iWDCjIdaTyQpQ2Q2hmLcIDqnW0ukIKbROLkC0E8hgaiQE9bfIYrqSgE5lS8WzOgoC6gcR8BJrTVesFwIrEFMI8I6ZDHyFCRQcJkTSKeFkKsmtFk60aCMFrJRutRgGzBsbUQHszYYGQLBV8jCMR22wA7BkTtyK6KgOkImI7p3WJzSbKdtlZ0DHnVEW2fB7aO3YOu5A04XTXWenjLA/JUDbSMQOhRccBG1I5CIMQGgCDMAsPI2E2tlHSTOBidRTwXgW2TUSMwfb/Vkt5MxcEhk/2aEAx2DxT75pKBzcne5WBYJoDJCQO4iAwWOidrB2Iqwc1CgANoEECWCfAjYXgaCo0qR0iAAC6EoSidQOgVCxyKJxcJ0BQqEooOA4NwHgygf0oSdi2QyGG/4OS0C5M68jZMWBPGwnJe4uBniRPAtSH6f1bnbRLY82QB0SB/WaUobsebsyxWQASdFpqMGmVzQx5iLH8BseCJx2QGg3OBDIAwLzgmdKdVCjYDwZmQQSgWTDMjf0un0TqrffZfSBhCihHoMh1Dai1AAKw0OlMACrtQ8g0NU3WbA8MogYAy9DFUOWkWNXfIVi2JWAB61DmgAHYNC1Ba+dOCwDD7wqjYs7LPY+szoG8w/ppWyG1DaFNurtQAAszXPwph/C+JAkToseYYPIEzg4SDWUKiQCU4yMVmpdHJdtgZxa2v2cgPiyH6C8nUMgXr9EHWiHE7ZZqJRrrmP9DLc2ZBsXchzUWzqpbcCvD8dmKI1smTHXJNZygjBgQqHaS7HK2FrtKE82SjqH0zomcs34AA5LO7s06B2DrAzuo95KJ2mwF3Oq2Z7F0XuXVesIN63bpAo/caj4RG4+ykywyhcmFNKYIRQVT487E/vwJhgDLAOwz3l3cWnsX5Aq+S6l0U6vtsNZq40OrDWmuND15HdDv75gm6A9PTdCurfZht5goUbWGQdcd6NjQE2pte4rj7o3fvsOB8gBbte7m6e3YXk3ObCEz7IBk2V3b+3gBHZO/r5Pxu0/QlhF+sARgePgoipuXA+I5H174WBlEEH0RqKxLBrRyHiT6LfcY0W4Uc0TB5jQc1drmm9pDC3vjxp2+d/FLhzZCAyx1TMwGegGP7Nlq+UZu8ypLSzcMi+eQhluQ3jJZlskRAORVD5LEcgFgE24azPhnk3MZ67KkA5SYsyA9Ij0Pi0gB0XIWWFYzwRAjqakL2dYLcnm+AOqT4zYb+mBDE4gBSGIZAxkHIPS6U5SmSYEgsYsIsWCpKGAEgp2+iQogEwE6IGECKxassZADwLoF0BI4QhQEYzMJYZmNsGIz+UIsAES3AiAHAxoxo9CkM2ygolQpOoQqs4QOM3mj4VgfBQsNBzEpAimqhFAx4GAGhHBImShGmIBpaIE5w6heAMgBc9A9EZGhkxkAWLBJk1AUQPOTB3gHID+iArM7MfUqUnsWh5qDqjU8ARKXylaAa/AeAGhVSwaDwAg9+H00BD6ocSRloMMTkuozwrhKR4spElAHIfAt89gzAP+YYKQgR+At+IcYc/UacOojIMhrSA+M+UQgolaDIs02YuYR0iQS09cwB5M8oyo2B+A7+ComU3+soZoByiQEwRmxYUC9gaxDE3AEEiE2RiASMCs6g1MhyJA8A1RZmCo9RaBDAV4+ycYc8rhFA+InokGfB52ogeAsssEloYAN+d+2gakso2KWMyoGxj4YA6yWSFAwMbKDCmkocOkVgVhpEWR/s5+pAvSyYvgyu3+nkc0oxGIgxq8JmRGx0Q4UQYxVMGAkmlo1O9A2JTEFk9Idgt2OYMEAw4EmJGswx+Gyor+TqvEmYrkeAaaNwM6s2lRKU4J6yRA/hFktqRkS+PJqYv+iYJ4p0NK6AKKg0iEFE5wx+AkWOjmf+oxrJSahm0JsJWYesKWaOJmCml+PczyFk2JvMXqAwcxCxn+iYxxs24EiRyosEfJyRuAGhmsvOw6HyViguFkB6zwIuJ6YuYhrxPAUuq616VObsrgUogoKpUgquQoq+qQ6+1Am+scn6EATeBgZZEUuERABETU4IIGPeSifeIwnxmIGiw+eIo+iGSao++uDZxoTZLZ7i/igSRqFwc+MEf0BIrSUSFkloHOlsPx6C8OGYzyVAM6xGhaeKSyK8VBGalSYMhw9xp5YB6AbxCANAYgIM30vAzmFSIhMQj5LoO+NhxJeYGIzArS4gPMEQiK5sJmJhWYqRpEV+npvSYJHg72Uyj2HscySQNuFKKyWSn8+IJBN59YTxIFnB9ENofSd5HxlECkKQ653q3ORgAA0iQPIE2ojgLr+QRuBEWWqTpC5pmCaebKWHAcKN4fYSQOwXWEYW2PgmYRYeJYuFzr2KHEpmiegrgSxPKKJS2d3DWN+WWHeoWdIMEPufEeBfgvacoJ1EyVROENMTDpAL4OtvYLQO6YKMTvhaEJYVudtEOLgJJp6ZQfWlRcgIDDTIqLZDKS+JubLDYCTDcN9GucgPJVpKgBmncHYB3gKPQIxMdEKN4MiWgK0aQOHEjPgvDGSvSAuJADElYFIBgMzCoMgNANAOjKRGqO5siCzMzGULeU+uRKWoyplqhhqXxYJEOQEBQFUairqAqaihMmajUWgEBofpst1q+A6PGTkJCWgMLFIbNokRiF5fMJJgNc+rYrsp1oRZ1HFYFRlEDKFVuclaTBlLfFyOcFlYkGRgMtoBONAHuTETbOXEUdyDpTDLFsCA8B7LqeBE2bDEIbNuAofJNEHFgEoAft/s+dVFqeQF8nycqFtdtETMpK+OEG9n5tEe+C9SDBdJ5L8QQcKFVN2LCQOPTZjSQNAB4FUKpczbCRGP6UVRELMpToTu9fDveumD0XwKRFebhZUrSE9GWGDPKa6eEGZtUNGc4HZqaQ5s5RcJsTCR0ggVkOlEgcsokCTZitgNwCJVTeau6FcYKMxE2WJV2HlS2KHGwKpQAtvChN+assxNSSOJQGOPSZOLNqWd2GgFUC2KpLGBEB7EQNob5pii6AfuQGZGdvwDxWKeTZ+YKG9q5IYsaUeWRn7IgBaC4bkb1L0vcLIJ4LzOSmRvGPesNc0pLdhdeZUkgc9DTMwDzmqJndrfBmSp9spSqANvuVuQQDjCONTuWCedLTlHeeoPMCDLKCjpgHFhcVZeuZBIZV0jVR9LNmLVOmWjznznGWOjYoKEmbuhbKeumfwJLiuqvDmV5nmaBVgF0kQKHAqPehbVbaFB3GdTnJwqWUro2RxOuJOVvoAEmES8K8a8AwQDjt7YpCSJakfYrtC11gpmFAmy82Z8GEqD9w4dkd0dg8yQgS6u7g3+JAKxogNJgd44EIVElDFC1DJQJcugegGeLIL2o5YD45EDCQUDyCCcnsDRuABV4RRZuKwaoDvG5ZE5W4rZ1ZDetZRgEYMSjgYkwqGgzAPs3eiiSIXZaI5w0GmiA5OiY+SGVj48zEmj2juj+jPEBZFKX90OYQkma90E+6iEhtYQYVbwWmnIG9wtxOUI1IYA+Zak4Qjgi9D5P9JAUIiWE9/BEZsJ/lBxmG6581i1qdSIfgYAZDlkhksysA5kqAwmnljYX1mTJ4PMvSYVpGayNMUh04rT4QlIXgfgJOfAJmMFw0XpBokto0J8CNJVpOJmtEFgYA4gJyGxsQliAkeJsaYmhYlBtorO/gr60g3ShMF1W5CFZGm4SE2EJVDIgomWMaSQfyusYAvIW1wYMuSOiM1hZYbI1yAWYMOQFdpAD06FSB6U1IPOmeVmu8YQCd9amKfoS1FpC0x0ZGHI1E4L4QJmAoWaMM7x84yAOcQoAA4jEtqMaEKCXMDeaj/dKWRgAFIahqjpDXRM6kBZjbQyyHKbMWRWaoCrEJDfQ5WahEtmgWg9wSgot6kxXAGhC9WRJX6hCA1P7dagEd3JlLQ9g76UD6W228FMolLIBsUhjIPLhTj4Ne2GtIz1hCN4SaVESMWdjJ2Ki7Fka1ycTNj5wIVX7iSzaXzhAesmbw1nyI0WW2bEbEzmlkZ+sBQ6h6jMK4vGjhTFTQKKZlQkvaTBM6aoVTP2AzNzPWmsCLMvMwFWRnq40LSeS5ObSzZkbM2FSjMQITSisxs/yFTxuxQwKJTJv9MmR22Y6Zh43MgZTg4jV6IWQYbzCWzXK5bSlVOyxm1mp/29E2rrwj3gRRDvEFZbmwQAVtLAW9QQsgEUQFP+BnACjyTYoSz6FZbIzMwoibglBU1sYZ4K4ZFTvmweEmRPrPUWVfLcub1WYTO4NwtjE62PjAEkzIprxSAkzcBV0YnaYvWyxuYkyyBwXliQyJg9vgGhBVB7r/jmULCChWZpoMD+M3GywtVtU9OQ5xYsVWLfS8SJPgeJhApV3PskZ4AZM8AeyZRH7yggwbPhDVXKBMtbNFNXHqSy34BlMCmWnHTePchsrkoDN5FDPK7YSJUomwXsC9390z4jmf3xAsWePyCyf22Jl+ONNblvCvuAdcm4x8DAw+E+PEUcuFPFPPD4hL052zag6dKGm9HN3vJean2xmjrmzjqJmTrJnxmi4LoZmXrZky65nm6PtI154lkIhKKFPRPqRxPucJMgzlzCgOM6MxJ6O0Dp6Z5Pspe27CjpcZf+AxK6h/gQsFdChFdONldJd3Ciswup2hQEtEvJR8Dou6yYsCjzj65tclfOOdeRtNfhA9f558taiQCmixBCtWhLYwyd0qtqQTdaPFelflcK7dfryH6hTht1uNfBSQA5yxsRTRQJvxQJQgOTeHczcnf+i9d00Y3VsXeBRXfRvGiNvUDNulSJQvf7ftdHeUZVfh7aw81xBWkHuQAajKbhGRyvfTdB6UbLosc5Rw/aysxgcgoQdMfsASi5TpeqiwedSQAgp0j4BIfk97eONTcdfY8pOkcE8oJ4Agx0/OaMdQfM8Y+Q9s/Tw1mAhKPbjA9FSWjr4pBd4KK94qI9nmP9lYpWOjWD26vsghNZL6ZmXClbnP7gROvriuvIBWYmY2UdpWVCQG/DV1g28aXKNaWdj4ymRkv5bZ1OjHPUTBXAzTqH0R16bqjLf9yegJmChm8JAW/I9vU5pWf/kWuJCCHMyyh/cw3p9WV2ViRoMKVkZu20OzZAr2ax13jAH+2rB0m+UJgl9lERJI/utiS0fv1rJsyZMB93Xwc1NSiWVbOQD7g3dIHiAhvmogRiCyQpTCaKhlqcM5BySCiHRI8R+eArOTVYxkoD872NTF8hnHSljBEP1jUTU3RwpJDl1Of6UxEzpL83GVL9p2XqkBXWWsRRW1OzTK4RK8x8bkrG0mc/hxqKUHfrf12od8c0LoaqpgEChAD5YjLL6EYHVrBstaT1MzLuxZwWQY+LrZRsjyH6kQ0+3VBBrC2fzF0xuCxTyNwT54D8h+lTCaEGnxTgQDa8nFKEQSuIsgq65BIlEzF8DP9B+jFbSMwCQAm0lIJ/FKKgD2pOUgyw7DkMKXxSvhQcvLM6h5VlioA521qCgW+CoBiAeAyrRsD2HNQQ19mpvFPnHyvz0C+iGAW6kHyYHsBAybFJHtDTT6yhm+dDYcNXyYbl8iASMTPmn3X7e8PyTocCD4NhqGJyMwRM6KRAkyZM1KbBTStxAOaywwYzvHNDKwGAN0U+WfbSEnzToxJYBG/aamyH/zW1K0/NKULx3HhX4beyzUakZGUAop98HIXijFW0jGdrasyDYooHRA5picnLfmEbwEir0Z0s/NlsrVXL+9DgPzZ3vQB9Bu0bIDmC/re34AnVBQ2Qm6iFVopGNHA/OeMmFyvoRcb60XcXLFyzLP0Eur9GbsNVS4AN14NEdSvhFd6Wgc4BrCwHg0LwmsXhVleKPnwwZF9XBDDUwkwzITsNi+MaDQlpXihAj7IJAEBlL0QBSIfuIPOXpaCniGNG8RgWEfCJqiy8Ugq3TKBQEV6gZOyKvXomrxxCWMU0WvEcqm10zcU6hBvKErqD1pY0bBu7XYcKC74uhlB9EQavqxT6aUZe8vIqKsUoDuJ/QVgXlhACbJgAUIt5BEulA94YgjmNtP5Fq1vjltiYpMZUCYT3SUdm0OaRwbDTBhCB9QEosAJ7UbDSjDWso4jim115ptFRM9UvprRwbKgSBCDLarrFsK5huSlCcKHIWNCgcgIxCTgGwk9xktdR6zHNMEOZhfIsBRAC3qaIBImQKe8JG0QcEJKpcUOhwJ0Q8hdHHQ3RfoD0QBCAgegLYUIQsYBUULnMEWOUXNPAAZgoA6c4gQsH0xSiUVNA6dIUBACr6UAa+IdFkeEAOAsMrAhwaKneAli2hQgLLSiFsjrik52xtoz5vs0uG9grAkmJUT2L4CziP6azWKGnSYKSiU+ZdDwGAFFBgBiI1oqugqIbiOjHQzotUftDFaajjo2ov/hyE8JZIsAVmIfiZjjEW9lqy2fmo8hObkDGMwqQlr4HSB4sWwoYRwI4A1Bio/ALYOijEgACaIregmwNIIGhOBqyUIRmnCDZCg29mJ5IxggCgi8A63e5mV0vHyide74PXjeJVAUMRxWAMcYkBIpqsdxUOQsJIKhgopeAzCYwc63jE4Dm+48BumUwDBgBaIIEYypag7Hfg4c2vHUKjgAFrDA+FOd5GSJSHUQ3gGoqGC+PwR7ok+C8ZAToOcR6xb0AoLAB7EBxI8pYSzFkEFx1jn1Qul9NeMLii6pkYux/OLqcOdjnCoAcTOUcM3DyHiRJlonDDWlqQr53wLXDEQKLl7Cj8RT8YKamOg7hSzRxrC0TKJindhhQt8BKXyNd5JScRKUlEelNCnK4spSYmiflLinhx9ciUhEdiKFG81KpSIDKelGq5diZJ9DAOhQD7ESgGphUpWKJXJp8NI4LUrEYKNxGnBOpIUm0b1IinrhjxpdM8ReNGmll4pzUkqdL1alzSKpaUrqdVKuHChyJDfKicmKiSxSxp/RFsJNOKkiT+Rh05KR1J4RqNAQY5DEUgnbKbCTGqiXsjBh0na9EBBvbwLIGWhsTXG5rF6a7yQSvY3WmKakXMjJb1MrA8nfzqfhMw4ctBkSE3pgJME4CrMSQ1iPrzMEpQmyP+MUXsM+5koSgPFduNQAbrFwAcJtVULIBAjPMpO8LRIK1wGljEi4SgAcI4DwAsAmQDAZmPYCkADgNQ3YUQLAEBTQAiaqlDUO+FqIJA1Mu+EGtmDBo9F58irEsI2HXCWUORAuDAS/2+hnVlRkfdMImDrB/jlGI8T0J2HyyBIfCupfuHbQbjYQcxocXisUlKSM5YUsGEzE8CqDKgrMUQ3mYByhoZCnBOfX4bNjLbHRzZ6CJUiGGd7sQRJbvBIdyMyaCSQZtGO/Nd2t5v8EWdvOysrntCPYnQ23PQbtwEoocDR2faMc4OojiRvhKJZOd+MYpIx/ZzSEoI32bDAF2x65HID5mZAS1sItIewHuW5DJgvI0MQaqgEd4qhM+jqRZADH6wBC6ASMD6urNoiCDmwANNAWjgBjky06pIIUE7I8AuyY6ggTDNpCeZZgiio/c4ITJWHvi329ABuVZMzn5zWQIxP8uATZiroFaOhfXlCE3F9jkm9sr3iyCsEMyFZ+IWZoQEuixoTZCQXVsYl3F0B1+L5QFpk1X6os2xznfwBJjQr9tKAFmZUtGDtnFx66BiTHLBnUyrJVq0nd6hgDuxBy+OhAoUFunICMELIlw1+RHND78tbZ6kNkXfMt5+BZQ+/DifQuzgqd6AitFWHQVH6ZhZSakPErwNIXaRD+H0UUp/zHb4zLKdrCgNKQXHiQAA3PwGDAUAoYJQMxZWhnq6KGWsKJlqRCsXSlBFvDT8EYFyETUNFiQLmA03YAYgE+ZGd8LIDACrU65SQUDqBMKhlhEld482DpmVjKL8OPTCTIMJ4KslbQmAIzrAIXoDE2YfzEphyEEnogJwPOIdK5JC42KPJ19FMpbF8lLon6a6RLvHA6K9SS6kAKMG4ISDCySAOcW+LKAa5ZAQGP0/aXCMRkzwxGSccPEMrFmAZJZ0stFBMvzglBxlpcFrvMvhmERuEojAZWso6LyyOI+IZWUTTzgFwDlcygRr9LOXp4Vl+PReJWCuUayFqCQB5fsuLjPKFG4DE5YsreXLKLlXyoZXIofm4AAVhcIFUcpeULKdwEKqAKgiIr+ZFuHcbOY7UeHPCiG5o4wsuCIZHhYEODbuWgEwZsAiG1rZhlMvNRuDGGwdLgCxKoZQiO5ibU8Ng1ar2YmMt8fjOriEXF8LwsgdiN4t5WZKA5Aq98EKooQirV6mgtAFwD5Wa0mMYkBkLgFlX/soUsgfjPKp4bkBgVreQRmCrRVVxxeX0/4DsEjYWxHmxwbsr0Q2JTBwYaAHHn2RxzvBlA6wb4FsD+AGBbVGxdQPFDhEuhjIFGOgHglELhAugganoJAEOy0BagNgWgONkOwABOWgBmsaCHYbA42KrAwHqBKAGgNgNoHkEaBZrGsbQeoCmoYACAGAE2PIONl+CGBbV68WoGmvqCHYqsJagQIdnqBtBxsJADNeNjyB5A2gPagQLUAYDjYBAyahgJVjyBVYbAjQWoIKG2AJq2gK6mdRmqqxVY8gh2NdTWqqy1q8gaAcbPUHqAFrmg9QFQM0AzWHZdsh2Q9UOoPWtr41EASAOmrQC3qM1aAeoM0EOxDrK1Agctc0GaBoBDsaAQteNjaAkAK1KaxoCuqqxoAM1lWegJuq/XNAXANgFdfBuA3PQgNTQddbUHGw5rd1/6xoGgGo3Tqj1Y6wDZhoDW2rk126lNYdnGy1BmgbQGwI+rQBDqtwbQKDQwBsD2geNIEcbGutoDsJF1Waj9baqE2FqqskGxtdViqzTraAh2BtU+rvWPrT1IEbdYBuaCNrV1jQRdfJoTV5Ac1OG9dW0GaAkBDsI6kgG0FqAAaCIbQBgOOtnVNBmg662gPUAzX2baAKWCzdhrXWPqBAB6zjbepkSIaWggW+Dc0DyCiBpNKWRrHkHnXNA7AbQULVACA28amgtAZoKakaCaa2gSgFoMFtqCNAbAKa09ZmraAabX1Gaq9blsYBAbGgYGlLDIjoB+bB1tQAQLVsA2HqBAjQewGZrXVWaGAT6uTVhqgBVYR1gWqzXeoQ20Bx1bGloPxqK0kBagOaxbRmvnUzrT1NW2oG1sHVNB7QWmmjSRtQ0Vbh19oPIAwBXVoAJ1K629Y5p23Lr6gZ2hoGNpyACArNy6tdYupsDFaqsHm1zbZvPX1BHts6vIK5sLWNA2tZmqrHBsXWQa8gomlwGmorWg6x18O8rVZuU2zIZEF6mjZOo/WfqoAwaxNsWBbDhrYo04WgDvGwj6AgAA= --&gt;
+
+> &lt;&#33;-- internal state end --&gt;
+
+> &lt;&#33;-- finishing_touch_checkbox_start --&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;✨ Finishing Touches&lt;/summary&gt;
+
+> - &#91; &#93; &lt;&#33;-- &#123;"checkboxId": "7962f53c-55bc-4827-bfbf-6a18da830691"&#125; --&gt; 📝 Generate Docstrings
+
+> &lt;/details&gt;
+
+> &lt;&#33;-- finishing_touch_checkbox_end --&gt;
+
+> &lt;&#33;-- tips_start --&gt;
+
+> ---
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪧 Tips&lt;/summary&gt;
+
+> ### Chat
+
+> There are 3 ways to chat with &#91;CodeRabbit&#93;(https://coderabbit.ai?utm_source=oss&utm_medium=github&utm_campaign=Meeting-Baas/speaking-meeting-bot&utm_content=6):
+
+> - Review comments: Directly reply to a review comment made by CodeRabbit. Example:
+
+> - `I pushed a fix in commit &lt;commit_id&gt;, please review it.`
+
+> - `Generate unit testing code for this file.`
+
+> - `Open a follow-up GitHub issue for this discussion.`
+
+> - Files and specific lines of code (under the "Files changed" tab): Tag `@coderabbitai` in a new review comment at the desired location with your query. Examples:
+
+> - `@coderabbitai generate unit testing code for this file.`
+
+> -	`@coderabbitai modularize this function.`
+
+> - PR comments: Tag `@coderabbitai` in a new PR comment to ask questions about the PR branch. For the best results, please provide a very specific query, as very limited context is provided in this mode. Examples:
+
+> - `@coderabbitai gather interesting stats about this repository and render them as a table. Additionally, render a pie chart showing the language distribution in the codebase.`
+
+> - `@coderabbitai read src/utils.ts and generate unit testing code.`
+
+> - `@coderabbitai read the files in the src/scheduler package and generate a class diagram using mermaid and a README in the markdown format.`
+
+> - `@coderabbitai help me debug CodeRabbit configuration file.`
+
+> Note: Be mindful of the bot's finite context window. It's strongly recommended to break down tasks such as reading entire modules into smaller chunks. For a focused discussion, use review comments to chat about specific files and their changes, instead of using the PR comments.
+
+> ### CodeRabbit Commands (Invoked using PR comments)
+
+> - `@coderabbitai pause` to pause the reviews on a PR.
+
+> - `@coderabbitai resume` to resume the paused reviews.
+
+> - `@coderabbitai review` to trigger an incremental review. This is useful when automatic reviews are disabled for the repository.
+
+> - `@coderabbitai full review` to do a full review from scratch and review all the files again.
+
+> - `@coderabbitai summary` to regenerate the summary of the PR.
+
+> - `@coderabbitai generate docstrings` to &#91;generate docstrings&#93;(https://docs.coderabbit.ai/finishing-touches/docstrings) for this PR.
+
+> - `@coderabbitai resolve` resolve all the CodeRabbit review comments.
+
+> - `@coderabbitai plan` to trigger planning for file edits and PR creation.
+
+> - `@coderabbitai configuration` to show the current CodeRabbit configuration for the repository.
+
+> - `@coderabbitai help` to get help.
+
+> ### Other keywords and placeholders
+
+> - Add `@coderabbitai ignore` anywhere in the PR description to prevent this PR from being reviewed.
+
+> - Add `@coderabbitai summary` to generate the high-level summary at a specific location in the PR description.
+
+> - Add `@coderabbitai` anywhere in the PR title to generate the title automatically.
+
+> ### CodeRabbit Configuration File (`.coderabbit.yaml`)
+
+> - You can programmatically configure CodeRabbit by adding a `.coderabbit.yaml` file to the root of your repository.
+
+> - Please see the &#91;configuration documentation&#93;(https://docs.coderabbit.ai/guides/configure-coderabbit) for more information.
+
+> - If your editor has YAML language server enabled, you can add the path at the top of this file to enable auto-completion and validation: `# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json`
+
+> ### Documentation and Community
+
+> - Visit our &#91;Documentation&#93;(https://docs.coderabbit.ai) for detailed information on how to use CodeRabbit.
+
+> - Join our &#91;Discord Community&#93;(http://discord.gg/coderabbit) to get help, request features, and share feedback.
+
+> - Follow us on &#91;X/Twitter&#93;(https://twitter.com/coderabbitai) for updates and announcements.
+
+> &lt;/details&gt;
+
+> &lt;&#33;-- tips_end --&gt;
+
+> PR REVIEWS:
+
+> **Actionable comments posted: 6**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📜 Review details&lt;/summary&gt;
+
+> **Configuration used: CodeRabbit UI**
+
+> **Review profile: ASSERTIVE**
+
+> **Plan: Pro**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📥 Commits&lt;/summary&gt;
+
+> Reviewing files that changed from the base of the PR and between 583e807fc65970b9fa89c3073489a60793d8e040 and 4d1fd749d904f75c8de18f3609d16381fcbc2767.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📒 Files selected for processing (1)&lt;/summary&gt;
+
+> * `api.py` (1 hunks)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Additional context used&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧬 Code Graph Analysis (1)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/batch.py (2)&lt;/summary&gt;
+
+> * `BotProxyManager` (106-619)
+
+> * `async_main` (235-592)
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;&lt;details&gt;
+
+> &lt;summary&gt;🪛 Ruff (0.8.2)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py&lt;/summary&gt;
+
+> 4-4: `typing.List` imported but unused
+
+> Remove unused import: `typing.List`
+
+> (F401)
+
+> ---
+
+> 6-6: `fastapi.HTTPException` imported but unused
+
+> Remove unused import: `fastapi.HTTPException`
+
+> (F401)
+
+> ---
+
+> 7-7: `fastapi.responses.JSONResponse` imported but unused
+
+> Remove unused import: `fastapi.responses.JSONResponse`
+
+> (F401)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🔇 Additional comments (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py (1)&lt;/summary&gt;
+
+> `14-20`: **LGTM&#33; Well-structured request model.**
+
+> The `BotRequest` model is well-defined with appropriate typing, clear mandatory fields (`count` and `meeting_url`), and sensible defaults for optional parameters.
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;&#33;-- This is an auto-generated comment by CodeRabbit for review status --&gt;
+
+> **Actionable comments posted: 5**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;♻️ Duplicate comments (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> `60-87`: _⚠️ Potential issue_
+
+> **Avoid modifying sys.argv directly and add error handling.**
+
+> The endpoint modifies sys.argv directly which can lead to unexpected behavior. Also, there's no error handling for the background task.
+
+> ```text
+
+> @app.post("/run-bots")
+
+> -async def run_bots(request: BotRequest):
+
+> +async def run_bots(request: BotRequest, x_meeting_baas_api_key: str = Header(None, alias="x-meeting-baas-api-key")):
+
+> +    # Validate API key
+
+> +    if not x_meeting_baas_api_key:
+
+> +        raise HTTPException(status_code=401, detail="API key is required")
+
+> +
+
+> +    # Set environment variable for the API key
+
+> +    os.environ&#91;"MEETING_BAAS_API_KEY"&#93; = x_meeting_baas_api_key
+
+> +
+
+> # Start WebSocket server if no URL provided
+
+> websocket_url = request.websocket_url or "ws://localhost:8000"
+
+> -    # Update sys.argv for bot manager
+
+> -    sys.argv = &#91;
+
+> -        "batch.py",
+
+> -        "-c", str(request.count),
+
+> -        "--meeting-url", request.meeting_url,
+
+> -        "--websocket-url", websocket_url,
+
+> -    &#93;
+
+> -
+
+> -    if request.personas:
+
+> -        sys.argv += &#91;"--personas"&#93; + request.personas
+
+> -
+
+> -    if request.recorder_only:
+
+> -        sys.argv.append("--recorder-only")
+
+> -
+
+> -    # Run the bot logic in background
+
+> -    manager = BotProxyManager()
+
+> -    asyncio.create_task(manager.async_main())
+
+> +    try:
+
+> +        # Create a custom Namespace object that mimics argparse output
+
+> +        from argparse import Namespace
+
+> +
+
+> +        # Build arguments as a Namespace object
+
+> +        args = Namespace(
+
+> +            count=request.count,
+
+> +            meeting_url=request.meeting_url,
+
+> +            websocket_url=websocket_url,
+
+> +            personas=request.personas,
+
+> +            add_recorder=request.recorder_only,
+
+> +            start_port=8765,
+
+> +            speak_first=None
+
+> +        )
+
+> +
+
+> +        # Run the bot logic in background
+
+> +        manager = BotProxyManager()
+
+> +        task = asyncio.create_task(manager.async_main())
+
+> +
+
+> +        # Store tasks for management
+
+> +        app.state.tasks = getattr(app.state, "tasks", &#91;&#93;) + &#91;task&#93;
+
+> +
+
+> +        # Add error handling
+
+> +        task.add_done_callback(lambda t: handle_task_completion(t))
+
+> +    except Exception as e:
+
+> +        logger.error(f"Failed to start bots: &#123;str(e)&#125;")
+
+> +        return &#123;"message": f"Failed to start bots: &#123;str(e)&#125;", "status": "error"&#125;
+
+> return &#123;
+
+> -        "message": f"Starting &#123;request.count&#125; bots for meeting &#123;request.meeting_url&#125;",
+
+> +        "message": f"Starting &#123;request.count&#125; bots for meeting &#123;request.meeting_url&#125;",
+
+> "status": "success",
+
+> -        "websocket_url": websocket_url
+
+> +        "websocket_url": websocket_url,
+
+> +        "personas": request.personas,
+
+> +        "recorder_only": request.recorder_only,
+
+> +        "request_id": id(request)  # Unique identifier for tracking
+
+> &#125;
+
+> +
+
+> +def handle_task_completion(task):
+
+> +    """Handle the completion of the bot manager task"""
+
+> +    try:
+
+> +        # Get the result to catch any exceptions
+
+> +        task.result()
+
+> +    except Exception as e:
+
+> +        # Log the exception
+
+> +        logging.error(f"Bot manager task failed: &#123;str(e)&#125;")
+
+> ```
+
+> Make sure to add these imports:
+
+> ```python
+
+> from fastapi import HTTPException, Header
+
+> import logging
+
+> ```
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📜 Review details&lt;/summary&gt;
+
+> **Configuration used: CodeRabbit UI**
+
+> **Review profile: ASSERTIVE**
+
+> **Plan: Pro**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📥 Commits&lt;/summary&gt;
+
+> Reviewing files that changed from the base of the PR and between 4d1fd749d904f75c8de18f3609d16381fcbc2767 and ef1d7845de1b4837e9766345b1c7bd1c1165f01e.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;⛔ Files ignored due to path filters (1)&lt;/summary&gt;
+
+> * `poetry.lock` is excluded by `&#33;**/*.lock`
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📒 Files selected for processing (5)&lt;/summary&gt;
+
+> * `api.py` (1 hunks)
+
+> * `protobufs/frames_pb2.py` (1 hunks)
+
+> * `pyproject.toml` (2 hunks)
+
+> * `scripts/batch.py` (7 hunks)
+
+> * `scripts/meetingbaas.py` (1 hunks)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Additional context used&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧬 Code Graph Analysis (1)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/batch.py (2)&lt;/summary&gt;
+
+> * `BotProxyManager` (105-439)
+
+> * `async_main` (207-415)
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;&lt;details&gt;
+
+> &lt;summary&gt;🪛 Ruff (0.8.2)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;protobufs/frames_pb2.py&lt;/summary&gt;
+
+> 22-22: Avoid equality comparisons to `False`; use `if not _descriptor._USE_C_DESCRIPTORS:` for false checks
+
+> Replace with `not _descriptor._USE_C_DESCRIPTORS`
+
+> (E712)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/meetingbaas.py&lt;/summary&gt;
+
+> 63-63: SyntaxError: Positional argument cannot follow keyword argument
+
+> ---
+
+> 64-64: SyntaxError: Positional argument cannot follow keyword argument
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py&lt;/summary&gt;
+
+> 1-1: `os` imported but unused
+
+> Remove unused import: `os`
+
+> (F401)
+
+> ---
+
+> 6-6: `typing.Optional` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 6-6: `typing.List` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 7-7: `fastapi.Header` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 7-7: `fastapi.HTTPException` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 8-8: `fastapi.responses.JSONResponse` imported but unused
+
+> Remove unused import: `fastapi.responses.JSONResponse`
+
+> (F401)
+
+> ---
+
+> 10-10: `pydantic.HttpUrl` imported but unused
+
+> Remove unused import: `pydantic.HttpUrl`
+
+> (F401)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🔇 Additional comments (13)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;pyproject.toml (2)&lt;/summary&gt;
+
+> `15-15`: **LGTM&#33; New API server entry point added.**
+
+> The new script entry point for the API server looks good.
+
+> ---
+
+> `26-29`: **Dependencies added for the new API functionality.**
+
+> The required dependencies for FastAPI, Uvicorn, and WebSockets have been correctly added with appropriate version constraints.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py (3)&lt;/summary&gt;
+
+> `24-47`: **LGTM&#33; Well-designed WebSocket connection manager.**
+
+> The ConnectionManager class is well-structured with clear methods for connecting, disconnecting, sending messages, and broadcasting to clients.
+
+> ---
+
+> `89-99`: **LGTM&#33; WebSocket endpoint implementation.**
+
+> The WebSocket endpoint correctly handles connections, message broadcasting, and disconnections.
+
+> ---
+
+> `100-105`: **LGTM&#33; Server startup function is well-defined.**
+
+> The server startup function and the module execution block are well-structured.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/batch.py (5)&lt;/summary&gt;
+
+> `154-177`: **LGTM&#33; Simplified cleanup process.**
+
+> The cleanup method has been correctly updated to remove ngrok-related functionality.
+
+> ---
+
+> `233-235`: **LGTM&#33; WebSocket URL parameter added.**
+
+> The WebSocket URL parameter has been added to replace the ngrok URL parameter.
+
+> ---
+
+> `282-283`: **LGTM&#33; Simplified logging message.**
+
+> The logging message has been updated to reflect the removal of ngrok functionality.
+
+> ---
+
+> `382-384`: **LGTM&#33; Updated meeting process parameters to use WebSocket URL.**
+
+> The meeting process parameters have been correctly updated to use the WebSocket URL instead of ngrok URL.
+
+> ---
+
+> `394-398`: **LGTM&#33; Simplified success message.**
+
+> The success message has been updated to remove references to ngrok tunnels.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/meetingbaas.py (3)&lt;/summary&gt;
+
+> `2-23`: **Imports and environment loader look good.**
+
+> No issues detected in the newly introduced import statements, logging setup, typing reference, and environment variable loader usage. Everything appears consistent and correct.
+
+> ---
+
+> `25-47`: **Asynchronous main and persona handling appear fine.**
+
+> The asynchronous approach to initialize and validate the persona is clear, and the docstring provides concise explanations for each parameter.
+
+> ---
+
+> `96-165`: **Pipeline and CLI logic look good.**
+
+> The pipeline creation, runner execution, argument parsing, and exception handling appear structurally sound. The approach to run the async `main` function with `asyncio.run` is appropriate, and the fallback for keyboard interrupts is well-handled.
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;&#33;-- This is an auto-generated comment by CodeRabbit for review status --&gt;
+
+> **Actionable comments posted: 5**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📜 Review details&lt;/summary&gt;
+
+> **Configuration used: CodeRabbit UI**
+
+> **Review profile: ASSERTIVE**
+
+> **Plan: Pro**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📥 Commits&lt;/summary&gt;
+
+> Reviewing files that changed from the base of the PR and between ef1d7845de1b4837e9766345b1c7bd1c1165f01e and 35f1c9556401385816a7887528ab294134643756.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📒 Files selected for processing (1)&lt;/summary&gt;
+
+> * `README.md` (4 hunks)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Additional context used&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪛 markdownlint-cli2 (0.17.2)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;README.md&lt;/summary&gt;
+
+> 47-47: Fenced code blocks should be surrounded by blank lines
+
+> null
+
+> (MD031, blanks-around-fences)
+
+> ---
+
+> 55-55: Fenced code blocks should be surrounded by blank lines
+
+> null
+
+> (MD031, blanks-around-fences)
+
+> ---
+
+> 249-249: Lists should be surrounded by blank lines
+
+> null
+
+> (MD032, blanks-around-lists)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪛 LanguageTool&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;README.md&lt;/summary&gt;
+
+> &#91;uncategorized&#93; ~258-~258: If this is a compound adjective that modifies the following noun, use a hyphen.
+
+> Context: ...- Authentication and authorization    - Rate limiting    - User management    - Billing integ...
+
+> (EN_COMPOUND_ADJECTIVE_INTERNAL)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🔇 Additional comments (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;README.md (1)&lt;/summary&gt;
+
+> `31-39`: **Well-Documented API-First Architecture Section**
+
+> The new "API-First Architecture" section is well structured and clearly outlines the design approach, emphasizing the FastAPI server and WebSocket support. Ensure that its formatting (e.g. spacing and heading levels) remains consistent with the rest of the README.
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;&#33;-- This is an auto-generated comment by CodeRabbit for review status --&gt;
+
+> **Actionable comments posted: 10**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;♻️ Duplicate comments (4)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;README.md (4)&lt;/summary&gt;&lt;blockquote&gt;
+
+> `47-55`: _🧹 Nitpick (assertive)_
+
+> **Fenced Code Block Formatting in API Endpoints**
+
+> The JSON example for the `POST /run-bots` endpoint is well detailed. However, markdownlint MD031 recommends that fenced code blocks be surrounded by blank lines. For example, consider inserting a blank line before the opening ```json and after the closing ``` to improve formatting. Here’s a suggested diff:
+
+> ```text
+
+> -2. Run Bots (`POST /run-bots`):
+
+> -   ```json
+
+> +2. Run Bots (`POST /run-bots`):
+
+> +   ```json
+
+> ```
+
+> And similarly ensure a blank line follows the closing fence.
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Tools&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪛 markdownlint-cli2 (0.17.2)&lt;/summary&gt;
+
+> 47-47: Fenced code blocks should be surrounded by blank lines
+
+> null
+
+> (MD031, blanks-around-fences)
+
+> ---
+
+> 55-55: Fenced code blocks should be surrounded by blank lines
+
+> null
+
+> (MD031, blanks-around-fences)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> ---
+
+> `227-238`: _🧹 Nitpick (assertive)_
+
+> **Local Development Code Block Formatting**
+
+> The "Local Development" instructions are clear. Please verify that the fenced bash code block is surrounded by blank lines as per MD031 recommendations to maintain consistent formatting.
+
+> ---
+
+> `239-249`: _🧹 Nitpick (assertive)_
+
+> **Local Testing Instructions – Fenced Code Block Consistency**
+
+> The instructions for local testing with multiple bots are detailed and useful. To align with markdownlint MD031, please ensure the fenced code block (starting at “# Terminal 1: Start the API server”) is preceded and followed by a blank line.
+
+> ---
+
+> `271-274`: _🧹 Nitpick (assertive)_
+
+> **Production Deployment Code Block Formatting**
+
+> For the production deployment example, adding blank lines immediately before and after the fenced code block will ensure consistency with other sections and satisfy markdownlint MD031.
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📜 Review details&lt;/summary&gt;
+
+> **Configuration used: CodeRabbit UI**
+
+> **Review profile: ASSERTIVE**
+
+> **Plan: Pro**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📥 Commits&lt;/summary&gt;
+
+> Reviewing files that changed from the base of the PR and between 35f1c9556401385816a7887528ab294134643756 and 74a289a8243709b3622a4a5c73e601f05f5a911d.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📒 Files selected for processing (2)&lt;/summary&gt;
+
+> * `README.md` (4 hunks)
+
+> * `scripts/batch.py` (3 hunks)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Additional context used&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧬 Code Graph Analysis (1)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/batch.py (3)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;config/persona_utils.py (1)&lt;/summary&gt;
+
+> * `PersonaManager` (24-301)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;meetingbaas_pipecat/proxy/proxy.py (2)&lt;/summary&gt;
+
+> * `cleanup` (105-109)
+
+> * `main` (102-127)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;meetingbaas_pipecat/bot/bot.py (1)&lt;/summary&gt;
+
+> * `main` (91-243)
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;&lt;details&gt;
+
+> &lt;summary&gt;🪛 Ruff (0.8.2)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/batch.py&lt;/summary&gt;
+
+> 286-286: Undefined name `signal`
+
+> (F821)
+
+> ---
+
+> 287-287: Undefined name `signal`
+
+> (F821)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪛 markdownlint-cli2 (0.17.2)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;README.md&lt;/summary&gt;
+
+> 47-47: Fenced code blocks should be surrounded by blank lines
+
+> null
+
+> (MD031, blanks-around-fences)
+
+> ---
+
+> 55-55: Fenced code blocks should be surrounded by blank lines
+
+> null
+
+> (MD031, blanks-around-fences)
+
+> ---
+
+> 264-264: Trailing spaces
+
+> Expected: 0 or 2; Actual: 1
+
+> (MD009, no-trailing-spaces)
+
+> ---
+
+> 265-265: Lists should be surrounded by blank lines
+
+> null
+
+> (MD032, blanks-around-lists)
+
+> ---
+
+> 279-279: Lists should be surrounded by blank lines
+
+> null
+
+> (MD032, blanks-around-lists)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪛 LanguageTool&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;README.md&lt;/summary&gt;
+
+> &#91;uncategorized&#93; ~288-~288: If this is a compound adjective that modifies the following noun, use a hyphen.
+
+> Context: ...- Authentication and authorization    - Rate limiting    - User management    - Billing integ...
+
+> (EN_COMPOUND_ADJECTIVE_INTERNAL)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🔇 Additional comments (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;README.md (1)&lt;/summary&gt;
+
+> `31-39`: **API-First Architecture Section Added**
+
+> The new "API-First Architecture" section provides a concise overview of the FastAPI server integration and its role in bot management. The description is clear and aligns well with the PR objectives.
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;&#33;-- This is an auto-generated comment by CodeRabbit for review status --&gt;
+
+> **Actionable comments posted: 2**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;♻️ Duplicate comments (4)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> `73-81`: _🧹 Nitpick (assertive)_
+
+> **Improve error handling for asynchronous bot launch.**
+
+> You are using `asyncio.create_task()` to run the bot manager but do not capture or handle potential exceptions from that task. Consider adding a try-except or monitoring callback to detect failures early and provide user-friendly feedback.
+
+> ```text
+
+> async def run_bots(request: BotRequest):
+
+> ...
+
+> manager = BotProxyManager()
+
+> -    asyncio.create_task(
+
+> +    task = asyncio.create_task(
+
+> manager.async_main(
+
+> count=request.count,
+
+> meeting_url=request.meeting_url,
+
+> websocket_url=websocket_url,
+
+> personas=request.personas,
+
+> recorder_only=request.recorder_only,
+
+> )
+
+> )
+
+> +    task.add_done_callback(lambda t: handle_async_errors(t))
+
+> def handle_async_errors(t: asyncio.Task):
+
+> try:
+
+> t.result()
+
+> except Exception as e:
+
+> # Provide user-friendly error handling/logging here
+
+> print(f"BotProxyManager task failed: &#123;e&#125;")
+
+> ```
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;README.md (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> `325-327`: _🧹 Nitpick (assertive)_
+
+> **Consider hyphenating “billing integration” if used as a compound adjective.**
+
+> If you intend "billing-integration" as an adjective modifying a noun (e.g., "billing-integration system"), using a hyphen clarifies meaning.
+
+> ```text
+
+> -    - Billing integration
+
+> +    - Billing-integration
+
+> ```
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Tools&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪛 LanguageTool&lt;/summary&gt;
+
+> &#91;uncategorized&#93; ~325-~325: If this is a compound adjective that modifies the following noun, use a hyphen.
+
+> Context: ...- Authentication and authorization    - Rate limiting    - User management    - Billing integ...
+
+> (EN_COMPOUND_ADJECTIVE_INTERNAL)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/batch.py (2)&lt;/summary&gt;&lt;blockquote&gt;
+
+> `29-31`: _🧹 Nitpick (assertive)_
+
+> **Allow secure WebSocket URLs in `validate_url`.**
+
+> Adding `wss://` to the validation logic will support secure WebSocket connections.
+
+> ```text
+
+> def validate_url(url):
+
+> """Validates the URL format, ensuring it starts with https:// or ws://"""
+
+> -    if not (url.startswith("https://") or url.startswith("ws://")):
+
+> -        raise ValueError("URL must start with https:// or ws://")
+
+> +    if not (url.startswith("https://") or url.startswith("ws://") or url.startswith("wss://")):
+
+> +        raise ValueError("URL must start with https://, ws://, or wss://")
+
+> return url
+
+> ```
+
+> ---
+
+> `166-167`: _🧹 Nitpick (assertive)_
+
+> **Increase or make configurable the termination grace period.**
+
+> The current 1-second wait may be too short for some processes to exit gracefully. Consider giving processes more time or making the wait configurable.
+
+> ```text
+
+> try:
+
+> process.terminate()
+
+> -    await asyncio.sleep(1)
+
+> +    await asyncio.sleep(3)  # or add a config-based value
+
+> if process.poll() is None:
+
+> process.kill()
+
+> ```
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📜 Review details&lt;/summary&gt;
+
+> **Configuration used: CodeRabbit UI**
+
+> **Review profile: ASSERTIVE**
+
+> **Plan: Pro**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📥 Commits&lt;/summary&gt;
+
+> Reviewing files that changed from the base of the PR and between 74a289a8243709b3622a4a5c73e601f05f5a911d and 2ddf5f3e43ad24801e17901c99a0a0ab1407682d.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📒 Files selected for processing (3)&lt;/summary&gt;
+
+> * `README.md` (5 hunks)
+
+> * `api.py` (1 hunks)
+
+> * `scripts/batch.py` (4 hunks)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Additional context used&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧬 Code Graph Analysis (2)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/batch.py (2)&lt;/summary&gt;
+
+> * `BotProxyManager` (106-342)
+
+> * `async_main` (205-310)
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/batch.py (2)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;config/persona_utils.py (1)&lt;/summary&gt;
+
+> * `PersonaManager` (24-301)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;meetingbaas_pipecat/bot/bot.py (1)&lt;/summary&gt;
+
+> * `main` (91-243)
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;&lt;details&gt;
+
+> &lt;summary&gt;🪛 Ruff (0.8.2)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py&lt;/summary&gt;
+
+> 3-3: `os` imported but unused
+
+> Remove unused import: `os`
+
+> (F401)
+
+> ---
+
+> 7-7: `fastapi.Header` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 7-7: `fastapi.HTTPException` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 9-9: `fastapi.responses.JSONResponse` imported but unused
+
+> Remove unused import: `fastapi.responses.JSONResponse`
+
+> (F401)
+
+> ---
+
+> 10-10: `pydantic.HttpUrl` imported but unused
+
+> Remove unused import: `pydantic.HttpUrl`
+
+> (F401)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪛 LanguageTool&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;README.md&lt;/summary&gt;
+
+> &#91;uncategorized&#93; ~83-~83: A punctuation mark might be missing here.
+
+> Context: ...nAI&#93;(https://platform.openai.com/) (LLM) - &#91;Cartesia&#93;(https://www.cartesia.ai/) (tex...
+
+> (AI_EN_LECTOR_MISSING_PUNCTUATION)
+
+> ---
+
+> &#91;uncategorized&#93; ~226-~226: A period might be missing here.
+
+> Context: ...nnection and allow your bot to join the meeting  This is a normal occurrence and can be...
+
+> (AI_EN_LECTOR_MISSING_PUNCTUATION_PERIOD)
+
+> ---
+
+> &#91;style&#93; ~228-~228: Consider replacing this word to strengthen your wording.
+
+> Context: ...he meeting  This is a normal occurrence and can be easily resolved with a quick bot...
+
+> (AND_THAT)
+
+> ---
+
+> &#91;uncategorized&#93; ~325-~325: If this is a compound adjective that modifies the following noun, use a hyphen.
+
+> Context: ...- Authentication and authorization    - Rate limiting    - User management    - Billing integ...
+
+> (EN_COMPOUND_ADJECTIVE_INTERNAL)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🔇 Additional comments (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py (1)&lt;/summary&gt;
+
+> `1-109`: **Overall implementation is approved.**
+
+> The new FastAPI application structure, including the `/run-bots` endpoint and WebSocket endpoint, appears well-designed and meets the PR objectives.
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Tools&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪛 Ruff (0.8.2)&lt;/summary&gt;
+
+> 3-3: `os` imported but unused
+
+> Remove unused import: `os`
+
+> (F401)
+
+> ---
+
+> 7-7: `fastapi.Header` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 7-7: `fastapi.HTTPException` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 9-9: `fastapi.responses.JSONResponse` imported but unused
+
+> Remove unused import: `fastapi.responses.JSONResponse`
+
+> (F401)
+
+> ---
+
+> 10-10: `pydantic.HttpUrl` imported but unused
+
+> Remove unused import: `pydantic.HttpUrl`
+
+> (F401)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;&#33;-- This is an auto-generated comment by CodeRabbit for review status --&gt;
+
+> **Actionable comments posted: 6**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📜 Review details&lt;/summary&gt;
+
+> **Configuration used: CodeRabbit UI**
+
+> **Review profile: ASSERTIVE**
+
+> **Plan: Pro**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📥 Commits&lt;/summary&gt;
+
+> Reviewing files that changed from the base of the PR and between 2ddf5f3e43ad24801e17901c99a0a0ab1407682d and d1351f47123f94a37aa3a4cfcc3fda701d00c19d.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📒 Files selected for processing (2)&lt;/summary&gt;
+
+> * `meetingbaas_pipecat/bot/bot.py` (5 hunks)
+
+> * `meetingbaas_pipecat/bot/runner.py` (1 hunks)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🔇 Additional comments (7)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;meetingbaas_pipecat/bot/runner.py (4)&lt;/summary&gt;
+
+> `31-35`: **Consider validating the meeting URL argument.**
+
+> While optional, it might help to add basic validation or documentation clarifying scenarios where `--meeting-url` is necessary. Otherwise, these lines look correct.
+
+> ---
+
+> `36-40`: **Allow fallback for WebSocket URL.**
+
+> This addition is straightforward. If you anticipate usage without specifying a WebSocket URL, consider documenting or handling that scenario to avoid potential misconfigurations.
+
+> ---
+
+> `41-45`: **Bot ID parameter is well-defined.**
+
+> No issues with introducing a dedicated `--bot-id` argument for explicit identification.
+
+> ---
+
+> `46-50`: **Recorder-only flag is sufficiently clear.**
+
+> Storing a boolean with `store_true` is appropriate. Confirm if you want to enforce mutual exclusivity with other modes or if combining with additional flags is valid.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;meetingbaas_pipecat/bot/bot.py (3)&lt;/summary&gt;
+
+> `180-180`: **No concerns.**
+
+> This comment line clarifies the argument retrieval from `runner.configure`.
+
+> ---
+
+> `191-196`: **Arguments successfully extracted from CLI.**
+
+> These lines properly align with the newly added command-line arguments in `runner.py`. No issues here.
+
+> ---
+
+> `358-358`: **Minor content change acknowledged.**
+
+> This line is clear, instructing the bot to begin the conversation proactively. No issues identified.
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;&#33;-- This is an auto-generated comment by CodeRabbit for review status --&gt;
+
+> **Actionable comments posted: 2**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🔭 Outside diff range comments (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;meetingbaas_pipecat/bot/bot.py (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> `180-230`: _💡 Verification agent_
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧩 Analysis chain&lt;/summary&gt;
+
+> **Verify usage of `meeting_baas_api_key` parameter in BotProxyManager.**
+
+> The code passes `meeting_baas_api_key` into `manager.async_main(...)`, but the provided snippet for `BotProxyManager.async_main()` lacks such a parameter. Ensure you’ve updated the manager’s signature or remove the argument if unused.
+
+> ---
+
+> 🏁 Script executed:
+
+> ```shell
+
+> #&#33;/bin/bash
+
+> # Description: Searching for meeting_baas_api_key usage in BotProxyManager
+
+> fd -e py --exec rg "meeting_baas_api_key" &#123;&#125;
+
+> ```
+
+> Length of output: 226
+
+> ---
+
+> **Action Required: Verify BotProxyManager.async_main Signature**
+
+> Our initial search shows that `meeting_baas_api_key` appears in the codebase (e.g. with a type annotation and in assignments). However, it remains unclear whether the `async_main` method of `BotProxyManager` has been updated to accept this parameter as intended. Please run the above script to confirm if `meeting_baas_api_key` is included in the `async_main` signature. Depending on the result:
+
+> - **If the parameter is present:** You can safely remove this comment.
+
+> - **If the parameter is missing:** Update the `async_main` function’s signature in `BotProxyManager` to include `meeting_baas_api_key` or adjust the call in `bot.py` accordingly.
+
+> ---
+
+> 🏁 Script executed:
+
+> ```shell
+
+> #&#33;/bin/bash
+
+> # Searching for the async_main method signature within BotProxyManager to inspect its parameters
+
+> fd -e py --exec rg -A 10 "def async_main\(" &#123;&#125;
+
+> ```
+
+> Length of output: 400
+
+> ---
+
+> &lt;/details&gt;
+
+> **Action Needed: Update BotProxyManager Signature**
+
+> The current implementation in `bot.py` passes the `meeting_baas_api_key` parameter to `manager.async_main(...)`, but the actual definition of `async_main` does not include this parameter. To ensure consistency:
+
+> - **Update the signature of `BotProxyManager.async_main`** to include a parameter for `meeting_baas_api_key` (e.g., `meeting_baas_api_key: str = None`), _or_
+
+> - **Remove the `meeting_baas_api_key` argument** from the call in `bot.py` if it is not intended for use.
+
+> This change will align the function's invocation with its definition.
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;♻️ Duplicate comments (4)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py (2)&lt;/summary&gt;&lt;blockquote&gt;
+
+> `1-10`: _🧹 Nitpick (assertive)_
+
+> **Remove unused imports to keep the code clean.**
+
+> Static analysis flagged that `os`, `Header`, `HTTPException`, `JSONResponse`, and `HttpUrl` are not used in this file. Removing them declutters the code and aligns with best practices.
+
+> Apply this diff to remove unused imports:
+
+> ```text
+
+> -import os
+
+> from typing import Dict, List, Optional
+
+> -import logging
+
+> from fastapi import FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect
+
+> -from fastapi.middleware.cors import CORSMiddleware
+
+> -from fastapi.responses import JSONResponse
+
+> -from pydantic import BaseModel, HttpUrl
+
+> +import logging
+
+> +from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+
+> +from fastapi.middleware.cors import CORSMiddleware
+
+> +from pydantic import BaseModel
+
+> ```
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Tools&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪛 Ruff (0.8.2)&lt;/summary&gt;
+
+> 3-3: `os` imported but unused
+
+> Remove unused import: `os`
+
+> (F401)
+
+> ---
+
+> 7-7: `fastapi.Header` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 7-7: `fastapi.HTTPException` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 9-9: `fastapi.responses.JSONResponse` imported but unused
+
+> Remove unused import: `fastapi.responses.JSONResponse`
+
+> (F401)
+
+> ---
+
+> 10-10: `pydantic.HttpUrl` imported but unused
+
+> Remove unused import: `pydantic.HttpUrl`
+
+> (F401)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> ---
+
+> `67-89`: _🧹 Nitpick (assertive)_
+
+> **Add error handling for the background task.**
+
+> `asyncio.create_task(manager.async_main(...))` runs in the background without any done-callback or exception handling. If it fails internally, your API won’t return an error nor log it. Consider capturing exceptions (e.g., via `task.add_done_callback`) or using a try/except block inside the task.
+
+> ```text
+
+> asyncio.create_task(
+
+> manager.async_main(
+
+> count=request.count,
+
+> meeting_url=request.meeting_url,
+
+> websocket_url=websocket_url,
+
+> personas=request.personas,
+
+> recorder_only=request.recorder_only,
+
+> meeting_baas_api_key=request.meeting_baas_api_key,
+
+> )
+
+> )
+
+> +
+
+> +# Example approach:
+
+> +# task = asyncio.create_task(manager.async_main(...))
+
+> +# task.add_done_callback(lambda t: handle_errors(t))
+
+> ```
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;meetingbaas_pipecat/bot/bot.py (2)&lt;/summary&gt;&lt;blockquote&gt;
+
+> `8-8`: **Use of synchronous `requests` in an async context.**
+
+> This library may block the event loop and slow other async tasks. As previously noted by another reviewer, consider using an async HTTP library (e.g., `aiohttp`) or handle the request outside critical async paths if performance is a concern.
+
+> ---
+
+> `48-124`: **Function create_baas_bot: partial redaction is good, but blocking call still remains.**
+
+> Logging only partial segments of the API key is commendable for security. However, this function uses `requests.post`, which blocks the event loop. You might consider an async approach (e.g., `aiohttp`) or ensure that this blocking call won’t degrade performance if invoked frequently.
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📜 Review details&lt;/summary&gt;
+
+> **Configuration used: CodeRabbit UI**
+
+> **Review profile: ASSERTIVE**
+
+> **Plan: Pro**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📥 Commits&lt;/summary&gt;
+
+> Reviewing files that changed from the base of the PR and between d1351f47123f94a37aa3a4cfcc3fda701d00c19d and 3a5c52ac2155b1d4bc418a9458da35822c2f00c1.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📒 Files selected for processing (3)&lt;/summary&gt;
+
+> * `api.py` (1 hunks)
+
+> * `meetingbaas_pipecat/bot/bot.py` (5 hunks)
+
+> * `meetingbaas_pipecat/bot/runner.py` (1 hunks)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Additional context used&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧬 Code Graph Analysis (1)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/batch.py (2)&lt;/summary&gt;
+
+> * `BotProxyManager` (106-342)
+
+> * `async_main` (205-310)
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;&lt;details&gt;
+
+> &lt;summary&gt;🪛 Ruff (0.8.2)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py&lt;/summary&gt;
+
+> 3-3: `os` imported but unused
+
+> Remove unused import: `os`
+
+> (F401)
+
+> ---
+
+> 7-7: `fastapi.Header` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 7-7: `fastapi.HTTPException` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 9-9: `fastapi.responses.JSONResponse` imported but unused
+
+> Remove unused import: `fastapi.responses.JSONResponse`
+
+> (F401)
+
+> ---
+
+> 10-10: `pydantic.HttpUrl` imported but unused
+
+> Remove unused import: `pydantic.HttpUrl`
+
+> (F401)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🔇 Additional comments (4)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py (3)&lt;/summary&gt;
+
+> `53-59`: **Validate your BotRequest class usage.**
+
+> The mandatory `meeting_baas_api_key` field ensures the request must supply the key. This is consistent, but if you intend to support fallback to an environment variable, consider making it optional and validating in code. Otherwise, clients must always include it.
+
+> ---
+
+> `92-102`: **WebSocket endpoint logic looks good.**
+
+> Your `ConnectionManager` handles connection, disconnection, and broadcasting. This approach is straightforward for multi-client scenarios. The code is clear and well-structured.
+
+> ---
+
+> `104-109`: **LGTM on the server startup code.**
+
+> Uvicorn usage is straightforward and consistent with FastAPI best practices.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;meetingbaas_pipecat/bot/bot.py (1)&lt;/summary&gt;
+
+> `366-366`: **No issues with the new greeting text.**
+
+> Changing the initial greeting content is harmless and aligns with the conversation flow.
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;&#33;-- This is an auto-generated comment by CodeRabbit for review status --&gt;
+
+> **Actionable comments posted: 1**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;♻️ Duplicate comments (3)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;meetingbaas_pipecat/bot/runner.py (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> `31-55`: **Consider marking critical CLI arguments as required.**
+
+> These newly added arguments look correct. However, if `--meeting-url` or `--meeting-baas-api-key` are necessary for the bot to function, marking them as `required=True` would help prevent ambiguous runtime failures. Otherwise, ensure there is a consistent optional fallback behavior (e.g., environment variables) throughout the codebase.
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> `3-10`: _🧹 Nitpick (assertive)_
+
+> **Remove unused imports.**
+
+> Modules such as `os`, `Header`, `HTTPException`, `JSONResponse`, and `HttpUrl` are imported but never referenced in the code. Removing them keeps the code base clean and follows best practices:
+
+> ```text
+
+> -import os
+
+> from typing import Dict, List, Optional
+
+> import uvicorn
+
+> -from fastapi import FastAPI, Header, HTTPException, WebSocket, WebSocketDisconnect
+
+> +from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+
+> from fastapi.middleware.cors import CORSMiddleware
+
+> -from fastapi.responses import JSONResponse
+
+> -from pydantic import BaseModel, HttpUrl
+
+> +from pydantic import BaseModel
+
+> ```
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Tools&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪛 Ruff (0.8.2)&lt;/summary&gt;
+
+> 3-3: `os` imported but unused
+
+> Remove unused import: `os`
+
+> (F401)
+
+> ---
+
+> 7-7: `fastapi.Header` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 7-7: `fastapi.HTTPException` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 9-9: `fastapi.responses.JSONResponse` imported but unused
+
+> Remove unused import: `fastapi.responses.JSONResponse`
+
+> (F401)
+
+> ---
+
+> 10-10: `pydantic.HttpUrl` imported but unused
+
+> Remove unused import: `pydantic.HttpUrl`
+
+> (F401)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;meetingbaas_pipecat/bot/bot.py (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> `48-124`: **Use asynchronous HTTP or handle potential blocking calls carefully.**
+
+> Currently, `create_baas_bot` uses `requests.post`, which blocks the event loop in an otherwise async environment. For better concurrency, consider an async approach (e.g., `aiohttp`) or explicitly move this logic off the main event loop to avoid slowing down other tasks.
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📜 Review details&lt;/summary&gt;
+
+> **Configuration used: CodeRabbit UI**
+
+> **Review profile: ASSERTIVE**
+
+> **Plan: Pro**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📥 Commits&lt;/summary&gt;
+
+> Reviewing files that changed from the base of the PR and between 3a5c52ac2155b1d4bc418a9458da35822c2f00c1 and 6902d1e32e4e9e31a8baa3c66c78021ed892edfa.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📒 Files selected for processing (3)&lt;/summary&gt;
+
+> * `api.py` (1 hunks)
+
+> * `meetingbaas_pipecat/bot/bot.py` (5 hunks)
+
+> * `meetingbaas_pipecat/bot/runner.py` (1 hunks)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Additional context used&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧬 Code Graph Analysis (1)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/batch.py (2)&lt;/summary&gt;
+
+> * `BotProxyManager` (106-342)
+
+> * `async_main` (205-310)
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;&lt;details&gt;
+
+> &lt;summary&gt;🪛 Ruff (0.8.2)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py&lt;/summary&gt;
+
+> 3-3: `os` imported but unused
+
+> Remove unused import: `os`
+
+> (F401)
+
+> ---
+
+> 7-7: `fastapi.Header` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 7-7: `fastapi.HTTPException` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 9-9: `fastapi.responses.JSONResponse` imported but unused
+
+> Remove unused import: `fastapi.responses.JSONResponse`
+
+> (F401)
+
+> ---
+
+> 10-10: `pydantic.HttpUrl` imported but unused
+
+> Remove unused import: `pydantic.HttpUrl`
+
+> (F401)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;&#33;-- This is an auto-generated comment by CodeRabbit for review status --&gt;
+
+> **Actionable comments posted: 1**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;♻️ Duplicate comments (3)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/batch.py (3)&lt;/summary&gt;&lt;blockquote&gt;
+
+> `156-159`: **Revisit the short wait time before process termination.**
+
+> A 1-second wait may be insufficient for certain processes to shut down gracefully. This was previously noted in older reviews. Consider providing additional or configurable wait time to prevent abrupt termination.
+
+> ---
+
+> `250-269`: **Recover gracefully from invalid numeric input for `count`.**
+
+> If the user enters non-integer input at the prompt, `int(get_user_input(...))` will raise a `ValueError`. This has been noted before. Consider adding a validator or exception handling for meaningful feedback.
+
+> ---
+
+> `29-31`: _🧹 Nitpick (assertive)_
+
+> **Consider allowing secure WebSocket URLs.**
+
+> Currently, only `https://` and `ws://` protocols are permitted. If secure WebSocket connections (`wss://`) are needed, extend the validation accordingly.
+
+> ```text
+
+> def validate_url(url):
+
+> """Validates the URL format, ensuring it starts with https:// or ws://"""
+
+> -    if not (url.startswith("https://") or url.startswith("ws://")):
+
+> -        raise ValueError("URL must start with https:// or ws://")
+
+> +    if not (
+
+> +        url.startswith("https://")
+
+> +        or url.startswith("ws://")
+
+> +        or url.startswith("wss://")
+
+> +    ):
+
+> +        raise ValueError("URL must start with https://, ws://, or wss://")
+
+> return url
+
+> ```
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📜 Review details&lt;/summary&gt;
+
+> **Configuration used: CodeRabbit UI**
+
+> **Review profile: ASSERTIVE**
+
+> **Plan: Pro**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📥 Commits&lt;/summary&gt;
+
+> Reviewing files that changed from the base of the PR and between 6902d1e32e4e9e31a8baa3c66c78021ed892edfa and 20194b567128b260102923e26ecd0fa166bd2fe3.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📒 Files selected for processing (1)&lt;/summary&gt;
+
+> * `scripts/batch.py` (4 hunks)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Additional context used&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧬 Code Graph Analysis (1)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/batch.py (3)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;config/persona_utils.py (2)&lt;/summary&gt;
+
+> * `PersonaManager` (24-301)
+
+> * `list_personas` (221-223)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;meetingbaas_pipecat/bot/bot.py (1)&lt;/summary&gt;
+
+> * `main` (179-371)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/meetingbaas.py (1)&lt;/summary&gt;
+
+> * `main` (25-118)
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🔇 Additional comments (6)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/batch.py (6)&lt;/summary&gt;
+
+> `8-8`: **Great job importing `signal`.**
+
+> This resolves the previous issue where `signal` constants were referenced without an import statement.
+
+> ---
+
+> `224-249`: **Command-line fallback logic looks good.**
+
+> Switching to `argparse` if parameters aren't provided programmatically offers flexibility and backward compatibility. No issues found.
+
+> ---
+
+> `273-303`: **Bot startup logic LGTM.**
+
+> The loop-based approach to create and label multiple bot processes is clear and straightforward. No further concerns here.
+
+> ---
+
+> `309-313`: **Keyboard interrupt handling is correctly implemented.**
+
+> Catching `KeyboardInterrupt` and calling `cleanup` prevents orphaned processes. Good practice.
+
+> ---
+
+> `316-344`: **Synchronous `main` entry point is fine.**
+
+> Wrapping `async_main` in a synchronous method with signal handling is clean and maintains backward compatibility for CLI usage.
+
+> ---
+
+> `351-351`: **Initialization logic is straightforward.**
+
+> Creating `BotProxyManager` and calling `.main()` keeps the script entry simple and intuitive.
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;&#33;-- This is an auto-generated comment by CodeRabbit for review status --&gt;
+
+> **Actionable comments posted: 2**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;♻️ Duplicate comments (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> `79-88`: _🧹 Nitpick (assertive)_
+
+> **Add error handling for background tasks.**
+
+> The background task created with `asyncio.create_task(manager.async_main(...))` has no error handling. If `async_main` fails, the error may be silently lost. Consider adding a done callback or try/except to log errors or provide feedback.
+
+> ```text
+
+> - asyncio.create_task(
+
+> -     manager.async_main(
+
+> -         count=request.count,
+
+> -         ...
+
+> -     )
+
+> - )
+
+> + task = asyncio.create_task(
+
+> +     manager.async_main(
+
+> +         count=request.count,
+
+> +         ...
+
+> +     )
+
+> + )
+
+> +
+
+> + def handle_task_result(t: asyncio.Task):
+
+> +     try:
+
+> +         t.result()
+
+> +     except Exception as e:
+
+> +         logging.error(f"Background task failed: &#123;e&#125;")
+
+> +
+
+> + task.add_done_callback(handle_task_result)
+
+> ```
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📜 Review details&lt;/summary&gt;
+
+> **Configuration used: CodeRabbit UI**
+
+> **Review profile: ASSERTIVE**
+
+> **Plan: Pro**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📥 Commits&lt;/summary&gt;
+
+> Reviewing files that changed from the base of the PR and between 20194b567128b260102923e26ecd0fa166bd2fe3 and 24f980d2bee0d43de02df10f1f58493b1d643988.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📒 Files selected for processing (2)&lt;/summary&gt;
+
+> * `api.py` (1 hunks)
+
+> * `meetingbaas_pipecat/bot/runner.py` (1 hunks)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Additional context used&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧬 Code Graph Analysis (1)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/batch.py (2)&lt;/summary&gt;
+
+> * `BotProxyManager` (106-346)
+
+> * `async_main` (205-314)
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;&lt;details&gt;
+
+> &lt;summary&gt;🪛 Ruff (0.8.2)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py&lt;/summary&gt;
+
+> 3-3: `os` imported but unused
+
+> Remove unused import: `os`
+
+> (F401)
+
+> ---
+
+> 7-7: `fastapi.Header` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 7-7: `fastapi.HTTPException` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 9-9: `fastapi.responses.JSONResponse` imported but unused
+
+> Remove unused import: `fastapi.responses.JSONResponse`
+
+> (F401)
+
+> ---
+
+> 10-10: `pydantic.HttpUrl` imported but unused
+
+> Remove unused import: `pydantic.HttpUrl`
+
+> (F401)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🔇 Additional comments (2)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;meetingbaas_pipecat/bot/runner.py (2)&lt;/summary&gt;
+
+> `31-36`: **Validate or allow environment fallback for `--meeting-url`.**
+
+> Currently, `--meeting-url` is required. If you want to accept an environment variable fallback (like done with `meeting-baas-api-key`), consider marking it optional and retrieving the default from the environment if needed. Otherwise, this is fine if you absolutely need the user to supply it at runtime.
+
+> ---
+
+> `37-42`: **New CLI arguments enhance configurability.**
+
+> These newly added arguments (`--websocket-url`, `--bot-id`, `--recorder-only`, and `--meeting-baas-api-key`) provide greater flexibility for different usage scenarios. This is helpful for integrating with MeetingBaas, controlling bot behaviors, and ensuring each bot can be uniquely identified.
+
+> Also applies to: 43-48, 49-53, 54-58
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;&#33;-- This is an auto-generated comment by CodeRabbit for review status --&gt;
+
+> **Actionable comments posted: 4**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📜 Review details&lt;/summary&gt;
+
+> **Configuration used: CodeRabbit UI**
+
+> **Review profile: ASSERTIVE**
+
+> **Plan: Pro**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📥 Commits&lt;/summary&gt;
+
+> Reviewing files that changed from the base of the PR and between 24f980d2bee0d43de02df10f1f58493b1d643988 and c240b3fab2ed1ed831bf18264b0ea0c0169c419d.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📒 Files selected for processing (1)&lt;/summary&gt;
+
+> * `scripts/meetingbaas.py` (1 hunks)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Additional context used&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪛 Ruff (0.8.2)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/meetingbaas.py&lt;/summary&gt;
+
+> 3-3: `logging` imported but unused
+
+> Remove unused import: `logging`
+
+> (F401)
+
+> ---
+
+> 6-6: `typing.Optional` imported but unused
+
+> Remove unused import: `typing.Optional`
+
+> (F401)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🔇 Additional comments (2)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/meetingbaas.py (2)&lt;/summary&gt;
+
+> `26-107`: **Overall good asynchronous flow.**
+
+> Your asynchronous `main` function and structured try-except block show good organization. The pipeline-based design cleanly integrates your TTS, LLM, and transport layers. No major correctness or design issues found in these lines.
+
+> ---
+
+> `109-153`: **Command-line handling is well-structured.**
+
+> The command-line argument parsing seamlessly integrates with the `main` function, and the top-level error handling is appropriately logging critical failures. This block looks robust.
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;&#33;-- This is an auto-generated comment by CodeRabbit for review status --&gt;
+
+> **Actionable comments posted: 6**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;♻️ Duplicate comments (5)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py (2)&lt;/summary&gt;&lt;blockquote&gt;
+
+> `144-145`: _🛠️ Refactor suggestion_
+
+> **Return a helpful error using JSONResponse or HTTPException instead of a tuple.**
+
+> Returning a tuple (`(...), 400`) may not produce the expected status code or behavior in FastAPI. Consider using `JSONResponse` or raising an `HTTPException`. Below is a sample fix with `JSONResponse`:
+
+> ```text
+
+> - return &#123;"message": "WebSocket URL is required", "status": "error"&#125;, 400
+
+> + from fastapi.responses import JSONResponse
+
+> +
+
+> + return JSONResponse(
+
+> +     &#123;"message": "WebSocket URL is required", "status": "error"&#125;,
+
+> +     status_code=400
+
+> + )
+
+> ```
+
+> ---
+
+> `4-12`: _🧹 Nitpick (assertive)_
+
+> **Remove unused imports or revise usage to match actual needs.**
+
+> According to static analysis, the imports `os`, `websockets`, `Header`, `HTTPException`, and `HttpUrl` appear unused, while `JSONResponse` is never utilized in your current implementation. If you plan to raise HTTP exceptions or return JSON responses in certain error cases, keep the relevant imports; otherwise, remove them to keep the codebase clean.
+
+> ```text
+
+> - import os
+
+> - import websockets
+
+> - from fastapi import Header, HTTPException
+
+> - from fastapi.responses import JSONResponse
+
+> - from pydantic import HttpUrl
+
+> ```
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Tools&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪛 Ruff (0.8.2)&lt;/summary&gt;
+
+> 4-4: `os` imported but unused
+
+> Remove unused import: `os`
+
+> (F401)
+
+> ---
+
+> 8-8: `websockets` imported but unused
+
+> Remove unused import: `websockets`
+
+> (F401)
+
+> ---
+
+> 9-9: `fastapi.Header` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 9-9: `fastapi.HTTPException` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 11-11: `fastapi.responses.JSONResponse` imported but unused
+
+> Remove unused import: `fastapi.responses.JSONResponse`
+
+> (F401)
+
+> ---
+
+> 12-12: `pydantic.HttpUrl` imported but unused
+
+> Remove unused import: `pydantic.HttpUrl`
+
+> (F401)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;meetingbaas_pipecat/bot/bot.py (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> `96-99`: _🧹 Nitpick (assertive)_
+
+> **Switch to an async HTTP client to avoid blocking in an asynchronous context.**
+
+> The `requests.post(...)` call blocks the event loop. For better performance under high load or slow network conditions, consider using an async library like `aiohttp`. This reduces the risk of bottlenecks in your bot pipeline.
+
+> ```text
+
+> - import requests
+
+> + import aiohttp
+
+> - response = requests.post(url, json=config, headers=headers)
+
+> + async with aiohttp.ClientSession() as session:
+
+> +     async with session.post(url, json=config, headers=headers) as response:
+
+> +         # handle the response asynchronously
+
+> ```
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/batch.py (2)&lt;/summary&gt;&lt;blockquote&gt;
+
+> `29-31`: **Consider including “wss://” for secure WebSocket connections.**
+
+> A past review comment recommended supporting `wss://`, but the validator still restricts URLs to `https://` or `ws://`. If you need secure WebSocket connections, extend this check to allow `wss://`.
+
+> ```text
+
+> -    if not (url.startswith("https://") or url.startswith("ws://")):
+
+> -        raise ValueError("URL must start with https:// or ws://")
+
+> +    if not (
+
+> +        url.startswith("https://")
+
+> +        or url.startswith("ws://")
+
+> +        or url.startswith("wss://")
+
+> +    ):
+
+> +        raise ValueError("URL must start with https://, wss://, or ws://")
+
+> ```
+
+> ---
+
+> `165-179`: **Increase or make configurable the wait time before killing processes.**
+
+> A previous comment suggested allowing more time (or a configurable delay) before forcing termination, to avoid abrupt shutdowns of processes. Reintroducing or extending that wait can prevent unexpected data loss or corruption.
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📜 Review details&lt;/summary&gt;
+
+> **Configuration used: CodeRabbit UI**
+
+> **Review profile: ASSERTIVE**
+
+> **Plan: Pro**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📥 Commits&lt;/summary&gt;
+
+> Reviewing files that changed from the base of the PR and between 5e992698ae6d6635102a3d2e190e999bd1c580f1 and 8380cc4ba08015ade07ecc6c5fa635f284ee1658.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📒 Files selected for processing (4)&lt;/summary&gt;
+
+> * `api.py` (1 hunks)
+
+> * `meetingbaas_pipecat/bot/bot.py` (5 hunks)
+
+> * `meetingbaas_pipecat/bot/runner.py` (1 hunks)
+
+> * `scripts/batch.py` (5 hunks)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Additional context used&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧬 Code Graph Analysis (1)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/batch.py (4)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;meetingbaas_pipecat/bot/bot.py (2)&lt;/summary&gt;
+
+> * `start` (394-395)
+
+> * `main` (190-391)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;meetingbaas_pipecat/proxy/proxy.py (3)&lt;/summary&gt;
+
+> * `start` (130-134)
+
+> * `cleanup` (105-109)
+
+> * `main` (102-127)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;config/persona_utils.py (1)&lt;/summary&gt;
+
+> * `PersonaManager` (24-301)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/meetingbaas.py (1)&lt;/summary&gt;
+
+> * `main` (26-106)
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;&lt;details&gt;
+
+> &lt;summary&gt;🪛 Ruff (0.8.2)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py&lt;/summary&gt;
+
+> 4-4: `os` imported but unused
+
+> Remove unused import: `os`
+
+> (F401)
+
+> ---
+
+> 8-8: `websockets` imported but unused
+
+> Remove unused import: `websockets`
+
+> (F401)
+
+> ---
+
+> 9-9: `fastapi.Header` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 9-9: `fastapi.HTTPException` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 11-11: `fastapi.responses.JSONResponse` imported but unused
+
+> Remove unused import: `fastapi.responses.JSONResponse`
+
+> (F401)
+
+> ---
+
+> 12-12: `pydantic.HttpUrl` imported but unused
+
+> Remove unused import: `pydantic.HttpUrl`
+
+> (F401)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🔇 Additional comments (8)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py (2)&lt;/summary&gt;
+
+> `157-177`: **Concurrency design with bot ID future looks good.**
+
+> The approach of launching a background task to retrieve the bot ID and using a future to return the result asynchronously is sound. No immediate concurrency issues are observed.
+
+> ---
+
+> `298-306`: **Server startup logic is straightforward and clear.**
+
+> The `start_server` function setup with Uvicorn is properly structured and meets FastAPI best practices.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;meetingbaas_pipecat/bot/bot.py (1)&lt;/summary&gt;
+
+> `203-203`: **Synchronous checks for the bot creation outcome are reasonable.**
+
+> No concurrency issues appear in this section; waiting for the creation result before proceeding is appropriate for your flow.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;meetingbaas_pipecat/bot/runner.py (1)&lt;/summary&gt;
+
+> `31-63`: **Command-line arguments are consistent with bot configuration.**
+
+> The new CLI flags for meeting URL, WebSocket URL, bot ID, and optional API key or recorder-only mode align well with your usage elsewhere. The fallback approach to environment variables for the API key is sensible.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/batch.py (4)&lt;/summary&gt;
+
+> `8-8`: **Importing `signal` is appropriate.**
+
+> The references to `signal.SIGINT` and `signal.SIGTERM` are now valid, and this ensures smooth handling of interrupt/termination signals. No issues here.
+
+> ---
+
+> `158-158`: **Verify `logger.success` usage.**
+
+> `logger.success` is not a standard Python `logging` method. Confirm your custom logger supports it; otherwise, this could raise errors in certain environments.
+
+> ---
+
+> `373-404`: **Synchronous `main` method is well-structured.**
+
+> By routing everything through `async_main`, you cleanly separate command-line usage from parameter-based usage. The signal handler approach is coherent, and shutting down the event loop in `finally` helps ensure graceful termination.
+
+> ---
+
+> `274-275`: &lt;details&gt;
+
+> &lt;summary&gt;✅ Verification successful&lt;/summary&gt;
+
+> **Confirm existence of `list_personas()` method.**
+
+> The provided `PersonaManager` snippet does not show a `list_personas()` function. Ensure that it’s actually defined or imported properly to avoid runtime errors.
+
+> ---
+
+> 🏁 Script executed:
+
+> ```shell
+
+> #&#33;/bin/bash
+
+> # Description: Search codebase for 'list_personas' definition within PersonaManager
+
+> fd | xargs rg -A 10 "def list_personas"
+
+> ```
+
+> Length of output: 1440
+
+> ---
+
+> &lt;/details&gt;
+
+> **Verified: `list_personas()` Method Exists and Is Accessible**
+
+> The `list_personas()` method is defined in `config/persona_utils.py` (as shown by the search results) and returns a sorted list of available persona names. This confirms that the method is implemented and should be correctly imported/used by the `PersonaManager` in `scripts/batch.py`.
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;&#33;-- This is an auto-generated comment by CodeRabbit for review status --&gt;
+
+> **Actionable comments posted: 3**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;♻️ Duplicate comments (2)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/batch.py (2)&lt;/summary&gt;&lt;blockquote&gt;
+
+> `29-31`: **Consider allowing secure WebSocket (wss://).**
+
+> You only validate `https://` or `ws://`. If you need secure WS connections over TLS, permit `wss://`.
+
+> A previous comment also recommended adding `wss://` to your validation logic.
+
+> ---
+
+> `175-176`: **Allow more time for graceful shutdown.**
+
+> The code waits only 1 second before force-killing processes at lines 175–176 (`await asyncio.sleep(1)`). If shutting down processes takes longer, this short wait might cause abrupt terminations.
+
+> A past review comment suggested a configurable or longer wait period to avoid potential data loss or incomplete cleanup.
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📜 Review details&lt;/summary&gt;
+
+> **Configuration used: CodeRabbit UI**
+
+> **Review profile: ASSERTIVE**
+
+> **Plan: Pro**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📥 Commits&lt;/summary&gt;
+
+> Reviewing files that changed from the base of the PR and between 8380cc4ba08015ade07ecc6c5fa635f284ee1658 and 8180ebeb696501c1f2b53c1a1e36a86cc761a5c0.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📒 Files selected for processing (3)&lt;/summary&gt;
+
+> * `api.py` (1 hunks)
+
+> * `scripts/batch.py` (5 hunks)
+
+> * `scripts/meetingbaas_api.py` (1 hunks)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Additional context used&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧬 Code Graph Analysis (2)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/meetingbaas_api.py (1)&lt;/summary&gt;
+
+> * `create_meeting_bot` (67-144)
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/batch.py (2)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;meetingbaas_pipecat/bot/bot.py (2)&lt;/summary&gt;
+
+> * `start` (394-395)
+
+> * `main` (190-391)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;config/persona_utils.py (1)&lt;/summary&gt;
+
+> * `PersonaManager` (24-301)
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;&lt;details&gt;
+
+> &lt;summary&gt;🪛 Ruff (0.8.2)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py&lt;/summary&gt;
+
+> 1-1: `asyncio` imported but unused
+
+> Remove unused import: `asyncio`
+
+> (F401)
+
+> ---
+
+> 4-4: `os` imported but unused
+
+> Remove unused import: `os`
+
+> (F401)
+
+> ---
+
+> 9-9: `websockets` imported but unused
+
+> Remove unused import: `websockets`
+
+> (F401)
+
+> ---
+
+> 10-10: `fastapi.Header` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 10-10: `fastapi.HTTPException` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 13-13: `pydantic.Field` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 13-13: `pydantic.HttpUrl` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/meetingbaas_api.py&lt;/summary&gt;
+
+> 3-3: `typing.List` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 3-3: `typing.Union` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🔇 Additional comments (4)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py (1)&lt;/summary&gt;
+
+> `1-311`: **Overall Implementation Looks Good.**
+
+> No critical issues found for the rest of the file. The request handling and WebSocket endpoints seem logically structured, and the references to `create_meeting_bot` are consistent with the usage in `scripts/meetingbaas_api.py`.
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Tools&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪛 Ruff (0.8.2)&lt;/summary&gt;
+
+> 1-1: `asyncio` imported but unused
+
+> Remove unused import: `asyncio`
+
+> (F401)
+
+> ---
+
+> 4-4: `os` imported but unused
+
+> Remove unused import: `os`
+
+> (F401)
+
+> ---
+
+> 9-9: `websockets` imported but unused
+
+> Remove unused import: `websockets`
+
+> (F401)
+
+> ---
+
+> 10-10: `fastapi.Header` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 10-10: `fastapi.HTTPException` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 13-13: `pydantic.Field` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 13-13: `pydantic.HttpUrl` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/meetingbaas_api.py (1)&lt;/summary&gt;
+
+> `1-145`: **Logical flow and API calls appear correct.**
+
+> The function `create_meeting_bot` properly constructs and sends the MeetingBaas request, handles errors gracefully, and logs outcomes. The usage of `MeetingBaasRequest` and Pydantic models is consistent.
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Tools&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪛 Ruff (0.8.2)&lt;/summary&gt;
+
+> 3-3: `typing.List` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 3-3: `typing.Union` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/batch.py (2)&lt;/summary&gt;
+
+> `1-410`: **Other changes look good.**
+
+> Overall, the new parameters and logic for running multiple bot-proxy pairs (with optional usage of command-line arguments or direct function parameters) are reasonable. Signal handling is cleanly implemented, and the persona selection logic aligns with existing patterns.
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Tools&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪛 Ruff (0.8.2)&lt;/summary&gt;
+
+> 4-4: `os` imported but unused
+
+> Remove unused import: `os`
+
+> (F401)
+
+> ---
+
+> 7-7: `shlex` imported but unused
+
+> Remove unused import: `shlex`
+
+> (F401)
+
+> ---
+
+> 14-14: `contextlib.suppress` imported but unused
+
+> Remove unused import: `contextlib.suppress`
+
+> (F401)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> ---
+
+> `158-158`: &lt;details&gt;
+
+> &lt;summary&gt;✅ Verification successful&lt;/summary&gt;
+
+> **Confirm custom logging level “success”.**
+
+> `logger.success` isn't a standard Python logging method. It might be available if you have a custom logging setup (e.g., `loguru`). Ensure your deployment environment consistently supports this level; otherwise, it may cause runtime issues.
+
+> Please confirm that the `success` level is registered or recognized by your logging framework. If you want to verify usage across the codebase, you can run:
+
+> ---
+
+> 🏁 Script executed:
+
+> ```shell
+
+> #&#33;/bin/bash
+
+> # Search for logger.success calls and verify the definition or custom logging config
+
+> rg --heading --line-number 'logger\.success'
+
+> ```
+
+> Length of output: 1337
+
+> ---
+
+> &lt;/details&gt;
+
+> **Confirmed: Custom logging level "success" is consistently in use.**
+
+> After searching across the codebase, multiple occurrences of `logger.success` were found in various modules (e.g., in `scripts/batch.py`, `meetingbaas_pipecat/bot/bot.py`, and several files under the `config/` directory). This indicates that your logging framework—likely a custom logger such as Loguru which natively supports a `success` level—has been set up to handle this method.
+
+> No further changes appear necessary. Please ensure your deployment environment continues to load the same custom logger configuration so that the `success` level is always recognized.
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;&#33;-- This is an auto-generated comment by CodeRabbit for review status --&gt;
+
+> **Actionable comments posted: 2**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📜 Review details&lt;/summary&gt;
+
+> **Configuration used: CodeRabbit UI**
+
+> **Review profile: ASSERTIVE**
+
+> **Plan: Pro**
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📥 Commits&lt;/summary&gt;
+
+> Reviewing files that changed from the base of the PR and between 8180ebeb696501c1f2b53c1a1e36a86cc761a5c0 and 0c573c12a6fcddd760f276613d6952acb2a7a034.
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;📒 Files selected for processing (3)&lt;/summary&gt;
+
+> * `README.md` (5 hunks)
+
+> * `api.py` (1 hunks)
+
+> * `scripts/batch.py` (0 hunks)
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;💤 Files with no reviewable changes (1)&lt;/summary&gt;
+
+> * scripts/batch.py
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Additional context used&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧬 Code Graph Analysis (1)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py (1)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;scripts/meetingbaas_api.py (1)&lt;/summary&gt;
+
+> * `create_meeting_bot` (67-144)
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;&lt;details&gt;
+
+> &lt;summary&gt;🪛 Ruff (0.8.2)&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;api.py&lt;/summary&gt;
+
+> 3-3: `os` imported but unused
+
+> Remove unused import: `os`
+
+> (F401)
+
+> ---
+
+> 8-8: `websockets` imported but unused
+
+> Remove unused import: `websockets`
+
+> (F401)
+
+> ---
+
+> 9-9: `fastapi.Header` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 9-9: `fastapi.HTTPException` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 12-12: `pydantic.Field` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> ---
+
+> 12-12: `pydantic.HttpUrl` imported but unused
+
+> Remove unused import
+
+> (F401)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪛 LanguageTool&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;README.md&lt;/summary&gt;
+
+> &#91;uncategorized&#93; ~88-~88: A punctuation mark might be missing here.
+
+> Context: ...nAI&#93;(https://platform.openai.com/) (LLM) - &#91;Cartesia&#93;(https://www.cartesia.ai/) (tex...
+
+> (AI_EN_LECTOR_MISSING_PUNCTUATION)
+
+> ---
+
+> &#91;uncategorized&#93; ~249-~249: A period might be missing here.
+
+> Context: ...nnection and allow your bot to join the meeting  This is a normal occurrence and can be...
+
+> (AI_EN_LECTOR_MISSING_PUNCTUATION_PERIOD)
+
+> ---
+
+> &#91;style&#93; ~251-~251: Consider replacing this word to strengthen your wording.
+
+> Context: ...he meeting  This is a normal occurrence and can be easily resolved with a quick bot...
+
+> (AND_THAT)
+
+> ---
+
+> &#91;uncategorized&#93; ~352-~352: If this is a compound adjective that modifies the following noun, use a hyphen.
+
+> Context: ...- Authentication and authorization    - Rate limiting    - User management    - Billing integ...
+
+> (EN_COMPOUND_ADJECTIVE_INTERNAL)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🔇 Additional comments (17)&lt;/summary&gt;&lt;blockquote&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;README.md (17)&lt;/summary&gt;
+
+> `13-16`: **Looks good&#33;**
+
+> The mention of MeetingBaas, customizable personas, multi-instance support, and WebSocket-based communication succinctly outlines the project scope. No concerns here.
+
+> ---
+
+> `24-27`: **Clear explanation of Pipecat’s real-time capabilities.**
+
+> The bullet points describing real-time audio, WebSocket communication, voice activity detection, and context management are concise and align well with Pipecat’s core features.
+
+> ---
+
+> `31-39`: **Straightforward introduction to the API-first approach.**
+
+> Describing the lightweight FastAPI server and MeetingBaas integration clarifies the separation of concerns. Nicely done.
+
+> ---
+
+> `42-70`: **Comprehensive documentation of your API endpoints.**
+
+> Providing both required fields and example request/response objects helps developers integrate quickly. Everything looks clear.
+
+> ---
+
+> `75-78`: **Persona system details are well-defined.**
+
+> Emphasizing Markdown-based persona configuration is helpful for customizing each AI agent’s context.
+
+> ---
+
+> `88-91`: **List of service integrations is concise.**
+
+> Good job summarizing the TTS/STT and meeting services in one place. No issues here.
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Tools&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪛 LanguageTool&lt;/summary&gt;
+
+> &#91;uncategorized&#93; ~88-~88: A punctuation mark might be missing here.
+
+> Context: ...nAI&#93;(https://platform.openai.com/) (LLM) - &#91;Cartesia&#93;(https://www.cartesia.ai/) (tex...
+
+> (AI_EN_LECTOR_MISSING_PUNCTUATION)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> ---
+
+> `95-97`: **Additional integrations specified.**
+
+> Replicate for image generation and UploadThing for hosting are clearly introduced. Nicely documented.
+
+> ---
+
+> `110-114`: **Clear explanation of real-time features.**
+
+> Highlighting voice activity detection and message context management is a useful overview for advanced audio processing.
+
+> ---
+
+> `116-118`: **Emphasizing multi-language and persona customization.**
+
+> These lines are helpful for potential users wanting to expand beyond a single language or persona.
+
+> ---
+
+> `124-127`: **No issues with the persona storage details.**
+
+> Storing persona materials in Markdown and supporting additional expansions is a flexible approach.
+
+> ---
+
+> `141-146`: **API usage instructions are well stated.**
+
+> Clear about validating the request body via Pydantic. The mention of mandatory fields is helpful.
+
+> ---
+
+> `158-160`: **Validating MeetingBaas API key.**
+
+> Highlighting that the API key must be present is a good security measure.
+
+> ---
+
+> `180-187`: **Straightforward API server setup steps.**
+
+> Instructions for running with Uvicorn and hot reload are concise and developer-friendly.
+
+> ---
+
+> `189-239`: **Comprehensive demonstration on how to create bots and expose server.**
+
+> The commands for local usage with ngrok and example curl requests are well-structured. Great job.
+
+> ---
+
+> `246-249`: **Helpful tip on reinitiating bots.**
+
+> Reminding users to simply “respawn” a bot helps address timing issues gracefully. No concerns.
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Tools&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪛 LanguageTool&lt;/summary&gt;
+
+> &#91;uncategorized&#93; ~249-~249: A period might be missing here.
+
+> Context: ...nnection and allow your bot to join the meeting  This is a normal occurrence and can be...
+
+> (AI_EN_LECTOR_MISSING_PUNCTUATION_PERIOD)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> ---
+
+> `251-251`: **Appreciation for the clear explanation.**
+
+> Your note on typical reconnection scenarios is thorough. Good work.
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Tools&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪛 LanguageTool&lt;/summary&gt;
+
+> &#91;style&#93; ~251-~251: Consider replacing this word to strengthen your wording.
+
+> Context: ...he meeting  This is a normal occurrence and can be easily resolved with a quick bot...
+
+> (AND_THAT)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> ---
+
+> `253-355`: **Clear guidelines for development and production deployment.**
+
+> These steps effectively guide users to run and test multiple bots, including instructions for local vs. production usage.
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🧰 Tools&lt;/summary&gt;
+
+> &lt;details&gt;
+
+> &lt;summary&gt;🪛 LanguageTool&lt;/summary&gt;
+
+> &#91;uncategorized&#93; ~352-~352: If this is a compound adjective that modifies the following noun, use a hyphen.
+
+> Context: ...- Authentication and authorization    - Rate limiting    - User management    - Billing integ...
+
+> (EN_COMPOUND_ADJECTIVE_INTERNAL)
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;/blockquote&gt;&lt;/details&gt;
+
+> &lt;/details&gt;
+
+> &lt;&#33;-- This is an auto-generated comment by CodeRabbit for review status --&gt; 
+
+## Code Diffs
+
+<Callout type="info">
+  Code diffs require the `--with-diff --include-code` flags when running git_grepper.sh.
+  
+  For detailed diffs, please use the git command line or a git UI tool to view changes between commits.
+</Callout> 
