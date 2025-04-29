@@ -20,6 +20,32 @@ Open http://localhost:3000 with your browser to see the result.
 
 The project includes several scripts for managing documentation updates:
 
+### Enhancing Update Files with AI
+
+The project includes an AI-powered enhancement script that uses OpenRouter (with Anthropic's Claude models) to improve automatically generated documentation:
+
+```bash
+# Enhance the most recent update file
+pnpm enhance:updates --key=your_openrouter_api_key
+
+# Process all update files
+pnpm enhance:updates --key=your_openrouter_api_key --all
+
+# Process updates for a specific service
+pnpm enhance:updates --key=your_openrouter_api_key --service=api
+
+# Process updates for a specific date
+pnpm enhance:updates --key=your_openrouter_api_key --date=2023-10-15
+
+# Use a different model
+pnpm enhance:updates --key=your_openrouter_api_key --model=anthropic/claude-3-opus-20240229
+
+# Enable verbose logging
+pnpm enhance:updates --key=your_openrouter_api_key --verbose
+```
+
+You will need to obtain an OpenRouter API key from [openrouter.ai](https://openrouter.ai) to use this feature.
+
 ### Git Diff Updates
 
 Updates are automatically generated from git diff files in the `git_greppers` directory. These updates include service-specific styling with colored icons in the sidebar.
