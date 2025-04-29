@@ -1,0 +1,67 @@
+---
+title: April 18, 2025
+description: API - Automatically generated documentation based on Git activity.
+icon: Webhook
+service: api
+date: April 18, 2025
+
+---
+
+# 🐟 API Updates: Streamlining Credentials and Message Processing
+
+<Callout type="info">
+  Dive into the latest updates that keep our API swimming smoothly! 🏊‍♀️
+</Callout>
+
+## Key Updates
+
+### Credential and Path Handling Improvements
+
+<Steps>
+  <Step>Enhanced AWS path generation with client secret integration</Step>
+  <Step>Improved S3 recording path retrieval mechanisms</Step>
+  <Step>Removed unnecessary fallback code</Step>
+</Steps>
+
+### RabbitMQ Message Processing Optimization
+
+<Tabs items={['Before', 'After']}>
+  <Tab value="Before">Potential race conditions in message handling</Tab>
+  <Tab value="After">Serialized message processing with `isProcessing` flag</Tab>
+</Tabs>
+
+### Zoom Credential Management
+
+<Callout type="warn">
+  Custom Zoom credentials now implemented to improve authentication flexibility
+</Callout>
+
+## Changed Components
+
+<Files>
+  <Folder name="api_server" defaultOpen>
+    <Folder name="baas_engine">
+      <File name="src/bots/data/post.rs" />
+      <File name="src/lib.rs" />
+      <File name="src/s3/get_recording_path.rs" />
+    </Folder>
+    <Folder name="baas_handler">
+      <File name="src/bots/public.rs" />
+    </Folder>
+  </Folder>
+  <Folder name="meeting_bot">
+    <Folder name="recording_server">
+      <File name="src/rabbitmq.ts" />
+    </Folder>
+  </Folder>
+</Files>
+
+## Performance Highlights
+
+- 🚀 Improved error handling in S3 operations
+- 🔒 Enhanced credential management
+- 🐰 Optimized RabbitMQ message processing
+
+<Callout type="info">
+  These updates ensure more robust and efficient API operations behind the scenes.
+</Callout>

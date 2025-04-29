@@ -1,0 +1,78 @@
+---
+title: March 11, 2025
+description: API - Automatically generated documentation based on Git activity.
+icon: Webhook
+service: api
+date: March 11, 2025
+
+---
+
+# API Updates 🐟
+
+<Callout type="info">
+  Dive into the latest updates for our API service - we're making waves in backend improvements! 🌊
+</Callout>
+
+## Overview of Changes
+
+This update focuses on improving browser setup and error handling across multiple components of our API and recording infrastructure.
+
+### Key Improvements
+
+<Steps>
+  <Step>Enhanced browser setup reliability</Step>
+  <Step>Improved error state management</Step>
+  <Step>Refined calendar and webhook handling</Step>
+</Steps>
+
+### Affected Components
+
+<Files>
+  <Folder name="api_server">
+    <Folder name="baas_engine">
+      <File name="calendar/data/get.rs" />
+      <File name="calendar/error.rs" />
+      <File name="extend_axum/distributed_cache.rs" />
+      <File name="webhook.rs" />
+    </Folder>
+    <Folder name="baas_handler">
+      <File name="calendar/api.rs" />
+      <File name="calendar/internal.rs" />
+      <File name="calendar/public/calendars.rs" />
+      <File name="tests/calendar.rs" />
+    </Folder>
+  </Folder>
+  <Folder name="meeting_bot/recording_server">
+    <Folder name="src">
+      <Folder name="state-machine/states">
+        <File name="error-state.ts" />
+        <File name="initialization-state.ts" />
+        <File name="recording-state.ts" />
+      </Folder>
+      <File name="browser.ts" />
+      <File name="main.ts" />
+      <File name="rabbitmq.ts" />
+    </Folder>
+  </Folder>
+</Files>
+
+### Potential Impact
+
+<Callout type="warn">
+  These changes may affect browser initialization and error handling in the recording infrastructure.
+</Callout>
+
+### Recommendations
+
+- Review browser setup processes
+- Test error state transitions
+- Verify calendar and webhook integrations
+
+<Tabs items={['Production', 'Development']}>
+  <Tab value="Production">
+    Recommended to update in a staged rollout
+  </Tab>
+  <Tab value="Development">
+    Immediate testing recommended
+  </Tab>
+</Tabs>

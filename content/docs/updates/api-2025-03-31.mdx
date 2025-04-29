@@ -1,0 +1,86 @@
+---
+title: March 31, 2025
+description: API - Automatically generated documentation based on Git activity.
+icon: Webhook
+service: api
+date: March 31, 2025
+
+---
+
+# API Updates - March 31, 2025 🐟
+
+<Callout type="info">
+  Hooked on improvements! Just like a bass swimming through code streams... 🎣
+</Callout>
+
+## Overview of Changes
+
+### Merge Branches
+
+We've merged two significant branches into the master:
+
+1. **Ended At for Bots Already Started**
+2. **Async Transcription End Meeting**
+
+<Tabs items={['Bot Management', 'Transcription']}>
+  <Tab value="Bot Management">
+    <Steps>
+      <Step>Added `ended_at` handling for bots that were already started</Step>
+      <Step>Improved bot lifecycle management</Step>
+      <Step>Enhanced error tracking and logging</Step>
+    </Steps>
+  </Tab>
+  <Tab value="Transcription">
+    <Steps>
+      <Step>Moved transcription processing to background task</Step>
+      <Step>Removed duplicate code for setting `ended_at`</Step>
+      <Step>Optimized meeting end process</Step>
+    </Steps>
+  </Tab>
+</Tabs>
+
+## Key Modifications
+
+### Files Updated
+
+<Files>
+  <Folder name="api_server" defaultOpen>
+    <Folder name="baas_engine">
+      <File name="Cargo.toml" />
+      <File name="src/meeting_bot/starter.rs" />
+    </Folder>
+    <Folder name="baas_handler">
+      <File name="Cargo.toml" />
+      <File name="src/bots/internal.rs" />
+      <File name="src/bots/public.rs" />
+      <File name="src/calendar/api.rs" />
+    </Folder>
+  </Folder>
+</Files>
+
+### Technical Enhancements
+
+<Callout type="warn">
+  These changes improve system reliability and performance without modifying external API contracts.
+</Callout>
+
+- Implemented more robust bot lifecycle management
+- Enhanced asynchronous transcription handling
+- Improved error logging with bot identifier context
+
+## Potential Impact
+
+<TypeTable 
+  type={{
+    botLifecycle: {
+      description: 'More precise tracking of bot start and end states',
+      type: 'improved',
+      default: 'previous implementation'
+    },
+    transcriptionProcessing: {
+      description: 'Non-blocking background task for transcription',
+      type: 'async',
+      default: 'synchronous'
+    }
+  }}
+/>

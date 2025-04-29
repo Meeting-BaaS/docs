@@ -22,7 +22,8 @@
     "test:all-updates": "tsx ./scripts/updates/generate-all.mts",
     "regenerate:git-updates": "tsx ./scripts/updates/clean-git-updates.mts && tsx ./scripts/updates/generate-git-diff-updates.mts",
     "update:all": "chmod +x ./git_greppers/local-git-setup.sh && ./git_greppers/local-git-setup.sh && pnpm clean:git-updates && pnpm test:git-updates && rimraf .next && pnpm build && pnpm dev",
-    "clean:cache": "rimraf .next && pnpm clean:git-updates"
+    "clean:cache": "rimraf .next && pnpm clean:git-updates",
+    "enhance:updates": "tsx ./scripts/enhance-updates.mts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.3.6",
@@ -31,6 +32,7 @@
     "@fumadocs/mdx-remote": "^1.3.0",
     "@inkeep/ai-api": "^0.8.0",
     "@meeting-baas/sdk": "^4.0.4",
+    "@openrouter/ai-sdk-provider": "^0.4.5",
     "@oramacloud/client": "^2.1.4",
     "@radix-ui/react-accordion": "^1.2.8",
     "@radix-ui/react-collapsible": "^1.1.3",
@@ -53,8 +55,10 @@
     "hast-util-to-jsx-runtime": "^2.3.6",
     "katex": "^0.16.21",
     "lucide-react": "^0.486.0",
+    "minimist": "^1.2.8",
     "next": "15.2.4",
     "octokit": "^4.1.2",
+    "ora": "^7.0.1",
     "oxc-transform": "^0.62.0",
     "phenomenon": "^1.6.0",
     "react": "^19.1.0",
@@ -70,6 +74,7 @@
     "shiki": "^3.2.1",
     "tailwind-merge": "^3.1.0",
     "twoslash": "^0.3.1",
+    "yaml": "^2.3.1",
     "zod": "^3.24.2"
   },
   "devDependencies": {
@@ -81,6 +86,7 @@
     "@tailwindcss/postcss": "^4.1.1",
     "@types/hast": "^3.0.4",
     "@types/mdx": "^2.0.13",
+    "@types/minimist": "^1.2.5",
     "@types/node": "22.13.16",
     "@types/node-fetch": "^2.6.12",
     "@types/react": "^19.1.0",
