@@ -7,6 +7,8 @@
 .source
  content/llm/all.md
  all.md
+git_greppers/meeting-baas-git-diffs/
+processing.log
 
 # test & build
 /coverage

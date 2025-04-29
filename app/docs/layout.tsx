@@ -1,9 +1,9 @@
-import { DocsLayout, type DocsLayoutProps } from 'fumadocs-ui/layouts/notebook';
-import type { ReactNode } from 'react';
 import { baseOptions } from '@/app/layout.config';
-import { source } from '@/lib/source';
-import 'katex/dist/katex.min.css';
 import DocsGradient from '@/components/docs-gradient';
+import { source } from '@/lib/source';
+import { DocsLayout, type DocsLayoutProps } from 'fumadocs-ui/layouts/notebook';
+import 'katex/dist/katex.min.css';
+import type { ReactNode } from 'react';
 
 const docsOptions: DocsLayoutProps = {
   ...baseOptions,
