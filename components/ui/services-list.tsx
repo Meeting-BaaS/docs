@@ -24,6 +24,14 @@ export const SERVICES: Service[] = [
         additionalTags: ['api-reference'],
     },
     {
+        name: 'Production Updates',
+        icon: 'Zap',
+        serviceKey: 'production',
+        description: 'API Internal Updates and Improvements',
+        href: '/docs/updates#production-updates',
+        additionalTags: ['production', 'release', 'open-source'],
+    },
+    {
         name: 'TypeScript SDK',
         icon: 'Settings',
         serviceKey: 'sdk',

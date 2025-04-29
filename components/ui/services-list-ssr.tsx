@@ -5,6 +5,7 @@ import {
     ServerCog,
     Settings,
     Webhook,
+    Zap,
     type LucideIcon
 } from 'lucide-react';
 import Link from 'next/link';
@@ -27,6 +28,7 @@ const serviceColorMap: Record<string, string> = {
     'mcp-servers': '#f97316', // orange-500
     'transcript-seeker': '#14b8a6', // teal-500
     'git': '#6b7280', // gray-500
+    'production': '#f59e0b', // amber-500
 };
 
 // Map service keys to their respective icons
@@ -37,6 +39,7 @@ const serviceIconMap: Record<string, LucideIcon> = {
     'mcp-servers': ServerCog,
     'transcript-seeker': Captions,
     'git': GitBranch,
+    'production': Zap,
 };
 
 // Services configuration matching what's in constants.ts
@@ -48,6 +51,14 @@ export const SERVICES: Service[] = [
         description: 'API changes and improvements',
         href: '/docs/updates#api-updates',
         additionalTags: ['api-reference'],
+    },
+    {
+        name: 'Production Updates',
+        icon: 'Zap',
+        serviceKey: 'production',
+        description: 'API Internal Updates and Improvements',
+        href: '/docs/updates#production-updates',
+        additionalTags: ['production', 'release', 'open-source'],
     },
     {
         name: 'TypeScript SDK',

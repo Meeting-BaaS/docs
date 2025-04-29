@@ -21,6 +21,13 @@ export const SERVICES: ServiceConfig[] = [
     additionalTags: ['api-reference'],
   },
   {
+    name: 'Production Updates',
+    dirPattern: 'content/docs/production',
+    icon: 'Zap',
+    serviceKey: 'production',
+    additionalTags: ['production', 'release', 'open-source'],
+  },
+  {
     name: 'TypeScript SDK',
     dirPattern: 'content/docs/typescript-sdk',
     icon: 'Settings',
@@ -51,5 +58,5 @@ export const SERVICES: ServiceConfig[] = [
   // Add other services as needed
 ];
 
-// Also export as default to ensure it's accessible
+// Also export as default for compatibility
 export default SERVICES;
