@@ -1,4 +1,3 @@
-import { format } from 'date-fns';
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import { basename, join } from 'path';
 
@@ -19,6 +18,7 @@ interface ServiceConfig {
   serviceKey: string;
   dirPattern?: string;
   additionalTags?: string[];
+  serviceName: string;
 }
 
 // Map git diff folders to service configs - consistent with index.mdx components
@@ -28,42 +28,49 @@ const GIT_DIFF_FOLDER_MAP: Record<string, ServiceConfig> = {
     icon: 'Webhook', // Matches <WebhookIcon /> in index.mdx
     serviceKey: 'api',
     additionalTags: ['api-reference'],
+    serviceName: 'API',
   },
   'speaking-meeting-bot-git-diffs': {
     name: 'Speaking Bots',
     icon: 'Bot', // Matches <BotIcon /> in index.mdx
     serviceKey: 'speaking-bots',
     additionalTags: ['bots', 'persona'],
+    serviceName: 'Speaking Bots',
   },
   'sdk-generator-git-diffs': {
     name: 'TypeScript SDK',
     icon: 'Settings', // Matches <Settings /> in index.mdx
     serviceKey: 'sdk',
     additionalTags: ['sdk', 'typescript'],
+    serviceName: 'TypeScript SDK',
   },
   'mcp-on-vercel-git-diffs': {
     name: 'MCP Servers',
     icon: 'ServerCog', // Matches <ServerCog /> in index.mdx
     serviceKey: 'mcp-servers',
     additionalTags: ['mcp', 'server'],
+    serviceName: 'MCP Servers',
   },
   'mcp-on-vercel-documentation-git-diffs': {
     name: 'MCP Servers Documentation',
     icon: 'ServerCog', // Use same icon as MCP Servers
     serviceKey: 'mcp-servers',
     additionalTags: ['mcp', 'server', 'documentation'],
+    serviceName: 'MCP Servers Documentation',
   },
   'mcp-baas-git-diffs': {
     name: 'MCP BaaS',
     icon: 'ServerCog', // Use same icon as MCP Servers
     serviceKey: 'mcp-servers',
     additionalTags: ['mcp', 'server', 'baas'],
+    serviceName: 'MCP BaaS',
   },
   'transcript-seeker-git-diffs': {
     name: 'Transcript Seeker',
     icon: 'Captions', // Matches <CaptionsIcon /> in index.mdx
     serviceKey: 'transcript-seeker',
     additionalTags: ['transcript', 'seeker'],
+    serviceName: 'Transcript Seeker',
   },
 };
 
@@ -72,9 +79,23 @@ interface CommitInfo {
   date: string;
   author: string;
   message: string;
-  relatedPrMr: string;
-  comments: string[];
-  changedFiles: string[];
+  relatedPrMr?: string;
+  changedFiles?: string[];
+  comments?: string[];
+  type?: string;
+  branch: string;
+}
+
+// Add these interfaces at the top of the file with the other interfaces
+interface ParsedGitDiffData {
+  date: string;
+  commits: CommitInfo[];
+}
+
+interface ServiceInfo {
+  serviceKey: string;
+  serviceName: string;
+  icon?: string;
 }
 
 /**
@@ -88,6 +109,7 @@ function getServiceByFolder(folderName: string): ServiceConfig {
       name: folderName,
       icon: 'Git',
       serviceKey: 'git-update',
+      serviceName: folderName,
     };
   }
 
@@ -315,144 +337,110 @@ function escapeMdxContent(text: string): string {
 }
 
 /**
- * Generates an update page for a given date and commits
+ * Generate a content page from parsed git diff data
  */
-function generateUpdatePage(
-  date: string,
-  commits: CommitInfo[],
-  repoPath: string,
-): string {
-  const formattedDate = format(new Date(date), 'MMMM do, yyyy');
+async function generateUpdatePage(
+  parsedData: ParsedGitDiffData,
+  diffFile: string,
+  serviceInfo: ServiceInfo,
+): Promise<void> {
+  const date = parsedData.date;
 
-  // Get folder name from repo path
-  const folderName = basename(getDirectoryName(repoPath));
+  // Determine service key based on branch names
+  let serviceKey = serviceInfo.serviceKey;
 
-  // Get service info for this folder
-  const serviceInfo = getServiceByFolder(folderName);
+  // Check if any of the commits are from update-openapi branches
+  const isApiUpdate = parsedData.commits.some(
+    (commit) => commit.branch && commit.branch.includes('update-openapi'),
+  );
 
-  // Use service key in the filename instead of git-updates prefix
-  const fileName = `${serviceInfo.serviceKey}-${date}`;
-  const filePath = join(UPDATES_DIR, `${fileName}.mdx`);
-
-  // Group commits by type (e.g., feature, bugfix) based on commit message
-  const categorizedCommits: Record<string, CommitInfo[]> = {
-    Features: [],
-    'Bug Fixes': [],
-    Improvements: [],
-    Other: [],
-  };
-
-  commits.forEach((commit) => {
-    const message = commit.message.toLowerCase();
-
-    if (
-      message.includes('feat') ||
-      message.includes('feature') ||
-      message.includes('add')
-    ) {
-      categorizedCommits['Features'].push(commit);
-    } else if (
-      message.includes('fix') ||
-      message.includes('bug') ||
-      message.includes('issue')
-    ) {
-      categorizedCommits['Bug Fixes'].push(commit);
-    } else if (
-      message.includes('improve') ||
-      message.includes('enhance') ||
-      message.includes('refactor') ||
-      message.includes('update')
-    ) {
-      categorizedCommits['Improvements'].push(commit);
-    } else {
-      categorizedCommits['Other'].push(commit);
-    }
-  });
-
-  // Generate tags string for frontmatter
-  const tagsArray = ['git', ...(serviceInfo.additionalTags ?? [])];
-  const tagsString = tagsArray.map((tag) => `'${tag}'`).join(', ');
-
-  // Generate commit sections for each category
-  let categorySections = '';
-
-  Object.entries(categorizedCommits).forEach(([category, categoryCommits]) => {
-    if (categoryCommits.length > 0) {
-      categorySections += `## ${category}\n\n`;
-
-      categoryCommits.forEach((commit) => {
-        // Clean up commit message (remove merge prefix if present)
-        let message = commit.message
-          .replace(/^Merge (branch|pull request) .* (into|from) .*$/i, '')
-          .trim();
-        if (!message) {
-          message = commit.message; // Use original if cleaning emptied it
-        }
-
-        categorySections += `### ${message}\n\n`;
-
-        if (commit.relatedPrMr && !commit.relatedPrMr.includes('None found')) {
-          categorySections += `<Callout type="note">
-${commit.relatedPrMr}
-</Callout>\n\n`;
-        }
-
-        if (commit.changedFiles && commit.changedFiles.length > 0) {
-          categorySections += `#### Changed Files\n\n`;
-          commit.changedFiles.forEach((file) => {
-            const icon = getFileIcon(file);
-            categorySections += `- ${icon} \`${file}\`\n`;
-          });
-          categorySections += '\n';
-        }
-
-        // Add PR/MR comments in a safe way
-        if (commit.comments && commit.comments.length > 0) {
-          categorySections += `#### PR/MR Comments\n\n`;
-          categorySections += `<Accordions type="single">\n`;
-          categorySections += `  <Accordion title="View PR/MR Comments">\n`;
-          categorySections += `    <div className="not-prose my-2 overflow-auto border border-gray-200 bg-gray-50 p-4 dark:border-gray-800 dark:bg-gray-950">\n`;
-          categorySections += `      <pre className="text-sm whitespace-pre-wrap">\n`;
-          commit.comments.forEach((comment) => {
-            // Escape any problematic characters for MDX
-            categorySections += `        ${escapeMdxContent(comment)}\n`;
-          });
-          categorySections += `      </pre>\n`;
-          categorySections += `    </div>\n`;
-          categorySections += `  </Accordion>\n`;
-          categorySections += `</Accordions>\n\n`;
-        }
-      });
-    }
-  });
-
-  // Read template file
-  const templatePath = join(TEMPLATES_DIR, 'git-updates.mdx.template');
-
-  // Template file is required - check if it exists
-  if (!existsSync(templatePath)) {
-    throw new Error(
-      `Template file not found: ${templatePath}. The templates directory must be included in your project.`,
-    );
+  if (isApiUpdate) {
+    serviceKey = 'api';
   }
 
-  // Use template file
-  const templateContent = readFileSync(templatePath, 'utf-8');
+  // Use the determined service key for the file name
+  const fileName = `${serviceKey}-${date}`;
+  const outputPath = join(UPDATES_DIR, `${fileName}.mdx`);
 
-  // Replace template variables with actual values
-  const content = templateContent
-    .replace(/\{\{DATE\}\}/g, formattedDate)
-    .replace(/\{\{DATE_RAW\}\}/g, date)
-    .replace(/\{\{SERVICE_NAME\}\}/g, serviceInfo.name)
-    .replace(/\{\{SERVICE_ICON\}\}/g, serviceInfo.icon)
-    .replace(/\{\{SERVICE_KEY\}\}/g, serviceInfo.serviceKey)
-    .replace(/\{\{TAGS\}\}/g, tagsString)
-    .replace(/\{\{CONTENT\}\}/g, categorySections);
+  // Get template
+  const templatePath = join(TEMPLATES_DIR, 'git-updates.mdx.template');
+  const template = await readFileSync(templatePath, 'utf-8');
 
-  // Write the file
-  writeFileSync(filePath, content);
+  // Format date for display (YYYY-MM-DD → Month DD, YYYY)
+  const [year, month, day] = date.split('-');
+  const displayDate = new Date(
+    `${year}-${month}-${day}T00:00:00Z`,
+  ).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
 
-  return fileName;
+  // Generate commit list
+  const commitList = parsedData.commits
+    .map((commit) => {
+      return (
+        `### ${commit.message}\n\n` +
+        `**Author:** ${commit.author}\n\n` +
+        `**Date:** ${commit.date}\n\n` +
+        `**Hash:** \`${commit.hash}\`\n\n` +
+        (commit.relatedPrMr
+          ? `**Related PR/MR:** ${commit.relatedPrMr}\n\n`
+          : '')
+      );
+    })
+    .join('\n\n');
+
+  // Generate changed files list
+  const changedFilesList = parsedData.commits
+    .filter((commit) => commit.changedFiles && commit.changedFiles.length > 0)
+    .flatMap((commit) => commit.changedFiles || [])
+    .filter((file, index, self) => self.indexOf(file) === index) // Remove duplicates
+    .map((file) => {
+      const icon = getFileIcon(file);
+      return `- ${icon} \`${file}\``;
+    })
+    .join('\n');
+
+  // Generate PR comments
+  const prComments = parsedData.commits
+    .filter((commit) => commit.comments && commit.comments.length > 0)
+    .map((commit) => {
+      return (
+        `### Comments for "${commit.message}"\n\n` +
+        commit.comments
+          ?.map((comment) => `> ${escapeMdxContent(comment)}`)
+          .join('\n\n')
+      );
+    })
+    .join('\n\n');
+
+  // Replace placeholders in template
+  let content = template
+    .replace(/\{\{DATE\}\}/g, displayDate)
+    .replace(/\{\{SERVICE_KEY\}\}/g, serviceKey)
+    .replace(/\{\{SERVICE_ICON\}\}/g, serviceInfo.icon || 'Git')
+    .replace(
+      /\{\{SERVICE_NAME\}\}/g,
+      isApiUpdate ? 'API' : serviceInfo.serviceName,
+    );
+
+  // Replace new placeholders
+  content = content.replace(
+    /\{\{COMMIT_LIST\}\}/g,
+    commitList || 'No commits found.',
+  );
+  content = content.replace(
+    /\{\{CHANGED_FILES_LIST\}\}/g,
+    changedFilesList || 'No changed files.',
+  );
+  content = content.replace(
+    /\{\{PR_COMMENTS\}\}/g,
+    prComments || 'No pull request comments.',
+  );
+
+  await writeFileSync(outputPath, content);
+  console.log(`Generated update page: ${outputPath}`);
 }
 
 /**
@@ -523,6 +511,18 @@ function updateMetaJson(newPages: string[]): void {
 }
 
 /**
+ * Get a human-readable repo name from the folder name
+ */
+function getRepoName(folderName: string): string {
+  // Convert folder names like 'meeting-baas-git-diffs' to 'Meeting BaaS'
+  return folderName
+    .replace('-git-diffs', '')
+    .split('-')
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
+
+/**
  * Main function to generate updates from git diff files
  */
 export async function generateGitDiffUpdates(): Promise<string[]> {
@@ -541,6 +541,14 @@ export async function generateGitDiffUpdates(): Promise<string[]> {
 
     if (match) {
       const date = match[1];
+      const commits = parseGitDiffFile(diffFile);
+
+      // Check if any of the commits are from update-openapi branches
+      const isApiUpdate = commits.some((commit) => {
+        return (
+          commit.relatedPrMr && commit.relatedPrMr.includes('update-openapi-')
+        );
+      });
 
       // Get folder name from repo path
       const folderName = basename(getDirectoryName(diffFile));
@@ -548,30 +556,56 @@ export async function generateGitDiffUpdates(): Promise<string[]> {
       // Get service info for this folder
       const serviceInfo = getServiceByFolder(folderName);
 
+      // Set the correct service key based on whether this is an API update
+      const finalServiceKey = isApiUpdate ? 'api' : 'production';
+
       // Check if an update for this service and date already exists
-      const updateFileName = `${serviceInfo.serviceKey}-${date}`;
+      const updateFileName = `${finalServiceKey}-${date}`;
       const updateFilePath = join(UPDATES_DIR, `${updateFileName}.mdx`);
 
       // Also check legacy format for backward compatibility
       const legacyFileName = `${GIT_UPDATES_FILE_PREFIX}${date}`;
       const legacyFilePath = join(UPDATES_DIR, `${legacyFileName}.mdx`);
 
-      if (!existsSync(updateFilePath) && !existsSync(legacyFilePath)) {
-        const commits = parseGitDiffFile(diffFile);
+      // Also check original service key format for backward compatibility
+      const originalServiceFileName = `${serviceInfo.serviceKey}-${date}`;
+      const originalServiceFilePath = join(
+        UPDATES_DIR,
+        `${originalServiceFileName}.mdx`,
+      );
 
+      if (
+        !existsSync(updateFilePath) &&
+        !existsSync(legacyFilePath) &&
+        !existsSync(originalServiceFilePath)
+      ) {
         if (commits.length > 0) {
-          const page = generateUpdatePage(date, commits, diffFile);
-          generatedPages.push(page);
-          console.log(
-            `Generated update page for ${serviceInfo.name} on ${date} with ${commits.length} commits`,
-          );
+          const parsedData: ParsedGitDiffData = {
+            date,
+            commits,
+          };
+          await generateUpdatePage(parsedData, diffFile, serviceInfo);
+          generatedPages.push(`${serviceInfo.serviceKey}-${date}`);
+          if (isApiUpdate) {
+            console.log(
+              `Generated update page for API on ${date} with ${commits.length} commits from OpenAPI branch`,
+            );
+          } else {
+            console.log(
+              `Generated update page for Production Updates on ${date} with ${commits.length} commits`,
+            );
+          }
         } else {
           console.log(`No valid commits found in ${diffFile}`);
         }
       } else {
-        console.log(
-          `Update for ${serviceInfo.name} on ${date} already exists, skipping`,
-        );
+        if (isApiUpdate) {
+          console.log(`Update for API on ${date} already exists, skipping`);
+        } else {
+          console.log(
+            `Update for Production Updates on ${date} already exists, skipping`,
+          );
+        }
       }
     } else {
       console.log(`Invalid filename format: ${filename}`);
