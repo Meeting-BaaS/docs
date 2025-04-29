@@ -6,7 +6,7 @@ import { basename, join } from 'path';
 const GIT_GREPPERS_DIR = join(process.cwd(), 'git_greppers');
 const UPDATES_DIR = join(process.cwd(), 'content', 'docs', 'updates');
 const META_JSON_PATH = join(UPDATES_DIR, 'meta.json');
-const GIT_UPDATES_FILE_PREFIX = 'git-updates-'; // Global variable for file prefix
+const GIT_UPDATES_FILE_PREFIX = 'git-updates-'; // We'll keep this for backward compatibility
 const TEMPLATES_DIR = join(process.cwd(), 'scripts', 'updates', 'templates');
 
 // Export constants for use in other files
@@ -46,6 +46,18 @@ const GIT_DIFF_FOLDER_MAP: Record<string, ServiceConfig> = {
     icon: 'ServerCog', // Matches <ServerCog /> in index.mdx
     serviceKey: 'mcp-servers',
     additionalTags: ['mcp', 'server'],
+  },
+  'mcp-on-vercel-documentation-git-diffs': {
+    name: 'MCP Servers Documentation',
+    icon: 'ServerCog', // Use same icon as MCP Servers
+    serviceKey: 'mcp-servers',
+    additionalTags: ['mcp', 'server', 'documentation'],
+  },
+  'mcp-baas-git-diffs': {
+    name: 'MCP BaaS',
+    icon: 'ServerCog', // Use same icon as MCP Servers
+    serviceKey: 'mcp-servers',
+    additionalTags: ['mcp', 'server', 'baas'],
   },
   'transcript-seeker-git-diffs': {
     name: 'Transcript Seeker',
@@ -311,14 +323,16 @@ function generateUpdatePage(
   repoPath: string,
 ): string {
   const formattedDate = format(new Date(date), 'MMMM do, yyyy');
-  const fileName = `${GIT_UPDATES_FILE_PREFIX}${date}`;
-  const filePath = join(UPDATES_DIR, `${fileName}.mdx`);
 
   // Get folder name from repo path
   const folderName = basename(getDirectoryName(repoPath));
 
   // Get service info for this folder
   const serviceInfo = getServiceByFolder(folderName);
+
+  // Use service key in the filename instead of git-updates prefix
+  const fileName = `${serviceInfo.serviceKey}-${date}`;
+  const filePath = join(UPDATES_DIR, `${fileName}.mdx`);
 
   // Group commits by type (e.g., feature, bugfix) based on commit message
   const categorizedCommits: Record<string, CommitInfo[]> = {
@@ -474,7 +488,7 @@ function updateMetaJson(newPages: string[]): void {
     }
   });
 
-  // Sort pages by date (the format is git-updates-YYYY-MM-DD)
+  // Sort pages by date - extract dates from service-date format
   // Keep index at the beginning
   const indexPage = meta.pages.indexOf('index');
   if (indexPage !== -1) {
@@ -482,26 +496,17 @@ function updateMetaJson(newPages: string[]): void {
   }
 
   meta.pages.sort((a: string, b: string) => {
-    // Keep non-git-updates pages at the end
-    if (
-      !a.startsWith(GIT_UPDATES_FILE_PREFIX) &&
-      b.startsWith(GIT_UPDATES_FILE_PREFIX)
-    )
-      return 1;
-    if (
-      a.startsWith(GIT_UPDATES_FILE_PREFIX) &&
-      !b.startsWith(GIT_UPDATES_FILE_PREFIX)
-    )
-      return -1;
-    if (
-      !a.startsWith(GIT_UPDATES_FILE_PREFIX) &&
-      !b.startsWith(GIT_UPDATES_FILE_PREFIX)
-    )
-      return 0;
+    // Keep non-date pages at the end
+    const datePatternA = a.match(/^[a-z-]+-(\d{4}-\d{2}-\d{2})$/);
+    const datePatternB = b.match(/^[a-z-]+-(\d{4}-\d{2}-\d{2})$/);
+
+    if (!datePatternA && datePatternB) return 1;
+    if (datePatternA && !datePatternB) return -1;
+    if (!datePatternA && !datePatternB) return 0;
 
     // Extract dates from page names
-    const dateA = a.replace(GIT_UPDATES_FILE_PREFIX, '');
-    const dateB = b.replace(GIT_UPDATES_FILE_PREFIX, '');
+    const dateA = datePatternA![1];
+    const dateB = datePatternB![1];
 
     // Compare dates (newest first)
     return dateB.localeCompare(dateA);
@@ -537,24 +542,36 @@ export async function generateGitDiffUpdates(): Promise<string[]> {
     if (match) {
       const date = match[1];
 
-      // Check if an update for this date already exists
-      const updateFileName = `${GIT_UPDATES_FILE_PREFIX}${date}`;
+      // Get folder name from repo path
+      const folderName = basename(getDirectoryName(diffFile));
+
+      // Get service info for this folder
+      const serviceInfo = getServiceByFolder(folderName);
+
+      // Check if an update for this service and date already exists
+      const updateFileName = `${serviceInfo.serviceKey}-${date}`;
       const updateFilePath = join(UPDATES_DIR, `${updateFileName}.mdx`);
 
-      if (!existsSync(updateFilePath)) {
+      // Also check legacy format for backward compatibility
+      const legacyFileName = `${GIT_UPDATES_FILE_PREFIX}${date}`;
+      const legacyFilePath = join(UPDATES_DIR, `${legacyFileName}.mdx`);
+
+      if (!existsSync(updateFilePath) && !existsSync(legacyFilePath)) {
         const commits = parseGitDiffFile(diffFile);
 
         if (commits.length > 0) {
           const page = generateUpdatePage(date, commits, diffFile);
           generatedPages.push(page);
           console.log(
-            `Generated update page for ${date} with ${commits.length} commits`,
+            `Generated update page for ${serviceInfo.name} on ${date} with ${commits.length} commits`,
           );
         } else {
           console.log(`No valid commits found in ${diffFile}`);
         }
       } else {
-        console.log(`Update for ${date} already exists, skipping`);
+        console.log(
+          `Update for ${serviceInfo.name} on ${date} already exists, skipping`,
+        );
       }
     } else {
       console.log(`Invalid filename format: ${filename}`);

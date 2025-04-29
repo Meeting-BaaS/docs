@@ -24,6 +24,39 @@ The project includes several scripts for managing documentation updates:
 
 Updates are automatically generated from git diff files in the `git_greppers` directory. These updates include service-specific styling with colored icons in the sidebar.
 
+#### Setting Up Local Git Repositories
+
+The project includes a script to automatically collect Git diffs from local repositories:
+
+```bash
+# Make the script executable
+chmod +x git_greppers/local-git-setup.sh
+
+# Run the setup script
+./git_greppers/local-git-setup.sh
+```
+
+This script will:
+
+1. Process the repositories defined in the script
+2. Generate diff files in the appropriate folders
+3. Clean existing git updates
+4. Generate new update files based on the diffs
+
+You may need to modify the repository paths in `git_greppers/local-git-setup.sh` to match your local environment:
+
+```bash
+# Inside local-git-setup.sh
+REPOSITORIES=(
+  "/path/to/meeting-baas"
+  "/path/to/speaking-meeting-bot"
+  "/path/to/sdk-generator"
+  "/path/to/mcp-on-vercel"
+)
+```
+
+Each path should point to a valid Git repository that you want to include in the documentation updates.
+
 #### Basic Commands
 
 ```bash

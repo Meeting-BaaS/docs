@@ -1,16 +1,16 @@
 ---
-title: "{{SERVICE_NAME}} Updates - {{DATE}}"
-description: "Automatic documentation updates from {{SERVICE_NAME}} Git activity."
-service: "{{SERVICE_KEY}}"
-icon: "{{SERVICE_ICON}}"
-tags: [{{TAGS}}]
+title: "{{DATE}}"
+description: "Automatically generated documentation based on Git activity related to the {{SERVICE_NAME}} service."
+icon: {{SERVICE_ICON}}
+service: {{SERVICE_KEY}}
+date: {{DATE}}
 ---
 
-<Callout type="warn">
-  <p>This page contains automatically generated documentation based on Git activity.</p>
-  <p>Information may need review and could be updated in future releases.</p>
-</Callout>
+import { Callout } from "fumadocs-ui/components/callout";
 
-# {{SERVICE_NAME}} Updates - {{DATE}}
+<Callout type="warn">
+  This page contains automatically generated documentation based on Git activity related to the {{SERVICE_NAME}} service. 
+  For the latest version of this content, please refer to the latest Git update.
+</Callout>
 
 {{CONTENT}} 

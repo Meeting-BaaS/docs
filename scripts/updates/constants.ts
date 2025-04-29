@@ -2,6 +2,8 @@ import { format } from 'date-fns';
 import { ServiceConfig } from './types';
 
 // Define constants
+// NOTE: These are file system paths, not URL paths
+// The actual URLs will not include the '/docs' prefix due to rewrites in next.config.ts
 export const CURRENT_DATE = format(new Date(), 'yyyy-MM-dd');
 export const UPDATES_DIR = './content/docs/updates';
 export const META_JSON_PATH = './content/docs/meta.json';
