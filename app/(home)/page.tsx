@@ -14,7 +14,7 @@ export default function DocsPage(): React.ReactElement {
         through a unified API.
       </p>
       <div className="mt-8 grid grid-cols-1 gap-4 text-left md:grid-cols-2">
-        <Item href="/docs/api">
+        <Item href="/api">
           <Icon className="api">
             <WebhookIcon className="size-full" />
           </Icon>
@@ -25,7 +25,7 @@ export default function DocsPage(): React.ReactElement {
         </Item>
 
 
-        <Item href="/docs/updates">
+        <Item href="/updates">
           <Icon className="updates">
             <MonitorUp className="size-full" />
           </Icon>
@@ -35,7 +35,7 @@ export default function DocsPage(): React.ReactElement {
           </p>
         </Item>
 
-        <Item href="/docs/typescript-sdk">
+        <Item href="/typescript-sdk">
           <Icon className="typescript-sdk">
             <Settings className="size-full" />
           </Icon>
@@ -45,7 +45,7 @@ export default function DocsPage(): React.ReactElement {
           </p>
         </Item>
 
-        <Item href="/docs/mcp-servers">
+        <Item href="/mcp-servers">
           <Icon className="mcp-servers">
             <ServerCog className="size-full" />
           </Icon>
@@ -55,7 +55,7 @@ export default function DocsPage(): React.ReactElement {
           </p>
         </Item>
 
-        <Item href="/docs/speaking-bots">
+        <Item href="/speaking-bots">
           <Icon className="speaking-bots">
             <BotIcon className="size-full" />
           </Icon>
@@ -65,7 +65,7 @@ export default function DocsPage(): React.ReactElement {
           </p>
         </Item>
 
-        <Item href="/docs/transcript-seeker">
+        <Item href="/transcript-seeker">
           <Icon className="transcript-seeker">
             <CaptionsIcon className="size-full" />
           </Icon>

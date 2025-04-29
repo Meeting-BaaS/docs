@@ -1,6 +1,6 @@
-import type { MetadataRoute } from 'next';
 import { baseUrl } from '@/lib/metadata';
 import { source } from '@/lib/source';
+import type { MetadataRoute } from 'next';
 
 export const revalidate = false;
 
@@ -12,11 +12,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: url('/'),
       changeFrequency: 'monthly',
       priority: 1,
-    },
-    {
-      url: url('/docs'),
-      changeFrequency: 'monthly',
-      priority: 0.8,
     },
     ...(await Promise.all(
       source.getPages().map(async (page) => {
