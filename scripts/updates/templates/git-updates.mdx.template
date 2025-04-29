@@ -1,6 +1,6 @@
 ---
-title: "{{SERVICE_NAME}} - {{DATE}}"
-description: "Automatically generated documentation based on Git activity."
+title: "{{DATE}}"
+description: "{{SERVICE_NAME}} - Automatically generated documentation based on Git activity."
 icon: "{{SERVICE_ICON}}"
 service: {{SERVICE_KEY}}
 date: {{DATE}}
