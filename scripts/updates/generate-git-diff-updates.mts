@@ -634,17 +634,29 @@ async function generateUpdatePage(
     day: 'numeric',
   });
 
-  // Generate commit list
+  // Generate commit list - make sure everything is a string
   const commitList = parsedData.commits
     .map((commit) => {
+      const message =
+        typeof commit.message === 'string'
+          ? commit.message
+          : String(commit.message);
+      const author =
+        typeof commit.author === 'string'
+          ? commit.author
+          : String(commit.author);
+      const commitDate =
+        typeof commit.date === 'string' ? commit.date : String(commit.date);
+      const hash =
+        typeof commit.hash === 'string' ? commit.hash : String(commit.hash);
+      const relatedPrMr = commit.relatedPrMr ? String(commit.relatedPrMr) : '';
+
       return (
-        `### ${commit.message}\n\n` +
-        `**Author:** ${commit.author}\n\n` +
-        `**Date:** ${commit.date}\n\n` +
-        `**Hash:** \`${commit.hash}\`\n\n` +
-        (commit.relatedPrMr
-          ? `**Related PR/MR:** ${commit.relatedPrMr}\n\n`
-          : '')
+        `### ${message}\n\n` +
+        `**Author:** ${author}\n\n` +
+        `**Date:** ${commitDate}\n\n` +
+        `**Hash:** \`${hash}\`\n\n` +
+        (relatedPrMr ? `**Related PR/MR:** ${relatedPrMr}\n\n` : '')
       );
     })
     .join('\n\n');
@@ -655,7 +667,7 @@ async function generateUpdatePage(
     if (commit.changedFiles && commit.changedFiles.length > 0) {
       // Filter out null or empty strings
       const validFiles = commit.changedFiles.filter(
-        (file) => file && file.trim().length > 0,
+        (file) => file && typeof file === 'string' && file.trim().length > 0,
       );
       allChangedFiles = [...allChangedFiles, ...validFiles];
     }
@@ -685,7 +697,10 @@ async function generateUpdatePage(
     if (commit.comments && commit.comments.length > 0) {
       // Filter out empty comment lines and join coherent blocks
       const cleanedComments = commit.comments
-        .filter((comment) => comment && comment.trim().length > 0)
+        .filter(
+          (comment) =>
+            comment && typeof comment === 'string' && comment.trim().length > 0,
+        )
         // Remove HTML comments used for internal state if they exist
         .filter((comment) => !comment.includes('<!-- internal state'))
         .filter(
@@ -693,8 +708,12 @@ async function generateUpdatePage(
         );
 
       if (cleanedComments.length > 0) {
+        const message =
+          typeof commit.message === 'string'
+            ? commit.message
+            : String(commit.message || 'Unknown commit');
         allComments.push({
-          message: commit.message || 'Unknown commit',
+          message,
           comments: cleanedComments,
         });
       }
@@ -714,6 +733,10 @@ async function generateUpdatePage(
               `### Comments for "${item.message}"\n\n` +
               item.comments
                 .map((comment) => {
+                  if (typeof comment !== 'string') {
+                    return `> ${JSON.stringify(comment)}`;
+                  }
+
                   // Better handling of comment blocks - maintain code blocks and formatting
                   if (comment.startsWith('```')) {
                     // If it's a code block, escape it properly
