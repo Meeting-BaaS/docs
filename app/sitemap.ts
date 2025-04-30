@@ -7,22 +7,32 @@ export const revalidate = false;
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const url = (path: string): string => new URL(path, baseUrl).toString();
 
-  return [
+  // Add base route
+  const sitemap: MetadataRoute.Sitemap = [
     {
       url: url('/'),
-      changeFrequency: 'monthly',
+      changeFrequency: 'weekly' as const,
       priority: 1,
     },
-    ...(await Promise.all(
-      source.getPages().map(async (page) => {
-        const { lastModified } = await page.data.load();
-        return {
-          url: url(page.url),
-          lastModified: lastModified ? new Date(lastModified) : undefined,
-          changeFrequency: 'weekly',
-          priority: 0.5,
-        } as MetadataRoute.Sitemap[number];
-      }),
-    )),
   ];
+
+  // Process pages with error handling
+  const pages = source.getPages();
+  for (const page of pages) {
+    try {
+      console.log(`Processing sitemap for: ${page.url}`);
+      const { lastModified } = await page.data.load();
+      sitemap.push({
+        url: url(page.url),
+        lastModified: lastModified ? new Date(lastModified) : undefined,
+        changeFrequency: 'weekly' as const,
+        priority: 0.5,
+      });
+    } catch (error) {
+      console.error(`Error processing sitemap for ${page.url}:`, error);
+      // Continue with other pages instead of failing completely
+    }
+  }
+
+  return sitemap;
 }
