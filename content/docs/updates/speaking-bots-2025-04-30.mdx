@@ -1,0 +1,37 @@
+---
+title: {{DATE}}
+description: Changes from recent development in Speaking Bots
+icon: Bot
+service: {{SERVICE_KEY}}
+tags: [bots, persona]
+---
+
+<Callout type="warning">
+  <Files>
+    <Folder name="content" defaultOpen>
+      <Folder name="docs">
+        <Folder name="updates">
+          <File name="{{SERVICE_KEY}}-2025-04-30.mdx" />
+        </Folder>
+      </Folder>
+    </Folder>
+  </Files>
+  The content in this document is automatically generated from service updates. It should be re-read by a human or at least an AI ;)
+</Callout>
+
+{{#SINGLE_FILE}}
+# Changed Files
+
+::filepath[{{FILE_PATH}}]
+{{FILE_DIFF}}
+{{/SINGLE_FILE}}
+
+{{#MULTI_FILE}}
+# Changed Files
+
+{{#FILES}}
+::filepath[{{PATH}}]
+{{DIFF}}
+
+{{/FILES}}
+{{/MULTI_FILE}} 
