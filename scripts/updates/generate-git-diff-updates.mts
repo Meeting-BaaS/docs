@@ -203,6 +203,9 @@ function parseGitDiffFile(filePath: string): CommitInfo[] {
   let currentCommit: Partial<CommitInfo> = {};
   let inCommit = false;
 
+  // Special handling for speaking-meeting-bot repositories
+  const isSpeakingBot = filePath.includes('speaking-meeting-bot-git-diffs');
+
   // Split the file by lines and process each line
   const lines = content.split('\n');
 
@@ -256,6 +259,93 @@ function parseGitDiffFile(filePath: string): CommitInfo[] {
           j++;
         }
         currentCommit.comments = comments;
+      }
+    }
+  }
+
+  // If no commits were found using the standard method and this is a speaking-bot file,
+  // try an alternative parsing approach
+  if (commits.length === 0 && isSpeakingBot) {
+    console.log(`Using alternative parsing for speaking-bot file: ${filePath}`);
+
+    // Reset and try alternative parsing
+    inCommit = false;
+    currentCommit = {};
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+
+      // Look for the equals signs line that appears after #KEY#START_COMMIT#
+      if (
+        line.startsWith('=====') &&
+        i > 0 &&
+        lines[i - 1].startsWith('#KEY#START_COMMIT#')
+      ) {
+        inCommit = true;
+        currentCommit = {};
+      }
+
+      if (inCommit) {
+        if (line.startsWith('#KEY#COMMIT_HASH#')) {
+          currentCommit.hash = line.replace('#KEY#COMMIT_HASH#', '').trim();
+        } else if (line.startsWith('#KEY#COMMIT_DATE#')) {
+          currentCommit.date = line.replace('#KEY#COMMIT_DATE#', '').trim();
+        } else if (line.startsWith('#KEY#COMMIT_AUTHOR#')) {
+          currentCommit.author = line.replace('#KEY#COMMIT_AUTHOR#', '').trim();
+        } else if (line.startsWith('#KEY#COMMIT_MESSAGE#')) {
+          currentCommit.message = line
+            .replace('#KEY#COMMIT_MESSAGE#', '')
+            .trim();
+        } else if (line.startsWith('#KEY#RELATED_PR_MR#')) {
+          currentCommit.relatedPrMr = line
+            .replace('#KEY#RELATED_PR_MR#', '')
+            .trim();
+        } else if (line.startsWith('#KEY#CHANGED_FILES#')) {
+          // Get the changed files (may span multiple lines)
+          const changedFiles: string[] = [];
+          let j = i + 1;
+          while (j < lines.length && !lines[j].startsWith('#KEY#')) {
+            if (lines[j].trim().startsWith('-')) {
+              changedFiles.push(lines[j].trim().substring(2));
+            }
+            j++;
+          }
+          currentCommit.changedFiles = changedFiles;
+          i = j - 1; // Skip ahead
+        } else if (line.startsWith('#KEY#PR_MR_COMMENTS#')) {
+          // Get the PR/MR comments (may span multiple lines)
+          const comments: string[] = [];
+          let j = i + 1;
+
+          // Keep reading until we hit another key or run out of lines
+          while (j < lines.length && !lines[j].match(/^#KEY#[A-Z_]+#/)) {
+            if (lines[j].trim()) {
+              comments.push(lines[j].trim());
+            }
+            j++;
+          }
+
+          currentCommit.comments = comments;
+          i = j - 1; // Skip ahead
+        }
+
+        // If we have collected all the required fields for a commit, add it and reset
+        if (
+          currentCommit.hash &&
+          currentCommit.date &&
+          currentCommit.author &&
+          currentCommit.message &&
+          currentCommit.relatedPrMr
+        ) {
+          // Set defaults for optional fields
+          if (!currentCommit.changedFiles) {
+            currentCommit.changedFiles = [];
+          }
+
+          commits.push(currentCommit as CommitInfo);
+          inCommit = false;
+          currentCommit = {};
+        }
       }
     }
   }
