@@ -1,0 +1,78 @@
+---
+title: March 2, 2025
+description: Speaking Bots - Automatically generated documentation based on Git activity.
+icon: Bot
+service: speaking-bots
+date: March 2, 2025
+
+---
+
+🐟 Hooked on APIs: Where Every Request is a Catch of the Day! 🐟
+
+<Callout type="info">
+  This update introduces significant improvements to the Speaking Bots service, focusing on API-first architecture and enhanced bot management.
+</Callout>
+
+# Speaking Bots Service Updates
+
+## Key Enhancements
+
+<Tabs items={['API', 'Bot Management', 'Configuration']}>
+  <Tab value="API">
+    - Introduced FastAPI-based server for bot orchestration
+    - Added `/run-bots` endpoint for dynamic bot creation
+    - Implemented WebSocket support for real-time communication
+  </Tab>
+  <Tab value="Bot Management">
+    - Enhanced bot configuration flexibility
+    - Added support for multiple bot instances
+    - Improved persona and meeting URL handling
+  </Tab>
+  <Tab value="Configuration">
+    - New CLI arguments for granular control
+    - Environment variable fallback mechanisms
+    - Secure API key management
+  </Tab>
+</Tabs>
+
+## API Endpoints
+
+<Steps>
+  <Step>POST `/run-bots`: Create and manage bot instances</Step>
+  <Step>WebSocket `/ws/{client_id}`: Real-time communication</Step>
+  <Step>GET `/`: Health check endpoint</Step>
+</Steps>
+
+## Example Bot Request
+
+```json
+{
+  "count": 2,
+  "meeting_url": "https://meeting.example.com",
+  "personas": ["technical_expert", "facilitator"],
+  "recorder_only": false,
+  "websocket_url": "ws://localhost:8000"
+}
+```
+
+## Notable Improvements
+
+<Accordions>
+  <Accordion title="API Architecture" value="api-arch">
+    - Lightweight FastAPI server
+    - Asynchronous bot management
+    - Flexible configuration options
+  </Accordion>
+  
+  <Accordion title="WebSocket Integration" value="websocket">
+    - Multi-client support
+    - Real-time bot communication
+    - Robust connection handling
+  </Accordion>
+</Accordions>
+
+## Deployment Considerations
+
+<Callout type="warn">
+  Ensure proper API key management and secure WebSocket configurations.
+</Callout>

@@ -1,0 +1,76 @@
+---
+title: April 8, 2025
+description: API - Automatically generated documentation based on Git activity.
+icon: Webhook
+service: api
+date: April 8, 2025
+
+---
+
+🐟 Hooked on API Updates: Casting a Line into the Sea of Code! 🐟
+
+# API Updates - April 8, 2025
+
+<Callout type="info">
+These updates reflect recent improvements to our API service and related infrastructure.
+</Callout>
+
+## Key Changes
+
+### Chrome and Browser Improvements
+
+<Tabs items={['Chrome Version', 'Platform Support']}>
+  <Tab value="Chrome Version">
+    - Updated Chrome version from `108.0.5359.94` to `126.0.6478.182`
+    - Revised download URLs for multiple platforms
+  </Tab>
+  <Tab value="Platform Support">
+    - Added macOS Chrome download link
+    - Implemented platform-specific executable path detection
+    - Updated extension ID flag to `--allowlisted-extension-id`
+  </Tab>
+</Tabs>
+
+### Logging and Screenshot Enhancements
+
+<Steps>
+  <Step>Improved log upload mechanism to S3 bucket</Step>
+  <Step>
+    Enhanced screenshot utility with timestamp-based naming, disabled CSS animations, and improved image compression
+  </Step>
+  <Step>Added robust error handling for screenshot and log processes</Step>
+</Steps>
+
+### Dialog Management
+
+<Accordions>
+  <Accordion title="Dialog Observer Improvements" value="dialog-observer">
+    Implemented more resilient dialog handling with:
+    - Provider-specific mechanisms
+    - Safety checks for page availability
+    - Cleanup of existing observers
+    - Multiple selector strategies
+  </Accordion>
+</Accordions>
+
+## Changed Files
+
+<Files>
+  <Folder name="meeting_bot" defaultOpen>
+    <Folder name="recording_server">
+      <File name="package.json" />
+      <File name="package-lock.json" />
+      <File name="yarn.lock" />
+      <Folder name="src">
+        <File name="main.ts" />
+        <File name="s3.ts" />
+        <File name="browser.ts" />
+      </Folder>
+    </Folder>
+    <File name="install_chrome.sh" />
+  </Folder>
+</Files>
+
+<Callout type="warn">
+  These updates improve system reliability, logging, and cross-platform compatibility.
+</Callout>

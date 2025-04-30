@@ -159,12 +159,388 @@ poetry run python scripts/batch.py -c 1 --meeting-url LINK --add-recorder
 
 ---
 
+## Environment Variables
+
+Configure environment variables for Speaking Bots
+
+### Source: ./content/docs/speaking-bots/getting-started/environment-variables.mdx
+
+
+Speaking Bots requires several API keys and configuration values to function properly. Here's a quick setup guide:
+
+1. Copy the example environment file:
+
+```bash
+cp .env.example .env
+```
+
+{" "}
+
+<Callout type="warn">
+  Never commit your `.env` file to version control. It contains sensitive API
+  keys that should be kept private.
+</Callout>
+
+2. Add your credentials to `.env`: You'll need 4 required API keys for core functionality (MeetingBaas, OpenAI, Speech-to-Text, and Text-to-Speech). Additional keys can be added later for optional features.
+
+## Core Bot Functionality (Required)
+
+<Steps>
+<Step>
+### MeetingBaas Configuration
+
+Required for sending meeting bots as personas to various platforms:
+
+```txt
+MEETING_BAAS_API_KEY=your_meetingbaas_api_key_here
+```
+
+Get your API key by:
+
+1. Signing up for [MeetingBaas](https://meetingbaas.com)
+2. Accessing your API key from the MeetingBaas dashboard
+
+</Step>
+
+<Step>
+### OpenAI Configuration
+
+Powers in-meeting AI interactions and persona management:
+
+```txt
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+<Callout>
+  This key is used both for in-meeting interactions and persona creation functionality.
+</Callout>
+</Step>
+
+<Step>
+### Speech-to-Text Configuration
+
+Choose one of the following options:
+
+#### Option 1: Deepgram
+
+```txt
+DEEPGRAM_API_KEY=your_deepgram_api_key_here
+```
+
+#### Option 2: Gladia
+
+```txt
+GLADIA_API_KEY=your_gladia_api_key_here
+```
+
+</Step>
+
+<Step>
+### Text-to-Speech Configuration
+
+Required for voice synthesis and persona voices:
+
+```txt
+CARTESIA_API_KEY=your_cartesia_api_key_here
+CARTESIA_VOICE_ID="79a125e8-cd45-4c13-8a67-188112f4dd22"
+```
+
+</Step>
+</Steps>
+
+## Optional Features
+
+### Multiple Bots Support
+
+<Steps>
+<Step>
+Required for running multiple bots in local development:
+```txt
+NGROK_AUTHTOKEN=your_ngrok_auth_token_here
+```
+
+<Callout>
+  Follow our [Ngrok Setup Guide](/docs/speaking-bots/getting-started/ngrok-setup) to get your auth token.
+</Callout>
+</Step>
+</Steps>
+
+### Persona Creation
+
+<Steps>
+  <Step>Required for AI image generation and storage:</Step>
+</Steps>
+
+
+---
+
+## Ngrok setup
+
+We create ngrok tunnel(s) for running several bots at once on your local machine
+
+### Source: ./content/docs/speaking-bots/getting-started/ngrok-setup.mdx
+
+
+## Local Setup
+
+For running one or more bots locally, you'll need an ngrok authtoken. Follow these steps:
+
+1. Sign up for a free account at [ngrok.com](https://dashboard.ngrok.com/signup)
+2. After signing up, get your authtoken from the [Your Authtoken page](https://dashboard.ngrok.com/get-started/your-authtoken)
+3. Add the token to your `.env` file or set it as an environment variable:
+
+```bash
+NGROK_AUTHTOKEN=your_ngrok_auth_token_here
+```
+
+That's it folks :)
+
+<Accordions>
+  <Accordion title="Configuration modification">
+
+We provide a ready-to-use configuration file in the repository at `config/ngrok/config.yml`. You can either use this file directly or create your own configuration.
+
+The default location for the ngrok configuration file varies by operating system:
+
+- Linux: `~/.config/ngrok/ngrok.yml`
+- macOS: `~/Library/Application Support/ngrok/ngrok.yml`
+- Windows: `%HOMEPATH%\AppData\Local\ngrok\ngrok.yml`
+
+To verify your configuration file location, you can run:
+
+```bash
+ngrok config check
+```
+
+If you want to create or edit your own configuration file, here's what it should contain:
+
+```yaml
+version: '3'
+agent:
+  authtoken: YOUR_AUTH_TOKEN
+
+tunnels:
+  proxy1:
+    proto: http
+    addr: 8766
+  proxy2:
+    proto: http
+    addr: 8768
+```
+
+For more detailed information about ngrok configuration options, see the [official ngrok configuration documentation](https://ngrok.com/docs/agent/config/).
+
+## Usage
+
+This sets up two separate tunnels (proxy1 and proxy2) that will be used by your bots to establish WebSocket connections with the meeting platforms. To start both tunnels simultaneously, run:
+
+```bash
+ngrok start --all --config config/ngrok/config.yml
+```
+
+The free tier of ngrok limits you to 2 concurrent tunnels, which means you can run up to 2 bots simultaneously in local development mode.
+
+  </Accordion>
+</Accordions>
+
+## WebSocket URL Resolution
+
+When running the server in local development mode, it will automatically detect and use your ngrok URLs. The server determines the WebSocket URL to use in the following priority order:
+
+1. User-provided URL in the request (if specified in the `websocket_url` field)
+2. `BASE_URL` environment variable (recommended for production)
+3. ngrok URL in local development mode
+4. Auto-detection from request headers (fallback, not reliable in production)
+
+To use local development mode with automatic ngrok detection:
+
+```bash
+# Start the API server with local development mode enabled
+poetry run python run.py --local-dev
+```
+
+## Troubleshooting WebSocket Connections
+
+### Common Issues
+
+1. **Timing Issues with ngrok and Meeting Baas Bots**
+
+   Sometimes, due to WebSocket connection delays through ngrok, the Meeting Baas bots may join the meeting before your local bot connects. If this happens:
+
+   - Simply press `Enter` to respawn your bot
+   - This will reinitiate the connection and allow your bot to join the meeting
+
+2. **Connection failures**
+   - Make sure ngrok is running with the correct configuration
+   - Verify that you've entered the correct ngrok URLs when prompted
+   - Check that your ngrok URLs are accessible (try opening in a browser)
+   - Make sure you're using the `wss://` protocol with ngrok URLs
+
+### Production Considerations
+
+For production deployments, you should:
+
+1. Set the `BASE_URL` environment variable to your server's public domain:
+   ```
+   export BASE_URL=https://your-server-domain.com
+   ```
+2. Ensure your server is accessible on the public internet
+3. Consider using HTTPS/WSS for secure connections in production
+
+
+---
+
+## Set Up
+
+Set up your development environment for Speaking Bots
+
+### Source: ./content/docs/speaking-bots/getting-started/set-up.mdx
+
+
+## Installation
+
+### 0. Clone Repository
+
+If you haven't already, clone the repository and navigate to it:
+
+```bash
+git clone https://github.com/Meeting-Baas/speaking-meeting-bot.git
+cd speaking-meeting-bot
+```
+
+### 1. Prerequisites
+
+- Python 3.11+
+- `grpc_tools` for protocol buffer compilation
+- Ngrok for local development (follow our [Ngrok Setup Guide](/docs/speaking-bots/getting-started/ngrok-setup))
+- Poetry for dependency management
+
+You'll also need system dependencies for scientific libraries:
+
+```bash
+# macOS (using Homebrew)
+brew install llvm cython
+
+# Ubuntu/Debian
+sudo apt-get install llvm python3-dev cython
+
+# Fedora/RHEL
+sudo dnf install llvm-devel python3-devel Cython
+```
+
+### 2. Set Up Poetry Environment
+
+```bash
+# Install Poetry (Unix/macOS)
+curl -sSL https://install.python-poetry.org | python3 -
+
+# Install Poetry (Windows)
+(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py -
+
+# Configure Poetry to use Python 3.11+
+poetry env use python3.11
+
+# Install dependencies with LLVM config path
+# On macOS:
+LLVM_CONFIG=$(brew --prefix llvm)/bin/llvm-config poetry install
+# On Linux (path may vary):
+# LLVM_CONFIG=/usr/bin/llvm-config poetry install
+
+# Activate virtual environment
+poetry shell
+```
+
+### 3. Compile Protocol Buffers
+
+```bash
+poetry run python -m grpc_tools.protoc --proto_path=./protobufs --python_out=./protobufs frames.proto
+```
+
+Protocol Buffers are used here by Pipecat to define a structured message format for real-time communication between components of the Speaking Bots system. Specifically, the [`frames.proto`](https://github.com/pipecat-ai/pipecat/blob/635aa6eb5bdee382729613b58279befdc5bc8eaf/src/pipecat/frames/frames.proto#L9) file defines three main message types:
+
+1. `TextFrame`: For handling text-based messages
+2. `AudioRawFrame`: For managing raw audio data with properties like sample rate and channels
+3. `TranscriptionFrame`: For handling speech-to-text transcription results
+
+Protocol Buffers is the backbone of consistent data serialization across services.
+Read more in the [official Protocol Buffer documentation](https://protobuf.dev/downloads/) and [this Python Protocol Buffers tutorial](https://www.blog.pythonlibrary.org/2023/08/30/an-intro-to-protocol-buffers-with-python/).
+
+### 4. Configure Environment
+
+Create a `.env` file based on the template:
+
+```bash
+cp env.example .env
+```
+
+Edit the `.env` file with your API keys. You'll need:
+
+**Required API Keys:**
+
+- `MEETING_BAAS_API_KEY`: For meeting platform integration
+- `OPENAI_API_KEY`: For the conversation LLM
+- `CARTESIA_API_KEY`: For text-to-speech
+- `GLADIA_API_KEY` or `DEEPGRAM_API_KEY`: For speech-to-text
+
+For production, also set:
+
+```
+BASE_URL=https://your-server-domain.com
+```
+
+See our full [Environment Variables Guide](/docs/speaking-bots/getting-started/environment-variables) for more details.
+
+### 5. Run the API Server
+
+The project now follows an API-first approach. There are two ways to run the server:
+
+```bash
+# Standard mode
+poetry run uvicorn app:app --reload --host 0.0.0.0 --port 8766
+
+# Local development mode with ngrok auto-configuration
+poetry run python run.py --local-dev
+```
+
+Once the server is running, you can access:
+
+- Interactive API docs: `http://localhost:8766/docs`
+- OpenAPI specification: `http://localhost:8766/openapi.json`
+
+To create a bot via the API:
+
+```bash
+curl -X POST http://localhost:8766/run-bots \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meeting_url": "https://meet.google.com/xxx-yyyy-zzz",
+    "personas": ["interviewer"],
+    "meeting_baas_api_key": "your-api-key"
+  }'
+```
+
+You can also use our CLI tools for testing:
+
+```bash
+poetry run python scripts/batch.py -c 1 --meeting-url LINK
+```
+
+Follow our [Command Line Guide](/docs/speaking-bots/command-line) for more examples and options.
+
+
+---
+
 ## Introduction
 
 Deploy AI-powered speaking agents in video meetings
 
 ### Source: ./content/docs/speaking-bots/index.mdx
 
+
+<Callout type="info">
+  We provide detailed documentation optimized for both human readers and AI assistants. For more information about our LLM integration, see
+  [LLMs](../llms/available).
+</Callout>
 
 This small open-source API demonstrates the capabilities of [MeetingBaas](https://meetingbaas.com) 🐟's video meeting APIs by integrating with [Pipecat](https://github.com/pipecat-ai/pipecat)'s Python framework for building voice and multimodal conversational agents:
 
@@ -551,403 +927,6 @@ For detailed API documentation and implementation examples, see the full documen
 
 ---
 
-## Environment Variables
-
-Configure environment variables for Speaking Bots
-
-### Source: ./content/docs/speaking-bots/getting-started/environment-variables.mdx
-
-
-Speaking Bots requires several API keys and configuration values to function properly. Here's a quick setup guide:
-
-1. Copy the example environment file:
-
-```bash
-cp .env.example .env
-```
-
-{" "}
-
-<Callout type="warn">
-  Never commit your `.env` file to version control. It contains sensitive API
-  keys that should be kept private.
-</Callout>
-
-2. Add your credentials to `.env`: You'll need 4 required API keys for core functionality (MeetingBaas, OpenAI, Speech-to-Text, and Text-to-Speech). Additional keys can be added later for optional features.
-
-## Core Bot Functionality (Required)
-
-<Steps>
-<Step>
-### MeetingBaas Configuration
-
-Required for sending meeting bots as personas to various platforms:
-
-```txt
-MEETING_BAAS_API_KEY=your_meetingbaas_api_key_here
-```
-
-Get your API key by:
-
-1. Signing up for [MeetingBaas](https://meetingbaas.com)
-2. Accessing your API key from the MeetingBaas dashboard
-
-</Step>
-
-<Step>
-### OpenAI Configuration
-
-Powers in-meeting AI interactions and persona management:
-
-```txt
-OPENAI_API_KEY=your_openai_api_key_here
-```
-
-<Callout>
-  This key is used both for in-meeting interactions and persona creation functionality.
-</Callout>
-</Step>
-
-<Step>
-### Speech-to-Text Configuration
-
-Choose one of the following options:
-
-#### Option 1: Deepgram
-
-```txt
-DEEPGRAM_API_KEY=your_deepgram_api_key_here
-```
-
-#### Option 2: Gladia
-
-```txt
-GLADIA_API_KEY=your_gladia_api_key_here
-```
-
-</Step>
-
-<Step>
-### Text-to-Speech Configuration
-
-Required for voice synthesis and persona voices:
-
-```txt
-CARTESIA_API_KEY=your_cartesia_api_key_here
-CARTESIA_VOICE_ID="79a125e8-cd45-4c13-8a67-188112f4dd22"
-```
-
-</Step>
-</Steps>
-
-## Optional Features
-
-### Multiple Bots Support
-
-<Steps>
-<Step>
-Required for running multiple bots in local development:
-```txt
-NGROK_AUTHTOKEN=your_ngrok_auth_token_here
-```
-
-<Callout>
-  Follow our [Ngrok Setup Guide](/docs/speaking-bots/getting-started/ngrok-setup) to get your auth token.
-</Callout>
-</Step>
-</Steps>
-
-### Persona Creation
-
-<Steps>
-  <Step>Required for AI image generation and storage:</Step>
-</Steps>
-
-
----
-
-## Ngrok setup
-
-We create ngrok tunnel(s) for running several bots at once on your local machine
-
-### Source: ./content/docs/speaking-bots/getting-started/ngrok-setup.mdx
-
-
-## Local Setup
-
-For running one or more bots locally, you'll need an ngrok authtoken. Follow these steps:
-
-1. Sign up for a free account at [ngrok.com](https://dashboard.ngrok.com/signup)
-2. After signing up, get your authtoken from the [Your Authtoken page](https://dashboard.ngrok.com/get-started/your-authtoken)
-3. Add the token to your `.env` file or set it as an environment variable:
-
-```bash
-NGROK_AUTHTOKEN=your_ngrok_auth_token_here
-```
-
-That's it folks :)
-
-<Accordions>
-  <Accordion title="Configuration modification">
-
-We provide a ready-to-use configuration file in the repository at `config/ngrok/config.yml`. You can either use this file directly or create your own configuration.
-
-The default location for the ngrok configuration file varies by operating system:
-
-- Linux: `~/.config/ngrok/ngrok.yml`
-- macOS: `~/Library/Application Support/ngrok/ngrok.yml`
-- Windows: `%HOMEPATH%\AppData\Local\ngrok\ngrok.yml`
-
-To verify your configuration file location, you can run:
-
-```bash
-ngrok config check
-```
-
-If you want to create or edit your own configuration file, here's what it should contain:
-
-```yaml
-version: '3'
-agent:
-  authtoken: YOUR_AUTH_TOKEN
-
-tunnels:
-  proxy1:
-    proto: http
-    addr: 8766
-  proxy2:
-    proto: http
-    addr: 8768
-```
-
-For more detailed information about ngrok configuration options, see the [official ngrok configuration documentation](https://ngrok.com/docs/agent/config/).
-
-## Usage
-
-This sets up two separate tunnels (proxy1 and proxy2) that will be used by your bots to establish WebSocket connections with the meeting platforms. To start both tunnels simultaneously, run:
-
-```bash
-ngrok start --all --config config/ngrok/config.yml
-```
-
-The free tier of ngrok limits you to 2 concurrent tunnels, which means you can run up to 2 bots simultaneously in local development mode.
-
-  </Accordion>
-</Accordions>
-
-## WebSocket URL Resolution
-
-When running the server in local development mode, it will automatically detect and use your ngrok URLs. The server determines the WebSocket URL to use in the following priority order:
-
-1. User-provided URL in the request (if specified in the `websocket_url` field)
-2. `BASE_URL` environment variable (recommended for production)
-3. ngrok URL in local development mode
-4. Auto-detection from request headers (fallback, not reliable in production)
-
-To use local development mode with automatic ngrok detection:
-
-```bash
-# Start the API server with local development mode enabled
-poetry run python run.py --local-dev
-```
-
-## Troubleshooting WebSocket Connections
-
-### Common Issues
-
-1. **Timing Issues with ngrok and Meeting Baas Bots**
-
-   Sometimes, due to WebSocket connection delays through ngrok, the Meeting Baas bots may join the meeting before your local bot connects. If this happens:
-
-   - Simply press `Enter` to respawn your bot
-   - This will reinitiate the connection and allow your bot to join the meeting
-
-2. **Connection failures**
-   - Make sure ngrok is running with the correct configuration
-   - Verify that you've entered the correct ngrok URLs when prompted
-   - Check that your ngrok URLs are accessible (try opening in a browser)
-   - Make sure you're using the `wss://` protocol with ngrok URLs
-
-### Production Considerations
-
-For production deployments, you should:
-
-1. Set the `BASE_URL` environment variable to your server's public domain:
-   ```
-   export BASE_URL=https://your-server-domain.com
-   ```
-2. Ensure your server is accessible on the public internet
-3. Consider using HTTPS/WSS for secure connections in production
-
-
----
-
-## Set Up
-
-Set up your development environment for Speaking Bots
-
-### Source: ./content/docs/speaking-bots/getting-started/set-up.mdx
-
-
-## Installation
-
-### 0. Clone Repository
-
-If you haven't already, clone the repository and navigate to it:
-
-```bash
-git clone https://github.com/Meeting-Baas/speaking-meeting-bot.git
-cd speaking-meeting-bot
-```
-
-### 1. Prerequisites
-
-- Python 3.11+
-- `grpc_tools` for protocol buffer compilation
-- Ngrok for local development (follow our [Ngrok Setup Guide](/docs/speaking-bots/getting-started/ngrok-setup))
-- Poetry for dependency management
-
-You'll also need system dependencies for scientific libraries:
-
-```bash
-# macOS (using Homebrew)
-brew install llvm cython
-
-# Ubuntu/Debian
-sudo apt-get install llvm python3-dev cython
-
-# Fedora/RHEL
-sudo dnf install llvm-devel python3-devel Cython
-```
-
-### 2. Set Up Poetry Environment
-
-```bash
-# Install Poetry (Unix/macOS)
-curl -sSL https://install.python-poetry.org | python3 -
-
-# Install Poetry (Windows)
-(Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py -
-
-# Configure Poetry to use Python 3.11+
-poetry env use python3.11
-
-# Install dependencies with LLVM config path
-# On macOS:
-LLVM_CONFIG=$(brew --prefix llvm)/bin/llvm-config poetry install
-# On Linux (path may vary):
-# LLVM_CONFIG=/usr/bin/llvm-config poetry install
-
-# Activate virtual environment
-poetry shell
-```
-
-### 3. Compile Protocol Buffers
-
-```bash
-poetry run python -m grpc_tools.protoc --proto_path=./protobufs --python_out=./protobufs frames.proto
-```
-
-Protocol Buffers are used here by Pipecat to define a structured message format for real-time communication between components of the Speaking Bots system. Specifically, the [`frames.proto`](https://github.com/pipecat-ai/pipecat/blob/635aa6eb5bdee382729613b58279befdc5bc8eaf/src/pipecat/frames/frames.proto#L9) file defines three main message types:
-
-1. `TextFrame`: For handling text-based messages
-2. `AudioRawFrame`: For managing raw audio data with properties like sample rate and channels
-3. `TranscriptionFrame`: For handling speech-to-text transcription results
-
-Protocol Buffers is the backbone of consistent data serialization across services.
-Read more in the [official Protocol Buffer documentation](https://protobuf.dev/downloads/) and [this Python Protocol Buffers tutorial](https://www.blog.pythonlibrary.org/2023/08/30/an-intro-to-protocol-buffers-with-python/).
-
-### 4. Configure Environment
-
-Create a `.env` file based on the template:
-
-```bash
-cp env.example .env
-```
-
-Edit the `.env` file with your API keys. You'll need:
-
-**Required API Keys:**
-
-- `MEETING_BAAS_API_KEY`: For meeting platform integration
-- `OPENAI_API_KEY`: For the conversation LLM
-- `CARTESIA_API_KEY`: For text-to-speech
-- `GLADIA_API_KEY` or `DEEPGRAM_API_KEY`: For speech-to-text
-
-For production, also set:
-
-```
-BASE_URL=https://your-server-domain.com
-```
-
-See our full [Environment Variables Guide](/docs/speaking-bots/getting-started/environment-variables) for more details.
-
-### 5. Run the API Server
-
-The project now follows an API-first approach. There are two ways to run the server:
-
-```bash
-# Standard mode
-poetry run uvicorn app:app --reload --host 0.0.0.0 --port 8766
-
-# Local development mode with ngrok auto-configuration
-poetry run python run.py --local-dev
-```
-
-Once the server is running, you can access:
-
-- Interactive API docs: `http://localhost:8766/docs`
-- OpenAPI specification: `http://localhost:8766/openapi.json`
-
-To create a bot via the API:
-
-```bash
-curl -X POST http://localhost:8766/run-bots \
-  -H "Content-Type: application/json" \
-  -d '{
-    "meeting_url": "https://meet.google.com/xxx-yyyy-zzz",
-    "personas": ["interviewer"],
-    "meeting_baas_api_key": "your-api-key"
-  }'
-```
-
-You can also use our CLI tools for testing:
-
-```bash
-poetry run python scripts/batch.py -c 1 --meeting-url LINK
-```
-
-Follow our [Command Line Guide](/docs/speaking-bots/command-line) for more examples and options.
-
-
----
-
-## index
-
-### Source: ./content/docs/speaking-bots/reference/index.mdx
-
-# Speaking Bots API Reference
-
-This section contains detailed documentation for the Speaking Bots API, which allows you to programmatically create and manage speaking bots in your meetings.
-
-The Speaking Bots API provides endpoints to:
-
-- Have bots join meetings
-- Make bots leave meetings
-- Control bot behavior during meetings
-
-Each endpoint is documented with:
-
-- Endpoint URL and method
-- Request parameters and body schema
-- Response details
-- Example requests and responses
-
-Use the navigation to explore the available endpoints.
-
-
----
-
 ## Join Meeting
 
 ### Source: ./content/docs/speaking-bots/reference/bots/join_meeting_bots_post.mdx
@@ -979,6 +958,32 @@ This will:
 3. Terminate the associated Pipecat process
 
 <APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/bots/{bot_id}","method":"delete"}]} webhooks={[]} hasHead={false} />
+
+---
+
+## index
+
+### Source: ./content/docs/speaking-bots/reference/index.mdx
+
+# Speaking Bots API Reference
+
+This section contains detailed documentation for the Speaking Bots API, which allows you to programmatically create and manage speaking bots in your meetings.
+
+The Speaking Bots API provides endpoints to:
+
+- Have bots join meetings
+- Make bots leave meetings
+- Control bot behavior during meetings
+
+Each endpoint is documented with:
+
+- Endpoint URL and method
+- Request parameters and body schema
+- Response details
+- Example requests and responses
+
+Use the navigation to explore the available endpoints.
+
 
 ---
 

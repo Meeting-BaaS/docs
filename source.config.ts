@@ -1,3 +1,5 @@
+import { rehypeCodeDefaultOptions } from 'fumadocs-core/mdx-plugins';
+import { fileGenerator, remarkDocGen, remarkInstall } from 'fumadocs-docgen';
 import {
   defineConfig,
   defineDocs,
@@ -6,12 +8,10 @@ import {
 } from 'fumadocs-mdx/config';
 import { transformerTwoslash } from 'fumadocs-twoslash';
 import { createFileSystemTypesCache } from 'fumadocs-twoslash/cache-fs';
-import remarkMath from 'remark-math';
-import { fileGenerator, remarkDocGen, remarkInstall } from 'fumadocs-docgen';
-import rehypeKatex from 'rehype-katex';
-import { z } from 'zod';
-import { rehypeCodeDefaultOptions } from 'fumadocs-core/mdx-plugins';
 import { remarkAutoTypeTable } from 'fumadocs-typescript';
+import rehypeKatex from 'rehype-katex';
+import remarkMath from 'remark-math';
+import { z } from 'zod';
 
 export const docs = defineDocs({
   docs: {
@@ -23,6 +23,10 @@ export const docs = defineDocs({
        * API routes only
        */
       method: z.string().optional(),
+      /**
+       * Service identifier for colored icons
+       */
+      service: z.string().optional(),
     }),
   },
   meta: {

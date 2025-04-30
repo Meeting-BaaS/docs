@@ -8,7 +8,18 @@
     "noEmit": true,
     "strict": true,
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "jsx": "react-jsx",
+    "types": ["react", "node"],
+    "paths": {
+      "@/*": ["../*"]
+    }
   },
-  "include": ["scripts/**/*.mts"]
-} 
+  "include": [
+    "../scripts/**/*.mts",
+    "../node_modules/.pnpm/@types+react@*/node_modules/@types/react/index.d.ts"
+  ],
+  "ts-node": {
+    "esm": true
+  }
+}

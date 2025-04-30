@@ -1,6 +1,6 @@
 import { execSync } from 'child_process';
 import { format } from 'date-fns';
-import { existsSync, mkdirSync, writeFileSync } from 'fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { ServiceConfig } from './types';
 import { getGitChanges, sanitizeForMdx } from './utils';
@@ -8,6 +8,8 @@ import { getGitChanges, sanitizeForMdx } from './utils';
 // Define constants
 const CURRENT_DATE = format(new Date(), 'yyyy-MM-dd');
 const UPDATES_DIR = './content/docs/updates';
+const TEMPLATES_DIR = './scripts/updates/templates';
+const GIT_UPDATES_FILE_PREFIX = 'git-updates-';
 
 /**
  * Generates an update file for a service based on git changes
@@ -101,69 +103,60 @@ export async function generateServiceUpdate(
       gitDiff = 'Error retrieving git diff.';
     }
 
-    // Create update content
-    let updateContent = '';
+    // Generate content based on template
+    const templatePath = join(TEMPLATES_DIR, 'service-update.mdx.template');
 
+    // Template file is required - check if it exists
+    if (!existsSync(templatePath)) {
+      throw new Error(
+        `Template file not found: ${templatePath}. The templates directory must be included in your project.`,
+      );
+    }
+
+    // Set up template variables
+    const fileName = isSingleFile
+      ? (serviceFiles[0].split('/').pop() ?? 'unknown')
+      : '';
+    const foldersList = Array.from(rootFolders)
+      .map((folder) => `- ${folder}`)
+      .join('\n');
+    const filesList = serviceFiles.join('\n');
+    const sanitizedGitDiff = sanitizeForMdx(gitDiff);
+    const tagsString = config.additionalTags?.join(', ') ?? '';
+
+    // Use template file
+    const templateContent = readFileSync(templatePath, 'utf-8');
+
+    // Replace template variables with actual values
+    let updateContent = templateContent
+      .replace(/\{\{TODAY\}\}/g, TODAY)
+      .replace(/\{\{SERVICE_NAME\}\}/g, config.name)
+      .replace(/\{\{SERVICE_ICON\}\}/g, config.icon)
+      .replace(/\{\{TAGS\}\}/g, tagsString)
+      .replace(/\{\{FILE_NAME\}\}/g, fileName)
+      .replace(/\{\{FOLDERS_LIST\}\}/g, foldersList)
+      .replace(/\{\{FILES_LIST\}\}/g, filesList)
+      .replace(/\{\{GIT_DIFF\}\}/g, sanitizedGitDiff);
+
+    // Use different templates based on single file vs multiple files
     if (isSingleFile) {
-      // Single file focus
-      const fileName = serviceFiles[0].split('/').pop() || 'unknown';
-
-      updateContent = `---
-title: "${config.name} - ${fileName} Update"
-description: "Update for a change in ${fileName}"
-icon: "${config.icon}"
-date: "${TODAY}"
-tags: [${config.additionalTags?.join(', ') || ''}]
----
-
-# ${config.name} Update - ${fileName}
-
-Below is a change in \`${fileName}\` that requires documentation updates.
-
-## Changed File
-
-\`\`\`
-${serviceFiles[0]}
-\`\`\`
-
-## Git Diff
-
-\`\`\`diff
-${sanitizeForMdx(gitDiff)}
-\`\`\`
-`;
+      updateContent = updateContent.replace(
+        /\{\{SINGLE_FILE_DISPLAY\}\}/g,
+        'block',
+      );
+      updateContent = updateContent.replace(
+        /\{\{MULTI_FILE_DISPLAY\}\}/g,
+        'none',
+      );
     } else {
-      // Multiple files/folders
-      const foldersList = Array.from(rootFolders)
-        .map((folder) => `- ${folder}`)
-        .join('\n');
-
-      updateContent = `---
-title: "${config.name} Update"
-description: "Updates to ${config.name} documentation"
-icon: "${config.icon}"
-date: "${TODAY}"
-tags: [${config.additionalTags?.join(', ') || ''}]
----
-
-# ${config.name} Update
-
-This update covers changes to the following areas:
-
-${foldersList}
-
-## Changed Files
-
-\`\`\`
-${serviceFiles.join('\n')}
-\`\`\`
-
-## Git Diff
-
-\`\`\`diff
-${sanitizeForMdx(gitDiff)}
-\`\`\`
-`;
+      updateContent = updateContent.replace(
+        /\{\{SINGLE_FILE_DISPLAY\}\}/g,
+        'none',
+      );
+      updateContent = updateContent.replace(
+        /\{\{MULTI_FILE_DISPLAY\}\}/g,
+        'block',
+      );
     }
 
     // Write update file
@@ -175,5 +168,38 @@ ${sanitizeForMdx(gitDiff)}
   } catch (error) {
     console.error(`Error generating update for ${config.name}:`, error);
     return null;
+  }
+}
+
+/**
+ * Creates or restores the index.mdx file from the template
+ */
+export async function createIndexFile(): Promise<void> {
+  console.log('Creating or restoring index.mdx file...');
+
+  // Ensure updates directory exists
+  if (!existsSync(UPDATES_DIR)) {
+    mkdirSync(UPDATES_DIR, { recursive: true });
+  }
+
+  const indexPath = join(UPDATES_DIR, 'index.mdx');
+  const templatePath = join(TEMPLATES_DIR, 'index.mdx.template');
+
+  // Check if template exists
+  if (!existsSync(templatePath)) {
+    throw new Error(
+      `Template file not found: ${templatePath}. The templates directory must be included in your project.`,
+    );
+  }
+
+  try {
+    // Read template content
+    const templateContent = readFileSync(templatePath, 'utf-8');
+
+    // Write to index.mdx
+    writeFileSync(indexPath, templateContent);
+    console.log(`Successfully created/restored index.mdx`);
+  } catch (error) {
+    console.error('Error creating index.mdx file:', error);
   }
 }

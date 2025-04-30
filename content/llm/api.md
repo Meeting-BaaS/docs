@@ -1,4 +1,4 @@
-# MeetingBaas API
+# MeetingBaas API, the main purpose of the documentation
 
 API documentation for interacting with Meeting BaaS services.
 
@@ -1284,10 +1284,15 @@ This modular approach allows you to implement each component at your own pace an
 
 ## Introduction
 
-Deploy AI for video meetings through a single unified API.
+Get started with the Meeting BaaS API
 
 ### Source: ./content/docs/api/index.mdx
 
+
+<Callout type="info">
+  We provide detailed documentation optimized for both human readers and AI assistants. For more information about our LLM integration, see
+  [LLMs](../llms/available).
+</Callout>
 
 **Meeting BaaS** 🐟 provides _Meetings Bots As A Service_, with integrated transcription.
 

@@ -2,123 +2,58 @@
 
 Documentation for the Transcript Seeker transcription playground.
 
-## Introduction
+## Authentication
 
-Getting Started with Transcript Seeker
-
-### Source: ./content/docs/transcript-seeker/index.mdx
+### Source: ./content/docs/transcript-seeker/concepts/api/authentication.mdx
 
 
-## Introduction
+Transcript Seeker requires authentication for calendar functionality, leveraging Better-Auth for secure access. Currently, it only supports Google Calendar with Google authentication, but Microsoft Calendar support may be added in a future update.
 
-Transcript Seeker is an **open-source transcription playground** built for easy upload, transcription, and interaction with your recordings. It's a powerful, beginner-friendly tool that offers an accessible way to transcribe meetings, chat with transcripts, generate notes, and more. Powered by technologies like Vite.js, React, and Drizzle ORM, Transcript Seeker offers an intuitive interface and seamless integration with transcription APIs.
+## Google Authentication
 
-Transcript Seeker comes with different parts:
+```js
+console.log('Hello World');
+```
 
-<Cards>
 
-<Card icon={<Cpu className="text-purple-300" />} title='Transcript Seeker Core'>
+---
 
-The core of Transcript Seeker includes the main transcription, playback, and note-taking functionality. It makes use of transcription APIs like Gladia and AssemblyAI, ensuring a smooth transcription experience.
+## Database
 
-</Card>
+### Source: ./content/docs/transcript-seeker/concepts/api/database.mdx
 
-<Card icon={<PanelsTopLeft className="text-blue-300" />} title='Meeting Bot Integration'>
 
-Integration with Meeting BaaS allows you to transcribe popular meeting platforms Google Meet, Zoom, and Microsoft Teams. This feature makes recording and reviewing meetings easier than ever.
+**Transcript Seeker requires a database connection to store user data.** This is essential for managing calendar integration, which uses Better-Auth to store user information securely.
 
-</Card>
+The current setup utilizes Drizzle ORM for database management, where it will store information like user details, sessions, and more.
 
-<Card icon={<Database />} title='Browser Database with PGLite'>
+<Callout>
+  This applies specifically to the calendar feature. Other user data is stored
+  locally in the browser using PGLite. To learn more, visit our [web database
+  documentation](/docs/transcript-seeker/concepts/web/database).
+</Callout>
 
-PGLite is a lightweight Postgres implementation that powers local storage for Transcript Seeker. It ensures your data stays private and manageable directly in the browser.
+## Database Configuration
 
-</Card>
+To get started, set up a PostgreSQL-compatible database. We recommend using Turso for this purpose. Follow this [guide](/docs/transcript-seeker/guides/turso) for detailed steps on setting up a Turso database.
 
-<Card icon={<Terminal />} title='Quick Setup via Turborepo'>
+## Database Migration
 
-The setup process for Transcript Seeker uses **Turborepo** for efficient monorepo management, making it easy to run concurrent scripts and streamline development.
+To run a database migration, use the following commands:
 
-</Card>
+```bash
+cd apps/api
+pnpm db:push
+```
 
-</Cards>
+## Database Studio
 
-## FAQ
+To visualize the data in a user-friendly interface, use the command below:
 
-Some common questions you may encounter.
-
-<Accordions>
-    <Accordion id='clean-workspace' title='How do I remove all node_modules and clean the workspace?'>
-        To thoroughly clean the workspace, you need to remove all `node_modules` directories and clear any package caches. This helps eliminate any residual files or corrupted packages that may interfere with your app's functionality. Run the following commands:
-        
-        ```bash
-        turbo clean
-        pnpm clean:workspaces
-        ```
-        
-        These commands will effectively clear the workspace and prepare it for a fresh setup.
-    </Accordion>
-<Accordion id='startup-issue' title="Transcript Seeker isn't starting. What should I do?">
-    If `pnpm dev` is stuck and your application isn't starting, you may need to clean your workspace to remove any corrupted packages or residual files. Follow these steps:
-
-    First, remove all `node_modules` directories and clear any package caches. This will ensure a clean setup:
-
-    ```bash
-    turbo clean
-    pnpm clean:workspaces
-    ```
-
-    Next, reinstall the packages:
-
-    ```bash
-    pnpm install
-    ```
-
-    Finally, install the Turbo CLI globally and start the development server:
-
-    ```bash
-    pnpm install -g turbo
-    turbo dev
-    ```
-
-</Accordion>
-
-    <Accordion id='fix-monorepo-styling' title="I've configured the .env.development.local file, but my app still isn't running. What could be wrong?">
-        Transcript Seeker utilizes `dotenv-cli` to load environment variables, simplifying the setup for different environments. Ensure that your `.env` files are correctly structured for the intended environment, as shown below:
-
-        - `.env.development.local` for development builds
-        - `.env.production.local` for production builds
-
-        If your app is still not responding, make sure that the environment file is being loaded correctly. You can specify the environment by running this command:
-
-        ```bash
-        export NODE_ENV="development"
-        ```
-
-        Setting `NODE_ENV` ensures the app reads the correct configuration, aligning with the specified environment. This step is essential to avoid conflicts between development and production settings.
-    </Accordion>
-
-</Accordions>
-
-## Learn More
-
-<Cards>
-
-<Card icon={<Download className="text-purple-300" />} title='Installation'     href="/docs/transcript-seeker/getting-started/installation"
->
-
-Learn how to configure and set up Transcript Seeker.
-
-</Card>
-
-<Card icon={<Cloud className="text-purple-300" />} title='Deployment'     href="/docs/transcript-seeker/guides/deployment"
->
-
-Learn how to deploy Transcript Seeker to different providers.
-
-</Card>
-
-</Cards>
+```bash
+cd apps/api
+pnpm db:studio
+```
 
 
 ---
@@ -456,119 +391,35 @@ API_TRUSTED_ORIGINS="http://localhost:5173"
 
 ---
 
-## Contributing
+## Database
 
-Contributing to Transcript Seeker
-
-### Source: ./content/docs/transcript-seeker/guides/contributing.mdx
+### Source: ./content/docs/transcript-seeker/concepts/web/database.mdx
 
 
-Hey there! 👋 Welcome to the **Transcript-Seeker** project! We're absolutely thrilled that you're interested in contributing. Whether you're fixing a bug, adding a feature, or sharing an idea, your efforts help make our project better and more useful for everyone. Here are some easy-to-follow guidelines to help you dive in!
+**Transcript Seeker** uses a PGLite database to store data, which is essential for its functionality. PGLite enables us to run PostgreSQL in the browser, allowing secure storage of user data. We use **Drizzle ORM** with PGLite to handle data management efficiently.
 
-## Table of Contents
+<Callout>
+  This setup is used to store meeting data, API keys, and more. To learn more
+  about how authentication data is stored for calendars, visit [this
+  page](/docs/transcript-seeker/concepts/api/database).
+</Callout>
 
-- [Issues](#issues)
-- [Pull Requests](#pull-requests)
-- [Local Setup](#local-setup)
-- [Environment Variables](#environment-variables)
-- [Conventional Commits](#conventional-commits)
-- [Code Formatting](#code-formatting)
+## Database Migration
 
-## Issues
-
-Have you found a bug, got a suggestion, or stumbled upon something that doesn't work as expected? No problem! Feel free to [open an issue](https://github.com/Meeting-Baas/transcript-seeker/issues). When submitting an issue, try to include a clear and concise title and as many details as possible. The more info you provide, the faster we can jump in and help!
-
-## Pull Requests
-
-We love pull requests! 🎉 If you'd like to make a contribution, whether it’s a bug fix, a feature, or a small improvement, follow these steps:
-
-1. **Fork the repo** to your GitHub account.
-2. **Create a new branch** with a meaningful name:
-   - For bug fixes: `fix/issue-123-bug-description`
-   - For new features: `feat/awesome-new-feature`
-3. Make your changes, and make sure you follow our [Conventional Commits](#conventional-commits) guidelines.
-4. **Push your branch** to your forked repository.
-5. Open a **pull request** from your branch to the `main` branch of this repo.
-6. Before submitting, make sure your code is clean by running:
-   ```bash
-   pnpm typecheck
-   ```
-   This will help catch any issues early on. 🚀
-
-## Local Setup
-
-Ready to jump into the code? Awesome! Please follow this [guide](/docs/transcript-seeker/getting-started/installation) to get started.
-
-## Environment Variables
-
-To learn more about configuring the environment variables, follow this [guide](/docs/transcript-seeker/concepts/environment-variables).
-
-## Conventional Commits
-
-We use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) to keep our commit history clean and organized. It makes it easier for everyone to understand what's been done at a glance. Commit messages should use the following format:
-
-```
-<type>(<scope>): <description>
-```
-
-For example:
-
-- `feat(homepage): redesign the layout`
-- `fix(styles): correct position of server status`
-
-Some common commit types:
-
-- `feat`: A new feature.
-- `fix`: A bug fix.
-- `docs`: Documentation changes.
-- `style`: Code style changes (formatting, missing semicolons, etc.).
-
-## Code Formatting
-
-To keep the codebase consistent and readable, we recommend running a few checks before opening a pull request:
-
-1. **Lint fixes**:
-
-   ```bash
-   pnpm lint:fix
-   ```
-
-2. **Run type checks** to ensure there are no type issues:
-   ```bash
-   pnpm typecheck
-   ```
-
-Your code should be well-tested, clear, and follow our best practices. Remember, every contribution makes a difference, and we deeply appreciate your help in making **Transcript-Seeker** better! 🎉
-
-Thanks a ton for contributing, and welcome aboard! If you need any help, don’t hesitate to ask. Let’s make something amazing together. 🚀
-
-
----
-
-## Turso
-
-Learn how to create a turso database.
-
-### Source: ./content/docs/transcript-seeker/guides/turso.mdx
-
-
-    <div className="relative w-full h-none" style={{  paddingBottom: 'calc(55.443786982248525% + 41px)' }}>
-      <iframe
-        src="https://demo.arcade.software/qS6sJh2Y45to6tEogy8H?embed&embed_mobile=tab&embed_desktop=inline&show_copy_link=true"
-        title="Creating A Turso Database"
-        frameBorder="0"
-        loading="lazy"
-        allowFullScreen
-        allow="clipboard-write"
-        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', colorScheme: 'light' }}
-      />
-    </div>
-
-After creating the database, please push the schema onto the db:
+To migrate the database after making changes, run the following commands:
 
 ```bash
-cd apps/api
-pnpm db:push
+pnpm db:generate
+pnpm db:migrate
+```
+
+## Cleaning Migrations
+
+To remove all migrations, use the following commands:
+
+```bash
+cd packages/db
+rm -rf drizzle drizzle_ts
 ```
 
 
@@ -693,92 +544,91 @@ turbo dev
 
 ---
 
-## Authentication
+## Contributing
 
-### Source: ./content/docs/transcript-seeker/concepts/api/authentication.mdx
+Contributing to Transcript Seeker
+
+### Source: ./content/docs/transcript-seeker/guides/contributing.mdx
 
 
-Transcript Seeker requires authentication for calendar functionality, leveraging Better-Auth for secure access. Currently, it only supports Google Calendar with Google authentication, but Microsoft Calendar support may be added in a future update.
+Hey there! 👋 Welcome to the **Transcript-Seeker** project! We're absolutely thrilled that you're interested in contributing. Whether you're fixing a bug, adding a feature, or sharing an idea, your efforts help make our project better and more useful for everyone. Here are some easy-to-follow guidelines to help you dive in!
 
-## Google Authentication
+## Table of Contents
 
-```js
-console.log('Hello World');
+- [Issues](#issues)
+- [Pull Requests](#pull-requests)
+- [Local Setup](#local-setup)
+- [Environment Variables](#environment-variables)
+- [Conventional Commits](#conventional-commits)
+- [Code Formatting](#code-formatting)
+
+## Issues
+
+Have you found a bug, got a suggestion, or stumbled upon something that doesn't work as expected? No problem! Feel free to [open an issue](https://github.com/Meeting-Baas/transcript-seeker/issues). When submitting an issue, try to include a clear and concise title and as many details as possible. The more info you provide, the faster we can jump in and help!
+
+## Pull Requests
+
+We love pull requests! 🎉 If you'd like to make a contribution, whether it’s a bug fix, a feature, or a small improvement, follow these steps:
+
+1. **Fork the repo** to your GitHub account.
+2. **Create a new branch** with a meaningful name:
+   - For bug fixes: `fix/issue-123-bug-description`
+   - For new features: `feat/awesome-new-feature`
+3. Make your changes, and make sure you follow our [Conventional Commits](#conventional-commits) guidelines.
+4. **Push your branch** to your forked repository.
+5. Open a **pull request** from your branch to the `main` branch of this repo.
+6. Before submitting, make sure your code is clean by running:
+   ```bash
+   pnpm typecheck
+   ```
+   This will help catch any issues early on. 🚀
+
+## Local Setup
+
+Ready to jump into the code? Awesome! Please follow this [guide](/docs/transcript-seeker/getting-started/installation) to get started.
+
+## Environment Variables
+
+To learn more about configuring the environment variables, follow this [guide](/docs/transcript-seeker/concepts/environment-variables).
+
+## Conventional Commits
+
+We use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) to keep our commit history clean and organized. It makes it easier for everyone to understand what's been done at a glance. Commit messages should use the following format:
+
+```
+<type>(<scope>): <description>
 ```
 
+For example:
 
----
+- `feat(homepage): redesign the layout`
+- `fix(styles): correct position of server status`
 
-## Database
+Some common commit types:
 
-### Source: ./content/docs/transcript-seeker/concepts/api/database.mdx
+- `feat`: A new feature.
+- `fix`: A bug fix.
+- `docs`: Documentation changes.
+- `style`: Code style changes (formatting, missing semicolons, etc.).
 
+## Code Formatting
 
-**Transcript Seeker requires a database connection to store user data.** This is essential for managing calendar integration, which uses Better-Auth to store user information securely.
+To keep the codebase consistent and readable, we recommend running a few checks before opening a pull request:
 
-The current setup utilizes Drizzle ORM for database management, where it will store information like user details, sessions, and more.
+1. **Lint fixes**:
 
-<Callout>
-  This applies specifically to the calendar feature. Other user data is stored
-  locally in the browser using PGLite. To learn more, visit our [web database
-  documentation](/docs/transcript-seeker/concepts/web/database).
-</Callout>
+   ```bash
+   pnpm lint:fix
+   ```
 
-## Database Configuration
+2. **Run type checks** to ensure there are no type issues:
+   ```bash
+   pnpm typecheck
+   ```
 
-To get started, set up a PostgreSQL-compatible database. We recommend using Turso for this purpose. Follow this [guide](/docs/transcript-seeker/guides/turso) for detailed steps on setting up a Turso database.
+Your code should be well-tested, clear, and follow our best practices. Remember, every contribution makes a difference, and we deeply appreciate your help in making **Transcript-Seeker** better! 🎉
 
-## Database Migration
-
-To run a database migration, use the following commands:
-
-```bash
-cd apps/api
-pnpm db:push
-```
-
-## Database Studio
-
-To visualize the data in a user-friendly interface, use the command below:
-
-```bash
-cd apps/api
-pnpm db:studio
-```
-
-
----
-
-## Database
-
-### Source: ./content/docs/transcript-seeker/concepts/web/database.mdx
-
-
-**Transcript Seeker** uses a PGLite database to store data, which is essential for its functionality. PGLite enables us to run PostgreSQL in the browser, allowing secure storage of user data. We use **Drizzle ORM** with PGLite to handle data management efficiently.
-
-<Callout>
-  This setup is used to store meeting data, API keys, and more. To learn more
-  about how authentication data is stored for calendars, visit [this
-  page](/docs/transcript-seeker/concepts/api/database).
-</Callout>
-
-## Database Migration
-
-To migrate the database after making changes, run the following commands:
-
-```bash
-pnpm db:generate
-pnpm db:migrate
-```
-
-## Cleaning Migrations
-
-To remove all migrations, use the following commands:
-
-```bash
-cd packages/db
-rm -rf drizzle drizzle_ts
-```
+Thanks a ton for contributing, and welcome aboard! If you need any help, don’t hesitate to ask. Let’s make something amazing together. 🚀
 
 
 ---
@@ -1074,6 +924,161 @@ Learn how to deploy Transcript Seeker to Vercel.
 
 
 This page is a **Work In Progress**.
+
+
+---
+
+## Turso
+
+Learn how to create a turso database.
+
+### Source: ./content/docs/transcript-seeker/guides/turso.mdx
+
+
+    <div className="relative w-full h-none" style={{  paddingBottom: 'calc(55.443786982248525% + 41px)' }}>
+      <iframe
+        src="https://demo.arcade.software/qS6sJh2Y45to6tEogy8H?embed&embed_mobile=tab&embed_desktop=inline&show_copy_link=true"
+        title="Creating A Turso Database"
+        frameBorder="0"
+        loading="lazy"
+        allowFullScreen
+        allow="clipboard-write"
+        style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', colorScheme: 'light' }}
+      />
+    </div>
+
+After creating the database, please push the schema onto the db:
+
+```bash
+cd apps/api
+pnpm db:push
+```
+
+
+---
+
+## Introduction
+
+Get started with Transcript Seeker for Meeting BaaS
+
+### Source: ./content/docs/transcript-seeker/index.mdx
+
+
+<Callout type="info">
+  We provide detailed documentation optimized for both human readers and AI assistants. For more information about our LLM integration, see
+  [LLMs](../llms/available).
+</Callout>
+
+## Introduction
+
+Transcript Seeker is an **open-source transcription playground** built for easy upload, transcription, and interaction with your recordings. It's a powerful, beginner-friendly tool that offers an accessible way to transcribe meetings, chat with transcripts, generate notes, and more. Powered by technologies like Vite.js, React, and Drizzle ORM, Transcript Seeker offers an intuitive interface and seamless integration with transcription APIs.
+
+Transcript Seeker comes with different parts:
+
+<Cards>
+
+<Card icon={<Cpu className="text-purple-300" />} title='Transcript Seeker Core'>
+
+The core of Transcript Seeker includes the main transcription, playback, and note-taking functionality. It makes use of transcription APIs like Gladia and AssemblyAI, ensuring a smooth transcription experience.
+
+</Card>
+
+<Card icon={<PanelsTopLeft className="text-blue-300" />} title='Meeting Bot Integration'>
+
+Integration with Meeting BaaS allows you to transcribe popular meeting platforms Google Meet, Zoom, and Microsoft Teams. This feature makes recording and reviewing meetings easier than ever.
+
+</Card>
+
+<Card icon={<Database />} title='Browser Database with PGLite'>
+
+PGLite is a lightweight Postgres implementation that powers local storage for Transcript Seeker. It ensures your data stays private and manageable directly in the browser.
+
+</Card>
+
+<Card icon={<Terminal />} title='Quick Setup via Turborepo'>
+
+The setup process for Transcript Seeker uses **Turborepo** for efficient monorepo management, making it easy to run concurrent scripts and streamline development.
+
+</Card>
+
+</Cards>
+
+## FAQ
+
+Some common questions you may encounter.
+
+<Accordions>
+    <Accordion id='clean-workspace' title='How do I remove all node_modules and clean the workspace?'>
+        To thoroughly clean the workspace, you need to remove all `node_modules` directories and clear any package caches. This helps eliminate any residual files or corrupted packages that may interfere with your app's functionality. Run the following commands:
+        
+        ```bash
+        turbo clean
+        pnpm clean:workspaces
+        ```
+        
+        These commands will effectively clear the workspace and prepare it for a fresh setup.
+    </Accordion>
+<Accordion id='startup-issue' title="Transcript Seeker isn't starting. What should I do?">
+    If `pnpm dev` is stuck and your application isn't starting, you may need to clean your workspace to remove any corrupted packages or residual files. Follow these steps:
+
+    First, remove all `node_modules` directories and clear any package caches. This will ensure a clean setup:
+
+    ```bash
+    turbo clean
+    pnpm clean:workspaces
+    ```
+
+    Next, reinstall the packages:
+
+    ```bash
+    pnpm install
+    ```
+
+    Finally, install the Turbo CLI globally and start the development server:
+
+    ```bash
+    pnpm install -g turbo
+    turbo dev
+    ```
+
+</Accordion>
+
+    <Accordion id='fix-monorepo-styling' title="I've configured the .env.development.local file, but my app still isn't running. What could be wrong?">
+        Transcript Seeker utilizes `dotenv-cli` to load environment variables, simplifying the setup for different environments. Ensure that your `.env` files are correctly structured for the intended environment, as shown below:
+
+        - `.env.development.local` for development builds
+        - `.env.production.local` for production builds
+
+        If your app is still not responding, make sure that the environment file is being loaded correctly. You can specify the environment by running this command:
+
+        ```bash
+        export NODE_ENV="development"
+        ```
+
+        Setting `NODE_ENV` ensures the app reads the correct configuration, aligning with the specified environment. This step is essential to avoid conflicts between development and production settings.
+    </Accordion>
+
+</Accordions>
+
+## Learn More
+
+<Cards>
+
+<Card icon={<Download className="text-purple-300" />} title='Installation'     href="/docs/transcript-seeker/getting-started/installation"
+>
+
+Learn how to configure and set up Transcript Seeker.
+
+</Card>
+
+<Card icon={<Cloud className="text-purple-300" />} title='Deployment'     href="/docs/transcript-seeker/guides/deployment"
+>
+
+Learn how to deploy Transcript Seeker to different providers.
+
+</Card>
+
+</Cards>
 
 
 ---

@@ -4,78 +4,145 @@ description: Tools for managing meeting events and recordings
 icon: Clock
 ---
 
-This section covers the tools available for managing meeting events, including scheduling and managing recordings.
+This section covers the comprehensive suite of tools available for managing meeting events, including scheduling recordings, managing calendar events, and handling automated bot activities.
 
-## listEvents
+## Available Tools
 
-Retrieves a list of all scheduled events for a specific calendar.
+### listEvents
 
-### Parameters
-- `calendarId` (string): The unique identifier of the calendar to list events from
+Lists all scheduled events from a specified calendar. This tool is particularly useful when you need to:
+- View upcoming recordings
+- Check scheduled transcriptions
+- Monitor planned bot activities
 
-### Example
+#### Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `calendarId` | string | Yes | The unique identifier of the calendar to list events from |
+
+#### Response Format
+The tool returns a structured response containing the list of events:
+
 ```typescript
-const response = await server.tools.listEvents({
-  calendarId: "calendar-123-xyz"
-});
+interface EventResponse {
+  content: Array<{
+    type: string;
+    text: string; // JSON stringified event data
+  }>;
+  isError?: boolean;
+}
 ```
 
-## scheduleRecordEvent
-
-Sets up automatic recording for a specific calendar event.
-
-### Parameters
-- `eventUuid` (string): The unique identifier of the event
-- `botName` (string): Name of the bot that will handle the recording
-- `extra` (object, optional): Additional configuration parameters
-- `allOccurrences` (boolean, optional): Whether to schedule recording for all occurrences of a recurring event
-
-### Example
+#### Example Usage
 ```typescript
-const response = await server.tools.scheduleRecordEvent({
-  eventUuid: "event-123-xyz",
-  botName: "Recording Bot",
-  extra: {
-    quality: "high",
-    transcription: true
-  },
-  allOccurrences: false
-});
+try {
+  const response = await server.tools.listEvents({
+    calendarId: "calendar-123-xyz"
+  });
+  
+  // Response will contain list of events
+  console.log(response.content[0].text);
+} catch (error) {
+  // Handle error
+}
 ```
 
-## unscheduleRecordEvent
+### scheduleRecordEvent
 
-Cancels a scheduled recording for a calendar event.
+Configures automatic recording for a specific calendar event. Use this tool when you need to:
+- Set up automatic recording for meetings
+- Schedule future transcriptions
+- Plan meeting recordings with specific configurations
 
-### Parameters
-- `eventUuid` (string): The unique identifier of the event
-- `allOccurrences` (boolean, optional): Whether to cancel recording for all occurrences of a recurring event
+#### Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `eventUuid` | string | Yes | Unique identifier of the event to be recorded |
+| `botName` | string | Yes | Name of the recording bot that will handle the session |
+| `extra` | object | No | Additional configuration parameters for recording |
+| `allOccurrences` | boolean | No | Whether to schedule recording for all instances of a recurring event |
 
-### Example
+#### Extra Configuration Options
+The `extra` parameter can include various recording configurations:
 ```typescript
-const response = await server.tools.unscheduleRecordEvent({
-  eventUuid: "event-123-xyz",
-  allOccurrences: false
-});
+{
+  quality: "high" | "medium" | "low",
+  transcription: boolean,
+  // Additional configuration options as needed
+}
+```
+
+#### Example Usage
+```typescript
+try {
+  const response = await server.tools.scheduleRecordEvent({
+    eventUuid: "event-123-xyz",
+    botName: "Recording Bot",
+    extra: {
+      quality: "high",
+      transcription: true
+    },
+    allOccurrences: false
+  });
+  
+  // Handle successful scheduling
+  console.log(response.content[0].text);
+} catch (error) {
+  // Handle error
+}
+```
+
+### unscheduleRecordEvent
+
+Cancels previously scheduled recordings for calendar events. This tool is useful when you need to:
+- Cancel automatic recording
+- Stop planned transcription
+- Remove scheduled bot activity
+
+#### Parameters
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `eventUuid` | string | Yes | Unique identifier of the event |
+| `allOccurrences` | boolean | No | Whether to cancel recordings for all instances of a recurring event |
+
+#### Example Usage
+```typescript
+try {
+  const response = await server.tools.unscheduleRecordEvent({
+    eventUuid: "event-123-xyz",
+    allOccurrences: false
+  });
+  
+  // Handle successful cancellation
+  console.log(response.content[0].text);
+} catch (error) {
+  // Handle error
+}
 ```
 
 ## Error Handling
 
-Event management operations include comprehensive error handling:
+All event management tools include comprehensive error handling. Here's the recommended pattern:
 
 ```typescript
 try {
   const response = await server.tools.eventOperation(params);
+  if (response.isError) {
+    // Handle error response
+    console.error(response.content[0].text);
+    return;
+  }
   // Handle success
+  console.log(response.content[0].text);
 } catch (error) {
-  console.error("Event operation failed:", error);
-  // Handle error appropriately
+  // Handle unexpected errors
+  console.error("Operation failed:", error);
 }
 ```
 
-## Response Handling
+## Response Structure
 
-Event management tools return structured responses that should be handled appropriately:
+All tools return responses in a consistent format:
 
 ```typescript
 interface EventResponse {
@@ -93,7 +160,7 @@ interface EventResponse {
   "content": [
     {
       "type": "text",
-      "text": "Successfully scheduled recording for event"
+      "text": "Successfully completed the operation"
     }
   ]
 }
@@ -105,9 +172,9 @@ interface EventResponse {
   "content": [
     {
       "type": "text",
-      "text": "Failed to schedule recording: Event not found"
+      "text": "Operation failed: Detailed error message"
     }
   ],
   "isError": true
 }
-``` 
+```

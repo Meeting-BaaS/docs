@@ -2,32 +2,6 @@
 
 Complete API reference for all Speaking Bots endpoints generated from OpenAPI specifications.
 
-## index
-
-### Source: ./content/docs/speaking-bots/reference/index.mdx
-
-# Speaking Bots API Reference
-
-This section contains detailed documentation for the Speaking Bots API, which allows you to programmatically create and manage speaking bots in your meetings.
-
-The Speaking Bots API provides endpoints to:
-
-- Have bots join meetings
-- Make bots leave meetings
-- Control bot behavior during meetings
-
-Each endpoint is documented with:
-
-- Endpoint URL and method
-- Request parameters and body schema
-- Response details
-- Example requests and responses
-
-Use the navigation to explore the available endpoints.
-
-
----
-
 ## Join Meeting
 
 ### Source: ./content/docs/speaking-bots/reference/bots/join_meeting_bots_post.mdx
@@ -59,6 +33,32 @@ This will:
 3. Terminate the associated Pipecat process
 
 <APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/bots/{bot_id}","method":"delete"}]} webhooks={[]} hasHead={false} />
+
+---
+
+## index
+
+### Source: ./content/docs/speaking-bots/reference/index.mdx
+
+# Speaking Bots API Reference
+
+This section contains detailed documentation for the Speaking Bots API, which allows you to programmatically create and manage speaking bots in your meetings.
+
+The Speaking Bots API provides endpoints to:
+
+- Have bots join meetings
+- Make bots leave meetings
+- Control bot behavior during meetings
+
+Each endpoint is documented with:
+
+- Endpoint URL and method
+- Request parameters and body schema
+- Response details
+- Example requests and responses
+
+Use the navigation to explore the available endpoints.
+
 
 ---
 

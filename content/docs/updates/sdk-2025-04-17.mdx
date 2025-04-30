@@ -1,0 +1,77 @@
+---
+title: April 17, 2025
+description: TypeScript SDK - Automatically generated documentation based on Git activity.
+icon: Settings
+service: sdk
+date: April 17, 2025
+
+---
+
+# TypeScript SDK Updates 🐟
+
+<Callout type="info">
+  Dive into the latest updates for our TypeScript SDK - where code meets clarity, and updates swim smoothly! 
+</Callout>
+
+## Version 4.0.3 Highlights
+
+### 🚀 Key Improvements
+
+- Enhanced TypeScript ESM support
+- Refined package export mappings
+- Improved module compatibility
+
+### 📦 Version Bump Details
+
+<Tabs items={['Package', 'OpenAPI Generator']}>
+  <Tab value="Package">
+    - Updated to version 4.0.3
+    - Added explicit type, ESM, and CommonJS entry points
+  </Tab>
+  <Tab value="OpenAPI Generator">
+    - Version updated to 4.0.3
+    - Improved configuration consistency
+  </Tab>
+</Tabs>
+
+### 🛠 Build Process Enhancements
+
+<Steps>
+  <Step>Added TypeScript compiler option for declaration files</Step>
+  <Step>Generated `.d.mts` files for ESM type declarations</Step>
+  <Step>Improved module compatibility</Step>
+</Steps>
+
+### 🔍 Technical Details
+
+<Accordions>
+  <Accordion title="Export Mapping" value="exports">
+    ```json
+    "exports": {
+      "./dist/baas/*": {
+        "types": "./dist/baas/*.d.ts",
+        "import": "./dist/baas/*.mjs",
+        "require": "./dist/baas/*.js"
+      }
+    }
+    ```
+  </Accordion>
+</Accordions>
+
+### 📝 Changelog
+
+- Bumped package version to 4.0.3
+- Refined package export mappings
+- Added TypeScript ESM support for declaration files
+
+## Upgrade Recommendations
+
+<Callout type="warn">
+  When upgrading, ensure you're using the main package entry point for imports.
+</Callout>
+
+```typescript
+// Recommended
+import { YourType } from '@meeting-baas/sdk';
+
+// Avoid direct imports from generated files
