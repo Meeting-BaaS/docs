@@ -2457,7 +2457,8 @@ Speaking Bots - Automatically generated documentation based on Git activity.
 # Speaking Bots Service Update 🐟
 
 <Callout type="info">
-  Hooked on security? We just reeled in some serious API authentication improvements! 🎣
+  Hooked on security? We just reeled in some serious API authentication
+  improvements! 🎣
 </Callout>
 
 ## Key Authentication Enhancements
@@ -2476,19 +2477,17 @@ The latest update introduces centralized API key authentication with the followi
 
 <Tabs items={['Authentication', 'Documentation', 'Code Structure']}>
   <Tab value="Authentication">
-    - Added `x-meeting-baas-api-key` header requirement
-    - Centralized API key retrieval from request headers
-    - Middleware checks API key for non-documentation endpoints
+    - Added `x-meeting-baas-api-key` header requirement - Centralized API key
+    retrieval from request headers - Middleware checks API key for
+    non-documentation endpoints
   </Tab>
   <Tab value="Documentation">
-    - Extended OpenAPI schema with security definitions
-    - Added detailed schemas for persona image generation
-    - Updated health check endpoint metadata
+    - Extended OpenAPI schema with security definitions - Added detailed schemas
+    for persona image generation - Updated health check endpoint metadata
   </Tab>
   <Tab value="Code Structure">
-    - Removed API key fields from request models
-    - Updated endpoint logic to use middleware-based authentication
-    - Improved request state management
+    - Removed API key fields from request models - Updated endpoint logic to use
+    middleware-based authentication - Improved request state management
   </Tab>
 </Tabs>
 
@@ -2496,27 +2495,30 @@ The latest update introduces centralized API key authentication with the followi
 
 <Accordions>
   <Accordion title="API Key Middleware" value="middleware">
-    ```python
-    # Centralized API key authentication middleware
-    async def api_key_middleware(request: Request, call_next):
-        # Exclude documentation routes
-        if request.url.path.startswith("/docs"):
-            return await call_next(request)
-        
-        # Check for API key in headers
-        api_key = request.headers.get("x-meeting-baas-api-key")
-        if not api_key:
-            raise HTTPException(status_code=401, detail="API key required")
-        
-        # Store API key in request state
-        request.state.api_key = api_key
+
+```python
+# Centralized API key authentication middleware
+async def api_key_middleware(request: Request, call_next):
+    # Exclude documentation routes
+    if request.url.path.startswith("/docs"):
         return await call_next(request)
-    ```
+
+    # Check for API key in headers
+    api_key = request.headers.get("x-meeting-baas-api-key")
+    if not api_key:
+        raise HTTPException(status_code=401, detail="API key required")
+
+    # Store API key in request state
+    request.state.api_key = api_key
+    return await call_next(request)
+```
+
   </Accordion>
 </Accordions>
 
 <Callout type="warn">
-  Breaking Change: All API requests now require the `x-meeting-baas-api-key` header
+  Breaking Change: All API requests now require the `x-meeting-baas-api-key`
+  header
 </Callout>
 
 ### Sequence of Authentication Flow
@@ -2531,6 +2533,7 @@ sequenceDiagram
     Middleware->>API Endpoint: Pass request with API key in state
     API Endpoint-->>Client: Process request
 ```
+
 
 ---
 
