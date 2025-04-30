@@ -89,12 +89,27 @@ Each path should point to a valid Git repository that you want to include in the
 # Clean all git update files
 pnpm clean:git-updates
 
-# Generate git diff updates
+# Generate git diff updates (non-destructive - only creates new files)
 pnpm test:git-updates
+
+# Regenerate all git diff updates (destructive - deletes and recreates all files)
+pnpm regenerate:git-updates
+
+# Update a single repository (e.g., speaking-meeting-bot)
+pnpm update:speaking-bots
+
+# Update any repository by name
+pnpm update:repo $REPO
 
 # Setup git updates - cleans and regenerates
 pnpm setup:git-updates
 ```
+
+> **Important Note**:
+>
+> - `test:git-updates` only creates new files without modifying existing ones
+> - `regenerate:git-updates` deletes all existing update files before creating new ones (will overwrite customized files)
+> - If you've customized any update files, prefer using `test:git-updates` to preserve your changes
 
 #### Common Workflows
 
