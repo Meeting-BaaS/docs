@@ -1,0 +1,74 @@
+---
+title: April 29, 2025
+description: Speaking Bots - Automatically generated documentation based on Git activity.
+icon: Bot
+service: speaking-bots
+date: April 29, 2025
+
+---
+
+# Speaking Bots Service Update 🐟
+
+<Callout type="info">
+  Hooked on API security? We've just reeled in a robust authentication mechanism! 🎣
+</Callout>
+
+## Authentication Enhancements
+
+### Key Changes
+
+- **API Key Authentication**: Implemented middleware-based authentication
+- **Security Improvements**: 
+  - Added API key header requirement
+  - Excluded documentation endpoints from authentication
+  - Centralized API key handling
+
+### Technical Details
+
+<Tabs items={['Authentication', 'OpenAPI Schema', 'Endpoint Updates']}>
+  <Tab value="Authentication">
+    - Middleware checks for `x-meeting-baas-api-key` header
+    - Stores API key in request state for downstream use
+    - Provides consistent authentication across endpoints
+  </Tab>
+  <Tab value="OpenAPI Schema">
+    - Extended OpenAPI documentation
+    - Added security scheme
+    - Updated schema for persona image generation
+  </Tab>
+  <Tab value="Endpoint Updates">
+    - Removed API key fields from request models
+    - Updated endpoint logic to use middleware-based authentication
+    - Improved API key retrieval process
+  </Tab>
+</Tabs>
+
+### Key Files Modified
+
+<Files>
+  <Folder name="app" defaultOpen>
+    <File name="main.py" />
+    <File name="models.py" />
+    <File name="routes.py" />
+  </Folder>
+</Files>
+
+### Sequence of Authentication Flow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Middleware
+    participant FastAPI App
+    participant Endpoint
+
+    Client->>Middleware: HTTP Request with API key
+    Middleware-->>Client: 401 Unauthorized (if API key missing)
+    Middleware->>FastAPI App: Pass request with API key in state
+    FastAPI App->>Endpoint: Route handling
+    Endpoint-->>Client: Response
+```
+
+<Callout type="warn">
+  Breaking Change: API key must now be passed in the `x-meeting-baas-api-key` header
+</Callout>
