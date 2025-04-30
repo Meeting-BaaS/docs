@@ -2,6 +2,7 @@
   "name": "meetingbaas-docs",
   "version": "1.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
     "build": "pnpm transpile && pnpm build:pre && next build && pnpm build:post",
     "transpile": "node scripts/transpile-scripts.js",
@@ -23,7 +24,8 @@
     "regenerate:git-updates": "tsx ./scripts/updates/clean-git-updates.mts && tsx ./scripts/updates/generate-git-diff-updates.mts",
     "update:all": "chmod +x ./git_greppers/local-git-setup.sh && ./git_greppers/local-git-setup.sh && pnpm clean:git-updates && pnpm test:git-updates && rimraf .next && pnpm build && pnpm dev",
     "clean:cache": "rimraf .next && pnpm clean:git-updates",
-    "enhance:updates": "tsx ./scripts/enhance-updates.mts"
+    "enhance:updates": "tsx ./scripts/enhance-updates.mts",
+    "enhance:all-non-api": "tsx ./scripts/enhance-all-non-api.mts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.3.6",

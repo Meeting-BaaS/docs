@@ -1,3 +1,4 @@
+import fs from 'fs';
 import {
     Bot,
     Captions,
@@ -9,6 +10,7 @@ import {
     type LucideIcon
 } from 'lucide-react';
 import Link from 'next/link';
+import path from 'path';
 import { cn } from '../../lib/fumadocs/cn';
 
 export interface Service {
@@ -41,6 +43,57 @@ const serviceIconMap: Record<string, LucideIcon> = {
     'git': GitBranch,
     'production': Zap,
 };
+
+// Function to get the latest update file for each service
+function getLatestUpdateUrls(): Record<string, string> {
+    const updatesDir = path.join(process.cwd(), 'content', 'docs', 'updates');
+    const result: Record<string, string> = {};
+
+    try {
+        // Check if the directory exists
+        if (!fs.existsSync(updatesDir)) {
+            return {};
+        }
+
+        // Read all files in the updates directory
+        const files = fs.readdirSync(updatesDir)
+            .filter(file => file.endsWith('.mdx') && file !== 'index.mdx' && file !== 'meta.json');
+
+        // Group files by service
+        const serviceFiles: Record<string, string[]> = {};
+
+        files.forEach(file => {
+            // Match service pattern in filename (service-YYYY-MM-DD.mdx)
+            const match = file.match(/^([a-z-]+)-(\d{4}-\d{2}-\d{2})\.mdx$/);
+            if (match) {
+                const [_, service, date] = match;
+                if (!serviceFiles[service]) {
+                    serviceFiles[service] = [];
+                }
+                serviceFiles[service].push(file);
+            }
+        });
+
+        // Sort files by date (newest first) and get the latest for each service
+        for (const service in serviceFiles) {
+            serviceFiles[service].sort((a, b) => {
+                const dateA = a.match(/(\d{4}-\d{2}-\d{2})/)![1];
+                const dateB = b.match(/(\d{4}-\d{2}-\d{2})/)![1];
+                return dateB.localeCompare(dateA); // Newest first
+            });
+
+            // Get the latest file and create the URL
+            const latestFile = serviceFiles[service][0];
+            const fileBaseName = path.basename(latestFile, '.mdx');
+            result[service] = `/docs/updates/${fileBaseName}`;
+        }
+
+        return result;
+    } catch (error) {
+        console.error('Error finding latest update files:', error);
+        return {};
+    }
+}
 
 // Services configuration matching what's in constants.ts
 export const SERVICES: Service[] = [
@@ -163,9 +216,25 @@ export function ServicesListSSR({
     className,
     services = SERVICES
 }: ServicesListProps) {
+    // Get the latest update URLs
+    const latestUpdateUrls = getLatestUpdateUrls();
+
+    // Update the services with the latest URLs
+    const updatedServices = services.map(service => {
+        // If we have a latest update URL for this service, use it
+        if (latestUpdateUrls[service.serviceKey]) {
+            return {
+                ...service,
+                href: latestUpdateUrls[service.serviceKey]
+            };
+        }
+        // Otherwise, use the default URL
+        return service;
+    });
+
     return (
         <div className={cn("not-prose grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3", className)}>
-            {services.map((service) => (
+            {updatedServices.map((service) => (
                 <ServiceCardSSR key={service.serviceKey} service={service} />
             ))}
         </div>
@@ -176,9 +245,25 @@ export function ServicesCompactSSR({
     className,
     services = SERVICES
 }: ServicesListProps) {
+    // Get the latest update URLs
+    const latestUpdateUrls = getLatestUpdateUrls();
+
+    // Update the services with the latest URLs
+    const updatedServices = services.map(service => {
+        // If we have a latest update URL for this service, use it
+        if (latestUpdateUrls[service.serviceKey]) {
+            return {
+                ...service,
+                href: latestUpdateUrls[service.serviceKey]
+            };
+        }
+        // Otherwise, use the default URL
+        return service;
+    });
+
     return (
         <div className={cn("flex flex-wrap gap-2", className)}>
-            {services.map((service) => (
+            {updatedServices.map((service) => (
                 <Link
                     key={service.serviceKey}
                     href={service.href}
