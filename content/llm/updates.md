@@ -645,57 +645,73 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-03-27.mdx
 
 
-# 🐟 Hooked on Improvements: API Service Upgrade
+# 🐟 API Updates - March 27, 2025
 
 <Callout type="info">
-  Casting a wider net in our API service! We're scaling up transcription capabilities, reeling in better error handling, and setting sail towards enhanced system reliability. Let's make some waves! 🎣
+  These updates reflect internal improvements to our API service, focusing on enhancing transcription, error handling, and system reliability.
 </Callout>
 
-## Key Enhancements
+## Key Changes
 
-### Transcription Optimization
+### Transcription and Audio Handling Improvements
 
 <Steps>
-  <Step>Expanded audio file extension support</Step>
-  <Step>Enhanced transcription segment processing</Step>
-  <Step>Centralized storage and error management</Step>
+  <Step>Enhanced audio file extension handling for recordings</Step>
+  <Step>Improved transcription segment processing</Step>
+  <Step>Centralized storage and error management for transcription tasks</Step>
 </Steps>
 
-### Build Versioning Insights
+### Build and Versioning Updates
 
-<Tabs items={['Version Details', 'Timestamp Tracking']}>
-  <Tab value="Version Details">
-    - Added `build_timestamp` to version metadata
-    - Provides deeper build context and tracking
+<Tabs items={['Version', 'Timestamp']}>
+  <Tab value="Version">
+    - Added `build_timestamp` to version information
+    - Provides more detailed build metadata
   </Tab>
-  <Tab value="Timestamp Tracking">
+  <Tab value="Timestamp">
     - New field populated from `VERGEN_BUILD_TIMESTAMP`
-    - Improved version traceability
+    - Enhances tracking of build versions
   </Tab>
 </Tabs>
 
-### Error Handling Improvements
+### Error Handling Enhancements
 
 <Accordions>
   <Accordion title="Unified Error Conversion" value="error-conversion">
-    Robust error handling mechanism to enhance system resilience and error clarity.
+    Implemented `From<Box<dyn Error + Send + Sync>>` for MeetingBotError to improve error handling and readability.
   </Accordion>
-  <Accordion title="Transcription Error Tracking" value="transcription-errors">
-    Advanced error logging with provider-specific error diagnostics.
+  <Accordion title="Transcription Error Management" value="transcription-errors">
+    Added more robust error logging and handling for transcription processes, including provider-specific error tracking.
   </Accordion>
 </Accordions>
 
-## Performance Metrics
+## Detailed Improvements
+
+<Files>
+  <Folder name="api_server" defaultOpen>
+    <Folder name="baas_engine">
+      <File name="transcriber/storage.rs">Improved S3 client and configuration handling</File>
+      <File name="transcriber/transcribe.rs">Centralized transcription logic</File>
+      <File name="bots/data/get.rs">Enhanced speaker tracking and transcript generation</File>
+    </Folder>
+    <Folder name="baas_handler">
+      <File name="bots/internal.rs">Updated meeting end transcription flow</File>
+      <File name="routers.rs">Added build timestamp to version endpoint</File>
+    </Folder>
+  </Folder>
+</Files>
+
+## Performance and Reliability
 
 <TypeTable 
   type={{
     transcriptionSegments: {
-      description: 'Optimized audio segmentation processing',
+      description: 'Improved audio segmentation processing',
       type: 'number',
       default: '100 segments per bot'
     },
     maxBotDuration: {
-      description: 'Maximum meeting transcription duration',
+      description: 'Maximum meeting duration for transcription',
       type: 'number',
       default: '14400 seconds (4 hours)'
     }
@@ -703,7 +719,7 @@ API - Automatically generated documentation based on Git activity.
 />
 
 <Callout type="warn">
-  Internal improvements maintaining full API contract compatibility.
+  These changes are internal improvements and do not directly impact external API contracts.
 </Callout>
 
 ---
