@@ -1,0 +1,71 @@
+---
+title: March 13, 2025
+description: API - Automatically generated documentation based on Git activity.
+icon: Webhook
+service: api
+date: March 13, 2025
+
+---
+
+🐟 Dive into the latest API updates! Just like a bass swimming through code streams, we've got some fin-tastic improvements for you!
+
+# API Updates - March 13, 2025
+
+<Callout type="info">
+Key Highlights:
+- Added delete_data route for bots
+- Improved OpenAPI specifications
+- Enhanced bot filtering and sorting capabilities
+</Callout>
+
+## Major Changes
+
+### Bot Management Improvements
+
+<Tabs items={['New Features', 'Modifications']}>
+  <Tab value="New Features">
+    - Added `delete_data` route for bots
+    - Implemented support for filtering and sorting bots by custom JSON fields
+    - Restored `list_recent_bots` implementation
+  </Tab>
+  <Tab value="Modifications">
+    - Refined OpenAPI documentation
+    - Updated bot metadata route
+    - Removed legacy authentication mechanisms
+  </Tab>
+</Tabs>
+
+### Technical Enhancements
+
+<Accordions>
+  <Accordion title="Authentication Updates" value="auth">
+    - Removed legacy authentication systems
+    - Improved security and access control
+  </Accordion>
+  <Accordion title="Documentation Improvements" value="docs">
+    - Enhanced OpenAPI specifications
+    - Clarified route documentation
+    - Added more constants for transcription files
+  </Accordion>
+</Accordions>
+
+## Changed Components
+
+<Files>
+  <Folder name="api_server">
+    <Folder name="baas_engine">
+      <File name="tokens/constants.rs" />
+      <File name="transcriber/providers/gladia.rs" />
+      <File name="transcriber/providers/runpod.rs" />
+    </Folder>
+    <Folder name="baas_handler">
+      <File name="app_state.rs" />
+      <File name="bots/public.rs" />
+      <File name="routers.rs" />
+    </Folder>
+  </Folder>
+</Files>
+
+<Callout type="warn">
+  Note: Detailed code changes are not disclosed for confidentiality reasons.
+</Callout>

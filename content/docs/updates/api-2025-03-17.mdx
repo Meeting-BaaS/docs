@@ -1,0 +1,66 @@
+---
+title: March 17, 2025
+description: API - Automatically generated documentation based on Git activity.
+icon: Webhook
+service: api
+date: March 17, 2025
+
+---
+
+🐟 Dive into the latest API updates - where code meets creativity, and every commit is a wave of improvement!
+
+# Production Updates - March 17, 2025
+
+<Callout type="info">
+  This update focuses on internal improvements to our API infrastructure, enhancing reliability and performance.
+</Callout>
+
+## Key Changes
+
+### Transcription and Storage Improvements
+
+The recent commits primarily addressed several critical areas:
+
+- **Transcription Method Refinement**
+  - Enhanced error handling for transcription processes
+  - Improved API error management strategies
+
+- **Storage and URL Handling**
+  - Implemented consistent S3 URL building for audio files
+  - Ensured public internet S3 usage for audio resources
+
+### Environment and Configuration
+
+<Tabs items={['Environment', 'Configuration']}>
+  <Tab value="Environment">
+    - Updated `.env` configuration
+    - Refined environment variable management
+  </Tab>
+  <Tab value="Configuration">
+    - Adjusted path handling for recording and transcription
+    - Streamlined state machine logic in recording server
+  </Tab>
+</Tabs>
+
+## Affected Components
+
+<Files>
+  <Folder name="api_server">
+    <Folder name="baas_engine">
+      <File name="transcriber/providers/gladia.rs" />
+      <File name="transcriber/retry.rs" />
+      <File name="transcriber/storage.rs" />
+    </Folder>
+  </Folder>
+  <Folder name="meeting_bot">
+    <Folder name="recording_server">
+      <File name="recording/Transcoder.ts" />
+      <File name="state-machine/states/*" />
+      <File name="utils/PathManager.ts" />
+    </Folder>
+  </Folder>
+</Files>
+
+<Callout type="warn">
+  These changes are internal and do not directly impact external API consumers.
+</Callout>
