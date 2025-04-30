@@ -117,4 +117,117 @@ find_github_pr_info() {
   
   # Return both the formatted info string and the PR/MR number
   echo "$pr_mr_info|$pr_mr_number"
+}
+
+# Function to get recent PRs from a GitHub repository
+get_recent_github_prs() {
+  local repo_path=$1
+  local date_range=${2:-7} # Default to 7 days
+  local output_array_name=${3:-"RECENT_PRS"} # Name of the output array
+  
+  debug 1 "Getting recent GitHub PRs from the last $date_range days"
+  
+  # Check if GitHub CLI is available
+  if ! command -v gh &> /dev/null; then
+    debug 1 "GitHub CLI not available, skipping recent PR fetching"
+    # Create an empty array with the given name
+    eval "$output_array_name=()"
+    return 0
+  fi
+  
+  # Change to the repo directory
+  cd "$repo_path" || return 1
+  
+  # Get date string for the search query
+  local search_date=$(date -v-${date_range}d +%Y-%m-%d)
+  
+  # Get open PRs updated in the last $date_range days
+  debug 2 "Searching for PRs updated after $search_date"
+  local recent_prs_json=$(gh pr list --state open --json number,title,url,headRefName,updatedAt --search "updated:>$search_date")
+  
+  # Check if we got any results
+  if [[ -z "$recent_prs_json" || "$recent_prs_json" == "[]" ]]; then
+    debug 1 "No recent PRs found"
+    # Create an empty array with the given name
+    eval "$output_array_name=()"
+    return 0
+  fi
+  
+  # Parse the JSON and create output array
+  local prs_count=$(echo "$recent_prs_json" | jq length)
+  debug 1 "Found $prs_count recent PRs"
+  
+  # Create the array with the specified name
+  eval "$output_array_name=()"
+  
+  # Process each PR and add to the array
+  local i=0
+  while [[ $i -lt $prs_count ]]; do
+    local pr_json=$(echo "$recent_prs_json" | jq -r ".[$i]")
+    local pr_number=$(echo "$pr_json" | jq -r '.number')
+    local pr_title=$(echo "$pr_json" | jq -r '.title')
+    local pr_url=$(echo "$pr_json" | jq -r '.url')
+    local pr_branch=$(echo "$pr_json" | jq -r '.headRefName')
+    local pr_updated=$(echo "$pr_json" | jq -r '.updatedAt')
+    
+    # Create an array entry with pipe-separated values that can be parsed later
+    local entry="#$pr_number|$pr_title|$pr_url|$pr_branch|$pr_updated"
+    
+    # Add to the named array
+    eval "$output_array_name+=('$entry')"
+    
+    ((i++))
+  done
+  
+  debug 2 "Created array $output_array_name with $prs_count entries"
+  return 0
+}
+
+# Function to generate update page for a specific PR
+generate_github_pr_preview() {
+  local repo_path=$1
+  local repo_name=$2
+  local pr_info=$3
+  local git_grepper=$4
+  local output_dir=$5
+  
+  # Parse PR info
+  IFS='|' read -r pr_number pr_title pr_url pr_branch pr_updated <<< "$pr_info"
+  
+  debug 1 "Generating preview for GitHub PR $pr_number: $pr_title"
+  
+  # Change to repo directory
+  cd "$repo_path" || return 1
+  
+  # Create a local branch name for this PR
+  local local_branch="pr-preview-${pr_number#\#}"
+  
+  # Fetch and checkout the PR branch
+  debug 2 "Fetching PR branch $pr_branch"
+  git fetch origin "pull/${pr_number#\#}/head:$local_branch" || {
+    debug 1 "Failed to fetch PR branch"
+    return 1
+  }
+  
+  # Checkout the branch
+  git checkout "$local_branch" || {
+    debug 1 "Failed to checkout PR branch"
+    git branch -D "$local_branch" 2>/dev/null
+    return 1
+  }
+  
+  # Process the PR branch with git_grepper
+  debug 1 "Processing PR branch with git_grepper"
+  "$git_grepper" "$repo_path" 1 --with-diff --include-code --use-pr-branch "$local_branch" --pr-number "$pr_number" --repo-name "$repo_name" --output-dir "$output_dir" --with-preview
+
+  # Store the result
+  local result=$?
+  
+  # Cleanup: switch back to main/master branch
+  git checkout $(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main") 2>/dev/null || git checkout master 2>/dev/null || git checkout main 2>/dev/null
+  
+  # Remove the temporary branch
+  git branch -D "$local_branch" 2>/dev/null
+  
+  return $result
 } 

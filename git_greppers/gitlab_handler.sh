@@ -154,4 +154,121 @@ find_gitlab_mr_info() {
   
   # Return both the formatted info string and the PR/MR number
   echo "$pr_mr_info|$pr_mr_number"
+}
+
+# Function to get recent MRs from a GitLab repository
+get_recent_gitlab_mrs() {
+  local repo_path=$1
+  local date_range=${2:-7} # Default to 7 days
+  local output_array_name=${3:-"RECENT_MRS"} # Name of the output array
+  
+  debug 1 "Getting recent GitLab MRs from the last $date_range days"
+  
+  # Check if GitLab CLI is available
+  if ! command -v glab &> /dev/null; then
+    debug 1 "GitLab CLI not available, skipping recent MR fetching"
+    # Create an empty array with the given name
+    eval "$output_array_name=()"
+    return 0
+  fi
+  
+  # Change to the repo directory
+  cd "$repo_path" || return 1
+  
+  # Get date string for the search query
+  local search_date=$(date -v-${date_range}d +%Y-%m-%d)
+  
+  # Get open MRs updated in the last $date_range days
+  debug 2 "Searching for MRs updated after $search_date"
+  local recent_mrs=$(glab mr list --state opened --updated-after "$search_date" -a all)
+  
+  # Check if we got any results
+  if [[ -z "$recent_mrs" ]]; then
+    debug 1 "No recent MRs found"
+    # Create an empty array with the given name
+    eval "$output_array_name=()"
+    return 0
+  fi
+  
+  # Create the array with the specified name
+  eval "$output_array_name=()"
+  
+  # Process each MR and add to the array
+  while IFS= read -r mr_line; do
+    # Skip empty lines
+    [[ -z "$mr_line" ]] && continue
+    
+    # Parse MR info
+    local mr_number=$(echo "$mr_line" | awk '{print $1}')
+    local mr_title=$(echo "$mr_line" | awk '{$1=""; print $0}' | sed 's/^ //')
+    
+    # Get additional MR details
+    local mr_details=$(glab mr view "$mr_number" 2>/dev/null)
+    local mr_branch=$(echo "$mr_details" | grep "source branch:" | sed 's/.*source branch: //')
+    local mr_url="https://gitlab.com/$(git remote get-url origin | sed 's/.*gitlab.com[:/]//' | sed 's/\.git$//')/-/merge_requests/${mr_number#\!}"
+    local mr_updated=$(date +"%Y-%m-%dT%H:%M:%SZ") # Fallback to current date if not available
+    
+    # Create an array entry with pipe-separated values that can be parsed later
+    local entry="$mr_number|$mr_title|$mr_url|$mr_branch|$mr_updated"
+    
+    # Add to the named array
+    eval "$output_array_name+=('$entry')"
+    
+  done <<< "$recent_mrs"
+  
+  # Get the array size
+  local mrs_count=$(eval "echo \${#$output_array_name[@]}")
+  debug 1 "Found $mrs_count recent MRs"
+  debug 2 "Created array $output_array_name with $mrs_count entries"
+  
+  return 0
+}
+
+# Function to generate update page for a specific MR
+generate_gitlab_mr_preview() {
+  local repo_path=$1
+  local repo_name=$2
+  local mr_info=$3
+  local git_grepper=$4
+  local output_dir=$5
+  
+  # Parse MR info
+  IFS='|' read -r mr_number mr_title mr_url mr_branch mr_updated <<< "$mr_info"
+  
+  debug 1 "Generating preview for GitLab MR $mr_number: $mr_title"
+  
+  # Change to repo directory
+  cd "$repo_path" || return 1
+  
+  # Create a local branch name for this MR
+  local local_branch="mr-preview-${mr_number#\!}"
+  
+  # Fetch and checkout the MR branch
+  debug 2 "Fetching MR branch $mr_branch"
+  git fetch origin "$mr_branch:$local_branch" || {
+    debug 1 "Failed to fetch MR branch"
+    return 1
+  }
+  
+  # Checkout the branch
+  git checkout "$local_branch" || {
+    debug 1 "Failed to checkout MR branch"
+    git branch -D "$local_branch" 2>/dev/null
+    return 1
+  }
+  
+  # Process the MR branch with git_grepper
+  debug 1 "Processing MR branch with git_grepper"
+  "$git_grepper" "$repo_path" 1 --with-diff --include-code --use-mr-branch "$local_branch" --mr-number "$mr_number" --repo-name "$repo_name" --output-dir "$output_dir" --with-preview
+  
+  # Store the result
+  local result=$?
+  
+  # Cleanup: switch back to main/master branch
+  git checkout $(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "main") 2>/dev/null || git checkout master 2>/dev/null || git checkout main 2>/dev/null
+  
+  # Remove the temporary branch
+  git branch -D "$local_branch" 2>/dev/null
+  
+  return $result
 } 
