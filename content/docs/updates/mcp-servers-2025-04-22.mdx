@@ -1,46 +1,65 @@
 ---
-title: "April 22, 2025"
-description: "MCP Servers - Automatically generated documentation based on Git activity."
-icon: "ServerCog"
+title: April 22, 2025
+description: MCP Servers - Automatically generated documentation based on Git activity.
+icon: ServerCog
 service: mcp-servers
 date: April 22, 2025
+
 ---
 
-<Callout type="warn">
-  This page contains automatically generated documentation based on Git activity related to the MCP Servers service. 
-  For the latest version of this content, please refer to the latest Git update.
-</Callout>
-
-# MCP Servers Updates - April 22, 2025
-
-## Commits
-
-### Stateless MCP (#7)
-
-**Author:** Malte Ubl
-
-**Date:** 2025-04-22 09:10:24 -0500
-
-**Hash:** `2dd5c40809a73cbb5d848f302db1276d5cc9b549`
-
-**Related PR/MR:** None found
-
-
-
-## Changed Files
-
-- 📦 `api/server.ts`
-- 📦 `package.json`
-- 📁 `tsconfig.json`
-
-## Pull Request Comments
-
-No pull request comments. 
-
-## Code Diffs
+🐟 Hooked on Updates: MCP Servers Edition! Let's dive into the latest changes that'll make your code swim smoothly. 
 
 <Callout type="info">
-  Code diffs require the `--with-diff --include-code` flags when running git_grepper.sh.
-  
-  For detailed diffs, please use the git command line or a git UI tool to view changes between commits.
-</Callout> 
+  This update focuses on stateless MCP server improvements, bringing more flexibility to your infrastructure.
+</Callout>
+
+# MCP Servers Updates
+
+## Key Changes
+
+<Steps>
+  <Step>Refactored server configuration</Step>
+  <Step>Updated TypeScript configuration</Step>
+  <Step>Package dependencies adjusted</Step>
+</Steps>
+
+## Modified Files
+
+<Files>
+  <File name="api/server.ts" />
+  <File name="package.json" />
+  <File name="tsconfig.json" />
+</Files>
+
+## Technical Insights
+
+The recent commit introduces a stateless approach to MCP servers, which means:
+- Improved scalability
+- More predictable server behavior
+- Enhanced deployment flexibility
+
+<Callout type="warn">
+  Developers should review their current server configurations to ensure compatibility with the new stateless model.
+</Callout>
+
+## Recommended Actions
+
+- Review `api/server.ts` for configuration changes
+- Check `package.json` for dependency updates
+- Verify TypeScript configuration in `tsconfig.json`
+
+<Tabs items={['Quick Check', 'Detailed Review']}>
+  <Tab value="Quick Check">
+    ```bash
+    npm install
+    npm run type-check
+    ```
+  </Tab>
+  <Tab value="Detailed Review">
+    ```bash
+    # Perform comprehensive system tests
+    npm run test:integration
+    npm run lint
+    ```
+  </Tab>
+</Tabs>

@@ -1,378 +1,59 @@
 ---
-title: "April 7, 2025"
-description: "TypeScript SDK - Automatically generated documentation based on Git activity."
-icon: "Settings"
+title: April 7, 2025
+description: TypeScript SDK - Automatically generated documentation based on Git activity.
+icon: Settings
 service: sdk
 date: April 7, 2025
+
 ---
 
-<Callout type="warn">
-  This page contains automatically generated documentation based on Git activity related to the TypeScript SDK service. 
-  For the latest version of this content, please refer to the latest Git update.
-</Callout>
-
-# TypeScript SDK Updates - April 7, 2025
-
-## Commits
-
-### working schema exports?
-
-**Author:** Lazare Rossillon
-
-**Date:** 2025-04-07 20:46:51 +0200
-
-**Hash:** `0bb3ca07f044e70b3cf6dfd5b95bff0ff0c7c698`
-
-**Related PR/MR:** GitHub PR #2: Implemented a functionality of generated API module and generated Models (https://github.com/Meeting-Baas/sdk-generator/pull/2)
-
-
-
-## Changed Files
-
-- 📁 `.gitignore`
-
-## Pull Request Comments
-
-### Comments for "working schema exports?"
-
-> PR DESCRIPTION:
-
-> Generated API:
-
-> - Default API
-
-> - Calendar API
-
-> - Webhook API
-
-> Generated Model:
-
-> - SpeechToTextProvider
-
-> - AudioFrequency
-
-> - RecordingMode
-
-> - JoinRequest
-
-> PR COMMENTS:
-
-> &lt;&#33;-- This is an auto-generated comment: summarize by coderabbit.ai --&gt;
-
-> &lt;&#33;-- walkthrough_start --&gt;
-
-> ## Summary by CodeRabbit
-
-> - **Chores**
-
-> - Updated type references for speech-to-text providers to use a more descriptive name in backend client options.
-
-> - Reformatted a method signature for improved readability.
-
-> - Adjusted version control settings to track additional directories.
-
-> ## Walkthrough
-
-> The changes consist of two main updates. First, the `.gitignore` file was modified to remove the exclusion rules for the `dist/` and `src/generated/` directories, allowing these previously ignored directories to be tracked by Git. Second, in the `src/baas/client.ts` file, all type references to `SpeechToText` were renamed to `SpeechToTextProvider`, including imports and method parameter typings. Additionally, the `deleteData` method signature was reformatted over multiple lines for readability, without altering its logic or return type.
-
-> ## Changes
-
-> | File(s)                          | Change Summary                                                                                       |
-
-> |-----------------------------------|-----------------------------------------------------------------------------------------------------|
-
-> | .gitignore                       | Removed `dist/` and `src/generated/` from the ignore list, so these directories will now be tracked. |
-
-> | src/baas/client.ts                | Replaced all `SpeechToText` type references with `SpeechToTextProvider`. Reformatted `deleteData` method signature to multi-line. |
-
-> ## Poem
-
-> &gt; A hop and a skip, the ignore list is trimmed,
-
-> &gt; Now `dist/` and `generated/` files are no longer dimmed.
-
-> &gt; SpeechToTextProvider hops in with a name so new,
-
-> &gt; While method lines stretch out for a clearer view.
-
-> &gt; With every commit, the code garden grows—
-
-> &gt; A bunny’s delight as the springtime flows&#33; 🐇🌱
-
-> &lt;&#33;-- walkthrough_end --&gt;
-
-> &lt;&#33;-- announcements_start --&gt;
-
-> &gt; &#91;&#33;TIP&#93;
-
-> &gt; &lt;details&gt;
-
-> &gt; &lt;summary&gt;⚡💬 Agentic Chat (Pro Plan, General Availability)&lt;/summary&gt;
-
-> &gt;
-
-> &gt; - We're introducing multi-step agentic chat in review comments and issue comments, within and outside of PR's. This feature enhances review and issue discussions with the CodeRabbit agentic chat by enabling advanced interactions, including the ability to create pull requests directly from comments and add commits to existing pull requests.
-
-> &gt;
-
-> &gt; &lt;/details&gt;
-
-> &lt;&#33;-- announcements_end --&gt;
-
-> ---
-
-> &lt;details&gt;
-
-> &lt;summary&gt;📜 Recent review details&lt;/summary&gt;
-
-> **Configuration used: CodeRabbit UI**
-
-> **Review profile: ASSERTIVE**
-
-> **Plan: Pro**
-
-> &lt;details&gt;
-
-> &lt;summary&gt;📥 Commits&lt;/summary&gt;
-
-> Reviewing files that changed from the base of the PR and between 0bb3ca07f044e70b3cf6dfd5b95bff0ff0c7c698 and fa5fedfb153f5e1b5e7d2125bbf206db383617d5.
-
-> &lt;/details&gt;
-
-> &lt;details&gt;
-
-> &lt;summary&gt;⛔ Files ignored due to path filters (2)&lt;/summary&gt;
-
-> * `src/generated/baas/index.ts` is excluded by `&#33;**/generated/**`
-
-> * `src/generated/baas/models/index.ts` is excluded by `&#33;**/generated/**`
-
-> &lt;/details&gt;
-
-> &lt;details&gt;
-
-> &lt;summary&gt;📒 Files selected for processing (2)&lt;/summary&gt;
-
-> * `.gitignore` (0 hunks)
-
-> * `src/baas/client.ts` (6 hunks)
-
-> &lt;/details&gt;
-
-> &lt;details&gt;
-
-> &lt;summary&gt;💤 Files with no reviewable changes (1)&lt;/summary&gt;
-
-> * .gitignore
-
-> &lt;/details&gt;
-
-> &lt;details&gt;
-
-> &lt;summary&gt;🧰 Additional context used&lt;/summary&gt;
-
-> &lt;details&gt;
-
-> &lt;summary&gt;🧬 Code Graph Analysis (1)&lt;/summary&gt;
-
-> &lt;details&gt;
-
-> &lt;summary&gt;src/baas/client.ts (2)&lt;/summary&gt;&lt;blockquote&gt;
-
-> &lt;details&gt;
-
-> &lt;summary&gt;src/baas/index.ts (1)&lt;/summary&gt;
-
-> * `SpeechToTextProvider` (21-21)
-
-> &lt;/details&gt;
-
-> &lt;details&gt;
-
-> &lt;summary&gt;src/baas/types.ts (1)&lt;/summary&gt;
-
-> * `SpeechToTextProvider` (18-18)
-
-> &lt;/details&gt;
-
-> &lt;/blockquote&gt;&lt;/details&gt;
-
-> &lt;/details&gt;
-
-> &lt;/details&gt;
-
-> &lt;details&gt;
-
-> &lt;summary&gt;🔇 Additional comments (6)&lt;/summary&gt;&lt;blockquote&gt;
-
-> &lt;details&gt;
-
-> &lt;summary&gt;src/baas/client.ts (6)&lt;/summary&gt;
-
-> `13-13`: **Type import updated from `SpeechToText` to `SpeechToTextProvider`**
-
-> The type import has been correctly updated to match the new type name. This change is consistent with the type definition in `src/baas/types.ts` where `SpeechToTextProvider` is defined as a Zod inferred type.
-
-> ---
-
-> `69-69`: **Parameter type updated in `joinMeeting` method**
-
-> The type for the `speechToText` parameter has been correctly updated from `SpeechToText` to `SpeechToTextProvider`. This maintains consistency with the import change.
-
-> ---
-
-> `116-118`: **Improved formatting for `deleteData` method signature**
-
-> The method signature has been reformatted from a single line to multiple lines, which improves readability without changing functionality. This is a good practice for maintaining consistent code style, especially for method signatures with complex return types.
-
-> ---
-
-> `246-246`: **Parameter type updated in `scheduleRecordEvent` method**
-
-> The type for the `speechToText` parameter has been correctly updated from `SpeechToText` to `SpeechToTextProvider`, maintaining consistency throughout the codebase.
-
-> ---
-
-> `355-355`: **Parameter type updated in `patchBot` method**
-
-> The type for the `speechToText` parameter has been correctly updated from `SpeechToText` to `SpeechToTextProvider`, maintaining consistency throughout the codebase.
-
-> ---
-
-> `472-472`: **Parameter type updated in `retranscribeBot` method**
-
-> The type for the `provider` parameter has been correctly updated from `SpeechToText` to `SpeechToTextProvider`, maintaining consistency throughout the codebase.
-
-> &lt;/details&gt;
-
-> &lt;/blockquote&gt;&lt;/details&gt;
-
-> &lt;/details&gt;
-
-> &lt;&#33;-- internal state start --&gt;
-
-> &lt;&#33;-- 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= --&gt;
-
-> &lt;&#33;-- internal state end --&gt;
-
-> &lt;&#33;-- finishing_touch_checkbox_start --&gt;
-
-> &lt;details&gt;
-
-> &lt;summary&gt;✨ Finishing Touches&lt;/summary&gt;
-
-> - &#91; &#93; &lt;&#33;-- &#123;"checkboxId": "7962f53c-55bc-4827-bfbf-6a18da830691"&#125; --&gt; 📝 Generate Docstrings
-
-> &lt;/details&gt;
-
-> &lt;&#33;-- finishing_touch_checkbox_end --&gt;
-
-> &lt;&#33;-- tips_start --&gt;
-
-> ---
-
-> Thanks for using CodeRabbit&#33; It's free for OSS, and your support helps us grow. If you like it, consider giving us a shout-out.
-
-> &lt;details&gt;
-
-> &lt;summary&gt;❤️ Share&lt;/summary&gt;
-
-> - &#91;X&#93;(https://twitter.com/intent/tweet?text=I%20just%20used%20%40coderabbitai%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20the%20proprietary%20code.%20Check%20it%20out%3A&url=https%3A//coderabbit.ai)
-
-> - &#91;Mastodon&#93;(https://mastodon.social/share?text=I%20just%20used%20%40coderabbitai%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20the%20proprietary%20code.%20Check%20it%20out%3A%20https%3A%2F%2Fcoderabbit.ai)
-
-> - &#91;Reddit&#93;(https://www.reddit.com/submit?title=Great%20tool%20for%20code%20review%20-%20CodeRabbit&text=I%20just%20used%20CodeRabbit%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20proprietary%20code.%20Check%20it%20out%3A%20https%3A//coderabbit.ai)
-
-> - &#91;LinkedIn&#93;(https://www.linkedin.com/sharing/share-offsite/?url=https%3A%2F%2Fcoderabbit.ai&mini=true&title=Great%20tool%20for%20code%20review%20-%20CodeRabbit&summary=I%20just%20used%20CodeRabbit%20for%20my%20code%20review%2C%20and%20it%27s%20fantastic%21%20It%27s%20free%20for%20OSS%20and%20offers%20a%20free%20trial%20for%20proprietary%20code)
-
-> &lt;/details&gt;
-
-> &lt;details&gt;
-
-> &lt;summary&gt;🪧 Tips&lt;/summary&gt;
-
-> ### Chat
-
-> There are 3 ways to chat with &#91;CodeRabbit&#93;(https://coderabbit.ai?utm_source=oss&utm_medium=github&utm_campaign=Meeting-Baas/sdk-generator&utm_content=2):
-
-> - Review comments: Directly reply to a review comment made by CodeRabbit. Example:
-
-> - `I pushed a fix in commit &lt;commit_id&gt;, please review it.`
-
-> - `Generate unit testing code for this file.`
-
-> - `Open a follow-up GitHub issue for this discussion.`
-
-> - Files and specific lines of code (under the "Files changed" tab): Tag `@coderabbitai` in a new review comment at the desired location with your query. Examples:
-
-> - `@coderabbitai generate unit testing code for this file.`
-
-> -	`@coderabbitai modularize this function.`
-
-> - PR comments: Tag `@coderabbitai` in a new PR comment to ask questions about the PR branch. For the best results, please provide a very specific query, as very limited context is provided in this mode. Examples:
-
-> - `@coderabbitai gather interesting stats about this repository and render them as a table. Additionally, render a pie chart showing the language distribution in the codebase.`
-
-> - `@coderabbitai read src/utils.ts and generate unit testing code.`
-
-> - `@coderabbitai read the files in the src/scheduler package and generate a class diagram using mermaid and a README in the markdown format.`
-
-> - `@coderabbitai help me debug CodeRabbit configuration file.`
-
-> Note: Be mindful of the bot's finite context window. It's strongly recommended to break down tasks such as reading entire modules into smaller chunks. For a focused discussion, use review comments to chat about specific files and their changes, instead of using the PR comments.
-
-> ### CodeRabbit Commands (Invoked using PR comments)
-
-> - `@coderabbitai pause` to pause the reviews on a PR.
-
-> - `@coderabbitai resume` to resume the paused reviews.
-
-> - `@coderabbitai review` to trigger an incremental review. This is useful when automatic reviews are disabled for the repository.
-
-> - `@coderabbitai full review` to do a full review from scratch and review all the files again.
-
-> - `@coderabbitai summary` to regenerate the summary of the PR.
-
-> - `@coderabbitai generate docstrings` to &#91;generate docstrings&#93;(https://docs.coderabbit.ai/finishing-touches/docstrings) for this PR.
-
-> - `@coderabbitai resolve` resolve all the CodeRabbit review comments.
-
-> - `@coderabbitai configuration` to show the current CodeRabbit configuration for the repository.
-
-> - `@coderabbitai help` to get help.
-
-> ### Other keywords and placeholders
-
-> - Add `@coderabbitai ignore` anywhere in the PR description to prevent this PR from being reviewed.
-
-> - Add `@coderabbitai summary` to generate the high-level summary at a specific location in the PR description.
-
-> - Add `@coderabbitai` anywhere in the PR title to generate the title automatically.
-
-> ### CodeRabbit Configuration File (`.coderabbit.yaml`)
-
-> - You can programmatically configure CodeRabbit by adding a `.coderabbit.yaml` file to the root of your repository.
-
-> - Please see the &#91;configuration documentation&#93;(https://docs.coderabbit.ai/guides/configure-coderabbit) for more information.
-
-> - If your editor has YAML language server enabled, you can add the path at the top of this file to enable auto-completion and validation: `# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json`
-
-> ### Documentation and Community
-
-> - Visit our &#91;Documentation&#93;(https://docs.coderabbit.ai) for detailed information on how to use CodeRabbit.
-
-> - Join our &#91;Discord Community&#93;(http://discord.gg/coderabbit) to get help, request features, and share feedback.
-
-> - Follow us on &#91;X/Twitter&#93;(https://twitter.com/coderabbitai) for updates and announcements.
-
-> &lt;/details&gt;
-
-> &lt;&#33;-- tips_end --&gt; 
-
-## Code Diffs
+# TypeScript SDK Updates 🐟
 
 <Callout type="info">
-  Code diffs require the `--with-diff --include-code` flags when running git_grepper.sh.
-  
-  For detailed diffs, please use the git command line or a git UI tool to view changes between commits.
-</Callout> 
+  Hooked on our latest SDK updates? Let's dive into the changes! 🎣
+</Callout>
+
+## Key Updates
+
+### Generated API and Model Enhancements
+
+This update introduces significant improvements to our SDK:
+
+<Tabs items={['Generated APIs', 'New Models']}>
+  <Tab value="Generated APIs">
+    - Default API
+    - Calendar API
+    - Webhook API
+  </Tab>
+  <Tab value="New Models">
+    - SpeechToTextProvider
+    - AudioFrequency
+    - RecordingMode
+    - JoinRequest
+  </Tab>
+</Tabs>
+
+### Changes Overview
+
+<Steps>
+  <Step>Updated `.gitignore` to track `dist/` and `src/generated/` directories</Step>
+  <Step>Renamed `SpeechToText` type references to `SpeechToTextProvider`</Step>
+  <Step>Improved code readability with method signature reformatting</Step>
+</Steps>
+
+### Type and Method Updates
+
+<Accordions>
+  <Accordion title="Type Refinements" value="types">
+    - Consistent use of `SpeechToTextProvider` across type references
+    - Updated parameter types in multiple methods
+  </Accordion>
+  <Accordion title="Method Signature Improvements" value="methods">
+    - Reformatted `deleteData` method for better readability
+    - No changes to method logic or return types
+  </Accordion>
+</Accordions>
+
+<Callout type="warn">
+  These changes improve type consistency and code readability without altering core functionality.
+</Callout>
