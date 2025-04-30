@@ -281,21 +281,30 @@ import { Steps, Step } from 'fumadocs-ui/components/steps';
 \`\`\`
 
 #### Accordion
-Create collapsible sections (an accordion must be within accordions. So as NOT to have this error:
-Error: AccordionItem must be used within Accordion
-\`\`\`jsx
-import { Accordion } from 'fumadocs-ui/components/accordion';
+Create collapsible sections:
 
+\`\`\`jsx
+import { Accordions, Accordion } from 'fumadocs-ui/components/accordion';
+
+<Accordions>
+  <Accordion title="Section 1" value="item-1">
+    Content for section 1
+  </Accordion>
+  <Accordion title="Section 2" value="item-2">
+    Content for section 2
+  </Accordion>
+</Accordions>
+\`\`\`
+
+IMPORTANT: Always use this pattern with an outer \`<Accordions>\` wrapper and individual \`<Accordion>\` components inside. DO NOT use the pattern with \`items\` prop as it will cause the error: "AccordionItem must be used within Accordion".
+
+INCORRECT pattern (DO NOT USE):
+\`\`\`jsx
 <Accordion items={[
   {
     value: 'item-1',
     title: 'Section 1',
     content: 'Content for section 1'
-  },
-  {
-    value: 'item-2',
-    title: 'Section 2',
-    content: 'Content for section 2'
   }
 ]} />
 \`\`\`
@@ -423,12 +432,15 @@ Rules:
 5. Maintain all MDX code components and syntax
 6. Use proper Markdown formatting including headings, lists, and code blocks
 7. IMPORTANT: Only use the MDX components listed above that are available in the project
-8. DO NOT use components like <APIEndpoints>, <ServiceOperations>, or any other component not listed above - this will cause a build failure!
+8. DO NOT use components like <APIEndpoints>, <ServiceOperations>, <DynamicCodeBlock>, or any other component not listed above - this will cause a build failure!
 9. Keep information about breaking changes prominent
 10. Do not add fictional or assumed information
 11. Preserve all links and references
 12. Format code examples properly
 13. IMPORTANT: Remove any automatically generated warnings like "This page contains automatically generated documentation based on Git activity..."
+14. IMPORTANT: For code blocks containing JSON, XML, or other content with syntax like "/" or "<", ensure proper escaping or use appropriate code fence formatting to prevent MDX parsing errors
+15. Be especially careful with JSON in code blocks when the content has property names or values containing slash characters
+16. ALWAYS use standard markdown code blocks with triple backticks (\`\`\`) for code examples, NOT custom components like <DynamicCodeBlock>
 
 Here is the original content to enhance:
 
