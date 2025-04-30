@@ -87,6 +87,13 @@ export const categoryConfig = {
       "./content/docs/speaking-bots/reference/bots/**/*.mdx"
     ]
   },
+  "speaking-bots/personas": {
+    "title": "personas speaking-bots Reference",
+    "description": "Reference documentation for personas in speaking-bots.",
+    "patterns": [
+      "./content/docs/speaking-bots/reference/personas/**/*.mdx"
+    ]
+  },
   "speaking-bots/system": {
     "title": "system speaking-bots Reference",
     "description": "Reference documentation for system in speaking-bots.",
@@ -238,6 +245,11 @@ export const knownTxtPaths = [
     "llms",
     "speaking-bots",
     "bots"
+  ],
+  [
+    "llms",
+    "speaking-bots",
+    "personas"
   ],
   [
     "llms",

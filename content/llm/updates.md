@@ -2457,48 +2457,67 @@ Speaking Bots - Automatically generated documentation based on Git activity.
 # Speaking Bots Service Update 🐟
 
 <Callout type="info">
-  Hooked on API security? We've just reeled in a robust authentication mechanism! 🎣
+  Hooked on security? We just reeled in some serious API authentication improvements! 🎣
 </Callout>
 
-## Authentication Enhancements
+## Key Authentication Enhancements
 
-### Key Changes
+### API Key Security Upgrade
 
-- **API Key Authentication**: Implemented middleware-based authentication
-- **Security Improvements**: 
-  - Added API key header requirement
-  - Excluded documentation endpoints from authentication
-  - Centralized API key handling
+The latest update introduces centralized API key authentication with the following improvements:
 
-### Technical Details
+<Steps>
+  <Step>Enforced API key authentication for all endpoints</Step>
+  <Step>Implemented middleware-based authentication</Step>
+  <Step>Enhanced OpenAPI documentation</Step>
+</Steps>
 
-<Tabs items={['Authentication', 'OpenAPI Schema', 'Endpoint Updates']}>
+### Major Changes
+
+<Tabs items={['Authentication', 'Documentation', 'Code Structure']}>
   <Tab value="Authentication">
-    - Middleware checks for `x-meeting-baas-api-key` header
-    - Stores API key in request state for downstream use
-    - Provides consistent authentication across endpoints
+    - Added `x-meeting-baas-api-key` header requirement
+    - Centralized API key retrieval from request headers
+    - Middleware checks API key for non-documentation endpoints
   </Tab>
-  <Tab value="OpenAPI Schema">
-    - Extended OpenAPI documentation
-    - Added security scheme
-    - Updated schema for persona image generation
+  <Tab value="Documentation">
+    - Extended OpenAPI schema with security definitions
+    - Added detailed schemas for persona image generation
+    - Updated health check endpoint metadata
   </Tab>
-  <Tab value="Endpoint Updates">
+  <Tab value="Code Structure">
     - Removed API key fields from request models
     - Updated endpoint logic to use middleware-based authentication
-    - Improved API key retrieval process
+    - Improved request state management
   </Tab>
 </Tabs>
 
-### Key Files Modified
+### Code Refactoring Highlights
 
-<Files>
-  <Folder name="app" defaultOpen>
-    <File name="main.py" />
-    <File name="models.py" />
-    <File name="routes.py" />
-  </Folder>
-</Files>
+<Accordions>
+  <Accordion title="API Key Middleware" value="middleware">
+    ```python
+    # Centralized API key authentication middleware
+    async def api_key_middleware(request: Request, call_next):
+        # Exclude documentation routes
+        if request.url.path.startswith("/docs"):
+            return await call_next(request)
+        
+        # Check for API key in headers
+        api_key = request.headers.get("x-meeting-baas-api-key")
+        if not api_key:
+            raise HTTPException(status_code=401, detail="API key required")
+        
+        # Store API key in request state
+        request.state.api_key = api_key
+        return await call_next(request)
+    ```
+  </Accordion>
+</Accordions>
+
+<Callout type="warn">
+  Breaking Change: All API requests now require the `x-meeting-baas-api-key` header
+</Callout>
 
 ### Sequence of Authentication Flow
 
@@ -2506,58 +2525,12 @@ Speaking Bots - Automatically generated documentation based on Git activity.
 sequenceDiagram
     participant Client
     participant Middleware
-    participant FastAPI App
-    participant Endpoint
-
-    Client->>Middleware: HTTP Request with API key
-    Middleware-->>Client: 401 Unauthorized (if API key missing)
-    Middleware->>FastAPI App: Pass request with API key in state
-    FastAPI App->>Endpoint: Route handling
-    Endpoint-->>Client: Response
+    participant API Endpoint
+    Client->>Middleware: Request with API key
+    Middleware-->>Client: 401 if no API key
+    Middleware->>API Endpoint: Pass request with API key in state
+    API Endpoint-->>Client: Process request
 ```
-
-<Callout type="warn">
-  Breaking Change: API key must now be passed in the `x-meeting-baas-api-key` header
-</Callout>
-
----
-
-## [object Object]
-
-Changes from recent development in Speaking Bots
-
-### Source: ./content/docs/updates/speaking-bots-2025-04-30.mdx
-
-
-<Callout type="warning">
-  <Files>
-    <Folder name="content" defaultOpen>
-      <Folder name="docs">
-        <Folder name="updates">
-          <File name="{{SERVICE_KEY}}-2025-04-30.mdx" />
-        </Folder>
-      </Folder>
-    </Folder>
-  </Files>
-  The content in this document is automatically generated from service updates. It should be re-read by a human or at least an AI ;)
-</Callout>
-
-{{#SINGLE_FILE}}
-# Changed Files
-
-::filepath[{{FILE_PATH}}]
-{{FILE_DIFF}}
-{{/SINGLE_FILE}}
-
-{{#MULTI_FILE}}
-# Changed Files
-
-{{#FILES}}
-::filepath[{{PATH}}]
-{{DIFF}}
-
-{{/FILES}}
-{{/MULTI_FILE}} 
 
 ---
 
