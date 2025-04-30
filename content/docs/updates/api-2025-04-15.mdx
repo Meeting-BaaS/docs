@@ -1,0 +1,59 @@
+---
+title: April 15, 2025
+description: API - Automatically generated documentation based on Git activity.
+icon: Webhook
+service: api
+date: April 15, 2025
+
+---
+
+# API Updates 🐟
+
+<Callout type="info">
+  Diving deep into our latest API improvements - just like a bass exploring new waters! 🎣
+</Callout>
+
+## Key Updates
+
+### Bot Meeting Integrity Checks
+We've enhanced our meeting bot's reliability by adding a critical pre-action check to verify the bot's active presence in a meeting before executing any operations.
+
+### Zoom Log Management
+Implemented a new mechanism to upload Zoom logs to S3, improving our logging and diagnostics capabilities.
+
+## File Changes Overview
+
+<Files>
+  <Folder name="api_server" defaultOpen>
+    <Folder name="baas_engine">
+      <File name="auth/data/get.rs" />
+      <File name="meeting_bot/starter.rs" />
+      <File name="schema.rs" />
+      <File name="transcriber/providers/runpod.rs" />
+      <File name="worker/worker_bot.rs" />
+    </Folder>
+    <Folder name="baas_handler">
+      <File name="main.rs" />
+      <File name="routers.rs" />
+    </Folder>
+    <Folder name="migrations">
+      <Folder name="2025-04-08-140628_add_secret_into_account">
+        <File name="down.sql" />
+        <File name="up.sql" />
+      </Folder>
+    </Folder>
+  </Folder>
+  <Folder name="meeting_bot/recording_server" defaultOpen>
+    <Folder name="src">
+      <File name="main.ts" />
+      <File name="meeting/meet.ts" />
+      <File name="recording/Transcoder.ts" />
+      <File name="s3.ts" />
+      <File name="types.ts" />
+    </Folder>
+  </Folder>
+</Files>
+
+<Callout type="warn">
+  Note: Detailed code changes are intentionally omitted to maintain confidentiality.
+</Callout>
