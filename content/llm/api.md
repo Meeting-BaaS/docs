@@ -1,4 +1,4 @@
-# MeetingBaas API
+# MeetingBaas API, the main purpose of the documentation
 
 API documentation for interacting with Meeting BaaS services.
 
