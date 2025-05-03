@@ -1,0 +1,40 @@
+---
+title: March 1, 2025
+description: API - Improved filtering, comprehensive event details, and calendar management
+icon: Webhook
+service: api
+date: March 1, 2025
+---
+
+# 🐟 API Updates - Calendar API Enhancements
+
+<Callout type="info" icon={<Info className="h-5 w-5" />}>
+  Paris, the 1st of March 2025.
+</Callout>
+
+We've expanded our Calendar API with new filtering capabilities and improved calendar management. These enhancements provide more flexibility when working with calendar events and integrations.
+
+## New Features
+
+### Enhanced Event Filtering
+
+The [`GET /calendar_events`](/docs/api/reference/calendars/list_events) endpoint now supports additional filtering parameters:
+
+- `attendeeEmail` - Filter events by attendee email address
+- `organizerEmail` - Filter events by organizer email address
+- `startDateGte` - Filter events with start date greater than or equal to timestamp
+- `startDateLte` - Filter events with start date less than or equal to timestamp
+- `status` - Filter by meeting status (`upcoming`, `past`, or `all`)
+
+### Improved Attendee Information
+
+The `Attendee` object now includes a `name` field that provides the display name of the attendee when available from the calendar provider (Google, Microsoft).
+
+## Migration Guide
+
+1. Update your API clients to take advantage of the new filtering parameters
+
+## Related Updates
+
+- [Calendar API Update](/docs/api/updates/calendar-api-update) - Previous calendar API enhancements
+- [Retranscribe Route](/docs/api/updates/retranscribe-route) - Information about the retranscribe endpoint

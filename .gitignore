@@ -41,3 +41,6 @@ fumadocs-basehub
 
 # Add this entry to the existing .gitignore file
 scripts-dist/
+
+
+package-lock.json
