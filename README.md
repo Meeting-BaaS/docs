@@ -1,5 +1,7 @@
 # Meeting BaaS Documentation
 
+<p align="center"><a href="https://discord.com/invite/dsvFgDTr6c"><img height="60px" src="https://user-images.githubusercontent.com/31022056/158916278-4504b838-7ecb-4ab9-a900-7dc002aade78.png" alt="Join our Discord!"></a></p>
+
 This is a Next.js application using Fumadocs for generating and maintaining Meeting BaaS service documentation.
 
 ## Development
@@ -89,12 +91,27 @@ Each path should point to a valid Git repository that you want to include in the
 # Clean all git update files
 pnpm clean:git-updates
 
-# Generate git diff updates
+# Generate git diff updates (non-destructive - only creates new files)
 pnpm test:git-updates
+
+# Regenerate all git diff updates (destructive - deletes and recreates all files)
+pnpm regenerate:git-updates
+
+# Update a single repository (e.g., speaking-meeting-bot)
+pnpm update:speaking-bots
+
+# Update any repository by name
+pnpm update:repo $REPO
 
 # Setup git updates - cleans and regenerates
 pnpm setup:git-updates
 ```
+
+> **Important Note**:
+>
+> - `test:git-updates` only creates new files without modifying existing ones
+> - `regenerate:git-updates` deletes all existing update files before creating new ones (will overwrite customized files)
+> - If you've customized any update files, prefer using `test:git-updates` to preserve your changes
 
 #### Common Workflows
 

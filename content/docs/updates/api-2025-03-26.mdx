@@ -1,0 +1,82 @@
+---
+title: March 26, 2025
+description: API - Automatically generated documentation based on Git activity.
+icon: Webhook
+service: api
+date: March 26, 2025
+
+---
+
+# API Updates 🐟
+
+<Callout type="info">
+  Diving deep into our latest API improvements - just like a bass exploring new waters! 🎣
+</Callout>
+
+## Overview of Changes
+
+This update focuses on internal improvements to our API service, primarily addressing error handling and state management in various components.
+
+### Key Areas of Modification
+
+<Tabs items={['Transcription', 'Meeting Bot', 'State Management']}>
+  <Tab value="Transcription">
+    - Enhanced error handling in transcription providers
+    - Improved retry mechanisms for transcription services
+    - Updated storage and transcription logic
+  </Tab>
+  <Tab value="Meeting Bot">
+    - Refined state machine implementation
+    - Improved meeting lifecycle management
+    - Enhanced error state handling
+  </Tab>
+  <Tab value="State Management">
+    - Implemented more robust state transitions
+    - Added improved error tracking
+    - Optimized state machine logic
+  </Tab>
+</Tabs>
+
+### Affected Components
+
+<Files>
+  <Folder name="api_server">
+    <Folder name="baas_engine">
+      <File name="transcriber" />
+      <File name="meeting_bot" />
+    </Folder>
+    <Folder name="baas_handler">
+      <File name="bots" />
+    </Folder>
+  </Folder>
+  <Folder name="meeting_bot">
+    <Folder name="recording_server">
+      <File name="state-machine" />
+      <File name="events" />
+    </Folder>
+  </Folder>
+</Files>
+
+## Highlights
+
+<Callout type="warn">
+  These changes are internal improvements and do not directly impact external API interfaces.
+</Callout>
+
+### Error Handling Improvements
+- Enhanced error tracking in transcription providers
+- More robust error state management in meeting bot lifecycle
+- Improved retry mechanisms for service calls
+
+### State Machine Refinements
+- More precise state transitions
+- Better error state detection and handling
+- Optimized meeting lifecycle management
+
+## Recommendations
+
+<Steps>
+  <Step>Review internal error handling processes</Step>
+  <Step>Verify state machine behavior in edge cases</Step>
+  <Step>Test transcription service resilience</Step>
+</Steps>

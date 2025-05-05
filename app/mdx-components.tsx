@@ -20,6 +20,7 @@ import {
     BrainCircuit,
     Calendar,
     Captions,
+    ChevronRight,
     Code,
     FileCode,
     GitBranch,
@@ -35,6 +36,27 @@ import type { MDXComponents } from 'mdx/types';
 
 // Create TypeScript generator for AutoTypeTable
 const generator = createGenerator();
+
+// Create a safer way to handle icon components
+const safeIconComponents = {
+    Bot,
+    Server,
+    Braces,
+    BrainCircuit,
+    Brain,
+    Captions,
+    ChevronRight,
+    MonitorUp,
+    FileCode,
+    Code,
+    ServerCog,
+    Settings,
+    TerminalSquare,
+    Webhook,
+    Calendar,
+    User,
+    GitBranch
+};
 
 // Export components for MDX
 export function useMDXComponents(components: MDXComponents): MDXComponents {
@@ -68,22 +90,12 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         ServiceCard: ServiceCardSSR,
         ServiceIcon,
 
-        // Icons
-        Bot,
-        Server,
-        Braces,
-        BrainCircuit,
-        Brain,
-        Captions,
-        MonitorUp,
-        FileCode,
-        Code,
-        ServerCog,
-        Settings,
-        TerminalSquare,
-        Webhook,
-        Calendar,
-        User,
-        GitBranch
+        // Icons - explicitly mapped to prevent passing objects directly
+        ...Object.fromEntries(
+            Object.entries(safeIconComponents).map(([name, Component]) => [
+                name,
+                (props: any) => <Component {...props} />
+            ])
+        )
     };
 } 

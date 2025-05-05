@@ -195,16 +195,85 @@ function getFileIcon(filePath: string): string {
 
 /**
  * Parses a git diff file and extracts commit information
+ * This version is repository-agnostic and handles various diff file formats
  */
 function parseGitDiffFile(filePath: string): CommitInfo[] {
   const content = readFileSync(filePath, 'utf-8');
   const commits: CommitInfo[] = [];
 
+  // First analyze the structure of the file
+  const hasKeyFormat = content.includes('#KEY#COMMIT_HASH#');
+  const hasStartCommitMarker = content.includes('#KEY#START_COMMIT#');
+
+  console.log(`File structure analysis for ${filePath}:`);
+  console.log(`- Has KEY format: ${hasKeyFormat}`);
+  console.log(`- Has START_COMMIT marker: ${hasStartCommitMarker}`);
+
+  // Detect all available keys to understand structure
+  const keyMatches = content.match(/#KEY#[A-Z_]+#/g) || [];
+  const uniqueKeys = [...new Set(keyMatches)];
+  console.log(`- Keys found: ${uniqueKeys.join(', ')}`);
+
+  // Split the file by lines for processing
+  const lines = content.split('\n');
+
+  // Try multiple parsing strategies and combine results
+
+  // Strategy 1: Standard parsing with clear section markers
+  const standardCommits = parseStandardFormat(lines);
+  if (standardCommits.length > 0) {
+    console.log(`Standard parsing found ${standardCommits.length} commits`);
+    commits.push(...standardCommits);
+  }
+
+  // Strategy 2: Parse based on section markers with equals signs
+  if (commits.length === 0) {
+    const equalsSectionCommits = parseEqualsSectionFormat(lines);
+    if (equalsSectionCommits.length > 0) {
+      console.log(
+        `Equals section parsing found ${equalsSectionCommits.length} commits`,
+      );
+      commits.push(...equalsSectionCommits);
+    }
+  }
+
+  // Strategy 3: Loose section-based parsing as a fallback
+  if (commits.length === 0) {
+    const looseCommits = parseLooseSections(lines);
+    if (looseCommits.length > 0) {
+      console.log(`Loose section parsing found ${looseCommits.length} commits`);
+      commits.push(...looseCommits);
+    }
+  }
+
+  // Verify and log the parsed commit content
+  if (commits.length > 0) {
+    console.log(
+      `Successfully parsed ${commits.length} commits from ${filePath}`,
+    );
+    commits.forEach((commit, index) => {
+      console.log(`Commit ${index + 1}: ${commit.message || 'No message'}`);
+      console.log(`  Author: ${commit.author || 'Unknown'}`);
+      console.log(
+        `  Files: ${commit.changedFiles?.length || 0}, Comments: ${commit.comments?.length || 0}`,
+      );
+    });
+  } else {
+    console.log(
+      `WARNING: No commits were found in ${filePath} with any parsing strategy`,
+    );
+  }
+
+  return commits;
+}
+
+/**
+ * Strategy 1: Parse standard format with clear section markers
+ */
+function parseStandardFormat(lines: string[]): CommitInfo[] {
+  const commits: CommitInfo[] = [];
   let currentCommit: Partial<CommitInfo> = {};
   let inCommit = false;
-
-  // Split the file by lines and process each line
-  const lines = content.split('\n');
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -217,6 +286,7 @@ function parseGitDiffFile(filePath: string): CommitInfo[] {
         commits.push(currentCommit as CommitInfo);
       }
       inCommit = false;
+      currentCommit = {};
     } else if (inCommit) {
       if (line.startsWith('#KEY#COMMIT_HASH#')) {
         currentCommit.hash = line.replace('#KEY#COMMIT_HASH#', '').trim();
@@ -241,23 +311,209 @@ function parseGitDiffFile(filePath: string): CommitInfo[] {
           j++;
         }
         currentCommit.changedFiles = changedFiles;
+        i = j - 1; // Skip ahead
       } else if (line.startsWith('#KEY#PR_MR_COMMENTS#')) {
         // Get the PR/MR comments (may span multiple lines)
         const comments: string[] = [];
         let j = i + 1;
-        while (
-          j < lines.length &&
-          !lines[j].startsWith('#KEY#DIFF_RANGE#') &&
-          !lines[j].startsWith('#KEY#END_COMMIT#')
-        ) {
+        // Keep reading until we hit another key or run out of lines
+        while (j < lines.length && !lines[j].match(/^#KEY#[A-Z_]+#/)) {
           if (lines[j].trim()) {
             comments.push(lines[j].trim());
           }
           j++;
         }
         currentCommit.comments = comments;
+        i = j - 1; // Skip ahead
       }
     }
+  }
+
+  return commits;
+}
+
+/**
+ * Strategy 2: Parse based on section markers with equals signs
+ */
+function parseEqualsSectionFormat(lines: string[]): CommitInfo[] {
+  const commits: CommitInfo[] = [];
+  let currentCommit: Partial<CommitInfo> = {};
+  let inCommit = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    // Look for pattern: #KEY#START_COMMIT# followed by ==== line
+    if (
+      line.startsWith('=====') &&
+      i > 0 &&
+      lines[i - 1].startsWith('#KEY#START_COMMIT#')
+    ) {
+      inCommit = true;
+      currentCommit = {};
+    }
+
+    if (inCommit) {
+      if (line.startsWith('#KEY#COMMIT_HASH#')) {
+        currentCommit.hash = line.replace('#KEY#COMMIT_HASH#', '').trim();
+      } else if (line.startsWith('#KEY#COMMIT_DATE#')) {
+        currentCommit.date = line.replace('#KEY#COMMIT_DATE#', '').trim();
+      } else if (line.startsWith('#KEY#COMMIT_AUTHOR#')) {
+        currentCommit.author = line.replace('#KEY#COMMIT_AUTHOR#', '').trim();
+      } else if (line.startsWith('#KEY#COMMIT_MESSAGE#')) {
+        currentCommit.message = line.replace('#KEY#COMMIT_MESSAGE#', '').trim();
+      } else if (line.startsWith('#KEY#RELATED_PR_MR#')) {
+        currentCommit.relatedPrMr = line
+          .replace('#KEY#RELATED_PR_MR#', '')
+          .trim();
+      } else if (line.startsWith('#KEY#CHANGED_FILES#')) {
+        // Get the changed files (may span multiple lines)
+        const changedFiles: string[] = [];
+        let j = i + 1;
+        while (j < lines.length && !lines[j].startsWith('#KEY#')) {
+          if (lines[j].trim().startsWith('-')) {
+            changedFiles.push(lines[j].trim().substring(2));
+          }
+          j++;
+        }
+        currentCommit.changedFiles = changedFiles;
+        i = j - 1; // Skip ahead
+      } else if (line.startsWith('#KEY#PR_MR_COMMENTS#')) {
+        // Get the PR/MR comments (may span multiple lines)
+        const comments: string[] = [];
+        let j = i + 1;
+
+        // Keep reading until we hit another key or run out of lines
+        while (j < lines.length && !lines[j].match(/^#KEY#[A-Z_]+#/)) {
+          if (lines[j].trim()) {
+            comments.push(lines[j].trim());
+          }
+          j++;
+        }
+
+        currentCommit.comments = comments;
+        i = j - 1; // Skip ahead
+      } else if (line.startsWith('#KEY#DIFF_RANGE#')) {
+        // We've reached the end of commit data, check if we have a complete commit
+        if (
+          currentCommit.hash &&
+          currentCommit.date &&
+          currentCommit.author &&
+          currentCommit.message
+        ) {
+          // Set defaults for optional fields
+          if (!currentCommit.changedFiles) {
+            currentCommit.changedFiles = [];
+          }
+
+          commits.push(currentCommit as CommitInfo);
+          inCommit = false;
+          currentCommit = {};
+        }
+      }
+    }
+  }
+
+  // Add the last commit if we're still in one at the end
+  if (
+    inCommit &&
+    currentCommit.hash &&
+    currentCommit.date &&
+    currentCommit.author &&
+    currentCommit.message
+  ) {
+    // Set defaults for optional fields
+    if (!currentCommit.changedFiles) {
+      currentCommit.changedFiles = [];
+    }
+
+    commits.push(currentCommit as CommitInfo);
+  }
+
+  return commits;
+}
+
+/**
+ * Strategy 3: Loose section-based parsing as a fallback
+ * This finds any commit data regardless of section markers
+ */
+function parseLooseSections(lines: string[]): CommitInfo[] {
+  const commits: CommitInfo[] = [];
+  let currentCommit: Partial<CommitInfo> = {};
+
+  // Look for any key patterns throughout the file
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+
+    if (line.startsWith('#KEY#COMMIT_HASH#')) {
+      // If we find a commit hash, this might be a new commit
+      // Save the previous commit if it was valid
+      if (
+        currentCommit.hash &&
+        currentCommit.date &&
+        currentCommit.author &&
+        currentCommit.message
+      ) {
+        commits.push(currentCommit as CommitInfo);
+      }
+
+      // Start a new commit
+      currentCommit = {
+        hash: line.replace('#KEY#COMMIT_HASH#', '').trim(),
+      };
+    } else if (line.startsWith('#KEY#COMMIT_DATE#')) {
+      currentCommit.date = line.replace('#KEY#COMMIT_DATE#', '').trim();
+    } else if (line.startsWith('#KEY#COMMIT_AUTHOR#')) {
+      currentCommit.author = line.replace('#KEY#COMMIT_AUTHOR#', '').trim();
+    } else if (line.startsWith('#KEY#COMMIT_MESSAGE#')) {
+      currentCommit.message = line.replace('#KEY#COMMIT_MESSAGE#', '').trim();
+    } else if (line.startsWith('#KEY#RELATED_PR_MR#')) {
+      currentCommit.relatedPrMr = line
+        .replace('#KEY#RELATED_PR_MR#', '')
+        .trim();
+    } else if (line.startsWith('#KEY#CHANGED_FILES#')) {
+      // Get the changed files (may span multiple lines)
+      const changedFiles: string[] = [];
+      let j = i + 1;
+      while (j < lines.length && !lines[j].startsWith('#KEY#')) {
+        if (lines[j].trim().startsWith('-')) {
+          changedFiles.push(lines[j].trim().substring(2));
+        }
+        j++;
+      }
+      currentCommit.changedFiles = changedFiles;
+      i = j - 1; // Skip ahead
+    } else if (line.startsWith('#KEY#PR_MR_COMMENTS#')) {
+      // Get the PR/MR comments (may span multiple lines)
+      const comments: string[] = [];
+      let j = i + 1;
+
+      // Keep reading until we hit another key or run out of lines
+      while (j < lines.length && !lines[j].match(/^#KEY#[A-Z_]+#/)) {
+        if (lines[j].trim()) {
+          comments.push(lines[j].trim());
+        }
+        j++;
+      }
+
+      currentCommit.comments = comments;
+      i = j - 1; // Skip ahead
+    }
+  }
+
+  // Add the last commit if it's valid
+  if (
+    currentCommit.hash &&
+    currentCommit.date &&
+    currentCommit.author &&
+    currentCommit.message
+  ) {
+    // Set defaults for optional fields
+    if (!currentCommit.changedFiles) {
+      currentCommit.changedFiles = [];
+    }
+
+    commits.push(currentCommit as CommitInfo);
   }
 
   return commits;
@@ -378,44 +634,127 @@ async function generateUpdatePage(
     day: 'numeric',
   });
 
-  // Generate commit list
+  // Generate commit list - make sure everything is a string
   const commitList = parsedData.commits
     .map((commit) => {
+      const message =
+        typeof commit.message === 'string'
+          ? commit.message
+          : String(commit.message);
+      const author =
+        typeof commit.author === 'string'
+          ? commit.author
+          : String(commit.author);
+      const commitDate =
+        typeof commit.date === 'string' ? commit.date : String(commit.date);
+      const hash =
+        typeof commit.hash === 'string' ? commit.hash : String(commit.hash);
+      const relatedPrMr = commit.relatedPrMr ? String(commit.relatedPrMr) : '';
+
       return (
-        `### ${commit.message}\n\n` +
-        `**Author:** ${commit.author}\n\n` +
-        `**Date:** ${commit.date}\n\n` +
-        `**Hash:** \`${commit.hash}\`\n\n` +
-        (commit.relatedPrMr
-          ? `**Related PR/MR:** ${commit.relatedPrMr}\n\n`
-          : '')
+        `### ${message}\n\n` +
+        `**Author:** ${author}\n\n` +
+        `**Date:** ${commitDate}\n\n` +
+        `**Hash:** \`${hash}\`\n\n` +
+        (relatedPrMr ? `**Related PR/MR:** ${relatedPrMr}\n\n` : '')
       );
     })
     .join('\n\n');
+
+  // Process all changedFiles more carefully
+  let allChangedFiles: string[] = [];
+  parsedData.commits.forEach((commit) => {
+    if (commit.changedFiles && commit.changedFiles.length > 0) {
+      // Filter out null or empty strings
+      const validFiles = commit.changedFiles.filter(
+        (file) => file && typeof file === 'string' && file.trim().length > 0,
+      );
+      allChangedFiles = [...allChangedFiles, ...validFiles];
+    }
+  });
+
+  // Remove duplicates and sort for consistency
+  allChangedFiles = [...new Set(allChangedFiles)].sort();
+
+  console.log(
+    `Files for ${fileName}: Found ${allChangedFiles.length} unique changed files`,
+  );
 
   // Generate changed files list
-  const changedFilesList = parsedData.commits
-    .filter((commit) => commit.changedFiles && commit.changedFiles.length > 0)
-    .flatMap((commit) => commit.changedFiles || [])
-    .filter((file, index, self) => self.indexOf(file) === index) // Remove duplicates
-    .map((file) => {
-      const icon = getFileIcon(file);
-      return `- ${icon} \`${file}\``;
-    })
-    .join('\n');
+  const changedFilesList =
+    allChangedFiles.length > 0
+      ? allChangedFiles
+          .map((file) => {
+            const icon = getFileIcon(file);
+            return `- ${icon} \`${file}\``;
+          })
+          .join('\n')
+      : 'No changed files.';
 
-  // Generate PR comments
-  const prComments = parsedData.commits
-    .filter((commit) => commit.comments && commit.comments.length > 0)
-    .map((commit) => {
-      return (
-        `### Comments for "${commit.message}"\n\n` +
-        commit.comments
-          ?.map((comment) => `> ${escapeMdxContent(comment)}`)
+  // Process PR comments more carefully
+  let allComments: { message: string; comments: string[] }[] = [];
+  parsedData.commits.forEach((commit) => {
+    if (commit.comments && commit.comments.length > 0) {
+      // Filter out empty comment lines and join coherent blocks
+      const cleanedComments = commit.comments
+        .filter(
+          (comment) =>
+            comment && typeof comment === 'string' && comment.trim().length > 0,
+        )
+        // Remove HTML comments used for internal state if they exist
+        .filter((comment) => !comment.includes('<!-- internal state'))
+        .filter(
+          (comment) => !comment.includes('<!-- finishing_touch_checkbox'),
+        );
+
+      if (cleanedComments.length > 0) {
+        const message =
+          typeof commit.message === 'string'
+            ? commit.message
+            : String(commit.message || 'Unknown commit');
+        allComments.push({
+          message,
+          comments: cleanedComments,
+        });
+      }
+    }
+  });
+
+  console.log(
+    `Comments for ${fileName}: Found comments in ${allComments.length} commits`,
+  );
+
+  // Generate PR comments with better formatting
+  const prComments =
+    allComments.length > 0
+      ? allComments
+          .map((item) => {
+            return (
+              `### Comments for "${item.message}"\n\n` +
+              item.comments
+                .map((comment) => {
+                  if (typeof comment !== 'string') {
+                    return `> ${JSON.stringify(comment)}`;
+                  }
+
+                  // Better handling of comment blocks - maintain code blocks and formatting
+                  if (comment.startsWith('```')) {
+                    // If it's a code block, escape it properly
+                    return comment;
+                  } else if (comment.startsWith('PR COMMENTS:')) {
+                    // Skip the PR COMMENTS: prefix
+                    return '';
+                  } else {
+                    // Regular comment line - keep the quoting
+                    return `> ${escapeMdxContent(comment)}`;
+                  }
+                })
+                .filter((c) => c.length > 0)
+                .join('\n\n')
+            );
+          })
           .join('\n\n')
-      );
-    })
-    .join('\n\n');
+      : 'No pull request comments.';
 
   // Generate code diffs (this is the new addition)
   const codeDiffs = `<Callout type="info">

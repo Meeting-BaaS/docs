@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   plugins: {
     '@tailwindcss/postcss': {
       // Add screens config to support 2xl
