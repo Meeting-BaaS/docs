@@ -64,6 +64,12 @@ pnpm enhance:updates --key=your_openrouter_api_key
 # Process all update files
 pnpm enhance:updates --key=your_openrouter_api_key --all
 
+# Process updates for a specific service
+pnpm enhance:updates --key=your_openrouter_api_key --service=api
+
+# Process updates for a specific date
+pnpm enhance:updates --key=your_openrouter_api_key --date=2023-10-15
+
 # and more...
 
 ## Links
