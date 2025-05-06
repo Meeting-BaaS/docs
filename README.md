@@ -2,31 +2,73 @@
 
 <p align="center"><a href="https://discord.com/invite/dsvFgDTr6c"><img height="60px" src="https://user-images.githubusercontent.com/31022056/158916278-4504b838-7ecb-4ab9-a900-7dc002aade78.png" alt="Join our Discord!"></a></p>
 
-## What is this?
+This is the official GitHub repository for Meeting BaaS documentation and mirror of: https://docs.meetingbaas.com
 
-This is the official documentation for Meeting BaaS (Backend as a Service) - a platform that helps developers build and integrate communication features into their applications. Our documentation is built with Next.js and Fumadocs for a seamless reading experience.
+This is a Next.js application using Fumadocs for generating and maintaining Meeting BaaS service documentation.
 
-## Documentation Structure
+## Contributing
 
-The documentation covers:
+Found an issue in our production documentation? Please open a Pull Request on any content file directly -- we'll take care of the rest.
 
-- Getting started guides
-- API references
-- SDK documentation
-- Integration examples
-- Best practices
-- Release notes and updates
+You can simply edit one of the following files in the `/content/docs/api/reference/` directory:
 
-## Help Us Improve
+- bots_with_metadata.mdx
+- delete_data.mdx
+- get_meeting_data.mdx
+- get_screenshots.mdx
+- join.mdx
+- leave.mdx
+- retranscribe_bot.mdx
+- webhooks/ (directory)
+- calendars/ (directory)
 
-Found something missing, unclear, or incorrect in our docs? We appreciate your help!
+Your contributions - even small fixes for typos or unclear explanations - are greatly appreciated.
 
-**Please open a Pull Request** with your suggested changes. Even small corrections like fixing typos or clarifying confusing sections are valuable contributions.
+## What is Meeting BaaS?
 
-## Development
+Meeting BaaS provides one API for Google Meet, Zoom, and Microsoft Teams. Integrate all of your tools automatically with just two HTTP requests to record meetings across platforms.
 
-Looking for development documentation? Check the `DEVELOPPEMENT.md` file for detailed information on running, building, and contributing to the documentation site itself.
+## API References
 
-## Community
+The compiled API reference files in this repository are the official reference for our API endpoints.
 
-Join our [Discord community](https://discord.com/invite/dsvFgDTr6c) to connect with other developers, ask questions, and get help with your integration.
+You can find them here:
+
+- `/openapi.json` - OpenAPI specification (automatically downloaded from api.meetingbaas.com)
+- `/content/docs/api/reference/` - API reference documentation files
+
+## Running This Repository
+
+Want to run the documentation locally? It's easy to get started:
+
+```bash
+# Install dependencies
+pnpm install
+
+# Start development server
+pnpm dev
+```
+
+Then open http://localhost:3000 in your browser to see the documentation site.
+
+For more detailed development instructions, check the `DEVELOPPEMENT.md` file.
+
+### Enhancing Update Files with AI
+
+The project includes an AI-powered enhancement script that uses OpenRouter (with Anthropic's Claude models) to improve automatically generated documentation:
+
+```bash
+# Enhance the most recent update file
+pnpm enhance:updates --key=your_openrouter_api_key
+
+# Process all update files
+pnpm enhance:updates --key=your_openrouter_api_key --all
+
+# and more...
+
+## Links
+
+- [Website](https://meetingbaas.com)
+- [Documentation](https://docs.meetingbaas.com)
+- [Join our Discord](https://discord.com/invite/dsvFgDTr6c)
+```
