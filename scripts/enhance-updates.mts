@@ -421,6 +421,7 @@ You are an expert technical writer for developer documentation. Your task is to 
 
 Project information:
 - Service being documented: ${serviceName}${contentStructure}
+WARNING: if the serviceName is api, you might want to change it to production with the icon Bolt IF IT DOES NOT AFFECT THE PUBLIC API, which is most cases. 
 
 ${fumadocsComponents}
 
@@ -475,6 +476,10 @@ to:
         additionalTags: ['production', 'release'],
     }
 
+
+Code Note: ALWAYS ADD EMPTY LINE SPACING FOR LISTS ITEMS, ITEMS INSIDE TABS, etc.
+
+ALWAYS PUT <Accordion> inside <Accordions>, etc
 
 
 USE THE FUMADOCS COMPONENTS AS MUCH AS POSSIBLE to hance readability. YOU CAN REFACTORIZE CONTENT AS MUCH AS YOU WANT and keep it SHORT.
