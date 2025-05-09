@@ -4,16 +4,19 @@
 # It runs git_grepper.sh against multiple repositories and then runs the update generation
 # Author: Based on repositories used by lazrossi's setup
 
-
-# REPLACE THESE PATHS WITH YOURS THANKS
-
-# Define repository paths
-MEETING_BAAS_PATH="/Users/lazrossi/Spoke/meeting-baas"
-SPEAKING_BOT_PATH="/Users/lazrossi/Spoke/speaking-meeting-bot"
-SDK_GENERATOR_PATH="/Users/lazrossi/Documents/code/mcp-s/sdk-generator"
-MCP_VERCEL_PATH="/Users/lazrossi/Documents/code/mcp-s/mcp-on-vercel"
-MCP_DOCS_PATH="/Users/lazrossi/Documents/code/mcp-s/mcp-on-vercel-documentation"
-MCP_BAAS_PATH="/Users/lazrossi/Documents/code/mcp-baas"
+# Load repository paths from config
+CONFIG_PATH="$(dirname "$0")/config.json"
+if [[ -f "$CONFIG_PATH" ]]; then
+    MEETING_BAAS_PATH=$(jq -r '.repositories."meeting-baas"' "$CONFIG_PATH")
+    SPEAKING_BOT_PATH=$(jq -r '.repositories."speaking-meeting-bot"' "$CONFIG_PATH")
+    SDK_GENERATOR_PATH=$(jq -r '.repositories."sdk-generator"' "$CONFIG_PATH")
+    MCP_VERCEL_PATH=$(jq -r '.repositories."mcp-on-vercel"' "$CONFIG_PATH")
+    MCP_DOCS_PATH=$(jq -r '.repositories."mcp-on-vercel-documentation"' "$CONFIG_PATH")
+    MCP_BAAS_PATH=$(jq -r '.repositories."mcp-baas"' "$CONFIG_PATH")
+else
+    echo "Error: config.json not found"
+    exit 1
+fi
 
 # Get the directory of this script
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
@@ -118,6 +121,7 @@ cd ../../
 
 # Generate the updates
 echo -e "${BLUE}Generating updates from collected git diffs...${NC}"
+cd /Users/lazmini/code/Meeting-Baas/docs
 pnpm clean:git-updates
 
 echo -e "${BLUE}Regenerating all updates...${NC}"

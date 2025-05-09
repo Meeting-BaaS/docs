@@ -3,37 +3,30 @@
 # Set the current directory to the one where this script is located
 cd "$(dirname "$0")" || exit 1
 
+# Store the docs directory for later use
+DOCS_DIR="$(pwd)/../../"
+
 # Default paths - use full paths to avoid issues
 GIT_GREPPER=${GIT_GREPPER:-"$(pwd)/git_grepper.sh"}
 CONFIG_PATH=${CONFIG_PATH:-"$(pwd)/config.json"}
-OUTPUT_DIR=${OUTPUT_DIR:-"$(pwd)/updates"}
+OUTPUT_DIR=${OUTPUT_DIR:-"$(pwd)"}
 
 # Repository path resolution function
 get_repo_path() {
   local repo_name=$1
-  case "$repo_name" in
-    "meeting-baas")
-      echo "/Users/lazrossi/Spoke/meeting-baas"
-      ;;
-    "speaking-meeting-bot")
-      echo "/Users/lazrossi/Spoke/speaking-meeting-bot"
-      ;;
-    "sdk-generator")
-      echo "/Users/lazrossi/Documents/code/mcp-s/sdk-generator"
-      ;;
-    "mcp-on-vercel")
-      echo "/Users/lazrossi/Documents/code/mcp-s/mcp-on-vercel"
-      ;;
-    "mcp-on-vercel-documentation")
-      echo "/Users/lazrossi/Documents/code/mcp-s/mcp-on-vercel-documentation"
-      ;;
-    "mcp-baas")
-      echo "/Users/lazrossi/Documents/code/mcp-baas"
-      ;;
-    *)
-      echo "$repo_name"  # If not a known repo name, assume it's a path
-      ;;
-  esac
+  
+  # Check if config file exists
+  if [[ -f "$CONFIG_PATH" ]]; then
+    # Use jq to get the path from config
+    local path=$(jq -r ".repositories.\"$repo_name\"" "$CONFIG_PATH")
+    if [[ "$path" != "null" ]]; then
+      echo "$path"
+      return
+    fi
+  fi
+  
+  # Fallback to repo name if not found in config
+  echo "$repo_name"
 }
 
 # Default values
@@ -159,6 +152,12 @@ process_repository() {
   local pr_days_range=$8
   local preview_mode=$9
   
+  # Store current directory
+  local current_dir=$(pwd)
+  
+  # Change to repo directory for git operations
+  cd "$repo_path" || return 1
+  
   # Determine repository type
   local repo_type=$(determine_repo_type "$repo_path")
   local repo_identifier=$(get_repo_identifier "$repo_path" "$repo_type")
@@ -172,11 +171,15 @@ process_repository() {
     "$GIT_GREPPER" "$repo_path" "$CHECKOUT_DEPTH" "$with_diff" "$with_code" --repo-name "$repo_name" --output-dir "$output_dir"
     if [[ $? -ne 0 ]]; then
       debug 0 "Error: git_grepper failed for $repo_name"
+      cd "$current_dir"
       return 1
     fi
   else
     debug 1 "Dry run: would execute git_grepper for main branch"
   fi
+  
+  # Return to original directory
+  cd "$current_dir"
   
   # Process PR/MR previews if enabled
   if [[ "$pr_previews" -eq 1 ]]; then

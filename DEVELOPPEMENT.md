@@ -66,24 +66,34 @@ chmod +x git_greppers/local-git-setup.sh
 
 This script will:
 
-1. Process the repositories defined in the script
+1. Process the repositories defined in the configuration
 2. Generate diff files in the appropriate folders
 3. Clean existing git updates
 4. Generate new update files based on the diffs
 
-You may need to modify the repository paths in `git_greppers/local-git-setup.sh` to match your local environment:
+You need to configure your repository paths in `git_greppers/config.json`:
 
-```bash
-# Inside local-git-setup.sh
-REPOSITORIES=(
-  "/path/to/meeting-baas"
-  "/path/to/speaking-meeting-bot"
-  "/path/to/sdk-generator"
-  "/path/to/mcp-on-vercel"
-)
+```json
+{
+  "repositories": {
+    "meeting-baas": "/path/to/meeting-baas",
+    "speaking-meeting-bot": "/path/to/speaking-meeting-bot",
+    "sdk-generator": "/path/to/sdk-generator",
+    "mcp-on-vercel": "/path/to/mcp-on-vercel",
+    "mcp-on-vercel-documentation": "/path/to/mcp-on-vercel-documentation",
+    "mcp-baas": "/path/to/mcp-baas"
+  }
+}
 ```
 
 Each path should point to a valid Git repository that you want to include in the documentation updates.
+
+#### Requirements
+
+- `jq` is required for parsing the configuration file. Install it using:
+  ```bash
+  brew install jq
+  ```
 
 #### Basic Commands
 
@@ -178,6 +188,7 @@ meeting-baas-docs/
 │   └── docs/
 │       └── updates/    # Generated update files
 ├── git_greppers/       # Git diff files used for updates
+│   ├── config.json     # Repository configuration
 │   ├── meeting-baas-git-diffs/
 │   ├── sdk-generator-git-diffs/
 │   └── ...
