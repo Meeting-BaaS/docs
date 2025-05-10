@@ -1,0 +1,10 @@
+{
+  "repositories": {
+    "meeting-baas": "/Users/lazmini/code/Meeting-Baas/meeting-bot-as-a-service",
+    "speaking-meeting-bot": "/Users/lazmini/code/Meeting-Baas/speaking-meeting-bot",
+    "sdk-generator": "/Users/lazmini/code/Meeting-Baas/meetingsdk-auth-endpoint-sample",
+    "mcp-on-vercel": "/Users/lazmini/code/Meeting-Baas/meeting-transcription-streaming",
+    "mcp-on-vercel-documentation": "/Users/lazmini/code/Meeting-Baas/landings-meeting-baas",
+    "mcp-baas": "/Users/lazmini/code/Meeting-Baas/transcript-seeker"
+  }
+} 

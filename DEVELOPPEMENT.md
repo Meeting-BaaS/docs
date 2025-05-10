@@ -101,6 +101,32 @@ This script will:
 3. Clean existing git updates
 4. Generate new update files based on the diffs
 
+You can also run the git grepper script directly with various options:
+
+```bash
+# Basic usage
+./git_greppers/git_grepper.sh /path/to/repo [debug_level] [flags]
+
+# Available flags:
+#   --no-diff           Skip generating diffs (faster for large repositories)
+#   --only-with-pr-mr   Only process commits with related PR/MR references
+#   --overwrite         Overwrite existing files (default: skip existing files)
+#   --days N            Number of days to look back (default: 7)
+
+# Examples:
+# Process with debug level 3 and only PR/MR commits
+./git_greppers/git_grepper.sh /path/to/repo 3 --only-with-pr-mr
+
+# Process and overwrite existing files
+./git_greppers/git_grepper.sh /path/to/repo 3 --overwrite
+
+# Skip diffs and only process PR/MR commits
+./git_greppers/git_grepper.sh /path/to/repo 3 --no-diff --only-with-pr-mr
+
+# Process commits from the last 14 days
+./git_greppers/git_grepper.sh /path/to/repo 3 --days 14
+```
+
 You need to configure your repository paths in `git_greppers/config.json`:
 
 ```json
@@ -152,85 +178,3 @@ pnpm setup:git-updates
 > - `test:git-updates` only creates new files without modifying existing ones
 > - `regenerate:git-updates` deletes all existing update files before creating new ones (will overwrite customized files)
 > - If you've customized any update files, prefer using `test:git-updates` to preserve your changes
-
-#### Common Workflows
-
-1. **Full Rebuild (recommended for first run)**:
-
-   ```bash
-   # Transpile TypeScript, clean updates, generate all updates, run dev server
-   pnpm transpile && pnpm clean:git-updates && pnpm test:all-updates && pnpm dev
-   ```
-
-2. **Update After Code Changes**:
-
-   ```bash
-   # Transpile and regenerate all updates
-   pnpm transpile && pnpm test:all-updates
-   ```
-
-3. **Clean Start for Development**:
-   ```bash
-   # Clean everything, transpile, and run dev
-   pnpm clean && pnpm transpile && pnpm dev
-   ```
-
-### Service Updates
-
-Service updates track changes in specific service directories and generate appropriate documentation updates.
-
-```bash
-# Generate updates for services
-pnpm test:updates
-
-# Run all update generators (git diffs + services)
-pnpm test:all-updates
-
-# Clean updates but keep OpenAPI docs
-pnpm clean:updates:keep-openapi
-
-# Clean all updates
-pnpm clean:updates
-```
-
-### Other Scripts
-
-```bash
-# Transpile TypeScript files
-pnpm transpile
-
-# Run pre-build operations
-pnpm build:pre
-
-# Run post-build operations
-pnpm build:post
-
-# Run linting
-pnpm lint
-```
-
-## Project Structure
-
-```
-meeting-baas-docs/
-├── app/                # Next.js app directory
-├── content/
-│   └── docs/
-│       └── updates/    # Generated update files
-├── git_greppers/       # Git diff files used for updates
-│   ├── config.json     # Repository configuration
-│   ├── meeting-baas-git-diffs/
-│   ├── sdk-generator-git-diffs/
-│   └── ...
-├── scripts/
-│   └── updates/
-│       ├── templates/  # Templates for generated files
-│       │   ├── components/  # Directory for reusable components
-│       │   ├── git-updates.mdx.template
-│       │   ├── service-update.mdx.template
-│       │   └── index.mdx.template
-│       ├── generate-git-diff-updates.mts  # Git updates generator
-│       ├── generators.ts                 # Service updates generator
-│       └── ...
-└── ...
-```

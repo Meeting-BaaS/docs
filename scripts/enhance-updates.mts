@@ -247,6 +247,8 @@ async function generateEnhancedContent(
   const enhanceInstructions = getPrompt('instructions', 'enhanceUpdates');
   const rules = getPrompt('instructions', 'rules');
   const serviceSpecific = getPrompt('instructions', 'serviceSpecific');
+
+  // Template prompts for future use or reference
   const updateHeader = getPrompt('templates', 'updateHeader');
   const updateFooter = getPrompt('templates', 'updateFooter');
   const codeBlock = getPrompt('formatting', 'codeBlock');
@@ -271,8 +273,16 @@ ${content}
 
 Provide only the enhanced content in proper MDX format. Do not include explanations or meta-commentary about your changes.
 
-${serviceSpecific}
-`;
+${serviceSpecific}`;
+
+  // Log the prompt to a temporary file
+  const tmpDir = path.join(rootDir, 'tmp');
+  await fs.mkdir(tmpDir, { recursive: true });
+  const tmpFile = path.join(tmpDir, `${serviceName}-prompt.txt`);
+  await fs.writeFile(tmpFile, prompt, 'utf-8');
+  if (verbose) {
+    spinner.info(`Prompt logged to: ${tmpFile}`);
+  }
 
   // After getting the AI response, validate the content
   const validateComponentsInContent = (
