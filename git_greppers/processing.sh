@@ -55,6 +55,7 @@ process_commits() {
   local log_file=$9
   local only_with_pr_mr=${10:-false}
   local overwrite=${11:-false}
+  local days=${12:-7}
   
   # Initialize counters
   local processed_count=0
@@ -74,7 +75,7 @@ process_commits() {
   commit_count=$(echo "$commits" | wc -l)
   
   if [ "$commit_count" -eq 0 ]; then
-    echo "No commits found in the last two months" >&2
+    echo "No commits found in the last $days days" >&2
     return 1
   fi
   
@@ -102,11 +103,13 @@ process_commits() {
     local commit_date=$(git show -s --format=%ai "$commit")
     local commit_msg=$(git show -s --format=%B "$commit")
     local commit_author=$(git show -s --format=%an "$commit")
+    local commit_branch=$(git show -s --format=%D "$commit" | grep -o 'origin/[^,]*' | sed 's/origin\///')
     
     debug 2 "Processing commit: $commit" >&2
     debug 3 "Commit date: $commit_date" >&2
     debug 3 "Commit message: $commit_msg" >&2
     debug 3 "Commit author: $commit_author" >&2
+    debug 3 "Commit branch: $commit_branch" >&2
     
     # Check for related PR/MR references
     local has_pr_mr=false
@@ -127,10 +130,17 @@ process_commits() {
     fi
     
     # Check for merge commit messages
-    if [[ "$commit_msg" =~ (Merge pull request #[0-9]+|Merge branch .* into .*) ]]; then
+    if [[ "$commit_msg" =~ (Merge (pull request|branch) .* into .*|Merge branch .* into .*) ]]; then
       has_pr_mr=true
       pr_mr_refs="${pr_mr_refs:+$pr_mr_refs }${BASH_REMATCH[0]}"
       debug 2 "Found merge commit message: ${BASH_REMATCH[0]}" >&2
+    fi
+    
+    # Check branch name for feature branches
+    if [[ "$commit_branch" =~ (feature|bugfix|hotfix|release)/.* ]]; then
+      has_pr_mr=true
+      pr_mr_refs="${pr_mr_refs:+$pr_mr_refs }Branch: $commit_branch"
+      debug 2 "Found feature branch: $commit_branch" >&2
     fi
     
     if [ "$has_pr_mr" = true ]; then

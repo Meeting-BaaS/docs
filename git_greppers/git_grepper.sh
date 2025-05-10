@@ -199,7 +199,7 @@ if [ "$COMMIT_COUNT" -eq 0 ]; then
 fi
 
 # Process commits and get results
-PROCESS_RESULT=$(process_commits "$COMMITS" "$REPO_PATH" "$OUTPUT_DIR" "$PRIMARY_BRANCH" "$MAX_DIFF_LINES" "$SKIP_DIFF" "$REPO_TYPE" "$REPO_IDENTIFIER" "$LOG_FILE" "$ONLY_WITH_PR_MR" "$OVERWRITE" 2>&1)
+PROCESS_RESULT=$(process_commits "$COMMITS" "$REPO_PATH" "$OUTPUT_DIR" "$PRIMARY_BRANCH" "$MAX_DIFF_LINES" "$SKIP_DIFF" "$REPO_TYPE" "$REPO_IDENTIFIER" "$LOG_FILE" "$ONLY_WITH_PR_MR" "$OVERWRITE" "$DAYS" 2>&1)
 PROCESS_EXIT_CODE=$?
 
 # Extract the counts and file operations from the last line of output
