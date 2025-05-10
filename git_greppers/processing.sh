@@ -56,6 +56,7 @@ process_commits() {
   local only_with_pr_mr=${10:-false}
   local overwrite=${11:-false}
   local days=${12:-7}
+  local include_code=${13:-false}
   
   # Initialize counters
   local processed_count=0
@@ -83,6 +84,10 @@ process_commits() {
   
   if [ "$only_with_pr_mr" = true ]; then
     debug 1 "Only processing commits with related PR/MR references" >&2
+  fi
+  
+  if [ "$include_code" = true ]; then
+    debug 1 "Will include code changes in the output" >&2
   fi
   
   # Process each commit
@@ -245,10 +250,16 @@ process_commits() {
         debug 2 "Generating diff for commit: $commit" >&2
         echo "#KEY#DIFF_RANGE# $diff_range" >> "$current_file"
         echo "#KEY#GIT_DIFF#" >> "$current_file"
-        git show "$commit" | tail -n +$diff_range >> "$current_file"
+        
+        if [ "$include_code" = true ]; then
+          # Include full code changes
+          git show "$commit" | tail -n +$diff_range >> "$current_file"
+        else
+          # Only include file names and basic diff info
+          git show --name-only --format="" "$commit" >> "$current_file"
+        fi
       else
         debug 2 "No changes found in commit: $commit" >&2
-        echo "#KEY#GIT_DIFF_SKIPPED# No changes found" >> "$current_file"
       fi
     else
       debug 2 "Diff generation disabled for commit: $commit" >&2

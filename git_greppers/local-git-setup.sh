@@ -49,31 +49,31 @@ REPO_PATH="$MEETING_BAAS_PATH"
 if [ -d "$REPO_PATH" ]; then
     REPO_NAME=$(basename "$REPO_PATH")
     echo -e "${GREEN}Processing repository: $REPO_NAME${NC}"
-    ./git_grepper.sh "$REPO_PATH" "$DEBUG_LEVEL" --no-diff --only-with-pr-mr
+    ./git_grepper.sh "$REPO_PATH" "$DEBUG_LEVEL" --with-diff --include-code --only-with-pr-mr --overwrite --days 7 --verbose
     echo -e "${GREEN}Completed processing for: $REPO_NAME${NC}"
     echo "-------------------------------------------"
 else
     echo -e "${YELLOW}Warning: Repository path not found: $REPO_PATH - skipping${NC}"
 fi
 
-# Speaking bots repository - with diffs
+# Speaking bots repository
 REPO_PATH="$SPEAKING_BOT_PATH"
 if [ -d "$REPO_PATH" ]; then
     REPO_NAME=$(basename "$REPO_PATH") 
     echo -e "${GREEN}Processing repository: $REPO_NAME${NC}"
-    ./git_grepper.sh "$REPO_PATH" "$DEBUG_LEVEL" --with-diff --include-code --only-with-pr-mr
+    ./git_grepper.sh "$REPO_PATH" "$DEBUG_LEVEL" --with-diff --include-code --only-with-pr-mr --overwrite --days 7 --verbose
     echo -e "${GREEN}Completed processing for: $REPO_NAME${NC}"
     echo "-------------------------------------------"
 else
     echo -e "${YELLOW}Warning: Repository path not found: $REPO_PATH - skipping${NC}"
 fi
 
-# SDK generator repository - with diffs
+# SDK generator repository
 REPO_PATH="$SDK_GENERATOR_PATH"
 if [ -d "$REPO_PATH" ]; then
     REPO_NAME=$(basename "$REPO_PATH")
     echo -e "${GREEN}Processing repository: $REPO_NAME${NC}"
-    ./git_grepper.sh "$REPO_PATH" "$DEBUG_LEVEL" --with-diff --include-code --only-with-pr-mr
+    ./git_grepper.sh "$REPO_PATH" "$DEBUG_LEVEL" --with-diff --include-code --only-with-pr-mr --overwrite --days 7 --verbose
     echo -e "${GREEN}Completed processing for: $REPO_NAME${NC}"
     echo "-------------------------------------------"
 else
@@ -85,19 +85,19 @@ REPO_PATH="$MCP_VERCEL_PATH"
 if [ -d "$REPO_PATH" ]; then
     REPO_NAME=$(basename "$REPO_PATH")
     echo -e "${GREEN}Processing repository: $REPO_NAME${NC}"
-    ./git_grepper.sh "$REPO_PATH" "$DEBUG_LEVEL" --no-diff --only-with-pr-mr
+    ./git_grepper.sh "$REPO_PATH" "$DEBUG_LEVEL" --with-diff --include-code --only-with-pr-mr --overwrite --days 7 --verbose
     echo -e "${GREEN}Completed processing for: $REPO_NAME${NC}"
     echo "-------------------------------------------"
 else
     echo -e "${YELLOW}Warning: Repository path not found: $REPO_PATH - skipping${NC}"
 fi
 
-# MCP documentation repository - with diffs
+# MCP documentation repository
 REPO_PATH="$MCP_DOCS_PATH"
 if [ -d "$REPO_PATH" ]; then
     REPO_NAME=$(basename "$REPO_PATH")
     echo -e "${GREEN}Processing repository: $REPO_NAME${NC}"
-    ./git_grepper.sh "$REPO_PATH" "$DEBUG_LEVEL" --with-diff --include-code --only-with-pr-mr
+    ./git_grepper.sh "$REPO_PATH" "$DEBUG_LEVEL" --with-diff --include-code --only-with-pr-mr --overwrite --days 7 --verbose
     echo -e "${GREEN}Completed processing for: $REPO_NAME${NC}"
     echo "-------------------------------------------"
 else
@@ -109,7 +109,7 @@ REPO_PATH="$MCP_BAAS_PATH"
 if [ -d "$REPO_PATH" ]; then
     REPO_NAME=$(basename "$REPO_PATH") 
     echo -e "${GREEN}Processing repository: $REPO_NAME${NC}"
-    ./git_grepper.sh "$REPO_PATH" "$DEBUG_LEVEL" --no-diff --only-with-pr-mr
+    ./git_grepper.sh "$REPO_PATH" "$DEBUG_LEVEL" --with-diff --include-code --only-with-pr-mr --overwrite --days 7 --verbose
     echo -e "${GREEN}Completed processing for: $REPO_NAME${NC}"
     echo "-------------------------------------------"
 else

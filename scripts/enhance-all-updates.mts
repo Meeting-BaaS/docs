@@ -38,8 +38,17 @@ if (!apiKey) {
   process.exit(1);
 }
 
+// Get model from environment variable
+const model = process.env.PAGE_GENERATION_OPENROUTER_NAME;
+if (!model) {
+  console.error('Error: PAGE_GENERATION_OPENROUTER_NAME is required in .env file');
+  process.exit(1);
+}
+
+// Log the model being used in green
+console.log('\x1b[32m%s\x1b[0m', `Using model: ${model}`);
+
 // Optional parameters
-const model = argv.model || 'anthropic/claude-3-haiku';
 const service = argv.service;
 const date = argv.date;
 const localDev = argv.local || false;
@@ -74,23 +83,25 @@ function updateApiFrontmatter(filePath: string): void {
   const content = fs.readFileSync(filePath, 'utf-8');
   const platforms = detectPlatforms(filePath);
   
+  // Extract the date from the existing frontmatter
+  const dateMatch = content.match(/date: (.*?)(?:\n|$)/);
+  const date = dateMatch ? dateMatch[1] : new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+  
   // Create new frontmatter
   let newFrontmatter = `---
-icon: Zap
-service: production
-`;
-
-  if (platforms.length > 0) {
-    newFrontmatter += `description: API - ${platforms.join(', ')} - Automatically generated documentation based on Git activity.
-`;
-  }
+title: ${date}
+description: ${platforms.length > 0 ? platforms.join(', ') : ''}
+icon: ${platforms.length > 0 ? 'Webhook' : 'Zap'}
+service: ${platforms.length > 0 ? 'api' : 'production'}
+date: ${date}
+---\n\n`;
 
   // Extract content after frontmatter
   const contentMatch = content.match(/^---\n[\s\S]*?\n---\n([\s\S]*)$/);
   const mainContent = contentMatch ? contentMatch[1] : content;
 
   // Write updated content
-  fs.writeFileSync(filePath, `${newFrontmatter}---\n\n${mainContent}`);
+  fs.writeFileSync(filePath, `${newFrontmatter}${mainContent}`);
 }
 
 // Read all MDX files in the updates directory

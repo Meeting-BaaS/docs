@@ -68,9 +68,19 @@ async function main() {
   // Get OpenAI key
   const key = options.key || process.env.OPENROUTER_API_KEY;
   if (!key) {
-    console.error('Error: OpenRouterj API key is required');
+    console.error('Error: OpenRouter API key is required');
     process.exit(1);
   }
+
+  // Get model from environment variable
+  const model = process.env.PAGE_GENERATION_OPENROUTER_NAME;
+  if (!model) {
+    console.error('Error: PAGE_GENERATION_OPENROUTER_NAME is required in .env file');
+    process.exit(1);
+  }
+
+  // Log the model being used in green
+  console.log('\x1b[32m%s\x1b[0m', `Using model: ${model}`);
 
   // Get modified files
   const files = await getModifiedFiles(options.service);
@@ -90,14 +100,19 @@ async function main() {
       const dateMatch = file.match(/\d{4}-\d{2}-\d{2}/);
       const date = dateMatch ? dateMatch[0] : null;
 
+      // Build the command with all arguments
       const enhanceArgs = [
         '--key', key,
         '--service', options.service || 'api',
         ...(date ? ['--date', date] : []),
         '--all',
         ...(options.verbose ? ['--verbose'] : []),
-        ...(options.model ? ['--model', options.model] : []),
       ];
+
+      // Log the command being executed
+      console.log(`Running: pnpm enhance:updates ${enhanceArgs.join(' ')}`);
+      
+      // Execute the command
       execSync(`pnpm enhance:updates ${enhanceArgs.join(' ')}`, { stdio: 'inherit' });
       console.log(`Successfully enhanced ${file}`);
     } catch (error) {

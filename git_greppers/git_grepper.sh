@@ -15,11 +15,13 @@ fi
 #
 # Supported flags:
 #   --no-diff           Skip generating diffs (faster for large repositories)
+#   --with-diff         Include full diffs in the output
+#   --include-code      Include code changes in the output
 #   --only-with-pr-mr   Only process commits with related PR/MR references
 #   --overwrite         Overwrite existing files (default: skip existing files)
 #   --days N            Number of days to look back (default: 7)
 #
-# Example: ./git_grepper.sh /path/to/repo 3 --no-diff --only-with-pr-mr --overwrite --days 14
+# Example: ./git_grepper.sh /path/to/repo 3 --with-diff --include-code --only-with-pr-mr --overwrite --days 14
 
 # Store the launch directory
 LAUNCH_DIR=$(pwd)
@@ -35,7 +37,8 @@ source "${SCRIPT_DIR}/processing.sh"
 REPO_PATH=${1:-.}
 DEBUG_LEVEL=${2:-1}  # Debug levels: 0=none, 1=normal, 2=verbose, 3=very verbose
 MAX_DIFF_LINES=100   # Maximum number of lines per diff block
-SKIP_DIFF=false      # Default to include diffs
+SKIP_DIFF=true       # Default to skip diffs
+INCLUDE_CODE=false   # Default to not include code
 ONLY_WITH_PR_MR=false # Default to include all commits
 OVERWRITE=false      # Default to skip existing files
 DAYS=90              # Default to 90 days
@@ -46,6 +49,14 @@ while [[ $# -gt 0 ]]; do
     --no-diff|-no-diff)
       SKIP_DIFF=true
       debug 1 "Flag detected: No diff generation (--no-diff)"
+      ;;
+    --with-diff|-with-diff)
+      SKIP_DIFF=false
+      debug 1 "Flag detected: Will include diffs (--with-diff)"
+      ;;
+    --include-code|-include-code)
+      INCLUDE_CODE=true
+      debug 1 "Flag detected: Will include code changes (--include-code)"
       ;;
     --only-with-pr-mr|-only-with-pr-mr)
       ONLY_WITH_PR_MR=true
@@ -93,7 +104,7 @@ debug() {
   fi
 }
 
-debug 1 "Script started with parameters: REPO_PATH=$REPO_PATH, DEBUG_LEVEL=$DEBUG_LEVEL, MAX_DIFF_LINES=$MAX_DIFF_LINES, SKIP_DIFF=$SKIP_DIFF, ONLY_WITH_PR_MR=$ONLY_WITH_PR_MR, OVERWRITE=$OVERWRITE, DAYS=$DAYS"
+debug 1 "Script started with parameters: REPO_PATH=$REPO_PATH, DEBUG_LEVEL=$DEBUG_LEVEL, MAX_DIFF_LINES=$MAX_DIFF_LINES, SKIP_DIFF=$SKIP_DIFF, INCLUDE_CODE=$INCLUDE_CODE, ONLY_WITH_PR_MR=$ONLY_WITH_PR_MR, OVERWRITE=$OVERWRITE, DAYS=$DAYS"
 
 # Check if the provided path is a git repository
 validate_git_repo "$REPO_PATH"
@@ -207,7 +218,7 @@ if [ "$COMMIT_COUNT" -eq 0 ]; then
 fi
 
 # Process commits and get results
-PROCESS_RESULT=$(process_commits "$COMMITS" "$REPO_PATH" "$OUTPUT_DIR" "$PRIMARY_BRANCH" "$MAX_DIFF_LINES" "$SKIP_DIFF" "$REPO_TYPE" "$REPO_IDENTIFIER" "$LOG_FILE" "$ONLY_WITH_PR_MR" "$OVERWRITE" "$DAYS" 2>&1)
+PROCESS_RESULT=$(process_commits "$COMMITS" "$REPO_PATH" "$OUTPUT_DIR" "$PRIMARY_BRANCH" "$MAX_DIFF_LINES" "$SKIP_DIFF" "$REPO_TYPE" "$REPO_IDENTIFIER" "$LOG_FILE" "$ONLY_WITH_PR_MR" "$OVERWRITE" "$DAYS" "$INCLUDE_CODE" 2>&1)
 PROCESS_EXIT_CODE=$?
 
 # Extract the counts and file operations from the last line of output

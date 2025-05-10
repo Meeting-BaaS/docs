@@ -6,7 +6,22 @@
 
 # Default to only process untracked files, use --all to process all api-* files
 PROCESS_ALL=false
-MODEL="anthropic/claude-3.5-haiku:beta"
+
+# Load environment variables
+if [ -f .env ]; then
+  export $(cat .env | grep -v '^#' | xargs)
+fi
+
+# Check if PAGE_GENERATION_OPENROUTER_NAME is set
+if [ -z "$PAGE_GENERATION_OPENROUTER_NAME" ]; then
+  echo "Error: PAGE_GENERATION_OPENROUTER_NAME is required in .env file"
+  exit 1
+fi
+
+MODEL="$PAGE_GENERATION_OPENROUTER_NAME"
+
+# Log the model being used in green
+echo -e "\e[32mUsing model: $MODEL\e[0m"
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -15,14 +30,10 @@ while [[ $# -gt 0 ]]; do
       PROCESS_ALL=true
       shift
       ;;
-    --model=*)
-      MODEL="${1#*=}"
-      shift
-      ;;
     *)
       # Unknown option
       echo "Unknown option: $1"
-      echo "Usage: $0 [--all] [--model=model_name]"
+      echo "Usage: $0 [--all]"
       exit 1
       ;;
   esac
@@ -89,8 +100,28 @@ update_frontmatter() {
     # Remove existing description line
     sed -i '' '/description:/d' "$temp_file"
     
-    # Add new description with platforms
-    sed -i '' "s/title:/description: API - ${platforms} - Automatically generated documentation based on Git activity.\ntitle:/" "$temp_file"
+    # Update the frontmatter with platforms if they exist
+    if [ -n "$platforms" ]; then
+      sed -i '' "s/title:/description: API - ${platforms}\ntitle:/" "$temp_file"
+    else
+      sed -i '' "s/title:/description: API\ntitle:/" "$temp_file"
+    fi
+  fi
+  
+  # If no platforms found, convert to Production update
+  if [ -z "$platforms" ]; then
+    # Replace the entire frontmatter block
+    new_frontmatter="---
+title: $(date +"%B %d, %Y")
+description: Production
+icon: Zap
+service: production
+date: $(date +"%B %d, %Y")
+---"
+    
+    # Replace the old frontmatter with the new one
+    sed -i '' "1,/^---$/c\\
+$new_frontmatter" "$temp_file"
   fi
   
   # Get the content after the frontmatter

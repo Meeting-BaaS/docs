@@ -12,7 +12,7 @@
  * --model      Optional. Model to use (default: anthropic/claude-3-haiku)
  * --service    Optional. Service to enhance (e.g., api, sdk)
  * --date       Optional. Date to enhance (YYYY-MM-DD)
- * --days       Optional. Number of days to include (default: 90)
+ * --days       Optional. Number of days to include (default: 7)
  * --all        Optional. Process all update files
  * --verbose    Optional. Enable verbose logging
  * --local      Optional. Enable local development mode
@@ -45,16 +45,23 @@ if (!apiKey) {
   process.exit(1);
 }
 
+// Get model from environment variable
+const model = process.env.PAGE_GENERATION_OPENROUTER_NAME;
+if (!model) {
+  console.error('Error: PAGE_GENERATION_OPENROUTER_NAME is required in .env file');
+  process.exit(1);
+}
+
+// Log the model being used in green
+console.log('\x1b[32m%s\x1b[0m', `Using model: ${model}`);
+
 // Optional parameters
-const service = argv.service;
+const service = argv.service === 'meeting-baas' ? 'api' : argv.service;
 const date = argv.date;
-const days = parseInt(argv.days || '90', 10);
+const days = parseInt(argv.days || '7', 10);
 const processAll = argv.all;
 const verbose = argv.verbose;
 const localDev = argv.local || false;
-
-// Set default model
-const model = argv.model || 'anthropic/claude-3-haiku';
 
 // Get the directory path
 const __filename = fileURLToPath(import.meta.url);
@@ -152,22 +159,12 @@ async function findUpdateFiles(): Promise<string[]> {
       console.error(`Error reading directory ${updatesDir}:`, error);
     }
 
-    // If processAll is false and we have more than 1 file, take the most recent
-    if (!processAll && files.length > 1) {
-      // Get file stats and sort files by modification time (newest first)
-      const fileStats = [];
-
-      for (const file of files) {
-        const stats = await fs.stat(file);
-        fileStats.push({ file, mtime: stats.mtime.getTime() });
-      }
-
-      // Sort by modification time (newest first)
-      fileStats.sort((a, b) => b.mtime - a.mtime);
-
-      // Return just the most recent file
-      return [fileStats[0].file];
-    }
+    // Sort files by date (newest first)
+    files.sort((a, b) => {
+      const dateA = a.match(/\d{4}-\d{2}-\d{2}/)?.[0] || '';
+      const dateB = b.match(/\d{4}-\d{2}-\d{2}/)?.[0] || '';
+      return dateB.localeCompare(dateA);
+    });
 
     return files;
   } catch (error) {
@@ -259,34 +256,161 @@ function detectPlatforms(content: string): string[] {
   return platforms;
 }
 
-// Function to validate and format header
-function validateAndFormatHeader(frontmatter: Record<string, any>, content: string): Record<string, any> {
-  const platforms = detectPlatforms(content);
-  const platformsStr = platforms.length > 0 ? ` - ${platforms.join(', ')}` : '';
-  
-  // Ensure date is in correct format
-  const date = new Date(frontmatter.date);
-  const formattedDate = date.toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric'
-  });
+// Function to validate components in content
+function validateComponentsInContent(
+  content: string,
+  availableComponents: string[],
+): void {
+  // Find all custom component tags in the content
+  const componentRegex = /<([A-Z][a-zA-Z]*)[^>]*>/g;
+  const matches = [...content.matchAll(componentRegex)];
 
-  // Update frontmatter
-  return {
-    ...frontmatter,
-    title: formattedDate,
-    date: formattedDate,
-    description: `${frontmatter.description}${platformsStr}`,
-  };
+  // Extract the component names
+  const usedComponents = matches.map((match) => match[1]);
+
+  // Always allow Tabs component since it's an alias in our setup
+  const allowedComponents = [...availableComponents, 'Tabs', 'CustomTabs'];
+
+  // Filter to only components not in the available list
+  const invalidComponents = usedComponents.filter(
+    (comp) => comp && !allowedComponents.includes(comp),
+  );
+
+  // Crash if invalid components are found
+  if (invalidComponents.length > 0) {
+    throw new Error(
+      `Error: Generated content contains components that are not available: ${invalidComponents.join(', ')}. ` +
+        `Available components are: ${allowedComponents.join(', ')}`,
+    );
+  }
 }
 
-// Generate enhanced content using OpenRouter
-async function generateEnhancedContent(
+// Define OpenRouter API response types
+interface OpenRouterMessage {
+  role: string;
+  content: string;
+}
+
+interface OpenRouterChoice {
+  message: OpenRouterMessage;
+  finish_reason: string;
+}
+
+interface OpenRouterResponse {
+  id: string;
+  model: string;
+  choices: OpenRouterChoice[];
+}
+
+// Function to analyze content and determine service type
+async function analyzeContent(content: string, serviceName: string): Promise<{
+  service: string;
+  icon: string;
+  platforms: string[];
+  reasoning: string;
+  affected_areas: string[];
+}> {
+  spinner.text = `Analyzing content for service determination`;
+
+  if (!model) {
+    throw new Error('Model name is required');
+  }
+
+  const analysisPrompt = `
+You are an expert technical writer analyzing changes for documentation. Your task is to analyze the following content and determine if it should be an API or Production update.
+
+${getPrompt('instructions', 'serviceSpecific')}
+
+Here is the content to analyze:
+
+${content}
+
+Provide ONLY the JSON analysis in this exact format:
+\`\`\`json
+{
+  "service": "api|production",
+  "icon": "Webhook|Zap",
+  "platforms": ["Zoom", "Google Meet", "Teams"],
+  "reasoning": "Brief explanation of why this service type was chosen",
+  "affected_areas": ["list", "of", "modified", "areas"]
+}
+\`\`\`
+`;
+
+  try {
+    const result = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+        ...(localDev ? {} : {
+          'HTTP-Referer': 'https://meeting-baas-docs.vercel.app/',
+          'X-Title': 'MeetingBaaS Docs',
+        }),
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert technical writer analyzing changes for documentation.',
+          },
+          {
+            role: 'user',
+            content: analysisPrompt,
+          },
+        ],
+        temperature: 0.1,
+      }),
+    });
+
+    if (!result.ok) {
+      throw new Error(`OpenRouter API error: ${result.status}`);
+    }
+
+    const response = (await result.json()) as OpenRouterResponse;
+    const analysisContent = response.choices?.[0]?.message?.content;
+    if (!analysisContent) {
+      throw new Error('No analysis content received from AI');
+    }
+
+    // Extract JSON from the response
+    const jsonMatch = analysisContent.match(/```json\n([\s\S]*?)\n```/);
+    if (!jsonMatch || !jsonMatch[1]) {
+      throw new Error('Could not find JSON analysis in AI response');
+    }
+
+    return JSON.parse(jsonMatch[1]);
+  } catch (error) {
+    console.error('Error in content analysis:', error);
+    // Return default values if analysis fails
+    return {
+      service: 'production',
+      icon: 'Zap',
+      platforms: [],
+      reasoning: 'Default fallback due to analysis error',
+      affected_areas: ['unknown'],
+    };
+  }
+}
+
+// Function to enhance content
+async function enhanceContent(
   content: string,
   serviceName: string,
+  analysis: {
+    service: string;
+    icon: string;
+    platforms: string[];
+    reasoning: string;
+    affected_areas: string[];
+  },
 ): Promise<string> {
   spinner.text = `Enhancing content with OpenRouter (${model})`;
+
+  if (!model) {
+    throw new Error('Model name is required');
+  }
 
   // Get available MDX components
   const availableComponents = await getAvailableMDXComponents();
@@ -304,18 +428,16 @@ async function generateEnhancedContent(
   const rules = getPrompt('instructions', 'rules');
   const serviceSpecific = getPrompt('instructions', 'serviceSpecific');
 
-  // Template prompts for future use or reference
-  const updateHeader = getPrompt('templates', 'updateHeader');
-  const updateFooter = getPrompt('templates', 'updateFooter');
-  const codeBlock = getPrompt('formatting', 'codeBlock');
-  const table = getPrompt('formatting', 'table');
-
   const prompt = `
 You are an expert technical writer for developer documentation. Your task is to enhance the following auto-generated change summary for the ${serviceName} service to make it more human-readable, properly formatted, and with better context.
 
 Project information:
 - Service being documented: ${serviceName}${contentStructure}
-WARNING: if the serviceName is api, you might want to change it to production with the icon Bolt IF IT DOES NOT AFFECT THE PUBLIC API, which is most cases. 
+- Service type: ${analysis.service}
+- Icon: ${analysis.icon}
+- Platforms: ${analysis.platforms.join(', ')}
+- Reasoning: ${analysis.reasoning}
+- Affected areas: ${analysis.affected_areas.join(', ')}
 
 ${fumadocsComponents}
 
@@ -331,173 +453,138 @@ Provide only the enhanced content in proper MDX format. Do not include explanati
 
 ${serviceSpecific}`;
 
-  // Log the prompt to a temporary file
-  const tmpDir = path.join(rootDir, 'tmp');
-  await fs.mkdir(tmpDir, { recursive: true });
-  const tmpFile = path.join(tmpDir, `${serviceName}-prompt.txt`);
-  await fs.writeFile(tmpFile, prompt, 'utf-8');
-  if (verbose) {
-    spinner.info(`Prompt logged to: ${tmpFile}`);
-  }
-
-  // After getting the AI response, validate the content
-  const validateComponentsInContent = (
-    content: string,
-    availableComponents: string[],
-  ): void => {
-    // Find all custom component tags in the content
-    const componentRegex = /<([A-Z][a-zA-Z]*)[^>]*>/g;
-    const matches = [...content.matchAll(componentRegex)];
-
-    // Extract the component names
-    const usedComponents = matches.map((match) => match[1]);
-
-    // Always allow Tabs component since it's an alias in our setup
-    const allowedComponents = [...availableComponents, 'Tabs', 'CustomTabs'];
-
-    // Filter to only components not in the available list
-    const invalidComponents = usedComponents.filter(
-      (comp) => comp && !allowedComponents.includes(comp),
-    );
-
-    // Crash if invalid components are found
-    if (invalidComponents.length > 0) {
-      throw new Error(
-        `Error: Generated content contains components that are not available: ${invalidComponents.join(', ')}. ` +
-          `Available components are: ${allowedComponents.join(', ')}`,
-      );
-    }
-  };
-
   try {
-    // Prepare headers
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    };
-
-    // Add optional headers (only if not in local development mode)
-    if (!localDev) {
-      headers['HTTP-Referer'] = 'https://meeting-baas-docs.vercel.app/';
-      headers['X-Title'] = 'MeetingBaaS Docs';
-    }
-
-    // Use OpenRouter to send request to model
-    const result = await fetch(
-      'https://openrouter.ai/api/v1/chat/completions',
-      {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          model: model,
-          messages: [
-            {
-              role: 'system',
-              content:
-                'You are an expert technical writer for developer documentation.',
-            },
-            {
-              role: 'user',
-              content: prompt,
-            },
-          ],
-          temperature: 0.3,
-          max_tokens: 4000,
+    const result = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+        ...(localDev ? {} : {
+          'HTTP-Referer': 'https://meeting-baas-docs.vercel.app/',
+          'X-Title': 'MeetingBaaS Docs',
         }),
       },
-    );
+      body: JSON.stringify({
+        model,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert technical writer for developer documentation.',
+          },
+          {
+            role: 'user',
+            content: prompt,
+          },
+        ],
+        temperature: 0.3,
+      }),
+    });
 
     if (!result.ok) {
-      const errorText = await result.text();
-      throw new Error(`OpenRouter API error: ${result.status} ${errorText}`);
+      throw new Error(`OpenRouter API error: ${result.status}`);
     }
 
-    // Define type for OpenRouter API response
-    interface OpenRouterResponse {
-      id?: string;
-      model?: string;
-      choices?: Array<{
-        message?: {
-          content?: string;
-          role?: string;
-        };
-        delta?: {
-          content?: string;
-          role?: string;
-        };
-        finish_reason?: string;
-        error?: {
-          message: string;
-          code?: number;
-        };
-      }>;
-      error?: {
-        message: string;
-        code: number;
-      };
-    }
-
-    const responseData = (await result.json()) as OpenRouterResponse;
-
-    // Always log the response structure in case of issues
-    if (verbose) {
-      console.log('Full Response:', JSON.stringify(responseData, null, 2));
-    } else {
-      // Log minimal response info even without verbose flag
-      console.log(
-        `Response status: ${result.status}, Model: ${responseData.model || 'unknown'}`,
-      );
-    }
-
-    // Check for API error responses
-    if (responseData.error) {
-      console.error('API Error:', responseData.error);
-      throw new Error(
-        `OpenRouter API error: ${responseData.error.message || 'Unknown error'}`,
-      );
-    }
-
-    // Add more robust error handling for the response structure
-    if (!responseData.choices || responseData.choices.length === 0) {
-      console.error(
-        'Full response data:',
-        JSON.stringify(responseData, null, 2),
-      );
-      throw new Error('Empty response from OpenRouter API');
-    }
-
-    // Handle the response format according to OpenRouter's structure
-    const choice = responseData.choices[0];
-
-    if (choice.error) {
-      console.error('Choice error:', choice.error);
-      throw new Error(`Error in model response: ${choice.error.message}`);
-    }
-
-    // Extract content from the response based on OpenRouter's format
-    const contentFromAI =
-      choice.message?.content ?? choice.delta?.content ?? null;
-
-    if (!contentFromAI) {
-      console.error('First choice data:', JSON.stringify(choice, null, 2));
-      throw new Error('No content found in the model response');
+    const response = (await result.json()) as OpenRouterResponse;
+    const enhancedContent = response.choices?.[0]?.message?.content;
+    if (!enhancedContent) {
+      throw new Error('No enhanced content received from AI');
     }
 
     // Validate the response
     if (availableComponents.length > 0) {
-      validateComponentsInContent(contentFromAI, availableComponents);
+      validateComponentsInContent(enhancedContent, availableComponents);
     }
 
-    return contentFromAI;
+    return enhancedContent;
   } catch (error) {
-    console.error('Error calling OpenRouter API:', error);
+    console.error('Error in content enhancement:', error);
     throw error;
+  }
+}
+
+// Function to validate and fix React/MDX syntax
+async function validateAndFixContent(content: string): Promise<string> {
+  spinner.text = `Validating and fixing React/MDX syntax`;
+
+  if (!model) {
+    throw new Error('Model name is required');
+  }
+
+  const validationPrompt = `
+You are an expert React/MDX syntax validator. Your task is to fix any React/MDX syntax errors in the following content.
+
+IMPORTANT RULES:
+1. Ensure all JSX tags are properly closed
+2. Fix any mismatched tags (e.g., <Tab> must have </Tab>)
+3. Ensure proper nesting of components (e.g., <Accordion> must be inside <Accordions>)
+4. Fix any invalid component usage
+5. Ensure proper spacing in lists and tabs
+6. Fix any unescaped characters in code blocks
+7. Ensure proper markdown formatting
+
+Common issues to fix:
+- Mismatched closing tags
+- Improper component nesting
+- Missing closing tags
+- Invalid component usage
+- Improper spacing in lists
+- Unescaped characters in code blocks
+
+Here is the content to validate and fix:
+
+${content}
+
+Provide ONLY the fixed content. Do not include explanations or meta-commentary.
+`;
+
+  try {
+    const result = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+        ...(localDev ? {} : {
+          'HTTP-Referer': 'https://meeting-baas-docs.vercel.app/',
+          'X-Title': 'MeetingBaaS Docs',
+        }),
+      },
+      body: JSON.stringify({
+        model,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are an expert React/MDX syntax validator.',
+          },
+          {
+            role: 'user',
+            content: validationPrompt,
+          },
+        ],
+        temperature: 0.1, // Low temperature for consistent fixes
+      }),
+    });
+
+    if (!result.ok) {
+      throw new Error(`OpenRouter API error: ${result.status}`);
+    }
+
+    const response = (await result.json()) as OpenRouterResponse;
+    const fixedContent = response.choices?.[0]?.message?.content;
+    if (!fixedContent) {
+      throw new Error('No fixed content received from AI');
+    }
+
+    return fixedContent;
+  } catch (error) {
+    console.error('Error in content validation:', error);
+    return content; // Return original content if validation fails
   }
 }
 
 // Process a single update file
 async function processUpdateFile(filePath: string): Promise<void> {
-  spinner.text = `Processing ${path.basename(filePath)}`;
+  const fileName = path.basename(filePath);
+  spinner.text = `Processing ${fileName}`;
 
   try {
     // Read the file content
@@ -506,35 +593,46 @@ async function processUpdateFile(filePath: string): Promise<void> {
     // Extract frontmatter and content
     const { frontmatter, content } = extractFrontmatter(fileContent);
 
-    // Validate and format header
-    const updatedFrontmatter = validateAndFormatHeader(frontmatter, content);
-
     // Determine service name from path or filename
     const pathParts = filePath.split(path.sep);
     const filename = pathParts[pathParts.length - 1];
-
-    // Check if filename follows [service]-[date].mdx pattern
     const filenameMatch = filename.match(/^([^-]+)-/);
+    let serviceName = filenameMatch?.[1] || 'unknown';
 
-    let serviceName = 'unknown';
-    if (filenameMatch && filenameMatch[1]) {
-      serviceName = filenameMatch[1];
-    } else {
-      const serviceIndex = pathParts.indexOf('updates') + 1;
-      if (serviceIndex < pathParts.length) {
-        serviceName = pathParts[serviceIndex];
-      }
-    }
+    spinner.info(`Processing ${fileName} (Service: ${serviceName})`);
 
-    // Generate enhanced content
-    const enhancedContent = await generateEnhancedContent(content, serviceName);
+    // First, analyze the content
+    spinner.text = `Analyzing content for ${fileName}`;
+    const analysis = await analyzeContent(content, serviceName);
+    spinner.info(`Analysis for ${fileName}:
+  Service: ${analysis.service}
+  Icon: ${analysis.icon}
+  Platforms: ${analysis.platforms.join(', ') || 'none'}
+  Reasoning: ${analysis.reasoning}
+  Affected areas: ${analysis.affected_areas.join(', ')}`);
+
+    // Update frontmatter based on analysis
+    const updatedFrontmatter = {
+      ...frontmatter,
+      icon: analysis.icon,
+      service: analysis.service,
+      description: analysis.platforms.length > 0 ? analysis.platforms.join(', ') : '',
+    };
+
+    // Then enhance the content
+    spinner.text = `Enhancing content for ${fileName}`;
+    const enhancedContent = await enhanceContent(content, serviceName, analysis);
+
+    // Finally, validate and fix any React/MDX syntax issues
+    spinner.text = `Validating React/MDX syntax for ${fileName}`;
+    const validatedContent = await validateAndFixContent(enhancedContent);
 
     // Reconstruct the MDX file with updated frontmatter
     const finalContent = `---
 ${yaml.stringify(updatedFrontmatter)}
 ---
 
-${enhancedContent}`;
+${validatedContent}`;
 
     // Write the enhanced content back to the file
     await fs.writeFile(filePath, finalContent, 'utf-8');
@@ -544,13 +642,13 @@ ${enhancedContent}`;
     const localUrl = `http://localhost:3000/docs/updates/${fileBaseName}`;
     const prodUrl = `https://meeting-baas-docs.vercel.app/docs/updates/${fileBaseName}`;
 
-    spinner.succeed(`Enhanced ${path.basename(filePath)}`);
+    spinner.succeed(`Enhanced ${fileName}`);
     spinner.info(`URLs: 
   Local: ${localUrl}
   Prod:  ${prodUrl}`);
     spinner.start();
   } catch (error) {
-    spinner.fail(`Failed to process ${path.basename(filePath)}`);
+    spinner.fail(`Failed to process ${fileName}`);
     console.error(`Error processing file ${filePath}:`, error);
   }
 }
@@ -568,7 +666,10 @@ async function main() {
       return;
     }
 
-    spinner.succeed(`Found ${files.length} files to enhance`);
+    spinner.succeed(`Found ${files.length} files to enhance:`);
+    files.forEach(file => {
+      spinner.info(`  - ${path.basename(file)}`);
+    });
     spinner.start();
 
     // Process each file

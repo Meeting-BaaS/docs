@@ -179,29 +179,16 @@ import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
     enhanceUpdates: `
 When enhancing update files, follow these guidelines:
 
-1. Maintain a clear and consistent structure
-2. Use appropriate Fumadocs components for better presentation
-3. Include code examples where relevant
-4. Add explanatory notes for complex changes
-5. Keep the tone professional and technical
-6. Ensure all links and references are valid
-7. Use proper markdown formatting
-8. IMPORTANT: Always maintain the exact header format:
-   ---
-   title: [Date in format "Month DD, YYYY"]
-   description: [Service] - [Platforms affected]
-   icon: [Service icon]
-   service: [service name]
-   date: [Date in format "Month DD, YYYY"]
-   ---
-   Example:
-   ---
-   title: January 04, 2025
-   description: API - Zoom, Google Meet
-   icon: Webhook
-   service: api
-   date: January 04, 2025
-   ---
+1. DO NOT generate or modify the frontmatter section (the part between --- markers)
+2. Start your response with the content after the frontmatter
+3. Use appropriate Fumadocs components for better presentation
+4. Include code examples where relevant
+5. Add explanatory notes for complex changes
+6. Keep the tone professional and technical
+7. Ensure all links and references are valid
+8. Use proper markdown formatting
+
+The frontmatter will be handled automatically by the system. Focus only on enhancing the content.
     `,
 
     rules: `
@@ -228,39 +215,53 @@ Rules:
     serviceSpecific: `
 Last conclusion: being professional does not stop you from being humurous. From time to time, when appropriate, you can make a joke about a fish (meeting baas == meeting bass) or bass the API or whatever ;) 🐟. Emoji is: 🐟🐟🐟. If you have something light-hearted to say, put it on beginning of page. 
 
-IMPORT NOTE: FOR ANY UPDATES TO services: $API OR $PRODUCTION what matters is:
-A. Not the code, but impact on the users of API
-B. For now, **absolute** confidentiality on code itself, authors of commits, etc. THIS INCLUDES FILE NAMES AND AUTHORS.
-IMPORTANT NOTE: FOR $API FILES which do not change the openapi.json OR any external facing documentation, etc then change to to PRODUCTION service from this data structure in title:
-    {
-        name: 'API',
-        icon: 'Webhook',
-        serviceKey: 'api',
-        description: 'API changes and improvements',
-        href: '/docs/updates#api-updates',
-        additionalTags: ['api-reference'],
-    }
-to:
-    {
-        name: 'Production Updates',
-        icon: 'Zap',
-        serviceKey: 'production',
-        description: 'API Internal Updates and Improvements',
-        href: '/docs/updates#production-updates',
-        additionalTags: ['production', 'release'],
-    }
+IMPORTANT: Analyze the content to determine if this should be an API or Production update based on these criteria:
 
-IMPORTANT: Always scan the content for mentions of:
-- Zoom (or zoom)
-- Google Meet (or gmeet)
-- Teams (or microsoft teams)
-And include them in the description if found, separated by commas.
+1. API Service (icon: Webhook) if ANY of these are true:
+   - Changes to openapi.json or API documentation
+   - Modifications to public API endpoints
+   - Changes that affect external API consumers
+   - Updates to API versioning or breaking changes
+   - New API features or endpoints
+
+2. Production Service (icon: Zap) if ANY of these are true:
+   - Internal authentication changes
+   - Backend infrastructure updates
+   - Frontend-only changes
+   - Internal service improvements
+   - Changes to recording server
+   - Changes to Zoom/Google Meet/Teams integration internals
+   - Performance optimizations
+   - Security improvements
+
+3. Platform Detection:
+   - Scan for mentions of Zoom, Google Meet, or Teams
+   - Include found platforms in description, separated by commas
+   - Platforms can appear in either API or Production updates
+
+4. Content Analysis:
+   - Check for changes in recording server folders
+   - Look for modifications in platform-specific folders (zoom/, gmeet/, teams/)
+   - Analyze service modifications
+   - Review authentication changes
+   - Check for frontend/backend changes
+
+IMPORTANT: For each update, provide a structured analysis in this format:
+\`\`\`json
+{
+  "service": "api|production",
+  "icon": "Webhook|Zap",
+  "platforms": ["Zoom", "Google Meet", "Teams"],
+  "reasoning": "Brief explanation of why this service type was chosen",
+  "affected_areas": ["list", "of", "modified", "areas"]
+}
+\`\`\`
 
 Code Note: ALWAYS ADD EMPTY LINE SPACING FOR LISTS ITEMS, ITEMS INSIDE TABS, etc.
 
 ALWAYS PUT <Accordion> inside <Accordions>, etc
 
-USE THE FUMADOCS COMPONENTS AS MUCH AS POSSIBLE to hance readability. YOU CAN REFACTORIZE CONTENT AS MUCH AS YOU WANT and keep it SHORT.
+USE THE FUMADOCS COMPONENTS AS MUCH AS POSSIBLE to enhance readability. YOU CAN REFACTORIZE CONTENT AS MUCH AS YOU WANT and keep it SHORT.
     `,
   },
 
