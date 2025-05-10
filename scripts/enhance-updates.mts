@@ -12,6 +12,7 @@
  * --model      Optional. Model to use (default: anthropic/claude-3-haiku)
  * --service    Optional. Service to enhance (e.g., api, sdk)
  * --date       Optional. Date to enhance (YYYY-MM-DD)
+ * --days       Optional. Number of days to include (default: 90)
  * --all        Optional. Process all update files
  * --verbose    Optional. Enable verbose logging
  * --local      Optional. Enable local development mode
@@ -47,6 +48,7 @@ if (!apiKey) {
 // Optional parameters
 const service = argv.service;
 const date = argv.date;
+const days = parseInt(argv.days || '90', 10);
 const processAll = argv.all;
 const verbose = argv.verbose;
 const localDev = argv.local || false;
@@ -125,16 +127,30 @@ async function findUpdateFiles(): Promise<string[]> {
                   : null;
 
           if (!filenamePattern || filenamePattern.test(entry.name)) {
-            files.push(path.join(updatesDir, entry.name));
+            // Extract date from filename (e.g., api-2025-05-02.mdx -> 2025-05-02)
+            const dateMatch = entry.name.match(/\d{4}-\d{2}-\d{2}/);
+            if (dateMatch) {
+              const fileDate = new Date(dateMatch[0]);
+              const now = new Date();
+              const diffTime = Math.abs(now.getTime() - fileDate.getTime());
+              const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+              // Only include files within the specified days range
+              if (diffDays <= days) {
+                files.push(path.join(updatesDir, entry.name));
+                if (verbose) {
+                  console.log(`Including file ${entry.name} (${diffDays} days old)`);
+                }
+              } else if (verbose) {
+                console.log(`Skipping file ${entry.name} (${diffDays} days old)`);
+              }
+            }
           }
         }
       }
     } catch (error) {
       console.error(`Error reading directory ${updatesDir}:`, error);
     }
-
-    // Remove the checks for nested service directories since they don't exist
-    // in your specific file structure
 
     // If processAll is false and we have more than 1 file, take the most recent
     if (!processAll && files.length > 1) {
@@ -223,6 +239,46 @@ async function getContentStructure(): Promise<string> {
     console.warn('Could not load content structure:', error);
     return '';
   }
+}
+
+// Function to detect platforms in content
+function detectPlatforms(content: string): string[] {
+  const platforms: string[] = [];
+  const contentLower = content.toLowerCase();
+
+  if (contentLower.includes('zoom')) {
+    platforms.push('Zoom');
+  }
+  if (contentLower.includes('gmeet') || contentLower.includes('google meet')) {
+    platforms.push('Google Meet');
+  }
+  if (contentLower.includes('teams') || contentLower.includes('microsoft teams')) {
+    platforms.push('Teams');
+  }
+
+  return platforms;
+}
+
+// Function to validate and format header
+function validateAndFormatHeader(frontmatter: Record<string, any>, content: string): Record<string, any> {
+  const platforms = detectPlatforms(content);
+  const platformsStr = platforms.length > 0 ? ` - ${platforms.join(', ')}` : '';
+  
+  // Ensure date is in correct format
+  const date = new Date(frontmatter.date);
+  const formattedDate = date.toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric'
+  });
+
+  // Update frontmatter
+  return {
+    ...frontmatter,
+    title: formattedDate,
+    date: formattedDate,
+    description: `${frontmatter.description}${platformsStr}`,
+  };
 }
 
 // Generate enhanced content using OpenRouter
@@ -450,6 +506,9 @@ async function processUpdateFile(filePath: string): Promise<void> {
     // Extract frontmatter and content
     const { frontmatter, content } = extractFrontmatter(fileContent);
 
+    // Validate and format header
+    const updatedFrontmatter = validateAndFormatHeader(frontmatter, content);
+
     // Determine service name from path or filename
     const pathParts = filePath.split(path.sep);
     const filename = pathParts[pathParts.length - 1];
@@ -470,9 +529,9 @@ async function processUpdateFile(filePath: string): Promise<void> {
     // Generate enhanced content
     const enhancedContent = await generateEnhancedContent(content, serviceName);
 
-    // Reconstruct the MDX file
+    // Reconstruct the MDX file with updated frontmatter
     const finalContent = `---
-${yaml.stringify(frontmatter)}
+${yaml.stringify(updatedFrontmatter)}
 ---
 
 ${enhancedContent}`;

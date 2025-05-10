@@ -186,6 +186,22 @@ When enhancing update files, follow these guidelines:
 5. Keep the tone professional and technical
 6. Ensure all links and references are valid
 7. Use proper markdown formatting
+8. IMPORTANT: Always maintain the exact header format:
+   ---
+   title: [Date in format "Month DD, YYYY"]
+   description: [Service] - [Platforms affected]
+   icon: [Service icon]
+   service: [service name]
+   date: [Date in format "Month DD, YYYY"]
+   ---
+   Example:
+   ---
+   title: January 04, 2025
+   description: API - Zoom, Google Meet
+   icon: Webhook
+   service: api
+   date: January 04, 2025
+   ---
     `,
 
     rules: `
@@ -206,6 +222,7 @@ Rules:
 14. IMPORTANT: For code blocks containing JSON, XML, or other content with syntax like "/" or "<", ensure proper escaping or use appropriate code fence formatting to prevent MDX parsing errors
 15. Be especially careful with JSON in code blocks when the content has property names or values containing slash characters
 16. ALWAYS use standard markdown code blocks with triple backticks (\`\`\`) for code examples, NOT custom components like <DynamicCodeBlock>
+17. IMPORTANT: Always check content for mentions of Zoom, Google Meet, or Teams and include them in the description if found
     `,
 
     serviceSpecific: `
@@ -232,6 +249,12 @@ to:
         href: '/docs/updates#production-updates',
         additionalTags: ['production', 'release'],
     }
+
+IMPORTANT: Always scan the content for mentions of:
+- Zoom (or zoom)
+- Google Meet (or gmeet)
+- Teams (or microsoft teams)
+And include them in the description if found, separated by commas.
 
 Code Note: ALWAYS ADD EMPTY LINE SPACING FOR LISTS ITEMS, ITEMS INSIDE TABS, etc.
 
