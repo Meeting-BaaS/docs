@@ -527,7 +527,7 @@ function parseLooseSections(lines: string[]): CommitInfo[] {
 /**
  * Finds all git diff files in git_greppers directories
  */
-function findGitDiffFiles(): string[] {
+function findGitDiffFiles(serviceKey?: string): string[] {
   const diffFiles: string[] = [];
 
   // Check if git_greppers directory exists
@@ -543,8 +543,13 @@ function findGitDiffFiles(): string[] {
     )
     .map((dirent) => join(GIT_GREPPERS_DIR, dirent.name));
 
+  // If serviceKey is provided, filter subdirs to only include matching service
+  const filteredSubdirs = serviceKey
+    ? subdirs.filter((subdir) => basename(subdir).startsWith(`${serviceKey}-git-diffs`))
+    : subdirs;
+
   // Find all diff files in each subdir
-  subdirs.forEach((subdir) => {
+  filteredSubdirs.forEach((subdir) => {
     const files = readdirSync(subdir)
       .filter((file) => file.startsWith('diffs-') && file.endsWith('.diff'))
       .map((file) => join(subdir, file));
@@ -887,9 +892,12 @@ function getRepoName(folderName: string): string {
 export async function generateGitDiffUpdates(): Promise<string[]> {
   console.log('Generating updates from git diff files...');
 
+  // Get service key from command line args if provided
+  const serviceKey = argv.service;
+
   // Find all git diff files
-  const diffFiles = findGitDiffFiles();
-  console.log(`Found ${diffFiles.length} diff files`);
+  const diffFiles = findGitDiffFiles(serviceKey);
+  console.log(`Found ${diffFiles.length} diff files${serviceKey ? ` for service ${serviceKey}` : ''}`);
 
   // Process each diff file
   const generatedPages: string[] = [];

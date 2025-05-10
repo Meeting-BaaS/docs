@@ -175,6 +175,12 @@ SERVICE=meeting-baas DAYS=90 pnpm restart:service
 # Restart updates for a service without PR/MR filter
 SERVICE=meeting-baas DAYS=90 pnpm restart:service --no-pr-mr
 
+# Restart updates for a service with overwrite flag
+SERVICE=meeting-baas DAYS=90 pnpm restart:service --overwrite
+
+# Restart updates for a service with both flags
+SERVICE=meeting-baas DAYS=90 pnpm restart:service --overwrite --no-pr-mr
+
 # Setup git updates - cleans and regenerates
 pnpm setup:git-updates
 ```
@@ -185,3 +191,5 @@ pnpm setup:git-updates
 > - `regenerate:git-updates` deletes all existing update files before creating new ones (will overwrite customized files)
 > - If you've customized any update files, prefer using `test:git-updates` to preserve your changes
 > - The `restart:service` command will only clean and regenerate files for the specified service, preserving updates for other services
+> - Use the `--overwrite` flag to force regeneration of existing update files
+> - Use the `--no-pr-mr` flag to include all commits, not just those with PR/MR references
