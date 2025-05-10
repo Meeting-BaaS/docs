@@ -48,6 +48,36 @@ pnpm enhance:updates --key=your_openrouter_api_key --verbose
 
 You will need to obtain an OpenRouter API key from [openrouter.ai](https://openrouter.ai) to use this feature.
 
+### Prompt System
+
+The project uses a centralized prompt system in `scripts/prompts.ts` to manage all AI enhancement prompts. This system:
+
+1. Organizes prompts into categories:
+   - `codingStyle`: Fumadocs components and usage examples
+   - `instructions`: Enhancement guidelines and rules
+   - `templates`: Reusable templates for headers and footers
+   - `formatting`: Code blocks and table formatting
+   - `metadata`: Valid update types and services
+   - `validation`: Required fields and validation rules
+
+2. Provides helper functions:
+   ```typescript
+   // Get a specific prompt
+   const prompt = getPrompt('codingStyle', 'fumadocsComponents');
+   
+   // Get all prompts for a category
+   const allInstructions = getCategoryPrompts('instructions');
+   ```
+
+3. Includes type definitions for type safety:
+   ```typescript
+   type PromptCategory = 'codingStyle' | 'instructions' | 'templates' | 'formatting' | 'metadata' | 'validation';
+   ```
+
+4. Maintains consistent formatting and rules across all generated content
+
+The prompt system ensures consistent documentation quality and makes it easy to update enhancement rules and templates.
+
 ### Git Diff Updates
 
 Updates are automatically generated from git diff files in the `git_greppers` directory. These updates include service-specific styling with colored icons in the sidebar.
