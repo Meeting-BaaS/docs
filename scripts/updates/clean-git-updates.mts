@@ -98,8 +98,8 @@ function ensureIndexFile(): void {
 /**
  * Clean up update files in the updates directory
  */
-function cleanGitUpdates(): void {
-  console.log('Cleaning up all update files...');
+function cleanGitUpdates(serviceKey?: string): void {
+  console.log('Cleaning up update files...');
 
   // Check if updates directory exists
   if (!existsSync(UPDATES_DIR)) {
@@ -127,9 +127,13 @@ function cleanGitUpdates(): void {
       unlinkSync(filePath);
       productionCount++;
     } else if (SERVICE_UPDATES_PATTERN.test(file)) {
-      console.log(`Removing service file: ${file}`);
-      unlinkSync(filePath);
-      serviceCount++;
+      // Only delete service files if they match the specified service
+      const fileServiceKey = file.split('-')[0];
+      if (!serviceKey || fileServiceKey === serviceKey) {
+        console.log(`Removing service file: ${file}`);
+        unlinkSync(filePath);
+        serviceCount++;
+      }
     } else if (file !== 'index.mdx' && file !== 'meta.json') {
       modifiedFiles.push(file);
     }
@@ -138,7 +142,7 @@ function cleanGitUpdates(): void {
   console.log(`Deleted:
   - ${legacyCount} legacy update files (${GIT_UPDATES_FILE_PREFIX}*)
   - ${productionCount} production update files (${PRODUCTION_PREFIX}*)
-  - ${serviceCount} service-specific update files`);
+  - ${serviceCount} service-specific update files${serviceKey ? ` for ${serviceKey}` : ''}`);
 
   if (modifiedFiles.length > 0) {
     console.log(
@@ -156,7 +160,8 @@ function cleanGitUpdates(): void {
 
 // Run the function automatically when this module is executed directly
 if (import.meta.url.endsWith(process.argv[1])) {
-  cleanGitUpdates();
+  const serviceKey = process.argv[2];
+  cleanGitUpdates(serviceKey);
 }
 
 export { cleanGitUpdates };

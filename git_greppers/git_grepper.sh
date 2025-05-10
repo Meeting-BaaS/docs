@@ -38,26 +38,34 @@ MAX_DIFF_LINES=100   # Maximum number of lines per diff block
 SKIP_DIFF=false      # Default to include diffs
 ONLY_WITH_PR_MR=false # Default to include all commits
 OVERWRITE=false      # Default to skip existing files
-DAYS=7              # Default to 7 days
+DAYS=90              # Default to 90 days
 
-# Check if --no-diff or --only-with-pr-mr flags are present in any position
-for arg in "$@"; do
-  if [[ "$arg" == "--no-diff" || "$arg" == "-no-diff" ]]; then
-    SKIP_DIFF=true
-    debug 1 "Flag detected: No diff generation (--no-diff)"
-  elif [[ "$arg" == "--only-with-pr-mr" || "$arg" == "-only-with-pr-mr" ]]; then
-    ONLY_WITH_PR_MR=true
-    debug 1 "Flag detected: Only processing commits with PR/MR references (--only-with-pr-mr)"
-  elif [[ "$arg" == "--overwrite" || "$arg" == "-overwrite" ]]; then
-    OVERWRITE=true
-    debug 1 "Flag detected: Will overwrite existing files (--overwrite)"
-  elif [[ "$arg" =~ ^--days=([0-9]+)$ ]]; then
-    DAYS="${BASH_REMATCH[1]}"
-    debug 1 "Flag detected: Will look back $DAYS days (--days=$DAYS)"
-  elif [[ "$arg" =~ ^--days[[:space:]]([0-9]+)$ ]]; then
-    DAYS="${BASH_REMATCH[1]}"
-    debug 1 "Flag detected: Will look back $DAYS days (--days $DAYS)"
-  fi
+# Parse flags
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --no-diff|-no-diff)
+      SKIP_DIFF=true
+      debug 1 "Flag detected: No diff generation (--no-diff)"
+      ;;
+    --only-with-pr-mr|-only-with-pr-mr)
+      ONLY_WITH_PR_MR=true
+      debug 1 "Flag detected: Only processing commits with PR/MR references (--only-with-pr-mr)"
+      ;;
+    --overwrite|-overwrite)
+      OVERWRITE=true
+      debug 1 "Flag detected: Will overwrite existing files (--overwrite)"
+      ;;
+    --days)
+      shift
+      DAYS="$1"
+      debug 1 "Flag detected: Will look back $DAYS days (--days $DAYS)"
+      ;;
+    --days=*)
+      DAYS="${1#*=}"
+      debug 1 "Flag detected: Will look back $DAYS days (--days=$DAYS)"
+      ;;
+  esac
+  shift
 done
 
 # ANSI color codes
@@ -179,9 +187,9 @@ LOG_FILE=$(create_log_file "$OUTPUT_DIR" "$PRIMARY_BRANCH" "$REPO_FOLDER" "$MAX_
 chmod 644 "$LOG_FILE"
 debug 1 "Created log file: $LOG_FILE"
 
-# Get list of commits sorted by date (oldest first)
-debug 1 "Looking for commits from the last $DAYS days on branch $PRIMARY_BRANCH" >&2
-COMMITS=$(git log --after="$DAYS days ago" --format="%H" $PRIMARY_BRANCH)
+# Get commits from the last N days
+echo "Looking for commits from the last $DAYS days on branch $PRIMARY_BRANCH"
+COMMITS=$(git log --since="$DAYS days ago" --format="%H" "$PRIMARY_BRANCH")
 COMMIT_COUNT=$(echo "$COMMITS" | wc -l | tr -d ' ')
 debug 1 "Found $COMMIT_COUNT commits in the last $DAYS days" >&2
 

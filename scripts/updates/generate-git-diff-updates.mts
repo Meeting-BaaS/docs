@@ -1,5 +1,6 @@
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'fs';
 import { basename, join } from 'path';
+import minimist from 'minimist';
 
 // Constants
 const GIT_GREPPERS_DIR = join(process.cwd(), 'git_greppers');
@@ -7,6 +8,10 @@ const UPDATES_DIR = join(process.cwd(), 'content', 'docs', 'updates');
 const META_JSON_PATH = join(UPDATES_DIR, 'meta.json');
 const GIT_UPDATES_FILE_PREFIX = 'git-updates-'; // We'll keep this for backward compatibility
 const TEMPLATES_DIR = join(process.cwd(), 'scripts', 'updates', 'templates');
+
+// Get overwrite flag from command line args
+const argv = minimist(process.argv.slice(2));
+const OVERWRITE = argv.overwrite || false;
 
 // Export constants for use in other files
 export { GIT_UPDATES_FILE_PREFIX };
@@ -932,9 +937,10 @@ export async function generateGitDiffUpdates(): Promise<string[]> {
       );
 
       if (
-        !existsSync(updateFilePath) &&
+        OVERWRITE ||
+        (!existsSync(updateFilePath) &&
         !existsSync(legacyFilePath) &&
-        !existsSync(originalServiceFilePath)
+        !existsSync(originalServiceFilePath))
       ) {
         if (commits.length > 0) {
           const parsedData: ParsedGitDiffData = {
@@ -957,10 +963,10 @@ export async function generateGitDiffUpdates(): Promise<string[]> {
         }
       } else {
         if (isApiUpdate) {
-          console.log(`Update for API on ${date} already exists, skipping`);
+          console.log(`Update for API on ${date} already exists${OVERWRITE ? ', but will be overwritten' : ', skipping'}`);
         } else {
           console.log(
-            `Update for ${serviceInfo.serviceName} on ${date} already exists, skipping`,
+            `Update for ${serviceInfo.serviceName} on ${date} already exists${OVERWRITE ? ', but will be overwritten' : ', skipping'}`,
           );
         }
       }

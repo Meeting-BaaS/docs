@@ -169,6 +169,12 @@ pnpm update:speaking-bots
 # Update any repository by name
 pnpm update:repo $REPO
 
+# Restart updates for a specific service (e.g., meeting-baas)
+SERVICE=meeting-baas DAYS=90 pnpm restart:service
+
+# Restart updates for a service without PR/MR filter
+SERVICE=meeting-baas DAYS=90 pnpm restart:service --no-pr-mr
+
 # Setup git updates - cleans and regenerates
 pnpm setup:git-updates
 ```
@@ -178,3 +184,4 @@ pnpm setup:git-updates
 > - `test:git-updates` only creates new files without modifying existing ones
 > - `regenerate:git-updates` deletes all existing update files before creating new ones (will overwrite customized files)
 > - If you've customized any update files, prefer using `test:git-updates` to preserve your changes
+> - The `restart:service` command will only clean and regenerate files for the specified service, preserving updates for other services
