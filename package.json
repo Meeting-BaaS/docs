@@ -11,7 +11,7 @@
     "clean": "rimraf .next scripts-dist",
     "clean:updates": "node scripts/cleanup.js",
     "clean:updates:keep-openapi": "node scripts/cleanup.js --keep-openapi",
-    "clean:git-updates": "tsx ./scripts/updates/clean-git-updates.mts",
+    "clean:git-updates": "tsx ./scripts/updates/clean-git-updates.mts \"$@\"",
     "setup:git-updates": "node scripts-dist/updates/setup-updates.mjs",
     "dev": "next dev",
     "lint": "fumadocs-mdx && tsx ./scripts/lint.mts && next lint",
