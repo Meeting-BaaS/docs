@@ -116,6 +116,24 @@ process_commits() {
     debug 3 "Commit author: $commit_author" >&2
     debug 3 "Commit branch: $commit_branch" >&2
     
+    # Check if this is a merge commit
+    local parent_count=$(git cat-file -p "$commit" | grep -c "^parent ")
+    local is_merge=false
+    if [[ $parent_count -gt 1 ]]; then
+      is_merge=true
+      debug 2 "This is a merge commit with $parent_count parents" >&2
+    fi
+    
+    # Get changed files - handle merge commits differently
+    local changed_files=""
+    if [ "$is_merge" = true ]; then
+      # For merge commits, get changes between the merge commit and its first parent
+      changed_files=$(git show --name-only --format="" "$commit" -m --first-parent -- . ':!pnpm.lock' ':!yarn.lock' ':!*.js.map' ':!*.d.ts.map' ':!*.tsbuildinfo')
+    else
+      # For regular commits, get changes normally
+      changed_files=$(git show --name-only --format="" "$commit" -- . ':!pnpm.lock' ':!yarn.lock' ':!*.js.map' ':!*.d.ts.map' ':!*.tsbuildinfo')
+    fi
+    
     # Check for related PR/MR references
     local has_pr_mr=false
     local pr_mr_refs=""
@@ -169,104 +187,202 @@ process_commits() {
     debug 2 "Output file: $current_file" >&2
     
     # Check if file exists and handle overwrite
-    if [ -f "$current_file" ] && [ "$overwrite" = false ]; then
-      debug 2 "File already exists and overwrite is false: $current_file" >&2
-      skipped_files+=("$current_file")
-      ((skipped_count++))
-      continue
-    fi
-    
-    # Create new file if it doesn't exist
-    if [ ! -f "$current_file" ]; then
-      debug 2 "Creating new file for date $file_date: $current_file" >&2
-      echo "#KEY#DATE# $file_date" > "$current_file"
-      echo "#KEY#MAX_DIFF_LINES# $max_diff_lines" >> "$current_file"
-      echo "#KEY#EXCLUDES# pnpm.lock,*.js.map,*.d.ts.map,*.tsbuildinfo" >> "$current_file"
-      created_files+=("$current_file")
-    elif [ "$overwrite" = true ]; then
-      debug 2 "Overwriting existing file: $current_file" >&2
-      echo "#KEY#DATE# $file_date" > "$current_file"
-      echo "#KEY#MAX_DIFF_LINES# $max_diff_lines" >> "$current_file"
-      echo "#KEY#EXCLUDES# pnpm.lock,*.js.map,*.d.ts.map,*.tsbuildinfo" >> "$current_file"
-      overwritten_files+=("$current_file")
-    else
-      debug 2 "Appending to existing file: $current_file" >&2
-    fi
-    
-    # Write commit information
-    echo "#KEY#START_COMMIT#" >> "$current_file"
-    echo "#KEY#COMMIT_HASH# $commit" >> "$current_file"
-    echo "#KEY#COMMIT_DATE# $commit_date" >> "$current_file"
-    echo "#KEY#COMMIT_AUTHOR# $commit_author" >> "$current_file"
-    echo "#KEY#COMMIT_MESSAGE# $commit_msg" >> "$current_file"
-    
-    # Get related PR/MR information
-    if [ "$has_pr_mr" = true ]; then
-      local pr_mr_info=""
-      if [ "$repo_type" = "github" ]; then
-        debug 2 "Getting GitHub PR info for commit: $commit" >&2
-        pr_mr_info=$(get_github_pr_info "$repo_identifier" "$commit_msg")
-      elif [ "$repo_type" = "gitlab" ]; then
-        debug 2 "Getting GitLab MR info for commit: $commit" >&2
-        pr_mr_info=$(get_gitlab_mr_info "$repo_identifier" "$commit_msg")
-      fi
-      
-      if [ -n "$pr_mr_info" ]; then
-        debug 2 "Found PR/MR info: $pr_mr_info" >&2
-        echo "#KEY#RELATED_PR_MR# $pr_mr_info" >> "$current_file"
-      else
-        debug 2 "No PR/MR info found" >&2
-      fi
-    fi
-    
-    # Get changed files
-    local changed_files=$(git show --name-only --format="" "$commit")
-    debug 2 "Changed files: $changed_files" >&2
-    echo "#KEY#CHANGED_FILES# $changed_files" >> "$current_file"
-    
-    # Get PR/MR comments if available
-    if [ "$has_pr_mr" = true ]; then
-      local comments=""
-      if [ "$repo_type" = "github" ]; then
-        debug 2 "Getting GitHub PR comments for commit: $commit" >&2
-        comments=$(get_github_pr_comments "$repo_identifier" "$commit_msg")
-      elif [ "$repo_type" = "gitlab" ]; then
-        debug 2 "Getting GitLab MR comments for commit: $commit" >&2
-        comments=$(get_gitlab_mr_comments "$repo_identifier" "$commit_msg")
-      fi
-      
-      if [ -n "$comments" ]; then
-        debug 2 "Found PR/MR comments" >&2
-        echo "#KEY#PR_MR_COMMENTS# $comments" >> "$current_file"
-      else
-        debug 2 "No PR/MR comments found" >&2
-      fi
-    fi
-    
-    # Get diff if not skipped
-    if [ "$skip_diff" = false ]; then
-      local diff_range=$(git show --format="" "$commit" | grep -n "^diff --git" | head -n1 | cut -d: -f1)
-      if [ -n "$diff_range" ]; then
-        debug 2 "Generating diff for commit: $commit" >&2
-        echo "#KEY#DIFF_RANGE# $diff_range" >> "$current_file"
-        echo "#KEY#GIT_DIFF#" >> "$current_file"
+    if [ -f "$current_file" ]; then
+      if [ "$overwrite" = true ]; then
+        debug 2 "Overwriting existing file: $current_file" >&2
+        # Create a temporary file for the new content
+        temp_file=$(mktemp)
+        {
+          # Only write header if this is the first commit for this day
+          if [ ! -s "$current_file" ]; then
+            echo "#KEY#DATE# $file_date"
+            echo "#KEY#MAX_DIFF_LINES# $max_diff_lines"
+            echo "#KEY#EXCLUDES# pnpm.lock,yarn.lock,*.js.map,*.d.ts.map,*.tsbuildinfo"
+          fi
+          echo "#KEY#START_COMMIT#"
+          echo "#KEY#COMMIT_HASH# $commit"
+          echo "#KEY#COMMIT_DATE# $commit_date"
+          echo "#KEY#COMMIT_AUTHOR# $commit_author"
+          echo "#KEY#COMMIT_MESSAGE# $commit_msg"
+          
+          # Write changed files
+          echo "#KEY#CHANGED_FILES#"
+          if [ -n "$changed_files" ]; then
+            echo "$changed_files"
+          else
+            echo "No files changed"
+          fi
+          
+          # Add PR/MR info if available
+          if [ "$only_with_pr_mr" = true ]; then
+            if [ "$repo_type" = "github" ]; then
+              debug 2 "Getting GitHub PR info for commit: $commit" >&2
+              pr_mr_info=$(get_github_pr_info "$repo_identifier" "$commit_msg")
+            elif [ "$repo_type" = "gitlab" ]; then
+              debug 2 "Getting GitLab MR info for commit: $commit" >&2
+              pr_mr_info=$(find_gitlab_mr_info "$commit" "$repo_identifier" | cut -d'|' -f1)
+            fi
+            
+            if [ -n "$pr_mr_info" ]; then
+              echo "#KEY#RELATED_PR_MR#"
+              echo "$pr_mr_info"
+            fi
+          fi
+          
+          # Add comments if available
+          if [ "$only_with_pr_mr" = true ]; then
+            if [ "$repo_type" = "github" ]; then
+              debug 2 "Getting GitHub PR comments for commit: $commit" >&2
+              # Extract PR number from commit message
+              local pr_number=""
+              if [[ "$commit_msg" =~ (#[0-9]+) ]]; then
+                pr_number="${BASH_REMATCH[1]#\#}"  # Remove the # prefix
+                debug 2 "Found PR number: $pr_number" >&2
+                comments=$(fetch_github_pr_comments "$pr_number" "$repo_identifier")
+              elif [[ "$commit_msg" =~ (Merge pull request #([0-9]+)) ]]; then
+                pr_number="${BASH_REMATCH[2]}"
+                debug 2 "Found PR number from merge message: $pr_number" >&2
+                comments=$(fetch_github_pr_comments "$pr_number" "$repo_identifier")
+              else
+                debug 2 "No PR number found in commit message" >&2
+                comments="No PR number found for this commit."
+              fi
+            elif [ "$repo_type" = "gitlab" ]; then
+              debug 2 "Getting GitLab MR comments for commit: $commit" >&2
+              pr_mr_info_full=$(find_gitlab_mr_info "$commit" "$repo_identifier")
+              pr_mr_number=$(echo "$pr_mr_info_full" | cut -d'|' -f2)
+              if [ -n "$pr_mr_number" ] && [ "$pr_mr_number" != "None found" ]; then
+                comments=$(fetch_gitlab_mr_comments "$pr_mr_number" "$repo_identifier")
+              else
+                comments="No MR number found for this commit."
+              fi
+            fi
+            
+            if [ -n "$comments" ] && [ "$comments" != "No comments or description found for this PR." ] && [ "$comments" != "No PR number found for this commit." ]; then
+              echo "#KEY#COMMENTS#"
+              echo "$comments"
+            else
+              debug 2 "No comments found or comments were empty" >&2
+            fi
+          fi
+          
+          echo "#KEY#END_COMMIT#"
+          
+          # Get diff if not skipped
+          if [ "$skip_diff" = false ]; then
+            echo "#KEY#DIFF_RANGE# $commit"
+            echo "#KEY#GIT_DIFF#"
+            if [ "$is_merge" = true ]; then
+              git show --unified="$max_diff_lines" "$commit" -m --first-parent -- . ':!pnpm.lock' ':!yarn.lock' ':!*.js.map' ':!*.d.ts.map' ':!*.tsbuildinfo' | cat
+            else
+              git show --unified="$max_diff_lines" "$commit" -- . ':!pnpm.lock' ':!yarn.lock' ':!*.js.map' ':!*.d.ts.map' ':!*.tsbuildinfo' | cat
+            fi
+          else
+            echo "#KEY#DIFF_SKIPPED# Diff generation was disabled for this commit"
+          fi
+        } > "$temp_file"
         
-        if [ "$include_code" = true ]; then
-          # Include full code changes
-          git show "$commit" | tail -n +$diff_range >> "$current_file"
-        else
-          # Only include file names and basic diff info
-          git show --name-only --format="" "$commit" >> "$current_file"
-        fi
+        # Append the temporary file to the target file
+        cat "$temp_file" >> "$current_file"
+        rm "$temp_file"
+        overwritten_files+=("$current_file")
       else
-        debug 2 "No changes found in commit: $commit" >&2
+        debug 2 "File already exists and overwrite is false: $current_file" >&2
+        skipped_files+=("$current_file")
+        ((skipped_count++))
+        continue
       fi
     else
-      debug 2 "Diff generation disabled for commit: $commit" >&2
-      echo "#KEY#GIT_DIFF_SKIPPED# Diff generation disabled" >> "$current_file"
+      debug 2 "Creating new file for date $file_date: $current_file" >&2
+      # Create new file with the same content structure as above
+      {
+        echo "#KEY#DATE# $file_date"
+        echo "#KEY#MAX_DIFF_LINES# $max_diff_lines"
+        echo "#KEY#EXCLUDES# pnpm.lock,yarn.lock,*.js.map,*.d.ts.map,*.tsbuildinfo"
+        echo "#KEY#START_COMMIT#"
+        echo "#KEY#COMMIT_HASH# $commit"
+        echo "#KEY#COMMIT_DATE# $commit_date"
+        echo "#KEY#COMMIT_AUTHOR# $commit_author"
+        echo "#KEY#COMMIT_MESSAGE# $commit_msg"
+        
+        # Write changed files
+        echo "#KEY#CHANGED_FILES#"
+        if [ -n "$changed_files" ]; then
+          echo "$changed_files"
+        else
+          echo "No files changed"
+        fi
+        
+        # Add PR/MR info if available
+        if [ "$only_with_pr_mr" = true ]; then
+          if [ "$repo_type" = "github" ]; then
+            debug 2 "Getting GitHub PR info for commit: $commit" >&2
+            pr_mr_info=$(get_github_pr_info "$repo_identifier" "$commit_msg")
+          elif [ "$repo_type" = "gitlab" ]; then
+            debug 2 "Getting GitLab MR info for commit: $commit" >&2
+            pr_mr_info=$(find_gitlab_mr_info "$commit" "$repo_identifier" | cut -d'|' -f1)
+          fi
+          
+          if [ -n "$pr_mr_info" ]; then
+            echo "#KEY#RELATED_PR_MR#"
+            echo "$pr_mr_info"
+          fi
+        fi
+        
+        # Add comments if available
+        if [ "$only_with_pr_mr" = true ]; then
+          if [ "$repo_type" = "github" ]; then
+            debug 2 "Getting GitHub PR comments for commit: $commit" >&2
+            # Extract PR number from commit message
+            local pr_number=""
+            if [[ "$commit_msg" =~ (#[0-9]+) ]]; then
+              pr_number="${BASH_REMATCH[1]#\#}"  # Remove the # prefix
+              debug 2 "Found PR number: $pr_number" >&2
+              comments=$(fetch_github_pr_comments "$pr_number" "$repo_identifier")
+            elif [[ "$commit_msg" =~ (Merge pull request #([0-9]+)) ]]; then
+              pr_number="${BASH_REMATCH[2]}"
+              debug 2 "Found PR number from merge message: $pr_number" >&2
+              comments=$(fetch_github_pr_comments "$pr_number" "$repo_identifier")
+            else
+              debug 2 "No PR number found in commit message" >&2
+              comments="No PR number found for this commit."
+            fi
+          elif [ "$repo_type" = "gitlab" ]; then
+            debug 2 "Getting GitLab MR comments for commit: $commit" >&2
+            pr_mr_info_full=$(find_gitlab_mr_info "$commit" "$repo_identifier")
+            pr_mr_number=$(echo "$pr_mr_info_full" | cut -d'|' -f2)
+            if [ -n "$pr_mr_number" ] && [ "$pr_mr_number" != "None found" ]; then
+              comments=$(fetch_gitlab_mr_comments "$pr_mr_number" "$repo_identifier")
+            else
+              comments="No MR number found for this commit."
+            fi
+          fi
+          
+          if [ -n "$comments" ] && [ "$comments" != "No comments or description found for this PR." ] && [ "$comments" != "No PR number found for this commit." ]; then
+            echo "#KEY#COMMENTS#"
+            echo "$comments"
+          else
+            debug 2 "No comments found or comments were empty" >&2
+          fi
+        fi
+        
+        echo "#KEY#END_COMMIT#"
+        
+        # Get diff if not skipped
+        if [ "$skip_diff" = false ]; then
+          echo "#KEY#DIFF_RANGE# $commit"
+          echo "#KEY#GIT_DIFF#"
+          if [ "$is_merge" = true ]; then
+            git show --unified="$max_diff_lines" "$commit" -m --first-parent -- . ':!pnpm.lock' ':!yarn.lock' ':!*.js.map' ':!*.d.ts.map' ':!*.tsbuildinfo' | cat
+          else
+            git show --unified="$max_diff_lines" "$commit" -- . ':!pnpm.lock' ':!yarn.lock' ':!*.js.map' ':!*.d.ts.map' ':!*.tsbuildinfo' | cat
+          fi
+        else
+          echo "#KEY#DIFF_SKIPPED# Diff generation was disabled for this commit"
+        fi
+      } > "$current_file"
+      created_files+=("$current_file")
     fi
-    
-    echo "#KEY#END_COMMIT#" >> "$current_file"
     
     # Add commit to processed list
     echo "$commit" >> "$temp_file"

@@ -104,27 +104,33 @@ This script will:
 You can also run the git grepper script directly with various options:
 
 ```bash
-# Basic usage
-./git_greppers/git_grepper.sh /path/to/repo [debug_level] [flags]
+# Basic usage with required parameters
+./git_greppers/git_grepper.sh --repo-path=/path/to/repo [options]
 
-# Available flags:
-#   --no-diff           Skip generating diffs (faster for large repositories)
-#   --only-with-pr-mr   Only process commits with related PR/MR references
-#   --overwrite         Overwrite existing files (default: skip existing files)
-#   --days N            Number of days to look back (default: 7)
+# Available options:
+#   --repo-path=<path>     Path to the repository (required)
+#   --debug-level=<n>      Debug level (1-3, default: 1)
+#   --max-diff-lines=<n>   Maximum number of diff lines (default: 100)
+#   --no-diff              Skip generating diffs
+#   --with-diff            Include full diffs in output
+#   --include-code         Include code changes in output
+#   --only-with-pr-mr      Only process commits with PR/MR references
+#   --overwrite            Overwrite existing files
+#   --days=<n>             Number of days to look back (default: 90)
+#   --help                 Show help message
 
 # Examples:
 # Process with debug level 3 and only PR/MR commits
-./git_greppers/git_grepper.sh /path/to/repo 3 --only-with-pr-mr
+./git_greppers/git_grepper.sh --repo-path=/path/to/repo --debug-level=3 --only-with-pr-mr
 
 # Process and overwrite existing files
-./git_greppers/git_grepper.sh /path/to/repo 3 --overwrite
+./git_grepper.sh --repo-path=/path/to/repo --overwrite
 
 # Skip diffs and only process PR/MR commits
-./git_greppers/git_grepper.sh /path/to/repo 3 --no-diff --only-with-pr-mr
+./git_grepper.sh --repo-path=/path/to/repo --no-diff --only-with-pr-mr
 
 # Process commits from the last 14 days
-./git_greppers/git_grepper.sh /path/to/repo 3 --days 14
+./git_grepper.sh --repo-path=/path/to/repo --days=14
 ```
 
 You need to configure your repository paths in `git_greppers/config.json`:
@@ -157,8 +163,8 @@ Each path should point to a valid Git repository that you want to include in the
 # Clean all git update files
 pnpm clean:git-updates
 
-# Generate git diff updates (non-destructive - only creates new files)
-pnpm test:git-updates
+# Generate git diff updates (with recommended flags)
+pnpm test:git-updates --with-diff --include-code --only-with-pr-mr --overwrite --debug=2 --days=7
 
 # Regenerate all git diff updates (destructive - deletes and recreates all files)
 pnpm regenerate:git-updates
@@ -187,9 +193,31 @@ pnpm setup:git-updates
 
 > **Important Note**:
 >
-> - `test:git-updates` only creates new files without modifying existing ones
+> - `test:git-updates` now includes recommended flags by default: `--with-diff --include-code --only-with-pr-mr --overwrite --debug=2 --days=7`
 > - `regenerate:git-updates` deletes all existing update files before creating new ones (will overwrite customized files)
-> - If you've customized any update files, prefer using `test:git-updates` to preserve your changes
+> - If you've customized any update files, prefer using `test:git-updates` with appropriate flags to preserve your changes
 > - The `restart:service` command will only clean and regenerate files for the specified service, preserving updates for other services
 > - Use the `--overwrite` flag to force regeneration of existing update files
 > - Use the `--no-pr-mr` flag to include all commits, not just those with PR/MR references
+
+## Three commands to update documentation with new changes only
+
+To fetch, generate, and enhance documentation updates **only for new changes** (without modifying existing files), use the following three commands:
+
+```bash
+# 1. Generate new git diff files (skips existing ones)
+./git_greppers/git_grepper.sh --repo-path=/path/to/your/repo --with-diff --include-code --only-with-pr-mr --days=7
+
+# 2. Generate update files from new diffs (skips existing .mdx files)
+pnpm tsx ./scripts/updates/generate-git-diff-updates.mts --service=meeting-baas
+
+# 3. Enhance only new update files with AI (skips already enhanced files)
+pnpm enhance:updates --service=meeting-baas --key=your_openrouter_api_key --untracked
+```
+
+> **Note:**  
+> - Do **not** use the `--overwrite` flag if you want to preserve existing files.
+> - These commands will only create and process files for new changes, leaving previous updates untouched.
+> - The `--untracked` flag in the enhance command ensures only new files are processed.
+> - The `--only-with-pr-mr` flag ensures we only process commits with associated PR/MR references.
+> - The `--days=7` flag limits the lookback period to the last week of changes. 

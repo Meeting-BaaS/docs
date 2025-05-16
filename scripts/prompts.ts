@@ -219,32 +219,55 @@ IMPORTANT: Analyze the content to determine if this should be an API or Producti
 
 1. API Service (icon: Webhook) if ANY of these are true:
    - Changes to openapi.json or API documentation
-   - Modifications to public API endpoints
+   - Modifications to public API endpoints in routers.rs
    - Changes that affect external API consumers
    - Updates to API versioning or breaking changes
    - New API features or endpoints
+   - Changes to our Meeting BaaS API service itself
+   - Changes to our Meeting Bots service for Zoom/Google Meet/Teams
+   - Changes to bot integration endpoints
+   - Changes to bot authentication or configuration
+   - Changes to bot event handling
+   - Changes to bot command processing
+   - Changes to bot state management
+   - Changes to bot session handling
+   - Changes to bot recording functionality
+   - Changes to bot transcription services
 
 2. Production Service (icon: Zap) if ANY of these are true:
-   - Internal authentication changes
-   - Backend infrastructure updates
+   - Internal infrastructure updates
    - Frontend-only changes
    - Internal service improvements
-   - Changes to recording server
-   - Changes to Zoom/Google Meet/Teams integration internals
    - Performance optimizations
    - Security improvements
+   - Changes to internal tools
+   - Changes to development workflows
+   - Changes to CI/CD pipelines
+   - Changes to documentation structure
+   - Changes to testing infrastructure
 
 3. Platform Detection:
    - Scan for mentions of Zoom, Google Meet, or Teams
    - Include found platforms in description, separated by commas
    - Platforms can appear in either API or Production updates
+   - Look for bot-specific changes in platform folders:
+     - zoom/ (Zoom bot integration)
+     - gmeet/ (Google Meet bot integration)
+     - teams/ (Teams bot integration)
 
 4. Content Analysis:
-   - Check for changes in recording server folders
-   - Look for modifications in platform-specific folders (zoom/, gmeet/, teams/)
+   - Check for changes in bot integration folders
+   - Look for modifications in platform-specific folders
    - Analyze service modifications
    - Review authentication changes
    - Check for frontend/backend changes
+   - Look for changes in:
+     - Bot command handlers
+     - Bot event processors
+     - Bot state managers
+     - Bot session handlers
+     - Bot recording services
+     - Bot transcription services
 
 IMPORTANT: For each update, provide a structured analysis in this format:
 \`\`\`json

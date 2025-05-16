@@ -23,13 +23,13 @@ debug() {
         echo -e "\033[0;31m[ERROR]\033[0m $message" >&2
         ;;
       1) # Info - Blue
-        echo -e "\033[0;34m[INFO]\033[0m $message"
+        echo -e "\033[0;34m[INFO]\033[0m $message" >&2
         ;;
       2) # Detail - Green
-        echo -e "\033[0;32m[DEBUG]\033[0m $message"
+        echo -e "\033[0;32m[DEBUG]\033[0m $message" >&2
         ;;
       3) # Verbose - Yellow
-        echo -e "\033[0;33m[TRACE]\033[0m $message"
+        echo -e "\033[0;33m[TRACE]\033[0m $message" >&2
         ;;
     esac
   fi
@@ -387,7 +387,7 @@ create_log_file() {
   echo "#KEY#BRANCH# $primary_branch" > "$log_file"
   echo "#KEY#GENERATED_DATE# $(date)" >> "$log_file"
   echo "#KEY#REPOSITORY# $repo_folder" >> "$log_file"
-  echo "#KEY#EXCLUDES# pnpm.lock, TypeScript build files, Rust build files" >> "$log_file"
+  echo "#KEY#EXCLUDES# pnpm.lock,yarn.lock,TypeScript build files,Rust build files" >> "$log_file"
   echo "#KEY#MAX_DIFF_LINES# $max_diff_lines" >> "$log_file"
   echo "#KEY#GROUP_BY# day" >> "$log_file"
   echo "#KEY#INCLUDES# PR/MR comments and images when available" >> "$log_file"

@@ -14,6 +14,7 @@
  * --date       Optional. Date to enhance (YYYY-MM-DD)
  * --days       Optional. Number of days to include (default: 7)
  * --all        Optional. Process all update files
+ * --untracked  Optional. Process only untracked update files
  * --verbose    Optional. Enable verbose logging
  * --local      Optional. Enable local development mode
  */
@@ -62,6 +63,7 @@ const days = parseInt(argv.days || '7', 10);
 const processAll = argv.all;
 const verbose = argv.verbose;
 const localDev = argv.local || false;
+const untrackedOnly = argv.untracked || false;
 
 // Get the directory path
 const __filename = fileURLToPath(import.meta.url);
@@ -110,12 +112,47 @@ function extractFrontmatter(content: string): {
   }
 }
 
+// Function to get git status of files
+async function getGitStatus(): Promise<Set<string>> {
+  try {
+    const { execSync } = await import('child_process');
+    const output = execSync('git status --porcelain', { cwd: rootDir }).toString();
+    const untrackedFiles = new Set<string>();
+    
+    output.split('\n').forEach(line => {
+      if (line.startsWith('?? ')) {
+        const filePath = line.slice(3).trim();
+        if (filePath.startsWith('content/docs/updates/')) {
+          untrackedFiles.add(filePath);
+        }
+      }
+    });
+    
+    return untrackedFiles;
+  } catch (error) {
+    console.warn('Could not get git status:', error);
+    return new Set();
+  }
+}
+
 // Find update files based on criteria
 async function findUpdateFiles(): Promise<string[]> {
   spinner.text = 'Finding update files';
 
   try {
     const files: string[] = [];
+    let untrackedFiles: Set<string> = new Set();
+
+    // Get untracked files if needed
+    if (untrackedOnly) {
+      spinner.text = 'Checking git status for untracked files';
+      untrackedFiles = await getGitStatus();
+      if (untrackedFiles.size === 0) {
+        spinner.info('No untracked update files found');
+        return [];
+      }
+      spinner.info(`Found ${untrackedFiles.size} untracked update files`);
+    }
 
     // First, check for files with naming pattern [service]-[date].mdx directly in the updates directory
     try {
@@ -123,6 +160,13 @@ async function findUpdateFiles(): Promise<string[]> {
 
       for (const entry of entries) {
         if (entry.isFile() && entry.name.endsWith('.mdx')) {
+          const filePath = path.join(updatesDir, entry.name);
+          
+          // Skip if we're only processing untracked files and this one is tracked
+          if (untrackedOnly && !untrackedFiles.has(filePath.replace(rootDir + '/', ''))) {
+            continue;
+          }
+
           // Check if filename matches the [service]-[date].mdx pattern
           const filenamePattern =
             service && date
@@ -144,7 +188,7 @@ async function findUpdateFiles(): Promise<string[]> {
 
               // Only include files within the specified days range
               if (diffDays <= days) {
-                files.push(path.join(updatesDir, entry.name));
+                files.push(filePath);
                 if (verbose) {
                   console.log(`Including file ${entry.name} (${diffDays} days old)`);
                 }
@@ -258,31 +302,31 @@ function detectPlatforms(content: string): string[] {
 
 // Function to validate components in content
 function validateComponentsInContent(
-  content: string,
-  availableComponents: string[],
+    content: string,
+    availableComponents: string[],
 ): void {
-  // Find all custom component tags in the content
-  const componentRegex = /<([A-Z][a-zA-Z]*)[^>]*>/g;
-  const matches = [...content.matchAll(componentRegex)];
+    // Find all custom component tags in the content
+    const componentRegex = /<([A-Z][a-zA-Z]*)[^>]*>/g;
+    const matches = [...content.matchAll(componentRegex)];
 
-  // Extract the component names
-  const usedComponents = matches.map((match) => match[1]);
+    // Extract the component names
+    const usedComponents = matches.map((match) => match[1]);
 
-  // Always allow Tabs component since it's an alias in our setup
-  const allowedComponents = [...availableComponents, 'Tabs', 'CustomTabs'];
+    // Always allow Tabs component since it's an alias in our setup
+    const allowedComponents = [...availableComponents, 'Tabs', 'CustomTabs'];
 
-  // Filter to only components not in the available list
-  const invalidComponents = usedComponents.filter(
-    (comp) => comp && !allowedComponents.includes(comp),
-  );
-
-  // Crash if invalid components are found
-  if (invalidComponents.length > 0) {
-    throw new Error(
-      `Error: Generated content contains components that are not available: ${invalidComponents.join(', ')}. ` +
-        `Available components are: ${allowedComponents.join(', ')}`,
+    // Filter to only components not in the available list
+    const invalidComponents = usedComponents.filter(
+      (comp) => comp && !allowedComponents.includes(comp),
     );
-  }
+
+    // Crash if invalid components are found
+    if (invalidComponents.length > 0) {
+      throw new Error(
+        `Error: Generated content contains components that are not available: ${invalidComponents.join(', ')}. ` +
+          `Available components are: ${allowedComponents.join(', ')}`,
+      );
+    }
 }
 
 // Define OpenRouter API response types
@@ -341,8 +385,8 @@ Provide ONLY the JSON analysis in this exact format:
     const result = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${apiKey}`,
         ...(localDev ? {} : {
           'HTTP-Referer': 'https://meeting-baas-docs.vercel.app/',
           'X-Title': 'MeetingBaaS Docs',
@@ -455,7 +499,7 @@ ${serviceSpecific}`;
 
   try {
     const result = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-      method: 'POST',
+        method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${apiKey}`,
@@ -464,20 +508,20 @@ ${serviceSpecific}`;
           'X-Title': 'MeetingBaaS Docs',
         }),
       },
-      body: JSON.stringify({
+        body: JSON.stringify({
         model,
-        messages: [
-          {
-            role: 'system',
+          messages: [
+            {
+              role: 'system',
             content: 'You are an expert technical writer for developer documentation.',
-          },
-          {
-            role: 'user',
-            content: prompt,
-          },
-        ],
-        temperature: 0.3,
-      }),
+            },
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+          temperature: 0.3,
+        }),
     });
 
     if (!result.ok) {
@@ -609,7 +653,7 @@ async function processUpdateFile(filePath: string): Promise<void> {
   Icon: ${analysis.icon}
   Platforms: ${analysis.platforms.join(', ') || 'none'}
   Reasoning: ${analysis.reasoning}
-  Affected areas: ${analysis.affected_areas.join(', ')}`);
+  Affected_areas: ${analysis.affected_areas.join(', ')}`);
 
     // Update frontmatter based on analysis
     const updatedFrontmatter = {
@@ -634,15 +678,32 @@ ${yaml.stringify(updatedFrontmatter)}
 
 ${validatedContent}`;
 
-    // Write the enhanced content back to the file
+    // Determine if we need to rename the file based on service type
+    const dateMatch = filename.match(/\d{4}-\d{2}-\d{2}/);
+    const date = dateMatch ? dateMatch[0] : '';
+    const newServiceName = analysis.service === 'api' ? 'api' : 'production';
+    const newFileName = `${newServiceName}-${date}.mdx`;
+    const newFilePath = path.join(path.dirname(filePath), newFileName);
+
+    // Only rename if the service type has changed
+    if (filename !== newFileName) {
+      spinner.info(`Renaming file from ${filename} to ${newFileName} to match service type`);
+      // Write to new file first
+      await fs.writeFile(newFilePath, finalContent, 'utf-8');
+      // Then delete old file
+      await fs.unlink(filePath);
+      filePath = newFilePath;
+    } else {
+      // Just write to existing file
     await fs.writeFile(filePath, finalContent, 'utf-8');
+    }
 
     // Generate URLs for the file
     const fileBaseName = path.basename(filePath, '.mdx');
     const localUrl = `http://localhost:3000/docs/updates/${fileBaseName}`;
     const prodUrl = `https://meeting-baas-docs.vercel.app/docs/updates/${fileBaseName}`;
 
-    spinner.succeed(`Enhanced ${fileName}`);
+    spinner.succeed(`Enhanced ${path.basename(filePath)}`);
     spinner.info(`URLs: 
   Local: ${localUrl}
   Prod:  ${prodUrl}`);

@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Debug: print received arguments
+echo "DEBUG: Script received arguments: $@"
+
 # Set the current directory to the one where this script is located
 cd "$(dirname "$0")" || exit 1
 
@@ -11,6 +14,32 @@ GIT_GREPPER=${GIT_GREPPER:-"$(pwd)/git_grepper.sh"}
 CONFIG_PATH=${CONFIG_PATH:-"$(pwd)/config.json"}
 OUTPUT_DIR=${OUTPUT_DIR:-"$(pwd)"}
 
+# Source utility functions and handlers first
+source "$(pwd)/utils.sh" || { echo "Failed to source utils.sh"; exit 1; }
+source "$(pwd)/github_handler.sh" || { echo "Failed to source github_handler.sh"; exit 1; }
+source "$(pwd)/gitlab_handler.sh" || { echo "Failed to source gitlab_handler.sh"; exit 1; }
+
+# Initialize debug function
+DEBUG_LEVEL=${DEBUG_LEVEL:-1}
+init_debug "$DEBUG_LEVEL"
+
+# Debug environment variables
+debug 2 "Environment variables:"
+debug 2 "REPO_NAME from env: '$REPO_NAME'"
+debug 2 "npm_config_repo: '$npm_config_repo'"
+debug 2 "REPO: '$REPO'"
+
+# Default values
+REPO_NAME=${REPO_NAME:-""}
+DRY_RUN=0
+WITH_DIFF="--with-diff"
+WITH_CODE="--include-code"
+CHECKOUT_DEPTH=${CHECKOUT_DEPTH:-1}
+PREVIEW_MODE=${PREVIEW_MODE:-0}
+GENERATE_PR_PREVIEWS=${GENERATE_PR_PREVIEWS:-0}
+PR_DAYS_RANGE=${PR_DAYS_RANGE:-7}
+EXTRA_FLAGS=()
+
 # Repository path resolution function
 get_repo_path() {
   local repo_name=$1
@@ -19,45 +48,142 @@ get_repo_path() {
   if [[ -f "$CONFIG_PATH" ]]; then
     # Use jq to get the path from config
     local path=$(jq -r ".repositories.\"$repo_name\"" "$CONFIG_PATH")
-    if [[ "$path" != "null" ]]; then
+    if [[ "$path" != "null" && -n "$path" ]]; then
+      debug 2 "Found repository path in config: $path"
       echo "$path"
-      return
+      return 0
     fi
   fi
   
-  # Fallback to repo name if not found in config
-  echo "$repo_name"
+  # If repo_name is a full path, use it directly
+  if [[ -d "$repo_name" ]]; then
+    debug 2 "Using provided path directly: $repo_name"
+    echo "$repo_name"
+    return 0
+  fi
+  
+  # If we get here, the repo wasn't found in config and isn't a valid path
+  debug 0 "Repository '$repo_name' not found in config.json and is not a valid path"
+  return 1
 }
 
-# Default values
-REPO_NAME=${1:-""}
-REPO_PATH=$(get_repo_path "$REPO_NAME")
-DRY_RUN=${2:-0}
-WITH_DIFF=${3:-"--with-diff"}
-WITH_CODE=${4:-"--include-code"}
-CHECKOUT_DEPTH=${CHECKOUT_DEPTH:-1}
-PREVIEW_MODE=${PREVIEW_MODE:-0}
-GENERATE_PR_PREVIEWS=${GENERATE_PR_PREVIEWS:-0}
-PR_DAYS_RANGE=${PR_DAYS_RANGE:-7}
-DEBUG_LEVEL=${DEBUG_LEVEL:-1}
+# Parse command line arguments - order agnostic
+debug 2 "Starting argument parsing with $# arguments: $*"
+while [[ $# -gt 0 ]]; do
+  debug 3 "Processing argument: '$1'"
+  case $1 in
+    --repo=*)
+      REPO_NAME="${1#*=}"
+      debug 2 "Found repo name from --repo=: '$REPO_NAME'"
+      shift
+      ;;
+    --repo)
+      shift
+      REPO_NAME="$1"
+      debug 2 "Found repo name from --repo: '$REPO_NAME'"
+      shift
+      ;;
+    --dry-run)
+      DRY_RUN=1
+      shift
+      ;;
+    --with-diff)
+      WITH_DIFF="--with-diff"
+      shift
+      ;;
+    --no-diff)
+      WITH_DIFF="--no-diff"
+      shift
+      ;;
+    --include-code)
+      WITH_CODE="--include-code"
+      shift
+      ;;
+    --no-code)
+      WITH_CODE="--no-code"
+      shift
+      ;;
+    --overwrite)
+      EXTRA_FLAGS+=("--overwrite")
+      shift
+      ;;
+    --only-with-pr-mr)
+      EXTRA_FLAGS+=("--only-with-pr-mr")
+      shift
+      ;;
+    --preview)
+      PREVIEW_MODE=1
+      shift
+      ;;
+    --generate-pr-previews)
+      GENERATE_PR_PREVIEWS=1
+      shift
+      ;;
+    --days=*)
+      PR_DAYS_RANGE="${1#*=}"
+      EXTRA_FLAGS+=("--days=${PR_DAYS_RANGE}")
+      shift
+      ;;
+    --days)
+      shift
+      PR_DAYS_RANGE="$1"
+      EXTRA_FLAGS+=("--days=$PR_DAYS_RANGE")
+      shift
+      ;;
+    --debug=*)
+      DEBUG_LEVEL="${1#*=}"
+      init_debug "$DEBUG_LEVEL"
+      shift
+      ;;
+    --debug)
+      shift
+      DEBUG_LEVEL="$1"
+      init_debug "$DEBUG_LEVEL"
+      shift
+      ;;
+    *)
+      # If it's not a known flag, assume it's the repo name
+      if [[ -z "$REPO_NAME" ]]; then
+        REPO_NAME="$1"
+        debug 2 "Found repo name from positional argument: '$REPO_NAME'"
+      else
+        debug 1 "Unknown option: '$1'"
+        echo "Unknown option: $1"
+        echo "Usage: $0 [--repo=<repo_name>] [--dry-run] [--with-diff|--no-diff] [--include-code|--no-code] [--overwrite] [--only-with-pr-mr] [--days=N] [--debug=N]"
+        exit 1
+      fi
+      shift
+      ;;
+  esac
+done
 
-# Source utility functions and handlers
-source "$(pwd)/utils.sh" || { echo "Failed to source utils.sh"; exit 1; }
-source "$(pwd)/github_handler.sh" || { echo "Failed to source github_handler.sh"; exit 1; }
-source "$(pwd)/gitlab_handler.sh" || { echo "Failed to source gitlab_handler.sh"; exit 1; }
+debug 2 "Finished argument parsing. REPO_NAME='$REPO_NAME'"
 
 # Check if jq is installed
 check_jq
 
 # Check for required parameters
 if [[ -z "$REPO_NAME" ]]; then
+  debug 1 "Repository name is empty"
   echo "Error: Repository name or path is required."
-  echo "Usage: $0 <repo_name_or_path> [dry_run] [--with-diff|--no-diff] [--include-code|--no-code]"
+  echo "Usage: $0 [--repo=<repo_name>] [--dry-run] [--with-diff|--no-diff] [--include-code|--no-code] [--overwrite] [--only-with-pr-mr] [--days=N] [--debug=N]"
+  echo "Available repositories in config:"
+  if [[ -f "$CONFIG_PATH" ]]; then
+    jq -r '.repositories | keys[]' "$CONFIG_PATH"
+  fi
   exit 1
 fi
 
-# Initialize debug function
-init_debug "$DEBUG_LEVEL"
+# Get repository path and check if it exists
+REPO_PATH=$(get_repo_path "$REPO_NAME")
+if [[ $? -ne 0 ]]; then
+  echo "Error: Could not resolve repository path for '$REPO_NAME'"
+  echo "Available repositories in config:"
+  if [[ -f "$CONFIG_PATH" ]]; then
+    jq -r '.repositories | keys[]' "$CONFIG_PATH"
+  fi
+  exit 1
+fi
 
 # If REPO_NAME is a path, extract the basename as the actual repo name
 if [[ "$REPO_NAME" == "$REPO_PATH" ]]; then
@@ -151,6 +277,7 @@ process_repository() {
   local pr_previews=$7
   local pr_days_range=$8
   local preview_mode=$9
+  local extra_flags=("${@:10}")
   
   # Store current directory
   local current_dir=$(pwd)
@@ -165,17 +292,23 @@ process_repository() {
   debug 1 "Repository type: $repo_type"
   debug 1 "Repository identifier: $repo_identifier"
   
-  # Run git_grepper for the main branch
-  debug 1 "Running git_grepper on main branch"
-  if [[ "$dry_run" -eq 0 ]]; then
-    "$GIT_GREPPER" "$repo_path" "$CHECKOUT_DEPTH" "$with_diff" "$with_code" --repo-name "$repo_name" --output-dir "$output_dir"
-    if [[ $? -ne 0 ]]; then
-      debug 0 "Error: git_grepper failed for $repo_name"
-      cd "$current_dir"
-      return 1
-    fi
+  # Determine primary branch
+  PRIMARY_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "master")
+  if [[ "$PRIMARY_BRANCH" == "HEAD" ]]; then
+    PRIMARY_BRANCH="master"
+  fi
+  
+  # Run git_grepper on the repository
+  echo "[INFO] Running git_grepper on $PRIMARY_BRANCH branch"
+  if [ "$DRY_RUN" -eq 1 ]; then
+    echo "[DRY RUN] Would run: $GIT_GREPPER --repo-path=\"$REPO_PATH\" --debug-level=\"$DEBUG_LEVEL\" $WITH_DIFF $WITH_CODE ${EXTRA_FLAGS[*]}"
   else
-    debug 1 "Dry run: would execute git_grepper for main branch"
+    "$GIT_GREPPER" \
+      --repo-path="$REPO_PATH" \
+      --debug-level="$DEBUG_LEVEL" \
+      $WITH_DIFF \
+      $WITH_CODE \
+      "${EXTRA_FLAGS[@]}"
   fi
   
   # Return to original directory
@@ -235,22 +368,9 @@ process_repository() {
   return 0
 }
 
-# Parse additional arguments
-for arg in "$@"; do
-  case "$arg" in
-    --with-diff) WITH_DIFF="--with-diff" ;;
-    --no-diff) WITH_DIFF="--no-diff" ;;
-    --include-code) WITH_CODE="--include-code" ;;
-    --no-code) WITH_CODE="--no-code" ;;
-    --preview) PREVIEW_MODE=1 ;;
-    --generate-pr-previews) GENERATE_PR_PREVIEWS=1 ;;
-    --pr-days=*) PR_DAYS_RANGE="${arg#*=}" ;;
-  esac
-done
-
 # Run the main process
 debug 1 "Starting update for repository: $REPO_NAME"
-process_repository "$REPO_PATH" "$OUTPUT_DIR" "$REPO_NAME" "$DRY_RUN" "$WITH_DIFF" "$WITH_CODE" "$GENERATE_PR_PREVIEWS" "$PR_DAYS_RANGE" "$PREVIEW_MODE"
+process_repository "$REPO_PATH" "$OUTPUT_DIR" "$REPO_NAME" "$DRY_RUN" "$WITH_DIFF" "$WITH_CODE" "$GENERATE_PR_PREVIEWS" "$PR_DAYS_RANGE" "$PREVIEW_MODE" "${EXTRA_FLAGS[@]}"
 
 exit_code=$?
 debug 1 "Finished processing repository $REPO_NAME with exit code $exit_code"

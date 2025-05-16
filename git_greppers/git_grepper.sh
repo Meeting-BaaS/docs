@@ -1,12 +1,19 @@
 #!/bin/bash
 
+# Use GNU stdbuf if available
+STDBUF_CMD=$(which gstdbuf 2>/dev/null || which stdbuf 2>/dev/null)
+if [[ -z "$STDBUF_CMD" ]]; then
+  echo "Error: stdbuf command not found. Please install coreutils package."
+  exit 1
+fi
+
 # Force unbuffered output for all commands
 export PYTHONUNBUFFERED=1
 export PYTHONIOENCODING=UTF-8
 # Ensure stdout is not buffered
 if [ -t 1 ]; then
   # If stdout is a terminal, disable line buffering
-  stdbuf -o0 true
+  $STDBUF_CMD -o0 true
 fi
 
 # Script to generate git diffs from commits on master/main branch for the last N days
@@ -33,51 +40,111 @@ source "${SCRIPT_DIR}/github_handler.sh"
 source "${SCRIPT_DIR}/gitlab_handler.sh"
 source "${SCRIPT_DIR}/processing.sh"
 
-# Set default values
-REPO_PATH=${1:-.}
-DEBUG_LEVEL=${2:-1}  # Debug levels: 0=none, 1=normal, 2=verbose, 3=very verbose
-MAX_DIFF_LINES=100   # Maximum number of lines per diff block
-SKIP_DIFF=true       # Default to skip diffs
-INCLUDE_CODE=false   # Default to not include code
-ONLY_WITH_PR_MR=false # Default to include all commits
-OVERWRITE=false      # Default to skip existing files
-DAYS=90              # Default to 90 days
+# Default values
+REPO_PATH=""
+DEBUG_LEVEL=1
+MAX_DIFF_LINES=100
+SKIP_DIFF=true
+INCLUDE_CODE=false
+ONLY_WITH_PR_MR=false
+OVERWRITE=false
+DAYS=90
 
-# Parse flags
+# Parse all arguments as named parameters
 while [[ $# -gt 0 ]]; do
   case $1 in
+    --repo-path=*)
+      REPO_PATH="${1#*=}"
+      shift
+      ;;
+    --repo-path)
+      shift
+      REPO_PATH="$1"
+      shift
+      ;;
+    --debug-level=*)
+      DEBUG_LEVEL="${1#*=}"
+      shift
+      ;;
+    --debug-level)
+      shift
+      DEBUG_LEVEL="$1"
+      shift
+      ;;
+    --max-diff-lines=*)
+      MAX_DIFF_LINES="${1#*=}"
+      shift
+      ;;
+    --max-diff-lines)
+      shift
+      MAX_DIFF_LINES="$1"
+      shift
+      ;;
     --no-diff|-no-diff)
       SKIP_DIFF=true
       debug 1 "Flag detected: No diff generation (--no-diff)"
+      shift
       ;;
     --with-diff|-with-diff)
       SKIP_DIFF=false
       debug 1 "Flag detected: Will include diffs (--with-diff)"
+      shift
       ;;
     --include-code|-include-code)
       INCLUDE_CODE=true
       debug 1 "Flag detected: Will include code changes (--include-code)"
+      shift
       ;;
     --only-with-pr-mr|-only-with-pr-mr)
       ONLY_WITH_PR_MR=true
       debug 1 "Flag detected: Only processing commits with PR/MR references (--only-with-pr-mr)"
+      shift
       ;;
     --overwrite|-overwrite)
       OVERWRITE=true
       debug 1 "Flag detected: Will overwrite existing files (--overwrite)"
+      shift
+      ;;
+    --days=*)
+      DAYS="${1#*=}"
+      debug 1 "Flag detected: Will look back $DAYS days (--days=$DAYS)"
+      shift
       ;;
     --days)
       shift
       DAYS="$1"
       debug 1 "Flag detected: Will look back $DAYS days (--days $DAYS)"
+      shift
       ;;
-    --days=*)
-      DAYS="${1#*=}"
-      debug 1 "Flag detected: Will look back $DAYS days (--days=$DAYS)"
+    --help|-h)
+      echo "Usage: $0 [options]"
+      echo "Options:"
+      echo "  --repo-path=<path>     Path to the repository (required)"
+      echo "  --debug-level=<n>      Debug level (1-3, default: 1)"
+      echo "  --max-diff-lines=<n>   Maximum number of diff lines (default: 100)"
+      echo "  --no-diff              Skip generating diffs"
+      echo "  --with-diff            Include full diffs in output"
+      echo "  --include-code         Include code changes in output"
+      echo "  --only-with-pr-mr      Only process commits with PR/MR references"
+      echo "  --overwrite            Overwrite existing files"
+      echo "  --days=<n>             Number of days to look back (default: 90)"
+      echo "  --help                 Show this help message"
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1"
+      echo "Use --help for usage information"
+      exit 1
       ;;
   esac
-  shift
 done
+
+# Validate required parameters
+if [[ -z "$REPO_PATH" ]]; then
+  echo "Error: --repo-path is required"
+  echo "Use --help for usage information"
+  exit 1
+fi
 
 # ANSI color codes
 RED='\033[0;31m'
@@ -120,6 +187,9 @@ debug 1 "Output directory will be: $OUTPUT_DIR"
 # Change to the repository directory
 cd "$REPO_PATH" || exit 1
 debug 1 "Changed directory to: $(pwd)"
+
+git fetch --all
+git pull
 
 # Determine if the repository uses master or main as the primary branch
 PRIMARY_BRANCH=$(determine_primary_branch "$REPO_PATH")
@@ -166,11 +236,11 @@ fi
 # Display processing information
 printf "${CYAN}Using '%s' as the primary branch.${NC}\n" "$PRIMARY_BRANCH"
 printf "${CYAN}Generating diffs for commits from the last %d days...${NC}\n" "$DAYS"
-printf "${CYAN}Excluding pnpm.lock and build files from TypeScript/Rust${NC}\n"
+printf "${CYAN}Excluding pnpm.lock,yarn.lock and build files from TypeScript/Rust${NC}\n"
 printf "${CYAN}Grouping all commits by day${NC}\n"
 printf "${CYAN}Including PR/MR comments and images if available${NC}\n"
 if [ "$ONLY_WITH_PR_MR" = true ]; then
-  printf "${CYAN}Only processing commits with related PR/MR references${NC}\n"
+  printf "${CYAN}Filtering to only commits with PR/MR references${NC}\n"
 fi
 if [ "$OVERWRITE" = true ]; then
   printf "${CYAN}Will overwrite existing files${NC}\n"
@@ -200,13 +270,15 @@ debug 1 "Created log file: $LOG_FILE"
 
 # Get commits from the last N days
 echo "Looking for commits from the last $DAYS days on branch $PRIMARY_BRANCH"
+debug 2 "Current date: $(date)"
+debug 2 "Looking back from: $(date -v-${DAYS}d +%Y-%m-%d)"
 COMMITS=$(git log --since="$DAYS days ago" --format="%H" "$PRIMARY_BRANCH")
 COMMIT_COUNT=$(echo "$COMMITS" | wc -l | tr -d ' ')
 debug 1 "Found $COMMIT_COUNT commits in the last $DAYS days" >&2
 
 # Show commit details in debug mode
 if [ "$DEBUG_LEVEL" -ge 2 ]; then
-  debug 2 "Recent commits:" >&2
+  debug 2 "Recent commits with dates:" >&2
   git log --after="$DAYS days ago" --format="%h %ai %s" $PRIMARY_BRANCH | while read -r line; do
     debug 2 "  $line" >&2
   done

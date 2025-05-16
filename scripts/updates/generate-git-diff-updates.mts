@@ -1,6 +1,7 @@
-import { existsSync, readdirSync, readFileSync, writeFileSync } from 'fs';
+import { existsSync, readdirSync, readFileSync, writeFileSync, mkdirSync } from 'fs';
 import { basename, join } from 'path';
 import minimist from 'minimist';
+import { execSync } from 'child_process';
 
 // Constants
 const GIT_GREPPERS_DIR = join(process.cwd(), 'git_greppers');
@@ -89,6 +90,7 @@ interface CommitInfo {
   comments?: string[];
   type?: string;
   branch: string;
+  diff?: string;
 }
 
 // Add these interfaces at the top of the file with the other interfaces
@@ -101,6 +103,17 @@ interface ServiceInfo {
   serviceKey: string;
   serviceName: string;
   icon?: string;
+}
+
+// Add debug logging utility at the top of the file after imports
+function debugLog(level: number, message: string, data?: any) {
+  const DEBUG_LEVEL = 2; // Set to 1 for minimal, 2 for normal, 3 for verbose
+  if (level <= DEBUG_LEVEL) {
+    console.log(`[DEBUG ${level}] ${message}`);
+    if (data) {
+      console.log(JSON.stringify(data, null, 2));
+    }
+  }
 }
 
 /**
@@ -276,63 +289,162 @@ function parseGitDiffFile(filePath: string): CommitInfo[] {
  * Strategy 1: Parse standard format with clear section markers
  */
 function parseStandardFormat(lines: string[]): CommitInfo[] {
+  debugLog(2, 'Starting standard format parsing', { lineCount: lines.length });
   const commits: CommitInfo[] = [];
   let currentCommit: Partial<CommitInfo> = {};
   let inCommit = false;
+  let inComments = false;
+  let inDiff = false;
+  let comments: string[] = [];
+  let diffLines: string[] = [];
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
 
     if (line.startsWith('#KEY#START_COMMIT#')) {
+      debugLog(3, 'Found commit start marker', { lineNumber: i });
+      if (inCommit && currentCommit.hash) {
+        debugLog(2, 'Processing previous commit', { 
+          hash: currentCommit.hash,
+          commentCount: comments.length,
+          diffLineCount: diffLines.length 
+        });
+        if (comments.length > 0) {
+          currentCommit.comments = comments;
+          comments = [];
+        }
+        if (diffLines.length > 0) {
+          currentCommit.diff = diffLines.join('\n');
+          diffLines = [];
+        }
+        commits.push(currentCommit as CommitInfo);
+      }
       inCommit = true;
       currentCommit = {};
+      inComments = false;
+      inDiff = false;
     } else if (line.startsWith('#KEY#END_COMMIT#')) {
+      debugLog(3, 'Found commit end marker', { lineNumber: i });
       if (inCommit && currentCommit.hash) {
+        debugLog(2, 'Processing commit at end marker', {
+          hash: currentCommit.hash,
+          commentCount: comments.length,
+          diffLineCount: diffLines.length
+        });
+        if (comments.length > 0) {
+          currentCommit.comments = comments;
+          comments = [];
+        }
+        if (diffLines.length > 0) {
+          currentCommit.diff = diffLines.join('\n');
+          diffLines = [];
+        }
         commits.push(currentCommit as CommitInfo);
       }
       inCommit = false;
       currentCommit = {};
+      inComments = false;
+      inDiff = false;
     } else if (inCommit) {
       if (line.startsWith('#KEY#COMMIT_HASH#')) {
         currentCommit.hash = line.replace('#KEY#COMMIT_HASH#', '').trim();
+        debugLog(3, 'Found commit hash', { hash: currentCommit.hash });
       } else if (line.startsWith('#KEY#COMMIT_DATE#')) {
         currentCommit.date = line.replace('#KEY#COMMIT_DATE#', '').trim();
       } else if (line.startsWith('#KEY#COMMIT_AUTHOR#')) {
         currentCommit.author = line.replace('#KEY#COMMIT_AUTHOR#', '').trim();
       } else if (line.startsWith('#KEY#COMMIT_MESSAGE#')) {
-        currentCommit.message = line.replace('#KEY#COMMIT_MESSAGE#', '').trim();
+        const message = line.replace('#KEY#COMMIT_MESSAGE#', '').trim();
+        debugLog(3, 'Found commit message', { message });
+        if (message.startsWith('Merge branch')) {
+          const match = message.match(/Merge branch.*\n\n(.*)/s);
+          currentCommit.message = match ? match[1].trim() : message;
+          currentCommit.type = 'merge';
+          const prMatch = message.match(/See merge request.*!(\d+)/);
+          if (prMatch) {
+            currentCommit.relatedPrMr = `GitLab MR !${prMatch[1]}`;
+            debugLog(2, 'Found GitLab MR reference', { mrNumber: prMatch[1] });
+          }
+        } else {
+          currentCommit.message = message;
+        }
       } else if (line.startsWith('#KEY#RELATED_PR_MR#')) {
-        currentCommit.relatedPrMr = line
-          .replace('#KEY#RELATED_PR_MR#', '')
-          .trim();
+        currentCommit.relatedPrMr = line.replace('#KEY#RELATED_PR_MR#', '').trim();
+        debugLog(2, 'Found related PR/MR', { relatedPrMr: currentCommit.relatedPrMr });
       } else if (line.startsWith('#KEY#CHANGED_FILES#')) {
-        // Get the changed files (may span multiple lines)
         const changedFiles: string[] = [];
         let j = i + 1;
         while (j < lines.length && !lines[j].startsWith('#KEY#')) {
-          if (lines[j].trim().startsWith('-')) {
-            changedFiles.push(lines[j].trim().substring(2));
+          if (lines[j].trim()) {
+            changedFiles.push(lines[j].trim());
           }
           j++;
         }
         currentCommit.changedFiles = changedFiles;
-        i = j - 1; // Skip ahead
-      } else if (line.startsWith('#KEY#PR_MR_COMMENTS#')) {
-        // Get the PR/MR comments (may span multiple lines)
-        const comments: string[] = [];
+        i = j - 1;
+      } else if (line.startsWith('#KEY#COMMENTS#') || line.startsWith('#KEY#PR_MR_COMMENTS#')) {
+        inComments = true;
+        comments = [];
         let j = i + 1;
-        // Keep reading until we hit another key or run out of lines
         while (j < lines.length && !lines[j].match(/^#KEY#[A-Z_]+#/)) {
-          if (lines[j].trim()) {
+          if (lines[j].trim() && 
+              !lines[j].includes('<!-- internal state') && 
+              !lines[j].includes('<!-- tips_start') &&
+              !lines[j].includes('<!-- tips_end') &&
+              !lines[j].includes('<!-- finishing_touch_checkbox')) {
             comments.push(lines[j].trim());
           }
           j++;
         }
-        currentCommit.comments = comments;
-        i = j - 1; // Skip ahead
+        i = j - 1;
+        inComments = false;
+      } else if (line.startsWith('#KEY#GIT_DIFF#')) {
+        inDiff = true;
+        diffLines = [];
+        let j = i + 1;
+        while (j < lines.length && !lines[j].match(/^#KEY#[A-Z_]+#/)) {
+          if (lines[j].trim()) {
+            diffLines.push(lines[j]);
+          }
+          j++;
+        }
+        i = j - 1;
+        inDiff = false;
+        if (diffLines.length > 0) {
+          // Skip the commit header (first few lines) and only keep the actual diff
+          const diffStartIndex = diffLines.findIndex(line => line.startsWith('diff --git'));
+          if (diffStartIndex !== -1) {
+            currentCommit.diff = diffLines.slice(diffStartIndex).join('\n');
+            debugLog(2, 'Added diff to commit', { 
+              hash: currentCommit.hash,
+              diffLineCount: diffLines.length - diffStartIndex 
+            });
+          }
+        }
       }
     }
   }
+
+  // Handle any remaining commit data
+  if (inCommit && currentCommit.hash) {
+    if (comments.length > 0) {
+      currentCommit.comments = comments;
+    }
+    if (diffLines.length > 0) {
+      // Skip the commit header (first few lines) and only keep the actual diff
+      const diffStartIndex = diffLines.findIndex(line => line.startsWith('diff --git'));
+      if (diffStartIndex !== -1) {
+        currentCommit.diff = diffLines.slice(diffStartIndex).join('\n');
+      }
+    }
+    commits.push(currentCommit as CommitInfo);
+  }
+
+  debugLog(1, 'Completed standard format parsing', { 
+    totalCommits: commits.length,
+    commitsWithMR: commits.filter(c => c.relatedPrMr).length,
+    commitsWithDiff: commits.filter(c => c.diff).length
+  });
 
   return commits;
 }
@@ -610,10 +722,28 @@ async function generateUpdatePage(
   diffFile: string,
   serviceInfo: ServiceInfo,
 ): Promise<void> {
-  const date = parsedData.date;
+  debugLog(1, 'Starting update page generation', {
+    date: parsedData.date,
+    service: serviceInfo.serviceName,
+    commitCount: parsedData.commits.length
+  });
 
-  // Determine service key based on branch names
+  const date = parsedData.date;
   let serviceKey = serviceInfo.serviceKey;
+
+  // Log GitLab MR validation
+  const gitlabCommits = parsedData.commits.filter(commit => 
+    commit.relatedPrMr && commit.relatedPrMr.includes('GitLab MR')
+  );
+  debugLog(2, 'GitLab MR validation', {
+    totalCommits: parsedData.commits.length,
+    gitlabCommits: gitlabCommits.length,
+    mrDetails: gitlabCommits.map(c => ({
+      hash: c.hash,
+      mr: c.relatedPrMr,
+      hasComments: c.comments && c.comments.length > 0
+    }))
+  });
 
   // Check if any of the commits are from update-openapi branches
   const isApiUpdate = parsedData.commits.some(
@@ -629,6 +759,12 @@ async function generateUpdatePage(
   // Use the determined service key for the file name
   const fileName = `${serviceKey}-${date}`;
   const outputPath = join(UPDATES_DIR, `${fileName}.mdx`);
+
+  // Check if file already exists and we're not overwriting
+  if (!OVERWRITE && existsSync(outputPath)) {
+    console.log(`Skipping generation of ${fileName}.mdx as it already exists`);
+    return;
+  }
 
   // Get template
   const templatePath = join(TEMPLATES_DIR, 'git-updates.mdx.template');
@@ -767,7 +903,15 @@ async function generateUpdatePage(
       : 'No pull request comments.';
 
   // Generate code diffs (this is the new addition)
-  const codeDiffs = `<Callout type="info">
+  const codeDiffs = parsedData.commits
+    .filter(commit => commit.diff && commit.diff.length > 0)
+    .map(commit => {
+      const diffContent = commit.diff
+        ? `\`\`\`diff\n${commit.diff}\n\`\`\``
+        : 'No diff available';
+      return `### Diff for "${commit.message}"\n\n${diffContent}`;
+    })
+    .join('\n\n') || `<Callout type="info">
   Code diffs require the \`--with-diff --include-code\` flags when running git_grepper.sh.
   
   For detailed diffs, please use the git command line or a git UI tool to view changes between commits.
@@ -800,11 +944,20 @@ async function generateUpdatePage(
   // Replace the CODE_DIFFS placeholder
   content = content.replace(
     /\{\{CODE_DIFFS\}\}/g,
-    codeDiffs || 'No code diffs available.',
+    codeDiffs
   );
 
+  // Add logging before file write
+  debugLog(1, 'Writing update page', {
+    path: outputPath,
+    contentLength: content.length,
+    hasCommits: parsedData.commits.length > 0,
+    hasComments: allComments.length > 0,
+    hasDiffs: parsedData.commits.some(c => c.diff)
+  });
+
   await writeFileSync(outputPath, content);
-  console.log(`Generated update page: ${outputPath}`);
+  debugLog(1, 'Successfully wrote update page', { path: outputPath });
 }
 
 /**
@@ -890,19 +1043,68 @@ function getRepoName(folderName: string): string {
  * Main function to generate updates from git diff files
  */
 export async function generateGitDiffUpdates(): Promise<string[]> {
-  console.log('Generating updates from git diff files...');
-
+  debugLog(1, 'Starting git diff updates generation');
+  
   // Get service key from command line args if provided
   const serviceKey = argv.service;
+  const days = Number(Array.isArray(argv.days) ? argv.days[0] : argv.days) || 3; // Ensure days is a number
+  debugLog(2, 'Service key and days from args', { serviceKey, days });
+
+  // First, get a list of ALL existing update files and store them in a Set
+  const existingFiles = new Set<string>();
+  const existingPages: string[] = [];
+  
+  // Ensure updates directory exists
+  if (!existsSync(UPDATES_DIR)) {
+    console.log('Creating updates directory as it does not exist');
+    mkdirSync(UPDATES_DIR, { recursive: true });
+  }
+
+  // Read all existing files and store their content
+  const existingFileContents = new Map<string, string>();
+  const files = readdirSync(UPDATES_DIR);
+  files.forEach(file => {
+    if (file.endsWith('.mdx') && file !== 'index.mdx') {
+      existingFiles.add(file);
+      existingPages.push(file.replace('.mdx', ''));
+      // Store the content of each file
+      const filePath = join(UPDATES_DIR, file);
+      existingFileContents.set(file, readFileSync(filePath, 'utf-8'));
+      console.log(`Found existing update file: ${file}`);
+    }
+  });
 
   // Find all git diff files
   const diffFiles = findGitDiffFiles(serviceKey);
-  console.log(`Found ${diffFiles.length} diff files${serviceKey ? ` for service ${serviceKey}` : ''}`);
+  debugLog(1, 'Found diff files', { 
+    count: diffFiles.length,
+    files: diffFiles.map(f => basename(f))
+  });
+
+  // Calculate date range
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Set to start of day
+  const startDate = new Date(today);
+  startDate.setDate(today.getDate() - days);
+
+  // Filter diff files by date
+  const filteredDiffFiles = diffFiles.filter(diffFile => {
+    const filename = basename(diffFile);
+    const match = filename.match(/diffs-(\d{4}-\d{2}-\d{2})\.diff/);
+    if (!match) return false;
+    
+    const [year, month, day] = match[1].split('-').map(Number);
+    const fileDate = new Date(year, month - 1, day); // month is 0-based in JS Date
+    fileDate.setHours(0, 0, 0, 0); // Set to start of day
+    
+    return fileDate >= startDate && fileDate <= today;
+  });
 
   // Process each diff file
   const generatedPages: string[] = [];
+  const updatedPages: string[] = [];
 
-  for (const diffFile of diffFiles) {
+  for (const diffFile of filteredDiffFiles) {
     const filename = basename(diffFile);
     const match = filename.match(/diffs-(\d{4}-\d{2}-\d{2})\.diff/);
 
@@ -912,7 +1114,6 @@ export async function generateGitDiffUpdates(): Promise<string[]> {
 
       // Check if any of the commits are from update-openapi branches
       const isApiUpdate = commits.some((commit) => {
-        // Check for OpenAPI updates in related PR/MR or branch name
         return (
           (commit.relatedPrMr &&
             commit.relatedPrMr.includes('update-openapi-')) ||
@@ -930,65 +1131,332 @@ export async function generateGitDiffUpdates(): Promise<string[]> {
       const finalServiceKey = isApiUpdate ? 'api' : serviceInfo.serviceKey;
 
       // Check if an update for this service and date already exists
-      const updateFileName = `${finalServiceKey}-${date}`;
-      const updateFilePath = join(UPDATES_DIR, `${updateFileName}.mdx`);
+      const updateFileName = `${finalServiceKey}-${date}.mdx`;
+      const updateFilePath = join(UPDATES_DIR, updateFileName);
+      const pageKey = `${finalServiceKey}-${date}`;
 
-      // Also check legacy format for backward compatibility
-      const legacyFileName = `${GIT_UPDATES_FILE_PREFIX}${date}`;
-      const legacyFilePath = join(UPDATES_DIR, `${legacyFileName}.mdx`);
+      if (commits.length > 0) {
+        const parsedData: ParsedGitDiffData = {
+          date,
+          commits,
+        };
 
-      // Also check original service key format for backward compatibility
-      const originalServiceFileName = `${serviceInfo.serviceKey}-${date}`;
-      const originalServiceFilePath = join(
-        UPDATES_DIR,
-        `${originalServiceFileName}.mdx`,
-      );
-
-      if (
-        OVERWRITE ||
-        (!existsSync(updateFilePath) &&
-        !existsSync(legacyFilePath) &&
-        !existsSync(originalServiceFilePath))
-      ) {
-        if (commits.length > 0) {
-          const parsedData: ParsedGitDiffData = {
-            date,
-            commits,
-          };
-          await generateUpdatePage(parsedData, diffFile, serviceInfo);
-          generatedPages.push(`${finalServiceKey}-${date}`);
-          if (isApiUpdate) {
-            console.log(
-              `Generated update page for API on ${date} with ${commits.length} commits from OpenAPI branch`,
-            );
+        // Generate the new content
+        const newContent = await generateUpdatePageContent(parsedData, diffFile, serviceInfo);
+        
+        if (existingFiles.has(updateFileName)) {
+          if (OVERWRITE) {
+            // Update the file in place
+            writeFileSync(updateFilePath, newContent);
+            updatedPages.push(pageKey);
+            console.log(`Updated existing file: ${updateFileName}`);
           } else {
-            console.log(
-              `Generated update page for ${serviceInfo.serviceName} on ${date} with ${commits.length} commits`,
-            );
+            console.log(`Skipping ${updateFileName} as it already exists (use --overwrite to update)`);
           }
         } else {
-          console.log(`No valid commits found in ${diffFile}`);
+          // Create new file
+          writeFileSync(updateFilePath, newContent);
+          generatedPages.push(pageKey);
+          console.log(`Generated new file: ${updateFileName}`);
         }
-      } else {
+
         if (isApiUpdate) {
-          console.log(`Update for API on ${date} already exists${OVERWRITE ? ', but will be overwritten' : ', skipping'}`);
+          console.log(
+            `Processed update page for API on ${date} with ${commits.length} commits from OpenAPI branch`,
+          );
         } else {
           console.log(
-            `Update for ${serviceInfo.serviceName} on ${date} already exists${OVERWRITE ? ', but will be overwritten' : ', skipping'}`,
+            `Processed update page for ${serviceInfo.serviceName} on ${date} with ${commits.length} commits`,
           );
         }
+      } else {
+        console.log(`No valid commits found in ${diffFile}`);
       }
     } else {
       console.log(`Invalid filename format: ${filename}`);
     }
   }
 
-  // Update meta.json with new pages
-  if (generatedPages.length > 0) {
-    updateMetaJson(generatedPages);
+  // Update meta.json with ALL pages (existing + new + updated)
+  // Read existing meta.json
+  let meta: any = {
+    title: 'Updates',
+    icon: 'MonitorUp',
+    description: 'Latest updates, improvements, and changes to Meeting BaaS services',
+    root: true,
+    sortBy: 'date',
+    sortOrder: 'desc',
+    pages: ['index'],
+  };
+
+  if (existsSync(META_JSON_PATH)) {
+    try {
+      meta = JSON.parse(readFileSync(META_JSON_PATH, 'utf-8'));
+    } catch (error) {
+      console.error('Error reading meta.json:', error);
+    }
   }
 
-  return generatedPages;
+  // Combine existing pages with new and updated pages, ensuring no duplicates
+  const allPages = [...new Set([...existingPages, ...generatedPages, ...updatedPages])];
+
+  // Add all pages to the pages array if they don't already exist
+  allPages.forEach((page) => {
+    if (!meta.pages.includes(page)) {
+      meta.pages.push(page);
+    }
+  });
+
+  // Sort pages by date - extract dates from service-date format
+  // Keep index at the beginning
+  const indexPage = meta.pages.indexOf('index');
+  if (indexPage !== -1) {
+    meta.pages.splice(indexPage, 1);
+  }
+
+  meta.pages.sort((a: string, b: string) => {
+    // Keep non-date pages at the end
+    const datePatternA = a.match(/^[a-z-]+-(\d{4}-\d{2}-\d{2})$/);
+    const datePatternB = b.match(/^[a-z-]+-(\d{4}-\d{2}-\d{2})$/);
+
+    if (!datePatternA && datePatternB) return 1;
+    if (datePatternA && !datePatternB) return -1;
+    if (!datePatternA && !datePatternB) return 0;
+
+    // Extract dates from page names
+    const dateA = datePatternA![1];
+    const dateB = datePatternB![1];
+
+    // Compare dates (newest first)
+    return dateB.localeCompare(dateA);
+  });
+
+  // Add index back to the beginning
+  if (indexPage !== -1) {
+    meta.pages.unshift('index');
+  }
+
+  // Write back meta.json
+  writeFileSync(META_JSON_PATH, JSON.stringify(meta, null, 2));
+  console.log(`Updated meta.json with all pages (existing + new + updated): ${allPages.join(', ')}`);
+
+  return [...generatedPages, ...updatedPages];
+}
+
+// Split out the content generation from file writing
+async function generateUpdatePageContent(
+  parsedData: ParsedGitDiffData,
+  diffFile: string,
+  serviceInfo: ServiceInfo,
+): Promise<string> {
+  debugLog(1, 'Starting update page content generation', {
+    date: parsedData.date,
+    service: serviceInfo.serviceName,
+    commitCount: parsedData.commits.length
+  });
+
+  const date = parsedData.date;
+  let serviceKey = serviceInfo.serviceKey;
+
+  // Log GitLab MR validation
+  const gitlabCommits = parsedData.commits.filter(commit => 
+    commit.relatedPrMr && commit.relatedPrMr.includes('GitLab MR')
+  );
+  debugLog(2, 'GitLab MR validation', {
+    totalCommits: parsedData.commits.length,
+    gitlabCommits: gitlabCommits.length,
+    mrDetails: gitlabCommits.map(c => ({
+      hash: c.hash,
+      mr: c.relatedPrMr,
+      hasComments: c.comments && c.comments.length > 0
+    }))
+  });
+
+  // Check if any of the commits are from update-openapi branches
+  const isApiUpdate = parsedData.commits.some(
+    (commit) =>
+      (commit.relatedPrMr && commit.relatedPrMr.includes('update-openapi-')) ||
+      (commit.branch && commit.branch.includes('update-openapi')),
+  );
+
+  if (isApiUpdate) {
+    serviceKey = 'api';
+  }
+
+  // Get template
+  const templatePath = join(TEMPLATES_DIR, 'git-updates.mdx.template');
+  const template = await readFileSync(templatePath, 'utf-8');
+
+  // Format date for display (YYYY-MM-DD → Month DD, YYYY)
+  const [year, month, day] = date.split('-');
+  const displayDate = new Date(
+    `${year}-${month}-${day}T00:00:00Z`,
+  ).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  // Generate commit list - make sure everything is a string
+  const commitList = parsedData.commits
+    .map((commit) => {
+      const message =
+        typeof commit.message === 'string'
+          ? commit.message
+          : String(commit.message);
+      const author =
+        typeof commit.author === 'string'
+          ? commit.author
+          : String(commit.author);
+      const commitDate =
+        typeof commit.date === 'string' ? commit.date : String(commit.date);
+      const hash =
+        typeof commit.hash === 'string' ? commit.hash : String(commit.hash);
+      const relatedPrMr = commit.relatedPrMr ? String(commit.relatedPrMr) : '';
+
+      return (
+        `### ${message}\n\n` +
+        `**Author:** ${author}\n\n` +
+        `**Date:** ${commitDate}\n\n` +
+        `**Hash:** \`${hash}\`\n\n` +
+        (relatedPrMr ? `**Related PR/MR:** ${relatedPrMr}\n\n` : '')
+      );
+    })
+    .join('\n\n');
+
+  // Process all changedFiles more carefully
+  let allChangedFiles: string[] = [];
+  parsedData.commits.forEach((commit) => {
+    if (commit.changedFiles && commit.changedFiles.length > 0) {
+      // Filter out null or empty strings
+      const validFiles = commit.changedFiles.filter(
+        (file) => file && typeof file === 'string' && file.trim().length > 0,
+      );
+      allChangedFiles = [...allChangedFiles, ...validFiles];
+    }
+  });
+
+  // Remove duplicates and sort for consistency
+  allChangedFiles = [...new Set(allChangedFiles)].sort();
+
+  // Generate changed files list
+  const changedFilesList =
+    allChangedFiles.length > 0
+      ? allChangedFiles
+          .map((file) => {
+            const icon = getFileIcon(file);
+            return `- ${icon} \`${file}\``;
+          })
+          .join('\n')
+      : 'No changed files.';
+
+  // Process PR comments more carefully
+  let allComments: { message: string; comments: string[] }[] = [];
+  parsedData.commits.forEach((commit) => {
+    if (commit.comments && commit.comments.length > 0) {
+      // Filter out empty comment lines and join coherent blocks
+      const cleanedComments = commit.comments
+        .filter(
+          (comment) =>
+            comment && typeof comment === 'string' && comment.trim().length > 0,
+        )
+        // Remove HTML comments used for internal state if they exist
+        .filter((comment) => !comment.includes('<!-- internal state'))
+        .filter(
+          (comment) => !comment.includes('<!-- finishing_touch_checkbox'),
+        );
+
+      if (cleanedComments.length > 0) {
+        const message =
+          typeof commit.message === 'string'
+            ? commit.message
+            : String(commit.message || 'Unknown commit');
+        allComments.push({
+          message,
+          comments: cleanedComments,
+        });
+      }
+    }
+  });
+
+  // Generate PR comments with better formatting
+  const prComments =
+    allComments.length > 0
+      ? allComments
+          .map((item) => {
+            return (
+              `### Comments for "${item.message}"\n\n` +
+              item.comments
+                .map((comment) => {
+                  if (typeof comment !== 'string') {
+                    return `> ${JSON.stringify(comment)}`;
+                  }
+
+                  // Better handling of comment blocks - maintain code blocks and formatting
+                  if (comment.startsWith('```')) {
+                    // If it's a code block, escape it properly
+                    return comment;
+                  } else if (comment.startsWith('PR COMMENTS:')) {
+                    // Skip the PR COMMENTS: prefix
+                    return '';
+                  } else {
+                    // Regular comment line - keep the quoting
+                    return `> ${escapeMdxContent(comment)}`;
+                  }
+                })
+                .filter((c) => c.length > 0)
+                .join('\n\n')
+            );
+          })
+          .join('\n\n')
+      : 'No pull request comments.';
+
+  // Generate code diffs
+  const codeDiffs = parsedData.commits
+    .filter(commit => commit.diff && commit.diff.length > 0)
+    .map(commit => {
+      const diffContent = commit.diff
+        ? `\`\`\`diff\n${commit.diff}\n\`\`\``
+        : 'No diff available';
+      return `### Diff for "${commit.message}"\n\n${diffContent}`;
+    })
+    .join('\n\n') || `<Callout type="info">
+  Code diffs require the \`--with-diff --include-code\` flags when running git_grepper.sh.
+  
+  For detailed diffs, please use the git command line or a git UI tool to view changes between commits.
+</Callout>`;
+
+  // Replace placeholders in template
+  let content = template
+    .replace(/\{\{DATE\}\}/g, displayDate)
+    .replace(/\{\{SERVICE_KEY\}\}/g, serviceKey)
+    .replace(/\{\{SERVICE_ICON\}\}/g, serviceInfo.icon || 'Git')
+    .replace(
+      /\{\{SERVICE_NAME\}\}/g,
+      isApiUpdate ? 'API' : serviceInfo.serviceName,
+    );
+
+  // Replace new placeholders
+  content = content.replace(
+    /\{\{COMMIT_LIST\}\}/g,
+    commitList || 'No commits found.',
+  );
+  content = content.replace(
+    /\{\{CHANGED_FILES_LIST\}\}/g,
+    changedFilesList || 'No changed files.',
+  );
+  content = content.replace(
+    /\{\{PR_COMMENTS\}\}/g,
+    prComments || 'No pull request comments.',
+  );
+
+  // Replace the CODE_DIFFS placeholder
+  content = content.replace(
+    /\{\{CODE_DIFFS\}\}/g,
+    codeDiffs
+  );
+
+  return content;
 }
 
 // Run the function automatically when this module is executed directly
