@@ -300,33 +300,77 @@ function detectPlatforms(content: string): string[] {
   return platforms;
 }
 
-// Function to validate components in content
+// Function to validate and replace components in content
 function validateComponentsInContent(
-    content: string,
-    availableComponents: string[],
-): void {
-    // Find all custom component tags in the content
-    const componentRegex = /<([A-Z][a-zA-Z]*)[^>]*>/g;
-    const matches = [...content.matchAll(componentRegex)];
+  content: string,
+  availableComponents: string[],
+): string {
+  // Component replacement mapping
+  const componentReplacements: Record<string, string> = {
+    'MenuItem': 'Tab',
+    'StatusMessage': 'Callout',
+    'Menu': 'Tabs',
+    'MenuItems': 'Tabs',
+    'Status': 'Callout',
+    'StatusMessages': 'Callout',
+  };
 
-    // Extract the component names
-    const usedComponents = matches.map((match) => match[1]);
+  // Find all custom component tags in the content
+  const componentRegex = /<([A-Z][a-zA-Z]*)[^>]*>/g;
+  let modifiedContent = content;
+  const invalidComponents = new Set<string>();
+  const replacedComponents = new Map<string, string>();
 
-    // Always allow Tabs component since it's an alias in our setup
-    const allowedComponents = [...availableComponents, 'Tabs', 'CustomTabs'];
+  // Always allow Tabs component since it's an alias in our setup
+  const allowedComponents = [...availableComponents, 'Tabs', 'CustomTabs'];
 
-    // Filter to only components not in the available list
-    const invalidComponents = usedComponents.filter(
-      (comp) => comp && !allowedComponents.includes(comp),
-    );
-
-    // Crash if invalid components are found
-    if (invalidComponents.length > 0) {
-      throw new Error(
-        `Error: Generated content contains components that are not available: ${invalidComponents.join(', ')}. ` +
-          `Available components are: ${allowedComponents.join(', ')}`,
-      );
+  // First pass: collect invalid components
+  const matches = [...content.matchAll(componentRegex)];
+  matches.forEach(match => {
+    const component = match[1];
+    if (component && !allowedComponents.includes(component)) {
+      invalidComponents.add(component);
     }
+  });
+
+  // Second pass: replace invalid components
+  if (invalidComponents.size > 0) {
+    spinner.warn(`Found invalid components: ${Array.from(invalidComponents).join(', ')}`);
+    spinner.info(`Available components: ${allowedComponents.join(', ')}`);
+    
+    // Replace each invalid component
+    invalidComponents.forEach(invalidComp => {
+      const replacement = componentReplacements[invalidComp];
+      if (replacement) {
+        // Replace both opening and closing tags
+        const openTagRegex = new RegExp(`<${invalidComp}([^>]*)>`, 'g');
+        const closeTagRegex = new RegExp(`</${invalidComp}>`, 'g');
+        
+        modifiedContent = modifiedContent
+          .replace(openTagRegex, `<${replacement}$1>`)
+          .replace(closeTagRegex, `</${replacement}>`);
+        
+        replacedComponents.set(invalidComp, replacement);
+      } else {
+        // If no replacement is defined, wrap in a Callout
+        const openTagRegex = new RegExp(`<${invalidComp}([^>]*)>`, 'g');
+        const closeTagRegex = new RegExp(`</${invalidComp}>`, 'g');
+        
+        modifiedContent = modifiedContent
+          .replace(openTagRegex, `<Callout type="info">`)
+          .replace(closeTagRegex, `</Callout>`);
+        
+        replacedComponents.set(invalidComp, 'Callout');
+      }
+    });
+
+    // Log replacements
+    replacedComponents.forEach((replacement, original) => {
+      spinner.info(`Replaced ${original} with ${replacement}`);
+    });
+  }
+
+  return modifiedContent;
 }
 
 // Define OpenRouter API response types
@@ -344,6 +388,20 @@ interface OpenRouterResponse {
   id: string;
   model: string;
   choices: OpenRouterChoice[];
+}
+
+// Add type definitions for commit info
+interface CommitInfo {
+  title: string;
+  branch: string;
+  author: string;
+  date: string;
+  hash: string;
+}
+
+interface CommitExtractionResult {
+  commits: CommitInfo[];
+  branches: Set<string>;
 }
 
 // Function to analyze content and determine service type
@@ -534,9 +592,9 @@ ${serviceSpecific}`;
       throw new Error('No enhanced content received from AI');
     }
 
-    // Validate the response
+    // Validate and replace components instead of just validating
     if (availableComponents.length > 0) {
-      validateComponentsInContent(enhancedContent, availableComponents);
+      return validateComponentsInContent(enhancedContent, availableComponents);
     }
 
     return enhancedContent;
@@ -625,6 +683,164 @@ Provide ONLY the fixed content. Do not include explanations or meta-commentary.
   }
 }
 
+// Function to deduplicate commits in content
+function deduplicateCommits(content: string): string {
+  const lines = content.split('\n');
+  const seenCommits = new Set<string>();
+  const deduplicatedLines: string[] = [];
+  let inCommit = false;
+  let currentCommit: string[] = [];
+  let commitHash = '';
+
+  for (const line of lines) {
+    if (line.startsWith('### ')) {
+      // Start of a new commit
+      if (inCommit) {
+        // Process previous commit
+        const commitContent = currentCommit.join('\n');
+        if (!seenCommits.has(commitHash)) {
+          seenCommits.add(commitHash);
+          deduplicatedLines.push(...currentCommit);
+        }
+        currentCommit = [];
+      }
+      inCommit = true;
+      currentCommit = [line];
+      commitHash = '';
+    } else if (inCommit) {
+      currentCommit.push(line);
+      // Extract hash if present
+      const hashMatch = line.match(/`([a-f0-9]{40})`/);
+      if (hashMatch) {
+        commitHash = hashMatch[1];
+      }
+    } else {
+      deduplicatedLines.push(line);
+    }
+  }
+
+  // Process last commit
+  if (inCommit && currentCommit.length > 0) {
+    const commitContent = currentCommit.join('\n');
+    if (!seenCommits.has(commitHash)) {
+      deduplicatedLines.push(...currentCommit);
+    }
+  }
+
+  return deduplicatedLines.join('\n');
+}
+
+// Function to split content into chunks
+function splitContentIntoChunks(content: string, maxChunkSize: number = 4000): string[] {
+  const chunks: string[] = [];
+  const sections = content.split(/(?=## )/); // Split on section headers
+  let currentChunk = '';
+
+  for (const section of sections) {
+    if (currentChunk.length + section.length > maxChunkSize) {
+      if (currentChunk) {
+        chunks.push(currentChunk);
+        currentChunk = '';
+      }
+      // If a single section is too large, split it further
+      if (section.length > maxChunkSize) {
+        const subSections = section.split(/(?=### )/);
+        for (const subSection of subSections) {
+          if (currentChunk.length + subSection.length > maxChunkSize) {
+            if (currentChunk) {
+              chunks.push(currentChunk);
+              currentChunk = '';
+            }
+            // If a subsection is still too large, split by commits
+            if (subSection.length > maxChunkSize) {
+              const commits = subSection.split(/(?=### Merge branch)/);
+              for (const commit of commits) {
+                if (currentChunk.length + commit.length > maxChunkSize) {
+                  if (currentChunk) {
+                    chunks.push(currentChunk);
+                    currentChunk = '';
+                  }
+                }
+                currentChunk += commit;
+              }
+            } else {
+              currentChunk = subSection;
+            }
+          } else {
+            currentChunk += subSection;
+          }
+        }
+      } else {
+        currentChunk = section;
+      }
+    } else {
+      currentChunk += section;
+    }
+  }
+
+  if (currentChunk) {
+    chunks.push(currentChunk);
+  }
+
+  return chunks;
+}
+
+// Function to update meta.json with renamed files
+async function updateMetaJson(oldFileName: string, newFileName: string): Promise<void> {
+  const metaJsonPath = path.join(updatesDir, 'meta.json');
+  try {
+    // Read meta.json
+    const metaContent = await fs.readFile(metaJsonPath, 'utf-8');
+    const meta = JSON.parse(metaContent);
+
+    // Find the old filename in pages array (without .mdx extension)
+    const oldPageName = oldFileName.replace('.mdx', '');
+    const newPageName = newFileName.replace('.mdx', '');
+    const pageIndex = meta.pages.indexOf(oldPageName);
+
+    if (pageIndex !== -1) {
+      // Replace the old name with the new name
+      meta.pages[pageIndex] = newPageName;
+      
+      // Write back to meta.json
+      await fs.writeFile(metaJsonPath, JSON.stringify(meta, null, 2) + '\n', 'utf-8');
+      spinner.info(`Updated meta.json: ${oldPageName} -> ${newPageName}`);
+    } else {
+      spinner.warn(`Could not find ${oldPageName} in meta.json pages array`);
+    }
+  } catch (error) {
+    spinner.warn(`Failed to update meta.json: ${error}`);
+  }
+}
+
+// Function to extract commit and branch info from content
+function extractCommitInfo(content: string): CommitExtractionResult {
+  const commits: CommitInfo[] = [];
+  const branches = new Set<string>();
+  
+  // Extract commit info
+  const commitRegex = /### (Merge branch '([^']+)'|.*?)\n\n\*\*Author:\*\* (.*?)\n\n\*\*Date:\*\* (.*?)\n\n\*\*Hash:\*\* `([a-f0-9]{40})`/g;
+  let match;
+  
+  while ((match = commitRegex.exec(content)) !== null) {
+    const [_, commitTitle, branch, author, date, hash] = match;
+    const commitInfo: CommitInfo = {
+      title: commitTitle,
+      branch: branch || 'direct commit',
+      author,
+      date,
+      hash
+    };
+    commits.push(commitInfo);
+    
+    if (branch) {
+      branches.add(branch);
+    }
+  }
+  
+  return { commits, branches };
+}
+
 // Process a single update file
 async function processUpdateFile(filePath: string): Promise<void> {
   const fileName = path.basename(filePath);
@@ -637,6 +853,23 @@ async function processUpdateFile(filePath: string): Promise<void> {
     // Extract frontmatter and content
     const { frontmatter, content } = extractFrontmatter(fileContent);
 
+    // Extract commit info before deduplication
+    const { commits, branches } = extractCommitInfo(content);
+    spinner.info(`Found ${commits.length} commits from ${branches.size} branches:`);
+    branches.forEach(branch => {
+      const branchCommits = commits.filter(c => c.branch === branch);
+      spinner.info(`  Branch '${branch}': ${branchCommits.length} commits`);
+    });
+
+    // Deduplicate commits
+    const deduplicatedContent = deduplicateCommits(content);
+    const { commits: uniqueCommits, branches: uniqueBranches } = extractCommitInfo(deduplicatedContent);
+    spinner.info(`After deduplication: ${uniqueCommits.length} unique commits from ${uniqueBranches.size} branches`);
+
+    // Split content into manageable chunks
+    const chunks = splitContentIntoChunks(deduplicatedContent);
+    spinner.info(`Split content into ${chunks.length} chunks`);
+
     // Determine service name from path or filename
     const pathParts = filePath.split(path.sep);
     const filename = pathParts[pathParts.length - 1];
@@ -645,43 +878,70 @@ async function processUpdateFile(filePath: string): Promise<void> {
 
     spinner.info(`Processing ${fileName} (Service: ${serviceName})`);
 
-    // First, analyze the content
-    spinner.text = `Analyzing content for ${fileName}`;
-    const analysis = await analyzeContent(content, serviceName);
-    spinner.info(`Analysis for ${fileName}:
+    // Process each chunk
+    const enhancedChunks: string[] = [];
+    for (let i = 0; i < chunks.length; i++) {
+      spinner.text = `Processing chunk ${i + 1}/${chunks.length} for ${fileName}`;
+      
+      // Extract commit info for this chunk
+      const { commits: chunkCommits } = extractCommitInfo(chunks[i]);
+      spinner.info(`Chunk ${i + 1} contains ${chunkCommits.length} commits:`);
+      chunkCommits.forEach(commit => {
+        spinner.info(`  - ${commit.title} (${commit.branch}) by ${commit.author}`);
+      });
+      
+      // Analyze the chunk
+      spinner.text = `Analyzing chunk ${i + 1} with AI...`;
+      const analysis = await analyzeContent(chunks[i], serviceName);
+      spinner.info(`AI Analysis for chunk ${i + 1}:
   Service: ${analysis.service}
   Icon: ${analysis.icon}
   Platforms: ${analysis.platforms.join(', ') || 'none'}
   Reasoning: ${analysis.reasoning}
-  Affected_areas: ${analysis.affected_areas.join(', ')}`);
+  Affected areas: ${analysis.affected_areas.join(', ')}`);
+      
+      // Enhance the chunk
+      spinner.text = `Enhancing chunk ${i + 1} with AI...`;
+      const enhancedChunk = await enhanceContent(chunks[i], serviceName, analysis);
+      
+      // Validate the chunk
+      spinner.text = `Validating chunk ${i + 1}...`;
+      const validatedChunk = await validateAndFixContent(enhancedChunk);
+      
+      enhancedChunks.push(validatedChunk);
+    }
 
-    // Update frontmatter based on analysis
+    // Combine all chunks
+    const combinedContent = enhancedChunks.join('\n\n');
+
+    // Analyze the combined content for final metadata
+    const finalAnalysis = await analyzeContent(combinedContent, serviceName);
+    spinner.info(`Final analysis for ${fileName}:
+  Service: ${finalAnalysis.service}
+  Icon: ${finalAnalysis.icon}
+  Platforms: ${finalAnalysis.platforms.join(', ') || 'none'}
+  Reasoning: ${finalAnalysis.reasoning}
+  Affected_areas: ${finalAnalysis.affected_areas.join(', ')}`);
+
+    // Update frontmatter based on final analysis
     const updatedFrontmatter = {
       ...frontmatter,
-      icon: analysis.icon,
-      service: analysis.service,
-      description: analysis.platforms.length > 0 ? analysis.platforms.join(', ') : '',
+      icon: finalAnalysis.icon,
+      service: finalAnalysis.service,
+      description: finalAnalysis.platforms.length > 0 ? finalAnalysis.platforms.join(', ') : '',
     };
-
-    // Then enhance the content
-    spinner.text = `Enhancing content for ${fileName}`;
-    const enhancedContent = await enhanceContent(content, serviceName, analysis);
-
-    // Finally, validate and fix any React/MDX syntax issues
-    spinner.text = `Validating React/MDX syntax for ${fileName}`;
-    const validatedContent = await validateAndFixContent(enhancedContent);
 
     // Reconstruct the MDX file with updated frontmatter
     const finalContent = `---
 ${yaml.stringify(updatedFrontmatter)}
 ---
 
-${validatedContent}`;
+${combinedContent}`;
 
     // Determine if we need to rename the file based on service type
     const dateMatch = filename.match(/\d{4}-\d{2}-\d{2}/);
     const date = dateMatch ? dateMatch[0] : '';
-    const newServiceName = analysis.service === 'api' ? 'api' : 'production';
+    const newServiceName = finalAnalysis.service === 'api' ? 'api' : 'production';
     const newFileName = `${newServiceName}-${date}.mdx`;
     const newFilePath = path.join(path.dirname(filePath), newFileName);
 
@@ -690,12 +950,14 @@ ${validatedContent}`;
       spinner.info(`Renaming file from ${filename} to ${newFileName} to match service type`);
       // Write to new file first
       await fs.writeFile(newFilePath, finalContent, 'utf-8');
+      // Update meta.json with the new filename
+      await updateMetaJson(filename, newFileName);
       // Then delete old file
       await fs.unlink(filePath);
       filePath = newFilePath;
     } else {
       // Just write to existing file
-    await fs.writeFile(filePath, finalContent, 'utf-8');
+      await fs.writeFile(filePath, finalContent, 'utf-8');
     }
 
     // Generate URLs for the file
