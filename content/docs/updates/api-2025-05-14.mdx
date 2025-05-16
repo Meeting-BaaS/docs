@@ -1,0 +1,94 @@
+---
+title: May 14, 2025
+description: Zoom, Google Meet, Teams
+icon: Webhook
+service: api
+date: May 14, 2025
+
+---
+
+# Meeting BaaS API Updates: Swimming with Authentication Changes 🐟
+
+> Did you hear about the bot that went fishing? It was looking for some BaaS! 
+
+## Overview
+
+This update introduces domain-based access control for bot authentication across Zoom, Google Meet, and Teams platforms. These changes enhance security and provide more granular control over bot access permissions.
+
+<Callout type="info">
+  These changes affect bot authentication and access control mechanisms. Please review your bot integration configurations.
+</Callout>
+
+## Key Changes
+
+<Accordions>
+  <Accordion title="Authentication Updates" value="auth">
+    - New domain-based bot access control system
+    - Enhanced email provider domain validation
+    - Updated bot authentication flow
+    - Modified internal bot handling mechanisms
+  </Accordion>
+
+  <Accordion title="Modified Components" value="components">
+    - Bot authentication engine
+    - Email provider domain configuration
+    - Internal bot handler endpoints
+    - Public bot API endpoints
+  </Accordion>
+</Accordions>
+
+## Implementation Details
+
+<Tabs items={['Authentication', 'Configuration', 'API Changes']}>
+  <Tab>
+    ### Domain-Based Access Control
+
+    The new authentication system validates bot access based on email provider domains:
+
+    - Enhanced security checks for bot authentication
+    - Domain-based permission validation
+    - Improved access control granularity
+  </Tab>
+  <Tab>
+    ### Email Provider Setup
+
+    Updated configuration structure for email provider domains:
+
+    ```plaintext
+    api_server/baas_engine/src/auth/email_provider_domains.txt
+    ```
+
+    - Centralized domain configuration
+    - Simplified provider management
+    - Enhanced validation rules
+  </Tab>
+  <Tab>
+    ### API Modifications
+
+    Updates to bot handler endpoints:
+
+    - New authentication endpoints in public API
+    - Modified internal bot routing
+    - Enhanced error handling and validation
+  </Tab>
+</Tabs>
+
+## File Structure
+
+<Files>
+  <Folder name="api_server" defaultOpen>
+    <Folder name="baas_engine/src/auth">
+      <File name="bot_access.rs" />
+      <File name="email_provider_domains.txt" />
+      <File name="mod.rs" />
+    </Folder>
+    <Folder name="baas_handler/src/bots">
+      <File name="internal.rs" />
+      <File name="public.rs" />
+    </Folder>
+  </Folder>
+</Files>
+
+<Callout type="warn">
+  Please update your bot configurations to align with the new domain-based access control system.
+</Callout>

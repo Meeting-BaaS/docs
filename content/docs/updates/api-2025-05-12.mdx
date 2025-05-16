@@ -1,0 +1,555 @@
+---
+title: May 12, 2025
+description: Google Meet
+icon: Webhook
+service: api
+date: May 12, 2025
+
+---
+
+# Production Updates - May 12, 2025 🐟
+
+> Something's fishy about these updates... looks like our Meeting BaaS is swimming along nicely! 
+
+<Callout type="info">
+  This update focuses on major frontend and documentation improvements to enhance the developer experience.
+</Callout>
+
+## Major Changes
+
+<Accordions>
+  <Accordion title="Documentation & Examples" value="docs">
+    * New API and SDK documentation pages
+    * Enhanced webhook integration guides
+    * Improved bot configuration examples
+    * New calendar integration documentation
+    * Expanded MCP tools documentation
+  </Accordion>
+
+  <Accordion title="Frontend Enhancements" value="frontend">
+    * Redesigned homepage with feature highlights
+    * New API and Open-Source navigation dropdowns
+    * Expanded footer with additional resource links
+    * Added AI Chat interface and integration
+    * Improved button actions and navigation flow
+  </Accordion>
+
+  <Accordion title="Developer Tools" value="dev">
+    * New code snippets for multiple languages
+    * Updated TypeScript configurations
+    * Additional npm scripts for development
+    * Improved code formatting standards
+    * Enhanced environment variable handling
+  </Accordion>
+</Accordions>
+
+## Code Examples
+
+<Tabs items={['TypeScript', 'Python', 'Bash']}>
+  <Tab value="TypeScript">
+    ```typescript
+    // Updated SDK configuration
+    import { MeetingBaaSClient } from '@meeting-baas/sdk';
+
+    const client = new MeetingBaaSClient({
+      apiKey: process.env.API_KEY,
+      environment: 'production'
+    });
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    # New Python integration example
+    from meeting_baas import MeetingClient
+
+    client = MeetingClient(
+        api_key="your_api_key",
+        environment="production"
+    )
+    ```
+  </Tab>
+  <Tab value="Bash">
+    ```bash
+    # Updated API call example
+    curl -X POST https://api.meetingbaas.com/v1/meetings \
+      -H "Authorization: Bearer $API_KEY" \
+      -H "Content-Type: application/json" \
+      -d '{"title": "Team Sync"}'
+    ```
+  </Tab>
+</Tabs>
+
+## File Structure Updates
+
+<Files>
+  <Folder name="docs" defaultOpen>
+    <Folder name="api">
+      <File name="endpoints.mdx" />
+      <File name="webhooks.mdx" />
+    </Folder>
+    <Folder name="sdk">
+      <File name="typescript.mdx" />
+      <File name="python.mdx" />
+    </Folder>
+  </Folder>
+  <Folder name="components">
+    <File name="Navigation.tsx" />
+    <File name="Footer.tsx" />
+  </Folder>
+</Files>
+
+<Callout type="warn">
+  Remember to update your local development environment with the latest dependencies after pulling these changes.
+</Callout>
+
+🐟 Something's fishy here... looks like our Meeting BaaS (or should I say Bass?) got a major API overhaul! Let's dive into these changes...
+
+# API Service Updates
+
+<Callout type="info">
+  This update focuses on API documentation, SDK integration, and bot functionality for Google Meet platform.
+</Callout>
+
+## Core Infrastructure Changes
+
+<Accordions>
+  <Accordion title="Environment & Configuration" value="env">
+    - Added `AUTH_URL` environment variable across development, pre-production, and production
+    - Updated TypeScript configuration with `allowImportingTsExtensions` and `noEmit` options
+    - Added `@meeting-baas/sdk` dependency and format scripts
+  </Accordion>
+
+  <Accordion title="API Documentation & Examples" value="api-docs">
+    New documentation pages added for:
+    - Bot APIs
+    - Calendar APIs
+    - Webhook Events
+    - TypeScript SDK
+    - MCP Tools
+    - Speaking Bots API
+  </Accordion>
+</Accordions>
+
+## New API Components
+
+<Tabs items={['SDK Integration', 'Bot Configuration', 'API Examples']}>
+  <Tab value="SDK Integration">
+    ```typescript
+    // SDK Usage Example
+    import { MeetingBaasSDK } from '@meeting-baas/sdk';
+
+    const sdk = new MeetingBaasSDK({
+      apiKey: 'your-api-key'
+    });
+
+    await sdk.joinMeeting({
+      meetingId: 'meeting-id',
+      botType: 'assistant'
+    });
+    ```
+  </Tab>
+  <Tab value="Bot Configuration">
+    ```json
+    {
+      "mcp_config": {
+        "environment": "production",
+        "server": {
+          "host": "0.0.0.0",
+          "port": 3000
+        }
+      }
+    }
+    ```
+  </Tab>
+  <Tab value="API Examples">
+    ```python
+    # Calendar API Example
+    def list_calendar_providers():
+        response = requests.get('/api/v1/calendars/providers')
+        return response.json()
+
+    def schedule_bot(meeting_id, bot_type):
+        response = requests.post('/api/v1/bots/schedule', 
+            json={'meeting_id': meeting_id, 'type': bot_type})
+        return response.json()
+    ```
+  </Tab>
+</Tabs>
+
+## UI & Navigation Updates
+
+<Steps>
+  <Step>
+    ### Navigation Restructuring
+    - Split dropdowns into "Open-Source" and "APIs" sections
+    - Added new "AI Chat" navigation link
+    - Enhanced mobile menu functionality
+  </Step>
+  <Step>
+    ### Homepage Improvements
+    - Restructured features into three main sections
+    - Updated content and feature comparisons
+    - Added new resource sections and CTA buttons
+  </Step>
+  <Step>
+    ### Documentation Layout
+    - Implemented two-column layout for examples
+    - Added vertical code example holders
+    - Enhanced code snippet display options
+  </Step>
+</Steps>
+
+## Breaking Changes
+
+<Callout type="warn">
+  The following changes may require updates to existing integrations:
+
+  - Modified bot invitation payload structure
+  - Updated authentication flow with new `AUTH_URL`
+  - Changed webhook event payload format
+</Callout>
+
+<Files>
+  <Folder name="New API Components" defaultOpen>
+    <File name="speaking_bot.py" />
+    <File name="webhook_events.json" />
+    <File name="sdk_usage.ts" />
+    <File name="mcp_config.json" />
+  </Folder>
+  <Folder name="Updated Configurations">
+    <File name="tsconfig.json" />
+    <File name=".env.development" />
+    <File name="package.json" />
+  </Folder>
+</Files>
+
+# Frontend Navigation and Authentication Flow Updates
+
+> 🐟 Swimming through our codebase like a bass in a stream, we've made some slick navigation updates! No fishing for the right routes anymore. 
+
+This update focuses on frontend navigation patterns and authentication flow improvements. Let's dive into the key interaction flows:
+
+<Accordions>
+  <Accordion title="Authentication Flow" value="auth">
+    The login process now includes:
+
+    - Capture of current page URL for post-login redirect
+    - Client-side validation before redirect
+    - Secure handoff to external auth service
+  </Accordion>
+
+  <Accordion title="Navigation Features" value="nav">
+    New navigation capabilities include:
+
+    - Single-click access to AI Chat in new tab
+    - Direct routing to Transcript Seeker service
+    - Improved window environment detection
+  </Accordion>
+</Accordions>
+
+## User Interaction Flows
+
+<Tabs items={['Login Flow', 'Feature Navigation']}>
+  <Tab value="Login Flow">
+    ```mermaid
+    sequenceDiagram
+      participant User
+      participant Navbar
+      participant RouterUtils
+      participant ExternalSite
+      User->>Navbar: Clicks "Login" button
+      Navbar->>RouterUtils: Calls loginRedirect({ redirect: window.location.href })
+      RouterUtils->>RouterUtils: Checks if window is defined
+      alt window defined
+        RouterUtils->>ExternalSite: Redirects to AUTH_URL with redirect param
+      end
+    ```
+  </Tab>
+
+  <Tab value="Feature Navigation">
+    ```mermaid
+    sequenceDiagram
+      participant User
+      participant Footer
+      participant RouterUtils
+      participant ExternalSite
+      User->>Footer: Clicks "Transcript Seeker" link
+      Footer->>RouterUtils: Calls transcriptSeeker()
+      RouterUtils->>RouterUtils: Checks if window is defined
+      alt window defined
+        RouterUtils->>ExternalSite: Opens Transcript Seeker site in new tab
+      end
+    ```
+  </Tab>
+</Tabs>
+
+<Callout type="info">
+  All navigation actions include environment checks to ensure proper client-side execution and handle edge cases gracefully.
+</Callout>
+
+Here's the validated and fixed content:
+
+```json
+{
+  "service": "production",
+  "icon": "Zap", 
+  "platforms": [],
+  "reasoning": "This is a frontend-only change focused on documentation structure, landing page updates, and UI components. The changes are primarily to the frontend/baas/landing directory and involve styling, layout, and content updates without any API modifications.",
+  "affected_areas": [
+    "frontend/baas/landing components",
+    "landing page layouts",
+    "documentation structure",
+    "UI components",
+    "code snippets",
+    "navigation elements",
+    "footer components",
+    "styling files",
+    "gatsby configuration"
+  ]
+}
+```
+
+<Callout type="info">
+  🐟 Swimming through documentation updates! Let's make a splash with our new landing page and UI components. Bass-ically, it's all about better organization and flow.
+</Callout>
+
+## Available Fumadocs Components
+
+This documentation uses Fumadocs UI components to enhance readability and interactivity. Here's how to use them:
+
+<Tabs items={['Layout', 'Visual Elements']}>
+  <Tab value="Layout">
+    ### Layout Components
+
+    <Accordions>
+      <Accordion title="Tabs and Tab" value="tabs">
+        Create tabbed interfaces for toggling between related content:
+
+        ```jsx
+        import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+        <Tabs items={['JavaScript', 'TypeScript', 'Python']}>
+          <Tab value="JavaScript">JavaScript content here</Tab>
+          <Tab value="TypeScript">TypeScript content here</Tab>
+          <Tab value="Python">Python content here</Tab>
+        </Tabs>
+        ```
+
+        Options:
+        - `groupId`: Share tab state across multiple tab components
+        - `persist`: Save selected tab in localStorage
+        - `defaultIndex`: Set initial active tab
+        - `updateAnchor`: Update URL hash when changing tabs
+      </Accordion>
+
+      <Accordion title="Steps and Step" value="steps">
+        Create step-by-step guides:
+
+        ```jsx
+        import { Steps, Step } from 'fumadocs-ui/components/steps';
+
+        <Steps>
+          <Step>First step content</Step>
+          <Step>Second step content</Step>
+          <Step>Final step content</Step>
+        </Steps>
+        ```
+      </Accordion>
+
+      <Accordion title="Files Structure" value="files">
+        Display file structures:
+
+        ```jsx
+        import { Files, File, Folder } from 'fumadocs-ui/components/files';
+
+        <Files>
+          <Folder name="app" defaultOpen>
+            <File name="layout.tsx" />
+            <File name="page.tsx" />
+            <File name="global.css" />
+          </Folder>
+          <File name="package.json" />
+        </Files>
+        ```
+      </Accordion>
+    </Accordions>
+  </Tab>
+
+  <Tab value="Visual Elements">
+    ### Visual Elements
+
+    <Accordions>
+      <Accordion title="Callouts" value="callouts">
+        Highlight important information:
+
+        ```jsx
+        <Callout type="info">
+          This is an informational callout.
+        </Callout>
+
+        <Callout type="warn">
+          This is a warning callout.
+        </Callout>
+
+        <Callout type="error">
+          This is an error callout.
+        </Callout>
+        ```
+      </Accordion>
+
+      <Accordion title="Type Documentation" value="type-table">
+        Document types:
+
+        ```jsx
+        import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+        <TypeTable
+          type={{
+            percentage: {
+              description: 'The percentage value',
+              type: 'number',
+              default: '0.2',
+            }
+          }}
+        />
+        ```
+      </Accordion>
+
+      <Accordion title="Image Zoom" value="image-zoom">
+        Allow images to be zoomed:
+
+        ```jsx
+        import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
+
+        <ImageZoom>
+          <img src="/image.png" alt="Description" />
+        </ImageZoom>
+        ```
+      </Accordion>
+    </Accordions>
+  </Tab>
+</Tabs>
+
+<Callout type="warn">
+  Always wrap related accordion components with an outer `<Accordions>` component for proper functionality.
+</Callout>
+
+*Did you hear about the fish that went to a meeting? It was a real bass-iness professional! 🐟*
+
+# Chatting with CodeRabbit
+
+<Callout type="info">
+  There are three ways to interact with [CodeRabbit](https://coderabbit.ai?utm_source=oss&utm_medium=github&utm_campaign=spoke-app/meeting-baas&utm_content=240) during code reviews.
+</Callout>
+
+<Tabs items={['Review Comments', 'File Comments', 'PR Comments']}>
+  <Tab value="Review Comments">
+    Simply reply directly to CodeRabbit's review comments:
+
+    ```text
+    I pushed a fix in commit <commit_id>, please review it.
+    Generate unit testing code for this file.
+    ```
+  </Tab>
+
+  <Tab value="File Comments">
+    Under "Files changed", tag @rabbitformeetingbaas in a new review comment:
+
+    ```text
+    @rabbitformeetingbaas generate unit testing code for this file.
+    @rabbitformeetingbaas modularize this function.
+    ```
+  </Tab>
+
+  <Tab value="PR Comments">
+    Tag @rabbitformeetingbaas in PR comments for branch-wide queries:
+
+    ```text
+    @rabbitformeetingbaas read src/utils.ts and generate unit testing code.
+    @rabbitformeetingbaas help me debug CodeRabbit configuration file.
+    ```
+  </Tab>
+</Tabs>
+
+## Available Commands
+
+<Accordions>
+  <Accordion title="PR Commands" value="pr-commands">
+    - `@rabbitformeetingbaas pause` - Pause PR reviews
+    - `@rabbitformeetingbaas resume` - Resume reviews
+    - `@rabbitformeetingbaas review` - Trigger incremental review
+    - `@rabbitformeetingbaas full review` - Complete review from scratch
+    - `@rabbitformeetingbaas summary` - Regenerate PR summary
+    - `@rabbitformeetingbaas generate sequence diagram` - Create sequence diagram
+    - `@rabbitformeetingbaas resolve` - Resolve all review comments
+    - `@rabbitformeetingbaas configuration` - Show current config
+    - `@rabbitformeetingbaas help` - Get assistance
+  </Accordion>
+
+  <Accordion title="Special Keywords" value="keywords">
+    - `@rabbitformeetingbaas ignore` in PR description - Skip review
+    - `@rabbitformeetingbaas summary` or `@coderabbitai summary` - Generate summary
+    - `@rabbitformeetingbaas` or `@coderabbitai` in PR title - Auto-generate title
+  </Accordion>
+</Accordions>
+
+## Configuration
+
+<Callout type="info">
+Configure CodeRabbit by adding a `.coderabbit.yaml` file to your repository root. See the [configuration documentation](https://docs.coderabbit.ai/guides/configure-coderabbit) for details.
+</Callout>
+
+<Files>
+  <File name=".coderabbit.yaml">
+    ```yaml
+    # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+    ```
+  </File>
+</Files>
+
+## Need Help?
+
+Join our [Discord community](https://discord.gg/coderabbit) for support and discussions!
+
+<Callout type="warn">
+Remember to break down large tasks into smaller chunks due to context window limitations. For specific file discussions, use review comments rather than PR comments.
+</Callout>
+
+# Documentation and Community Resources
+
+<Callout type="info">
+  Welcome to our documentation! Whether you're just getting started or looking to dive deeper, we've got you covered. And remember - our community is always here to help you swim through any challenges! 🐟
+</Callout>
+
+<Accordions>
+  <Accordion title="Documentation" value="docs">
+    Learn how to make the most of CodeRabbit with our comprehensive documentation:
+
+    - [Documentation Portal](https://docs.coderabbit.ai)
+    - Detailed guides and tutorials
+    - API references and examples
+    - Best practices and tips
+  </Accordion>
+
+  <Accordion title="Community Support" value="community">
+    Connect with fellow developers and get help:
+
+    - [Join our Discord Community](http://discord.gg/coderabbit)
+    - Request new features
+    - Share feedback and suggestions
+    - Get help from the community
+  </Accordion>
+
+  <Accordion title="Stay Updated" value="updates">
+    Keep up with the latest CodeRabbit news:
+
+    - [Follow us on X/Twitter](https://twitter.com/coderabbitai)
+    - Get product announcements
+    - Learn about new features
+    - Stay informed about updates
+  </Accordion>
+</Accordions>
+
+<Callout type="info">
+  Our documentation is continuously evolving. If you have suggestions for improvement, feel free to contribute or share feedback in our Discord community.
+</Callout>

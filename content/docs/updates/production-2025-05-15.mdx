@@ -1,0 +1,254 @@
+---
+title: May 15, 2025
+description: ""
+icon: Zap
+service: production
+date: May 15, 2025
+
+---
+
+# Infrastructure Updates - May 15, 2025 🐟
+
+> Something's fishy with our Nginx config... but in a good way! Our logs and credentials are now swimming to their own subdomains. 
+
+<Callout type="info">
+  These changes involve internal infrastructure updates to improve routing and access management.
+</Callout>
+
+## Overview
+
+This update includes significant changes to our Nginx configuration, affecting how certain internal services are accessed. The main changes introduce dedicated subdomains for logs and credentials access in both production and pre-production environments.
+
+<Accordions>
+  <Accordion title="Key Changes" value="changes">
+    * New redirect rules for `/logs` and `/credentials` paths
+    * Implementation of dedicated subdomains for service access
+    * Enhanced routing configuration for production and pre-production
+    * Improved navigation structure for internal services
+  </Accordion>
+
+  <Accordion title="Technical Details" value="details">
+    The following modifications were made to the Nginx configuration:
+
+    ```nginx
+    # Production Environment
+    location /logs {
+        return 301 https://logs.domain.com$request_uri;
+    }
+
+    location /credentials {
+        return 301 https://credentials.domain.com$request_uri;
+    }
+
+    # Pre-production Environment
+    # Similar configuration with pre-prod domains
+    ```
+  </Accordion>
+</Accordions>
+
+## Implementation Notes
+
+<Steps>
+  <Step>
+    **Routing Updates**
+    
+    All requests to `/logs` and `/credentials` paths are now automatically redirected to their respective subdomains.
+  </Step>
+
+  <Step>
+    **Environment Support**
+    
+    The configuration changes apply to both production and pre-production environments, ensuring consistent behavior across deployments.
+  </Step>
+
+  <Step>
+    **Legacy Support**
+    
+    Previous proxy configurations have been preserved (commented) for reference and potential rollback scenarios.
+  </Step>
+</Steps>
+
+<Callout type="warn">
+  Users accessing logs or credentials through the main domain will be automatically redirected to the new dedicated subdomains.
+</Callout>
+
+## Contributors
+
+* Philippe Drion - Infrastructure updates and merge management
+* Lazare Rossillon - Nginx configuration modifications
+* MordakLaVache - Account system updates
+
+# Infrastructure Update: Nginx Subdomain Redirects
+
+> 🐟 Something's fishy about these redirects... looks like we're swimming upstream to better subdomains! Let's dive into the changes...
+
+## Overview
+
+This update implements Nginx configuration changes to handle subdomain redirects for logs and credentials endpoints in both production and pre-production environments.
+
+<Callout type="info">
+  These changes affect how requests are redirected to specialized subdomains, improving service organization and accessibility.
+</Callout>
+
+## Request Flow
+
+<Tabs items={['Production', 'Pre-Production']}>
+  <Tab value="Production">
+    - `/logs` → `logs.meetingbaas.com/<request_uri>`
+    - `/credentials` → `settings.meetingbaas.com/<request_uri>`
+  </Tab>
+  <Tab value="Pre-Production">
+    - `/logs` → `logs.pre-prod-meetingbaas.com/<request_uri>`
+    - `/credentials` → `settings.pre-prod-meetingbaas.com/<request_uri>`
+  </Tab>
+</Tabs>
+
+## Technical Details
+
+<Accordions>
+  <Accordion title="Request Flow Diagram" value="diagram">
+    ```mermaid
+    sequenceDiagram
+        participant Client
+        participant Nginx
+        Client->>Nginx: GET /logs
+        alt Production
+            Nginx-->>Client: 301 Redirect to logs.meetingbaas.com/<request_uri>
+        else Pre-Production
+            Nginx-->>Client: 301 Redirect to logs.pre-prod-meetingbaas.com/<request_uri>
+        end
+        Client->>Nginx: GET /credentials
+        alt Production
+            Nginx-->>Client: 301 Redirect to settings.meetingbaas.com/<request_uri>
+        else Pre-Production
+            Nginx-->>Client: 301 Redirect to settings.pre-prod-meetingbaas.com/<request_uri>
+        end
+    ```
+  </Accordion>
+
+  <Accordion title="Implementation Notes" value="notes">
+    - Implements 301 permanent redirects for better SEO
+    - Maintains separate paths for production and pre-production environments
+    - Preserves original request URI in the redirect
+    - No changes to proxy configurations
+  </Accordion>
+</Accordions>
+
+<Callout type="warn">
+  Ensure your applications are configured to follow redirects and update any hardcoded URLs to use the new subdomains.
+</Callout>
+
+# Chatting with CodeRabbit 🐟
+
+> Something's fishy here... but in a good way! Let's dive into how to communicate with CodeRabbit. No need to bass around the bush! 
+
+## Ways to Chat
+
+<Tabs items={['Review Comments', 'File Changes', 'PR Comments']}>
+  <Tab value="Review Comments">
+    Simply reply directly to CodeRabbit's review comments:
+
+    ```text
+    I pushed a fix in commit <commit_id>, please review it.
+    Explain this complex logic.
+    ```
+  </Tab>
+
+  <Tab value="File Changes">
+    Under the "Files changed" tab, tag @rabbitformeetingbaas in a new review comment:
+
+    ```text
+    @rabbitformeetingbaas explain this code block.
+    @rabbitformeetingbaas modularize this function.
+    ```
+  </Tab>
+
+  <Tab value="PR Comments">
+    Tag @rabbitformeetingbaas in PR comments for branch-wide queries:
+
+    ```text
+    @rabbitformeetingbaas read src/utils.ts and explain its main purpose.
+    @rabbitformeetingbaas help me debug CodeRabbit configuration file.
+    ```
+  </Tab>
+</Tabs>
+
+## Commands and Features
+
+<Accordions>
+  <Accordion title="PR Commands" value="commands">
+    - `@rabbitformeetingbaas pause` - Pause PR reviews
+    - `@rabbitformeetingbaas resume` - Resume reviews
+    - `@rabbitformeetingbaas review` - Trigger incremental review
+    - `@rabbitformeetingbaas full review` - Complete review from scratch
+    - `@rabbitformeetingbaas summary` - Regenerate PR summary
+    - `@rabbitformeetingbaas generate sequence diagram` - Create sequence diagram
+    - `@rabbitformeetingbaas resolve` - Resolve all review comments
+    - `@rabbitformeetingbaas configuration` - Show current config
+    - `@rabbitformeetingbaas help` - Get help
+  </Accordion>
+
+  <Accordion title="Special Keywords" value="keywords">
+    - `@rabbitformeetingbaas ignore` in PR description - Prevent review
+    - `@rabbitformeetingbaas summary` or `@coderabbitai summary` - Generate summary
+    - `@rabbitformeetingbaas` or `@coderabbitai` in PR title - Auto-generate title
+  </Accordion>
+</Accordions>
+
+## Configuration
+
+<Callout type="info">
+  Configure CodeRabbit by adding a `.coderabbit.yaml` file to your repository root. For schema validation, add:
+  ```yaml
+  # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+  ```
+</Callout>
+
+<Files>
+  <File name=".coderabbit.yaml" />
+</Files>
+
+For detailed configuration options, see the [configuration documentation](https://docs.coderabbit.ai/guides/configure-coderabbit).
+
+<Callout type="warn">
+  Remember to break down large tasks into smaller chunks due to context window limitations. For specific file discussions, use review comments rather than PR comments.
+</Callout>
+
+## Need Help?
+
+Join our [Discord community](https://discord.gg/coderabbit) for support and questions!
+
+# Documentation and Community Resources
+
+<Callout type="info">
+  Welcome to our documentation hub! Whether you're looking to dive deep into technical details or connect with fellow developers, we've got you covered. Let's make waves in the development sea! 🐟
+</Callout>
+
+<Accordions>
+  <Accordion title="Documentation" value="docs">
+    Get comprehensive guidance on using CodeRabbit in our [Documentation](https://docs.coderabbit.ai).
+  </Accordion>
+
+  <Accordion title="Community" value="community">
+    Join our vibrant [Discord Community](http://discord.gg/coderabbit) to:
+
+    - Get help with implementation
+    - Request new features
+    - Share your feedback
+    - Connect with other developers
+  </Accordion>
+
+  <Accordion title="Social Media" value="social">
+    Stay updated with the latest announcements and news by following us on [X/Twitter](https://twitter.com/coderabbitai).
+  </Accordion>
+</Accordions>
+
+```json
+{
+  "service": "production",
+  "icon": "Zap",
+  "platforms": [],
+  "reasoning": "This is a documentation and community links update that modifies internal documentation structure and community resources. No API changes or bot integrations are involved.",
+  "affected_areas": ["documentation", "community links", "social media links"]
+}
+```

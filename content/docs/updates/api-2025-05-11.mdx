@@ -1,0 +1,68 @@
+---
+title: May 11, 2025
+description: ""
+icon: Webhook
+service: api
+date: May 11, 2025
+
+---
+
+# API Service Updates - May 11, 2025
+
+> 🐟 Looks like we're scaling up our BaaS (Bass?) API! Let's dive into these changes... 
+
+## Overview
+
+This update introduces new logging capabilities and settings URL configurations to the API service's BaaS handler component.
+
+<Callout type="info">
+  These changes enhance the API's observability and configuration management capabilities.
+</Callout>
+
+## Changes Summary
+
+<Accordions>
+  <Accordion title="Modified Components" value="components">
+    * BaaS Handler Router
+    * Logging Infrastructure
+    * Settings Endpoint Configuration
+  </Accordion>
+
+  <Accordion title="Technical Details" value="details">
+    * File: `api_server/baas_handler/src/routers.rs`
+    * Author: Lazare Rossillon
+    * Commit: `e55db1fb0b956804a76cadd4df2b67a8b204029a`
+  </Accordion>
+</Accordions>
+
+## Implementation Details
+
+<Tabs items={['Logging Updates', 'Settings Configuration']}>
+  <Tab value="Logging Updates">
+    * Enhanced logging capabilities added to BaaS handler
+    * Improved traceability for API operations
+    * Better debugging support for production environments
+  </Tab>
+
+  <Tab value="Settings Configuration">
+    * New settings URL implementation
+    * Improved configuration management
+    * Enhanced endpoint flexibility
+  </Tab>
+</Tabs>
+
+## File Structure
+
+<Files>
+  <Folder name="api_server" defaultOpen>
+    <Folder name="baas_handler">
+      <Folder name="src">
+        <File name="routers.rs" />
+      </Folder>
+    </Folder>
+  </Folder>
+</Files>
+
+<Callout type="warn">
+  If you're integrating with these endpoints, please ensure your implementations are updated to handle the new logging and settings configurations.
+</Callout>

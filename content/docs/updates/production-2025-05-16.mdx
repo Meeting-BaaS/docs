@@ -1,0 +1,353 @@
+---
+title: May 16, 2025
+description: ""
+icon: Zap
+service: production
+date: May 16, 2025
+
+---
+
+# Frontend Navigation and Logs Interface Update
+
+> 🐟 Looks like our logs have swum away to a new home! Don't worry, they're just a click away in their new external pond.
+
+<Callout type="info">
+  This production update focuses on frontend changes that streamline the logs interface access and improve navigation flow.
+</Callout>
+
+## Overview
+
+This update reorganizes how users access logs and modifies the frontend navigation structure. The main changes involve moving the logs interface to an external system while maintaining easy access through the navigation menu.
+
+<Accordions>
+  <Accordion title="Removed Features" value="removed">
+    - Internal logs page components including:
+      - Logs table
+      - Search functionality
+      - Filter controls
+      - Export features
+
+    - Internal logs routing and context providers
+  </Accordion>
+
+  <Accordion title="Navigation Updates" value="navigation">
+    - "Logs" button now opens external logs site in new tab
+    - Default landing page for private routes changed to credentials
+    - Updated navigation flow to accommodate external logs access
+  </Accordion>
+</Accordions>
+
+## Technical Details
+
+<Tabs items={['Component Changes', 'Routing Updates']}>
+  <Tab value="Component Changes">
+    - Removed custom logs table implementation
+    - Eliminated logs-related context providers
+    - Cleaned up associated hooks and utilities
+    - Removed logs type definitions
+    - Relocated `Transcript` type export
+  </Tab>
+  <Tab value="Routing Updates">
+    - Removed internal logs route
+    - Updated private route default landing page
+    - Modified navigation component for external logs link
+    - Updated layout components to reflect new structure
+  </Tab>
+</Tabs>
+
+<Callout type="warn">
+  Users should update their bookmarks as the logs interface is now accessed exclusively through the external portal.
+</Callout>
+
+## Implementation Notes
+
+The transition to external logs access simplifies the frontend architecture while maintaining full logs functionality through a dedicated external system. This change reduces frontend complexity and improves maintainability.
+
+# Frontend Logs UI Removal and Navigation Updates
+
+> 🐟 Looks like we're streamlining our UI - no more fishing around in those old log components! 
+
+## Overview
+
+This update focuses on removing the legacy logs interface from the webapp and updating navigation to point to the new external logs portal. The changes primarily affect frontend components and internal routing, with no modifications to API endpoints or bot integrations.
+
+<Accordions>
+<Accordion title="Component Removals" value="components">
+
+The following UI components have been removed:
+
+- Logs table and related components
+- Search functionality
+- Filter components
+- Date filtering
+- CSV export capabilities
+- Column configuration
+- Platform-specific cells
+- Webhook display components
+
+</Accordion>
+
+<Accordion title="Context and State Management" value="context">
+
+Removed logs-related state management:
+
+- LogsContext and Provider
+- Configuration handlers
+- Error management
+- Search utilities
+- Sorting functions
+- Custom hooks for:
+  - Pagination
+  - Search
+  - Table management
+  - CSV export
+
+</Accordion>
+
+<Accordion title="Navigation Updates" value="navigation">
+
+Key routing changes:
+
+- Default private redirect now points to `/credentials`
+- Logs menu item converted to external link (opens in new tab)
+- Viewer component updated to use direct URL navigation
+- Status message handling improved
+
+</Accordion>
+</Accordions>
+
+## Type Updates
+
+<TypeTable type={{
+  transcript: {
+    description: 'Transcript type now exported for external use',
+    type: 'interface',
+    default: 'N/A'
+  },
+  dateRange: {
+    description: 'Updated import path for getPresetRange utility',
+    type: 'function',
+    default: 'N/A'
+  }
+}} />
+
+<Callout type="info">
+All changes are frontend-only and maintain compatibility with external services. The logs functionality has been migrated to a dedicated portal for improved user experience.
+</Callout>
+
+# External Logs Navigation Flow
+
+> 🐟 Something's fishy about these logs... they're swimming in a new tab! (Get it? Because MeetingBaaS sounds like Meeting Bass?) 
+
+This documentation describes the user interface flows for accessing external logs through our system.
+
+<Accordions>
+  <Accordion title="Main Navigation Flow" value="main-flow">
+    The primary flow for accessing external logs:
+
+    ```mermaid
+    sequenceDiagram
+    participant User
+    participant App
+    participant ExternalLogs
+    User->>App: Clicks "Logs" in menu
+    App->>ExternalLogs: Opens https://logs.meetingbaas.com/ in new tab
+    ```
+  </Accordion>
+
+  <Accordion title="Back Navigation Behavior" value="back-flow">
+    When users click the "Back" button in the logs viewer:
+
+    ```mermaid
+    sequenceDiagram
+    participant User
+    participant Viewer
+    participant ExternalLogs
+    User->>Viewer: Clicks "Back" in Viewer
+    alt Window has opener
+    Viewer->>User: Attempt to close tab
+    Note right of Viewer: If not closed after 500ms
+    Viewer->>ExternalLogs: Redirect to https://logs.meetingbaas.com/
+    else No opener
+    Viewer->>ExternalLogs: Redirect to https://logs.meetingbaas.com/
+    end
+    ```
+  </Accordion>
+</Accordions>
+
+<Callout type="info">
+  The external logs viewer always opens in a new browser tab to maintain separation from the main application context.
+</Callout>
+
+<Callout type="warn">
+  If the tab fails to close automatically after clicking "Back", the system will redirect to the main logs dashboard.
+</Callout>
+
+```mdx
+# Log Viewer Updates 🪟
+
+> The logs have found a new home! They've hopped over to a shiny new portal. No more tables here - just a smooth redirect to where the logs now live. Click the new button and explore their new habitat! 🐇✨
+
+## Overview
+
+<Callout type="info">
+  This update moves log viewing functionality to an external portal and updates the frontend UI components accordingly.
+</Callout>
+
+<Tabs items={['Key Changes', 'Technical Details', 'Migration']}>
+  <Tab value="Key Changes">
+    - Log viewing moved to dedicated external portal
+    - New redirect button added to UI
+    - Legacy table components removed
+    - Updated log context providers
+  </Tab>
+  <Tab value="Technical Details">
+    - Modified log viewer components
+    - Updated API integration layer
+    - Refactored frontend routing
+    - Enhanced date picker functionality
+  </Tab>
+  <Tab value="Migration">
+    - Legacy log tables deprecated
+    - Users redirected to new portal
+    - No API changes required
+    - Seamless transition for end users
+  </Tab>
+</Tabs>
+
+## Component Updates
+
+<Accordions>
+  <Accordion title="Frontend Changes" value="frontend">
+    - Updated LogPage.tsx routing
+    - Modified log viewer components
+    - Enhanced date picker functionality
+    - Refactored table layouts
+  </Accordion>
+
+  <Accordion title="API Integration" value="api">
+    - Updated API client configuration
+    - Modified log data fetching
+    - Enhanced error handling
+    - Improved response parsing
+  </Accordion>
+</Accordions>
+
+## File Structure
+
+<Files>
+  <Folder name="frontend/baas/webapp/src" defaultOpen>
+    <Folder name="components">
+      <Folder name="Logs">
+        <File name="LogsTable.tsx" />
+        <File name="DateFilter.tsx" />
+      </Folder>
+      <Folder name="Viewer">
+        <File name="Transcript.tsx" />
+        <File name="Viewer.tsx" />
+      </Folder>
+    </Folder>
+    <File name="api.ts" />
+    <File name="index.tsx" />
+  </Folder>
+</Files>
+```
+
+```json
+{
+  "service": "production",
+  "icon": "Zap", 
+  "platforms": [],
+  "reasoning": "This is a frontend-only change focused on internal UI components and log viewing functionality. The changes are primarily to frontend webapp files, log viewing components, and internal infrastructure without any API modifications.",
+  "affected_areas": [
+    "frontend/baas/webapp/src/components/Logs",
+    "frontend/baas/webapp/src/contexts/logs", 
+    "frontend/baas/webapp/src/hooks/logs",
+    "frontend/baas/webapp/src/components/Viewer",
+    "frontend/baas/webapp/src/api/api.ts",
+    "frontend/baas/webapp/src/index.tsx"
+  ]
+}
+```
+
+# Chatting with CodeRabbit 🐟
+
+*Something's fishy here... but in a good way! Let's dive into how to communicate with CodeRabbit - it's not just another fish in the sea of code review tools!*
+
+<Tabs items={['Review Comments', 'File Comments', 'PR Comments']}>
+  <Tab value="Review Comments">
+    Simply reply directly to CodeRabbit's review comments:
+
+    ```
+    I pushed a fix in commit abc123, please review it.
+    Explain this complex logic.
+    ```
+  </Tab>
+  <Tab value="File Comments">
+    Under "Files changed", tag @rabbitformeetingbaas in a new review comment:
+
+    ```
+    @rabbitformeetingbaas explain this code block.
+    @rabbitformeetingbaas modularize this function.
+    ```
+  </Tab>
+  <Tab value="PR Comments">
+    Tag @rabbitformeetingbaas in PR comments for broader questions:
+
+    ```
+    @rabbitformeetingbaas read src/utils.ts and explain its purpose.
+    @rabbitformeetingbaas help me debug configuration file.
+    ```
+  </Tab>
+</Tabs>
+
+<Callout type="warn">
+  For best results, break down large tasks into smaller chunks and use review comments for specific file discussions rather than PR comments.
+</Callout>
+
+## Available Commands
+
+<Accordions>
+  <Accordion title="Review Control Commands" value="review-commands">
+    - `@rabbitformeetingbaas pause` - Pause PR reviews
+    - `@rabbitformeetingbaas resume` - Resume reviews
+    - `@rabbitformeetingbaas review` - Trigger incremental review
+    - `@rabbitformeetingbaas full review` - Perform complete review
+  </Accordion>
+
+  <Accordion title="Utility Commands" value="utility-commands">
+    - `@rabbitformeetingbaas summary` - Regenerate PR summary
+    - `@rabbitformeetingbaas generate sequence diagram` - Create sequence diagram
+    - `@rabbitformeetingbaas resolve` - Resolve all review comments
+    - `@rabbitformeetingbaas configuration` - Show current config
+    - `@rabbitformeetingbaas help` - Get help
+  </Accordion>
+
+  <Accordion title="Special Keywords" value="keywords">
+    - Add `@rabbitformeetingbaas ignore` in PR description to skip review
+    - Use `@rabbitformeetingbaas summary` for custom summary placement
+    - Include `@rabbitformeetingbaas` in PR title for automatic naming
+  </Accordion>
+</Accordions>
+
+## Configuration
+
+<Files>
+  <File name=".coderabbit.yaml" />
+</Files>
+
+Add `.coderabbit.yaml` to your repository root for custom configuration. Enable autocompletion by adding:
+
+```yaml
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+```
+
+<Callout type="info">
+  See our [configuration documentation](https://docs.coderabbit.ai/guides/configure-coderabbit) for detailed options.
+</Callout>
+
+## Resources
+
+- 📚 [Documentation](https://docs.coderabbit.ai)
+- 💬 [Discord Community](http://discord.gg/coderabbit)
+- 🐦 [Twitter Updates](https://twitter.com/coderabbitai)

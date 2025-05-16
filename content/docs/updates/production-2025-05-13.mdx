@@ -1,0 +1,240 @@
+---
+title: May 13, 2025
+description: ""
+icon: Zap
+service: production
+date: May 13, 2025
+
+---
+
+# Frontend Updates - May 13, 2025
+
+🐟 Something's fishy about our Meeting BaaS service... we're not just scaling servers, we're scaling fish! 
+
+## Overview
+
+This update focuses on frontend improvements to our landing page, including a new license page and fixes for the AI chat interface.
+
+<Accordions>
+  <Accordion title="Key Changes" value="changes">
+    * Added new License page with BSL (Business Source License) details
+    * Fixed crash issues on /ai-chat page
+    * Enhanced footer navigation with license link
+    * Improved code display components
+  </Accordion>
+
+  <Accordion title="Technical Details" value="details">
+    ### License Page Implementation
+
+    <Tabs items={['Page Structure', 'Footer Updates', 'Code Components']}>
+      <Tab value="Page Structure">
+        * New `/licence` page added
+        * Comprehensive BSL license documentation
+        * Open source attribution section
+        * Clear usage restrictions explanation
+      </Tab>
+      <Tab value="Footer Updates">
+        * Added "License" link under Resources
+        * Updated navigation routing
+        * Improved footer component structure
+      </Tab>
+      <Tab value="Code Components">
+        * Added BSL_LICENSE language option
+        * Enhanced code display formatting
+        * Improved license text presentation
+      </Tab>
+    </Tabs>
+  </Accordion>
+</Accordions>
+
+### Navigation Flow
+
+<Steps>
+  <Step>
+    User clicks "License" link in footer
+  </Step>
+  <Step>
+    System routes to `/licence` page
+  </Step>
+  <Step>
+    License page loads with BSL details
+  </Step>
+  <Step>
+    Code component displays formatted license text
+  </Step>
+</Steps>
+
+### File Structure
+
+<Files>
+  <Folder name="frontend/baas/landing/src" defaultOpen>
+    <Folder name="components">
+      <Folder name="Layout">
+        <File name="Footer.tsx" />
+      </Folder>
+      <Folder name="atoms">
+        <File name="CodeComponent.tsx" />
+      </Folder>
+    </Folder>
+    <Folder name="pages">
+      <File name="licence.tsx" />
+    </Folder>
+  </Folder>
+</Files>
+
+<Callout type="info">
+  These changes are part of our ongoing effort to improve transparency and user experience. The AI chat page fix addresses stability issues reported by users.
+</Callout>
+
+# Frontend Updates to Landing Page Components
+
+🐟 Swimming through the codebase like a bass in the stream, we've made some splashing updates to our landing page! 🐟
+
+## Overview
+
+This update focuses on frontend enhancements to improve the user experience and documentation presentation on our landing pages.
+
+<Accordions>
+  <Accordion title="Key Changes" value="changes">
+    - Updated Footer component styling and structure
+    - Enhanced CodeComponent for better code display
+    - Refreshed license page layout and content
+    - Improved documentation structure
+  </Accordion>
+
+  <Accordion title="Technical Details" value="details">
+    The changes primarily affect the following components:
+
+    - `frontend/baas/landing/src/components/Layout/Footer.tsx`
+    - `frontend/baas/landing/src/components/atoms/CodeComponent.tsx`
+    - `frontend/baas/landing/src/pages/licence.tsx`
+  </Accordion>
+</Accordions>
+
+## New Features
+
+<Tabs items={['Footer Updates', 'Code Display', 'License Page']}>
+  <Tab value="Footer Updates">
+    The Footer component has been enhanced with:
+
+    - Improved layout structure
+    - Updated styling for better visibility
+    - Enhanced responsive design
+  </Tab>
+
+  <Tab value="Code Display">
+    The CodeComponent now features:
+
+    - Better syntax highlighting
+    - Improved readability
+    - Support for BSL code blocks
+    - Enhanced copy functionality
+  </Tab>
+
+  <Tab value="License Page">
+    License page improvements include:
+
+    - Clearer layout presentation
+    - Updated BSL license information
+    - Better mobile responsiveness
+  </Tab>
+</Tabs>
+
+## Announcements
+
+<Callout type="info">
+  **Performance Enhancement**: CodeRabbit now supports caching for code and dependencies! This feature will be automatically enabled for all accounts on May 16th. To opt out, configure `Review - Disable Cache` at the organization or repository level.
+</Callout>
+
+<Files>
+  <Folder name="frontend" defaultOpen>
+    <Folder name="baas/landing/src" defaultOpen>
+      <Folder name="components">
+        <File name="Layout/Footer.tsx" />
+        <File name="atoms/CodeComponent.tsx" />
+      </Folder>
+      <Folder name="pages">
+        <File name="licence.tsx" />
+      </Folder>
+    </Folder>
+  </Folder>
+</Files>
+
+# Chatting with CodeRabbit 🐟
+
+*Something's fishy here... but in a good way! Let's dive into how to communicate with CodeRabbit - your AI code review companion that's always ready to take the bait! 🎣*
+
+<Tabs items={['Review Comments', 'Code Files', 'PR Comments']}>
+  <Tab value="Review Comments">
+    Simply reply directly to CodeRabbit's review comments with queries like:
+
+    ```text
+    I pushed a fix in commit abc123, please review it.
+    Explain this complex logic.
+    ```
+  </Tab>
+
+  <Tab value="Code Files">
+    Under the "Files changed" tab, tag @rabbitformeetingbaas in a new review comment:
+
+    ```text
+    @rabbitformeetingbaas explain this code block.
+    @rabbitformeetingbaas modularize this function.
+    ```
+  </Tab>
+
+  <Tab value="PR Comments">
+    Tag @rabbitformeetingbaas in PR comments for broader questions:
+
+    ```text
+    @rabbitformeetingbaas gather interesting stats about this repository
+    @rabbitformeetingbaas read src/utils.ts and explain its purpose
+    ```
+  </Tab>
+</Tabs>
+
+<Callout type="info">
+  For best results, be specific with your queries and break down large tasks into smaller chunks. Review comments are ideal for focused discussions about specific code changes.
+</Callout>
+
+## Available Commands
+
+<Accordions>
+  <Accordion title="PR Review Commands" value="review-commands">
+    - `@rabbitformeetingbaas review` - Trigger incremental review
+    - `@rabbitformeetingbaas full review` - Perform complete review
+    - `@rabbitformeetingbaas pause/resume` - Control review process
+    - `@rabbitformeetingbaas summary` - Regenerate PR summary
+    - `@rabbitformeetingbaas resolve` - Resolve all review comments
+  </Accordion>
+
+  <Accordion title="Special Keywords" value="keywords">
+    - `@rabbitformeetingbaas ignore` in PR description - Skip review
+    - `@rabbitformeetingbaas summary` in PR description - Generate summary
+    - `@rabbitformeetingbaas` in PR title - Auto-generate title
+  </Accordion>
+
+  <Accordion title="Configuration" value="config">
+    Configure CodeRabbit by adding `.coderabbit.yaml` to your repository root.
+
+    ```yaml
+    # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+    ```
+
+    See [configuration documentation](https://docs.coderabbit.ai/guides/configure-coderabbit) for details.
+  </Accordion>
+</Accordions>
+
+## Resources
+
+<Steps>
+  <Step>
+    Need help? Join our [Discord community](https://discord.gg/coderabbit)
+  </Step>
+  <Step>
+    Read our [Documentation](https://docs.coderabbit.ai)
+  </Step>
+  <Step>
+    Follow us on [X/Twitter](https://twitter.com/coderabbitai)
+  </Step>
+</Steps>
