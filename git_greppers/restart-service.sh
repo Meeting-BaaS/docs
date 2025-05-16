@@ -60,9 +60,9 @@ pnpm clean:git-updates "$SERVICE_KEY"
 
 echo "Regenerating git diffs for the last $DAYS days..."
 if [ "$ONLY_PR_MR" = true ]; then
-  ./git_greppers/git_grepper.sh "/Users/lazmini/code/public-scripts/$SERVICE_KEY" "$DEBUG_LEVEL" --days "$DAYS" --only-with-pr-mr ${OVERWRITE:+--overwrite}
+  ./git_greppers/git_grepper.sh --repo-path "/Users/lazmini/code/public-scripts/$SERVICE_KEY" --debug-level "$DEBUG_LEVEL" --days "$DAYS" --only-with-pr-mr ${OVERWRITE:+--overwrite}
 else
-  ./git_greppers/git_grepper.sh "/Users/lazmini/code/public-scripts/$SERVICE_KEY" "$DEBUG_LEVEL" --days "$DAYS" ${OVERWRITE:+--overwrite}
+  ./git_greppers/git_grepper.sh --repo-path "/Users/lazmini/code/public-scripts/$SERVICE_KEY" --debug-level "$DEBUG_LEVEL" --days "$DAYS" ${OVERWRITE:+--overwrite}
 fi
 
 echo "Generating update files from diffs..."
