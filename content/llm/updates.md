@@ -2812,71 +2812,71 @@ API - Automatically generated documentation based on Git activity.
 
 ---
 
-## May 6, 2025
+## May 6, 2025 - Zoom
 
-Production Update. Updates to internal authentication, transcription on Zoom, logging for Gmeet and Teams.
+Production update. Enhanced Zoom bot transcription, authentication, and logging with provider abstraction.
 
 ### Source: ./content/docs/updates/api-2025-05-06.mdx
 
 
-# API Updates - May 6, 2025 🐟
+# 🐟 Hooked on Meeting Updates: Casting a Wide Net of Improvements
 
 <Callout type="info">
-  Dive into the latest updates like a bass swimming through code****
-  ****currents! 🎣
+  This update reels in some significant enhancements to our meeting
+  infrastructure, with a focus on transcription, authentication, and bot
+  resilience. We're scaling up our capabilities like a well-orchestrated fishing
+  expedition! 🎣
 </Callout>
-
-## Overview of Changes
-
-This update introduces several enhancements across multiple services, focusing on authentication, transcription, and system robustness.
-
-<Accordions>
-  <Accordion title="Authentication Improvements" value="auth-updates">
-    - Extended account metadata support
-    - Added nullable password fields
-    - Introduced OAuth and session management tables
-  </Accordion>
-
-  <Accordion title="Transcription System" value="transcription-updates">
-    - Modular transcription provider abstraction
-    - Enhanced logging and error tracking
-    - S3 log upload capabilities
-  </Accordion>
-</Accordions>
 
 ## Key Highlights
 
-<Tabs items={['Authentication', 'Transcription', 'Logging']}>
-  <Tab value="Authentication">
-    - Flexible account metadata
-    - Support for external authentication providers
-    - Improved session management
+- Enhanced Zoom bot transcription system
+- Improved authentication and session management
+- More robust logging and error tracking
+- Expanded OAuth and verification workflows
+
+<Accordions>
+  <Accordion title="Zoom Integration Improvements" value="zoom-updates">
+    - Modular transcription system with provider abstraction
+    - Metadata logging for transcription processes
+    - S3 log uploads
+    - Audio control via FFI (Foreign Function Interface)
+  </Accordion>
+
+  <Accordion title="Authentication Enhancements" value="auth-updates">
+    - Nullable password support
+    - New OAuth and session management tables
+    - Email verification workflow
+    - Enhanced user metadata tracking
+  </Accordion>
+</Accordions>
+
+## Technical Deep Dive
+
+<Tabs items={['Transcription', 'Authentication', 'Logging']}>
+  <Tab value="transcription">
+    The new transcription system now supports multiple providers (Gladia/Runpod) with:
+    - Middleware for retry mechanisms
+    - Timestamp alignment
+    - Failure tracking
   </Tab>
 
-<Tab value="Zoom Transcription">
-  - Provider-agnostic transcription system
-
-- Timestamp alignment
-
-- Robust error handling
-
+<Tab value="authentication">
+  Authentication now supports: - Flexible password requirements - External
+  provider account linking - Comprehensive session management
 </Tab>
 
-    <Tab value="Gmeet and Teams Logging">
+  <Tab value="logging">
+    Logging improvements include:
     - Switched from Pino to Winston
-    - Enhanced log metadata capture
-    - Improved observability
-
+    - More detailed error tracking
+    - Improved dialog observer resilience
   </Tab>
 </Tabs>
 
-## Technical Details
-
-<Steps>
-  <Step>Authentication schema extended with new optional fields</Step>
-  <Step>Transcription providers abstracted for flexibility</Step>
-  <Step>Logging system upgraded for better insights</Step>
-</Steps>
+<Callout type="warn">
+  Note: These changes are internal and do not affect the public API contract.
+</Callout>
 
 
 ---
