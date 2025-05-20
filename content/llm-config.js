@@ -52,13 +52,6 @@ export const categoryConfig = {
       "./content/docs/typescript-sdk/reference/webhooks/**/*.mdx"
     ]
   },
-  "components": {
-    "title": "components Documentation",
-    "description": "Documentation for components.",
-    "patterns": [
-      "./content/docs/components/**/*.mdx"
-    ]
-  },
   "mcp-servers": {
     "title": "mcp-servers Documentation",
     "description": "Documentation for mcp-servers.",
@@ -85,6 +78,13 @@ export const categoryConfig = {
     "description": "Reference documentation for bots in speaking-bots.",
     "patterns": [
       "./content/docs/speaking-bots/reference/bots/**/*.mdx"
+    ]
+  },
+  "speaking-bots/personas": {
+    "title": "personas speaking-bots Reference",
+    "description": "Reference documentation for personas in speaking-bots.",
+    "patterns": [
+      "./content/docs/speaking-bots/reference/personas/**/*.mdx"
     ]
   },
   "speaking-bots/system": {
@@ -219,10 +219,6 @@ export const knownTxtPaths = [
   ],
   [
     "llms",
-    "components"
-  ],
-  [
-    "llms",
     "mcp-servers"
   ],
   [
@@ -238,6 +234,11 @@ export const knownTxtPaths = [
     "llms",
     "speaking-bots",
     "bots"
+  ],
+  [
+    "llms",
+    "speaking-bots",
+    "personas"
   ],
   [
     "llms",
