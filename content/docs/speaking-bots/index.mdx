@@ -14,10 +14,10 @@ This small open-source API demonstrates the capabilities of [MeetingBaas](https:
 ```bash
 curl -X POST https://speaking.meetingbaas.com/bots \
   -H "Content-Type: application/json" \
+  -H "x-meeting-baas-api-key": "your-api-key"
   -d '{
     "meeting_url": "https://us06web.zoom.us/j/123456789?pwd=example",
-    "personas": ["baas_onboarder"],
-    "meeting_baas_api_key": "your-api-key"
+    "personas": ["baas_onboarder"]
   }'
 ```
 
