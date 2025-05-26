@@ -1291,7 +1291,7 @@ Get started with the Meeting BaaS API
 
 <Callout type="info">
   We provide detailed documentation optimized for both human readers and AI assistants. For more information about our LLM integration, see
-  [LLMs](../llms/available).
+  [LLMs](../llms/api).
 </Callout>
 
 **Meeting BaaS** 🐟 provides _Meetings Bots As A Service_, with integrated transcription.

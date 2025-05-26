@@ -1472,7 +1472,7 @@ Get started with Model Context Protocol servers for Meeting BaaS
 
 <Callout type="info">
   We provide detailed documentation optimized for both human readers and AI assistants. For more information about our LLM integration, see
-  [LLMs](../llms/available).
+  [LLMs](/llms/mcp-servers).
 </Callout>
 
 ## What is Model Context Protocol?

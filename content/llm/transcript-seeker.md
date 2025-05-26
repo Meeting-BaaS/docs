@@ -966,7 +966,7 @@ Get started with Transcript Seeker for Meeting BaaS
 
 <Callout type="info">
   We provide detailed documentation optimized for both human readers and AI assistants. For more information about our LLM integration, see
-  [LLMs](../llms/available).
+  [LLMs](../llms/transcript-seeker).
 </Callout>
 
 ## Introduction
