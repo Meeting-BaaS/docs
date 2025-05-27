@@ -1,24 +1,23 @@
 ---
 title: May 6, 2025 - Zoom
-description: Production update. Enhanced Zoom bot transcription, authentication, and logging with provider abstraction.
+description: Production update. Enhanced Zoom bot transcription, authentication,
+  and logging with provider abstraction.
 icon: Zap
 service: production
 date: May 6, 2025
+
 ---
 
-# 🐟 Hooked on Meeting Updates: Casting a Wide Net of Improvements
+🐟 Hooked on Meeting Updates: Casting a Wide Net of Improvements
 
 <Callout type="info">
-  This update reels in some significant enhancements to our meeting
-  infrastructure, with a focus on transcription, authentication, and bot
-  resilience. We're scaling up our capabilities like a well-orchestrated fishing
-  expedition! 🎣
+  This update reels in some significant enhancements to our meeting infrastructure, with a focus on transcription, authentication, and bot resilience. We're scaling up our capabilities like a well-orchestrated fishing expedition! 🎣
 </Callout>
 
 ## Key Highlights
 
 - Enhanced Zoom bot transcription system
-- Improved authentication and session management
+- Improved authentication and session management  
 - More robust logging and error tracking
 - Expanded OAuth and verification workflows
 
@@ -43,18 +42,23 @@ date: May 6, 2025
 <Tabs items={['Transcription', 'Authentication', 'Logging']}>
   <Tab value="transcription">
     The new transcription system now supports multiple providers (Gladia/Runpod) with:
+
     - Middleware for retry mechanisms
     - Timestamp alignment
     - Failure tracking
   </Tab>
 
-<Tab value="authentication">
-  Authentication now supports: - Flexible password requirements - External
-  provider account linking - Comprehensive session management
-</Tab>
+  <Tab value="authentication">
+    Authentication now supports:
+
+    - Flexible password requirements
+    - External provider account linking
+    - Comprehensive session management
+  </Tab>
 
   <Tab value="logging">
     Logging improvements include:
+
     - Switched from Pino to Winston
     - More detailed error tracking
     - Improved dialog observer resilience
