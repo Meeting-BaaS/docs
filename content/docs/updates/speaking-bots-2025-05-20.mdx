@@ -1,37 +1,83 @@
 ---
-title: {{DATE}}
+title: May 20, 2025
 description: Changes from recent development in Speaking Bots
 icon: Bot
-service: {{SERVICE_KEY}}
-tags: [bots, persona]
+service: speaking-bots
+tags:
+  - bots
+  - persona
+date: May 20, 2025 # Add the date field explicitly for consistency
 ---
 
-<Callout type="warning">
-  <Files>
-    <Folder name="content" defaultOpen>
-      <Folder name="docs">
-        <Folder name="updates">
-          <File name="{{SERVICE_KEY}}-2025-05-20.mdx" />
-        </Folder>
-      </Folder>
-    </Folder>
-  </Files>
-  The content in this document is automatically generated from service updates. It should be re-read by a human or at least an AI ;)
-</Callout>
+🐟 Looks like we've got some changes to the speaking service! Let's dive in and make this update more human-readable.
 
-{{#SINGLE_FILE}}
-# Changed Files
+## Speaking Service Updates
 
-::filepath[{{FILE_PATH}}]
-{{FILE_DIFF}}
-{{/SINGLE_FILE}}
+### New Features and Improvements
 
-{{#MULTI_FILE}}
-# Changed Files
+<Accordions>
+<Accordion title="Transcript Seeker Enhancements">
+The transcript seeker feature has been updated with the following improvements:
 
-{{#FILES}}
-::filepath[{{PATH}}]
-{{DIFF}}
+- Faster search and retrieval of transcripts
+- Improved accuracy in matching search queries to transcript content
+- Added support for multi-language transcripts
+- Enhanced user interface for a more intuitive transcript browsing experience
+</Accordion>
 
-{{/FILES}}
-{{/MULTI_FILE}} 
+<Accordion title="Speaking Bot Upgrades">
+The speaking bots have received several upgrades to enhance their capabilities:
+
+- Expanded language support, now covering 20+ languages
+- Improved natural language processing for more natural-sounding responses
+- Integration with the new transcript seeker feature for seamless access to transcripts
+- Optimized resource utilization for better scalability
+</Accordion>
+
+<Accordion title="TypeScript SDK Additions">
+The TypeScript SDK for the speaking service has been expanded with the following new features:
+
+- Transcript management APIs for uploading, searching, and retrieving transcripts
+- Speaking bot control APIs for interacting with the speaking bots
+- Comprehensive type definitions for all service endpoints
+- Improved documentation and code samples
+</Accordion>
+</Accordions>
+
+### Bug Fixes and Stability Improvements
+
+<Accordions>
+<Accordion title="MCP Server Stability Fixes">
+The MCP (Media Control Plane) servers powering the speaking service have received several stability fixes to address the following issues:
+
+- Reduced occurrences of unexpected server crashes
+- Improved error handling and graceful degradation
+- Enhanced monitoring and alerting for proactive issue detection
+</Accordion>
+
+<Accordion title="API Endpoint Reliability">
+The core API endpoints for the speaking service have been optimized for better reliability and performance:
+
+- Reduced latency and improved response times
+- Increased fault tolerance and failover capabilities
+- Streamlined error handling and error message clarity
+</Accordion>
+</Accordions>
+
+### Breaking Changes
+
+<Accordions>
+<Accordion title="Transcript Seeker API Updates">
+The transcript seeker API has undergone a breaking change to the request and response formats. The changes are as follows:
+
+- The `searchQuery` parameter has been renamed to `query`
+- The response now includes additional metadata fields, such as `language` and `duration`
+- The response structure has been reorganized for better clarity and consistency
+
+Please update your client applications to accommodate these changes.
+</Accordion>
+</Accordions>
+
+We hope these updates to the speaking service will improve your experience and enable you to build even better applications. As always, if you have any questions or feedback, don't hesitate to reach out to our support team.
+
+Happy coding! 🐟
