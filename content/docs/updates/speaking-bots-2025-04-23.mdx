@@ -7,7 +7,7 @@ date: April 23, 2025
 
 ---
 
-# 🐟 Speaking Bots: Persona Image Generation Update
+🐟 Persona Image Generation: A Splash of Creativity!
 
 <Callout type="info">
 Dive into our latest feature that brings personas to life with AI-generated images! 🎨
@@ -27,21 +27,27 @@ Dive into our latest feature that brings personas to life with AI-generated imag
 
 <Tabs items={['Models', 'Routes', 'Image Service']}>
 <Tab value="Models">
+
 - Added `PersonaImageRequest` model
 - Created `PersonaImageResponse` model
 - Supports detailed persona description inputs
+
 </Tab>
 
 <Tab value="Routes">
+
 - New POST endpoint: `/personas/generate-image`
 - Accepts persona details like name, gender, description
 - Returns generated image URL and metadata
+
 </Tab>
 
 <Tab value="Image Service">
+
 - Integrates with Replicate AI for image generation
 - Uploads generated images to UTFS
 - Handles various image generation scenarios
+
 </Tab>
 </Tabs>
 

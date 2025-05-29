@@ -4,80 +4,75 @@ description: API - Teams/GMeet stability improvements and new transcription capa
 icon: Webhook
 service: api
 date: February 27, 2025
+
 ---
 
-# 🐟 API Updates - Improvements & Retranscribe Route
+🐟 Production Updates - Improvements & Retranscribe Route
 
-<Callout type="info" icon={<Info className="h-5 w-5" />}>
+<Callout type="info">
   **Paris**, the 27th of February 2025.
 </Callout>
 
 We're excited to announce significant improvements to our platform stability and the introduction of new API capabilities.
 
-## Platform Stability Improvements
+<Accordions>
+  <Accordion title="Platform Stability Improvements" value="platform-stability">
+    ### Teams & Google Meet Enhancement
 
-### Teams & Google Meet Enhancement
+    - Complete engine rewrite for both Teams and Google Meet platforms
+    - Migrated from Puppeteer to Playwright for improved stability
+    - Significantly enhanced performance and reliability
+    - Successfully tested with extended runtime (15+ hours) showing excellent stability
+  </Accordion>
 
-- Complete engine rewrite for both Teams and Google Meet platforms
-- Migrated from Puppeteer to Playwright for improved stability
-- Significantly enhanced performance and reliability
-- Successfully tested with extended runtime (15+ hours) showing excellent stability
+  <Accordion title="New API Features" value="new-api-features">
+    ### New Retranscribe Endpoint
 
-## New API Features
+    - Introduced new [`POST /bots/retranscribe`](/docs/api/reference/retranscribe_bot) endpoint
+    - Allows transcription or retranscription of a bot's audio
+    - Supports both default and custom speech-to-text providers
+    - Flexible webhook configuration for processing notifications
 
-### New Retranscribe Endpoint
+    ### OCR Capabilities
 
-- Introduced new [`POST /bots/retranscribe`](/docs/api/reference/retranscribe_bot) endpoint
-- Allows transcription or retranscription of a bot's audio
-- Supports both default and custom speech-to-text providers
-- Flexible webhook configuration for processing notifications
+    - Added Optical Character Recognition (OCR) inside bots for better detection of current meeting status
+    - This will enable future features including:
+      - Sharing screenshots of meeting content
+      - OCR'ed content shared in meetings (for RAG and other AI-enhanced applications)
+    - Improves bot awareness of visual meeting context
 
-### OCR Capabilities
+    ### Join Endpoint Enhancement
 
-- Added Optical Character Recognition (OCR) inside bots for better detection of current meeting status
-- This will enable future features including:
-  - Sharing screenshots of meeting content
-  - OCR'ed content shared in meetings (for RAG and other AI-enhanced applications)
-- Improves bot awareness of visual meeting context
+    - Added `audio_only` parameter to [`POST /bots`](/docs/api/reference/join) endpoint
+    - Enables audio-only participation in meetings
+    - Optimized for scenarios requiring only audio capabilities
+  </Accordion>
 
-### Join Endpoint Enhancement
+  <Accordion title="Retranscribe API" value="retranscribe-api">
+    The new retranscribe endpoint accepts the following parameters:
 
-- Added `audio_only` parameter to [`POST /bots`](/docs/api/reference/join) endpoint
-- Enables audio-only participation in meetings
-- Optimized for scenarios requiring only audio capabilities
+    - `bot_uuid`: Identifier for the target bot
+    - `provider`: Choice of speech-to-text provider
+    - `webhook_url`: Optional callback URL for completion notifications
 
-## Implementation Details
+    <Callout type="info">
+      The retranscribe feature is particularly useful for:
 
-### Retranscribe API
+      - Improving existing transcriptions
+      - Using different speech-to-text providers
+      - Recovering from any transcription issues
+    </Callout>
+  </Accordion>
 
-The new retranscribe endpoint accepts the following parameters:
+  <Accordion title="Future Enhancements" value="future-enhancements">
+    We're actively working on expanding the capabilities of the retranscribe endpoint:
 
-- `bot_uuid`: Identifier for the target bot
-- `provider`: Choice of speech-to-text provider
-- `webhook_url`: Optional callback URL for completion notifications
+    - Additional speech-to-text providers will be supported in upcoming releases
+    - Custom provider parameters will be exposed through a flexible JSON configuration field
+    - This will enable fine-tuned control over transcription settings and provider-specific features
+  </Accordion>
+</Accordions>
 
 <Callout type="info">
-  The retranscribe feature is particularly useful for:
-  - Improving existing transcriptions
-  
-  - Using different speech-to-text providers
-
-- Recovering from any transcription issues
-
+  These changes are now live in production and available for immediate use.
 </Callout>
-
-## Future Enhancements
-
-We're actively working on expanding the capabilities of the retranscribe endpoint:
-
-- Additional speech-to-text providers will be supported in upcoming releases
-- Custom provider parameters will be exposed through a flexible JSON configuration field
-- This will enable fine-tuned control over transcription settings and provider-specific features
-
-## Migration Guide
-
-No breaking changes were introduced with these updates. All new features are additive and backward compatible with existing implementations.
-
-## Implementation Timeline
-
-These changes are now live in production and available for immediate use.

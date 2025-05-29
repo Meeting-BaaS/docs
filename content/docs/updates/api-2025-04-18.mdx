@@ -7,7 +7,7 @@ date: April 18, 2025
 
 ---
 
-# 🐟 API Updates: Streamlining Credentials and Message Processing
+🐟 Production Updates: Streamlining Credentials and Message Processing
 
 <Callout type="info">
   Dive into the latest updates that keep our API swimming smoothly! 🏊‍♀️
@@ -19,7 +19,9 @@ date: April 18, 2025
 
 <Steps>
   <Step>Enhanced AWS path generation with client secret integration</Step>
+  
   <Step>Improved S3 recording path retrieval mechanisms</Step>
+  
   <Step>Removed unnecessary fallback code</Step>
 </Steps>
 
@@ -27,6 +29,7 @@ date: April 18, 2025
 
 <Tabs items={['Before', 'After']}>
   <Tab value="Before">Potential race conditions in message handling</Tab>
+  
   <Tab value="After">Serialized message processing with `isProcessing` flag</Tab>
 </Tabs>
 

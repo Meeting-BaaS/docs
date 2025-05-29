@@ -9,7 +9,7 @@ API - New webhooks, events, and pagination updates
 ### Source: ./content/docs/updates/api-2024-12-12.mdx
 
 
-# 🐟 API Updates - Calendar API Update
+🐟 Production Updates - Calendar API Improvements
 
 <Callout type="info" icon={<Info className="h-5 w-5" />}>
   Paris, the 12th of December 2024.
@@ -21,54 +21,51 @@ We're excited to announce several improvements to our Calendar API endpoints. Th
 
 ### Webhook Configuration Flexibility
 
-- The `webhook_url` parameter is now optional on [`POST /calendar`](/docs/api/reference/calendars/create_calendar) endpoint if a webhook URL is already configured on the account
+The `webhook_url` parameter is now optional on the [`POST /calendar`](/docs/api/reference/calendars/create_calendar) endpoint if a webhook URL is already configured on the account.
 
 ### Enhanced Event Information
 
-- [`GET /calendar_events`](/docs/api/reference/calendars/list_events) now includes attendees information for each event
-- [`GET /calendar_events/uuid`](/docs/api/reference/calendars/get_event) now returns the `calendar_id` of the event
+- The [`GET /calendar_events`](/docs/api/reference/calendars/list_events) endpoint now includes attendees information for each event.
+- The [`GET /calendar_events/uuid`](/docs/api/reference/calendars/get_event) endpoint now returns the `calendar_id` of the event.
 
 ### Recurring Events Bot Management
 
-- New query parameter `all_occurrences` added to [`POST /calendar_events/uuid/bot`](/docs/api/reference/calendars/schedule_record_event)
-- Allows scheduling a bot for all instances of a recurring event
-- Same functionality added to [`DELETE /calendar_events/uuid/bot`](/docs/api/reference/calendars/unschedule_record_event)
-- Enables bot removal from all occurrences of a recurring event
+- A new query parameter `all_occurrences` has been added to the [`POST /calendar_events/uuid/bot`](/docs/api/reference/calendars/schedule_record_event) and [`DELETE /calendar_events/uuid/bot`](/docs/api/reference/calendars/unschedule_record_event) endpoints.
+- This allows scheduling or unscheduling a bot for all instances of a recurring event.
 
 ## Breaking Changes
 
 <Callout type="warn">
 ### Bot Management Response Format
 
-- [`POST /calendar_events/uuid/bot`](/docs/api/reference/calendars/schedule_record_event) now returns an array of events instead of a single event
-- [`DELETE /calendar_events/uuid/bot`](/docs/api/reference/calendars/unschedule_record_event) now returns an array of events instead of a single event
-
+- The [`POST /calendar_events/uuid/bot`](/docs/api/reference/calendars/schedule_record_event) and [`DELETE /calendar_events/uuid/bot`](/docs/api/reference/calendars/unschedule_record_event) endpoints now return an array of events instead of a single event.
 </Callout>
 
 <Callout type="warn">
 ### Pagination Changes
-- [`GET /calendar_events`](/docs/api/reference/list_events) endpoint no longer supports `offset/limit` pagination
-- Implemented cursor-based pagination
-- Response format changed to include a `next` field for fetching subsequent events
-- Events are returned in batches of 100
+
+- The [`GET /calendar_events`](/docs/api/reference/list_events) endpoint no longer supports `offset/limit` pagination.
+- Cursor-based pagination has been implemented instead.
+- The response format now includes a `next` field for fetching subsequent events.
+- Events are returned in batches of 100.
 - Example response structure:
-  ````json
+  ```json
   {
     "events": [...],
     "next": "cursor_token_for_next_page"
   }
-  ````
+  ```
 </Callout>
+
 ## Migration Guide
 
-1. Update your pagination implementation to use the new cursor-based system
-2. Modify your bot management logic to handle arrays of events instead of single events
-3. Review any webhook configuration logic to take advantage of the new optional webhook_url parameter
+1. Update your pagination implementation to use the new cursor-based system.
+2. Modify your bot management logic to handle arrays of events instead of single events.
+3. Review any webhook configuration logic to take advantage of the new optional `webhook_url` parameter.
 
 ## Implementation Timeline
 
-These changes are now live in production.
-
+These changes are now live in production. 🐟🐟🐟
 
 ---
 
@@ -79,39 +76,35 @@ API - New streaming formats, WebSocket configurations, and client improvements
 ### Source: ./content/docs/updates/api-2025-01-04.mdx
 
 
-# 🐟 API Updates - Streaming and Client Updates
+🐟 Splash! Dive into the latest API updates! 🐟
 
-<Callout type="info" icon={<Info className="h-5 w-5" />}>
-  Paris, the 4th of January 2025.
-</Callout>
-
-We're excited to announce several improvements to our streaming API and client applications for Zoom, Microsoft Teams, and Google Meet. These updates enhance stability, performance, and functionality.
-
-## New Features
+## Production Updates
 
 ### Streaming Format Specification
 
-- You can now specify the streaming format for WebSocket streams, 16kHz or 24kHz.
-- **audio_frequency**: The audio frequency for the WebSocket streams, defaults to 24kHz. Can be one of `16khz` or `24khz`.
+We've added the ability to specify the streaming format for WebSocket streams. You can now choose between 16kHz or 24kHz audio frequency.
+
+```jsx
+{
+  "audio_frequency": "16khz" // or "24khz"
+}
+```
 
 ### Microsoft Teams Client Update
 
-- We've updated our Microsoft Teams client, reducing the number of bugs by 50%.
-- Now supports live Teams links, including Microsoft Live Meeting URLs (e.g., `https://teams.live.com/meet/...`).
+Our Microsoft Teams client has undergone a major overhaul, reducing the number of bugs by 50%. It now supports live Teams links, including Microsoft Live Meeting URLs (e.g., `https://teams.live.com/meet/...`).
 
 ### Google Meet Client Update
 
-- We've updated our Google Meet client, reducing the number of bugs by 10%.
+We've updated our Google Meet client, reducing the number of bugs by 10%.
 
 ### Zoom Client Update
 
-- Released an entirely new Zoom client. Currently, video capture isn't supported, but we plan to release this feature within the next two weeks.
-- Zoom is expected to be our most stable client.
+We've released an entirely new Zoom client. While video capture isn't supported yet, we plan to release this feature within the next two weeks. Zoom is expected to be our most stable client.
 
-## Implementation Timeline
-
-These changes are now live in production.
-
+<Callout type="info">
+  These changes are now live in production.
+</Callout>
 
 ---
 
@@ -122,7 +115,7 @@ API - Teams/GMeet stability improvements and new transcription capabilities
 ### Source: ./content/docs/updates/api-2025-02-27.mdx
 
 
-# 🐟 API Updates - Improvements & Retranscribe Route
+🐟 Production Updates - Improvements & Retranscribe Route
 
 <Callout type="info" icon={<Info className="h-5 w-5" />}>
   **Paris**, the 27th of February 2025.
@@ -130,7 +123,7 @@ API - Teams/GMeet stability improvements and new transcription capabilities
 
 We're excited to announce significant improvements to our platform stability and the introduction of new API capabilities.
 
-## Platform Stability Improvements
+<Accordion title="Platform Stability Improvements" value="platform-stability">
 
 ### Teams & Google Meet Enhancement
 
@@ -139,7 +132,9 @@ We're excited to announce significant improvements to our platform stability and
 - Significantly enhanced performance and reliability
 - Successfully tested with extended runtime (15+ hours) showing excellent stability
 
-## New API Features
+</Accordion>
+
+<Accordion title="New API Features" value="new-api-features">
 
 ### New Retranscribe Endpoint
 
@@ -162,9 +157,9 @@ We're excited to announce significant improvements to our platform stability and
 - Enables audio-only participation in meetings
 - Optimized for scenarios requiring only audio capabilities
 
-## Implementation Details
+</Accordion>
 
-### Retranscribe API
+<Accordion title="Retranscribe API" value="retranscribe-api">
 
 The new retranscribe endpoint accepts the following parameters:
 
@@ -174,15 +169,15 @@ The new retranscribe endpoint accepts the following parameters:
 
 <Callout type="info">
   The retranscribe feature is particularly useful for:
-  - Improving existing transcriptions
-  
-  - Using different speech-to-text providers
 
+- Improving existing transcriptions
+- Using different speech-to-text providers
 - Recovering from any transcription issues
-
 </Callout>
 
-## Future Enhancements
+</Accordion>
+
+<Accordion title="Future Enhancements" value="future-enhancements">
 
 We're actively working on expanding the capabilities of the retranscribe endpoint:
 
@@ -190,14 +185,11 @@ We're actively working on expanding the capabilities of the retranscribe endpoin
 - Custom provider parameters will be exposed through a flexible JSON configuration field
 - This will enable fine-tuned control over transcription settings and provider-specific features
 
-## Migration Guide
+</Accordion>
 
-No breaking changes were introduced with these updates. All new features are additive and backward compatible with existing implementations.
-
-## Implementation Timeline
-
-These changes are now live in production and available for immediate use.
-
+<Callout type="info">
+  These changes are now live in production and available for immediate use.
+</Callout>
 
 ---
 
@@ -208,7 +200,7 @@ API - Improved filtering, comprehensive event details, and calendar management
 ### Source: ./content/docs/updates/api-2025-03-01.mdx
 
 
-# 🐟 API Updates - Calendar API Enhancements
+🐟 Production Updates - Calendar API Enhancements
 
 <Callout type="info" icon={<Info className="h-5 w-5" />}>
   Paris, the 1st of March 2025.
@@ -238,9 +230,14 @@ The `Attendee` object now includes a `name` field that provides the display name
 
 ## Related Updates
 
-- [Calendar API Update](/docs/api/updates/calendar-api-update) - Previous calendar API enhancements
-- [Retranscribe Route](/docs/api/updates/retranscribe-route) - Information about the retranscribe endpoint
-
+<Accordions>
+  <Accordion title="Calendar API Update" value="calendar-api-update">
+    Previous calendar API enhancements.
+  </Accordion>
+  <Accordion title="Retranscribe Route" value="retranscribe-route">
+    Information about the retranscribe endpoint.
+  </Accordion>
+</Accordions>
 
 ---
 
@@ -251,11 +248,7 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-03-02.mdx
 
 
-# API Updates 🐟
-
-<Callout type="info">
-  Dive into the latest updates - we're casting a wide net of improvements! 🎣
-</Callout>
+🐟 Dive into the latest API updates - we're casting a wide net of improvements! 🎣
 
 ## March 2, 2025 Release
 
@@ -273,6 +266,7 @@ API - Automatically generated documentation based on Git activity.
   <Accordion title="Calendar Improvements" value="calendar-updates">
     Enhanced event filtering, improved attendee information management, and more robust credential handling.
   </Accordion>
+
   <Accordion title="Security Enhancements" value="security-updates">
     Addressed potential SQL injection vulnerabilities and improved overall system security.
   </Accordion>
@@ -308,11 +302,9 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-03-03.mdx
 
 
-# API Updates 🐟
+🐟 Diving into the latest updates like a bass swimming through code currents! 🎣
 
-<Callout type="info">
-  Diving into the latest updates like a bass swimming through code currents! 🎣
-</Callout>
+# Production Updates ⚡️
 
 ## March 3, 2025 Updates
 
@@ -365,10 +357,12 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-03-04.mdx
 
 
-# API Updates 🐟
+Here is the enhanced change summary for the API service:
+
+# 🐟 API Updates
 
 <Callout type="info">
-  Hooked on the latest API improvements? Let's dive into the updates! 🎣
+Hooked on the latest API improvements? Let's dive in! 🎣
 </Callout>
 
 ## Overview
@@ -404,7 +398,7 @@ API - Automatically generated documentation based on Git activity.
 </Accordions>
 
 <Callout type="warn">
-  Note: Specific code changes are not disclosed for confidentiality reasons.
+Note: Specific code changes are not disclosed for confidentiality reasons.
 </Callout>
 
 ## Additional Information
@@ -424,10 +418,10 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-03-05.mdx
 
 
-# API Updates 🐟
+# 🐟 Production Updates 🐟
 
 <Callout type="info">
-  Diving into our latest API improvements - making waves in the development sea! 🌊
+Diving into our latest internal API improvements - making waves in the development sea! 🌊
 </Callout>
 
 ## March 5, 2025 Updates
@@ -440,6 +434,7 @@ The recent updates focus on internal improvements across several core API compon
   <Accordion title="Calendar Module Updates" value="calendar">
     Refinements in calendar data retrieval and event handling processes.
   </Accordion>
+
   <Accordion title="Bot Service Enhancements" value="bots">
     Improvements in bot-related error handling and public interfaces.
   </Accordion>
@@ -464,17 +459,18 @@ The recent updates focus on internal improvements across several core API compon
 ### Implementation Notes
 
 <Callout type="warn">
-  These updates are internal improvements and do not directly impact external API contracts.
+These updates are internal improvements and do not directly impact external API contracts.
 </Callout>
 
 ### Merge Request Details
 
 Multiple merge requests were processed:
+
 - MR !165: Documentation wording improvements
-- MR !164: Additional documentation refinements
+- MR !164: Additional documentation refinements 
 - MR !163: Default token adjustments
 
-<TypeTable 
+<TypeTable
   type={{
     documentationScope: {
       description: 'Internal improvements and wording updates',
@@ -498,7 +494,7 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-03-06.mdx
 
 
-🐟 Hooked on API Updates? Let's dive into the latest catch! 
+🐟 Hooked on API Updates? Let's dive into the latest catch!
 
 # Production Updates - March 6, 2025
 
@@ -555,7 +551,7 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-03-10.mdx
 
 
-🐟 Hooked on Updates: Diving into the Latest API Changes! 🐟
+🐟 Diving into the Latest API Updates! 🐟
 
 <Callout type="info">
   Internal Service Updates - March 10, 2025
@@ -573,6 +569,7 @@ This update focuses on improvements to our internal service infrastructure, with
     - Improved distributed caching strategies
     - Enhanced webhook processing
   </Tab>
+  
   <Tab value="Meeting Bot">
     - Refined browser initialization and recording state management
     - Updated RabbitMQ integration
@@ -588,7 +585,7 @@ This update focuses on improvements to our internal service infrastructure, with
     - Internal and public calendar API adjustments
     - Added test coverage for calendar functionality
   </Accordion>
-  
+
   <Accordion title="Recording Infrastructure" value="recording-infra">
     - State machine improvements
     - Browser setup error management
@@ -609,17 +606,15 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-03-11.mdx
 
 
-# API Updates 🐟
+🐟 Splash! 🐟 Dive into the latest updates for our API service - we're making waves in backend improvements! 🌊
 
-<Callout type="info">
-  Dive into the latest updates for our API service - we're making waves in backend improvements! 🌊
-</Callout>
+## API Updates
 
-## Overview of Changes
+### Overview of Changes
 
 This update focuses on improving browser setup and error handling across multiple components of our API and recording infrastructure.
 
-### Key Improvements
+#### Key Improvements
 
 <Steps>
   <Step>Enhanced browser setup reliability</Step>
@@ -627,7 +622,7 @@ This update focuses on improving browser setup and error handling across multipl
   <Step>Refined calendar and webhook handling</Step>
 </Steps>
 
-### Affected Components
+#### Affected Components
 
 <Files>
   <Folder name="api_server">
@@ -688,7 +683,9 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-03-12.mdx
 
 
-# API Updates - March 12, 2025 🐟
+🐟 Reel in these exciting API updates! 🐟
+
+# Production Updates - March 12, 2025 🐟
 
 <Callout type="info">
   Hooked on our latest API improvements? Let's dive into the details! 🎣
@@ -696,13 +693,13 @@ API - Automatically generated documentation based on Git activity.
 
 ## Key Updates
 
-### Data Deletion Endpoint 
+### Data Deletion Endpoint
 
 <Tabs items={['Feature', 'Protection']}>
   <Tab value="Feature">
-    - New `/:uuid/delete_data` endpoint for deleting transcription data
-    - Selective deletion preserves essential metadata
-    - Detailed status reporting on deletion process
+    - New `/:uuid/delete_data` endpoint for selectively deleting transcription data
+    - Preserves essential metadata during deletion
+    - Provides detailed status reporting on the deletion process
   </Tab>
   <Tab value="Protection">
     - Rate limiting: 5 requests per minute per API key
@@ -717,7 +714,7 @@ API - Automatically generated documentation based on Git activity.
 
 <Steps>
   <Step>Added tracking for affected event UUIDs in calendar webhooks</Step>
-  <Step>Improved borrowing and code verbosity in sync logic</Step>
+  <Step>Improved efficiency and clarity in sync logic</Step>
   <Step>Preserved event metadata during synchronization</Step>
 </Steps>
 
@@ -753,7 +750,7 @@ API - Automatically generated documentation based on Git activity.
 
 🐟 Dive into the latest API updates! Just like a bass swimming through code streams, we've got some fin-tastic improvements for you!
 
-# API Updates - March 13, 2025
+# Production Updates - March 13, 2025
 
 <Callout type="info">
 Key Highlights:
@@ -768,14 +765,18 @@ Key Highlights:
 
 <Tabs items={['New Features', 'Modifications']}>
   <Tab value="New Features">
-    - Added `delete_data` route for bots
-    - Implemented support for filtering and sorting bots by custom JSON fields
-    - Restored `list_recent_bots` implementation
+
+- Added `delete_data` route for bots
+- Implemented support for filtering and sorting bots by custom JSON fields
+- Restored `list_recent_bots` implementation
+
   </Tab>
   <Tab value="Modifications">
-    - Refined OpenAPI documentation
-    - Updated bot metadata route
-    - Removed legacy authentication mechanisms
+
+- Refined OpenAPI documentation
+- Updated bot metadata route
+- Removed legacy authentication mechanisms
+
   </Tab>
 </Tabs>
 
@@ -783,13 +784,17 @@ Key Highlights:
 
 <Accordions>
   <Accordion title="Authentication Updates" value="auth">
-    - Removed legacy authentication systems
-    - Improved security and access control
+
+- Removed legacy authentication systems
+- Improved security and access control
+
   </Accordion>
   <Accordion title="Documentation Improvements" value="docs">
-    - Enhanced OpenAPI specifications
-    - Clarified route documentation
-    - Added more constants for transcription files
+
+- Enhanced OpenAPI specifications
+- Clarified route documentation
+- Added more constants for transcription files
+
   </Accordion>
 </Accordions>
 
@@ -823,11 +828,9 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-03-14.mdx
 
 
-# API Updates 🐟
+🐟 Dive into the latest API improvements - we're making waves in the development sea! 🌊
 
-<Callout type="info">
-  Dive into the latest API improvements - we're making waves in the development sea! 🌊
-</Callout>
+# Production Updates 🚀
 
 ## Recent Changes Overview
 
@@ -858,11 +861,6 @@ This update focuses on improvements to bot-related functionality and API routing
 <Callout type="warn">
   Note: These changes impact internal API routing and data management.
 </Callout>
-
-- Improved list_recent_bots endpoint functionality
-- Added support for custom JSON field filtering and sorting
-- Enhanced OpenAPI specification documentation
-- Implemented new delete_data route for bots
 
 <Tabs items={['Pagination', 'Routing', 'Authentication']}>
   <Tab value="Pagination">
@@ -904,10 +902,12 @@ API - Automatically generated documentation based on Git activity.
 The recent commits primarily addressed several critical areas:
 
 - **Transcription Method Refinement**
+  
   - Enhanced error handling for transcription processes
   - Improved API error management strategies
 
 - **Storage and URL Handling**
+  
   - Implemented consistent S3 URL building for audio files
   - Ensured public internet S3 usage for audio resources
 
@@ -915,12 +915,16 @@ The recent commits primarily addressed several critical areas:
 
 <Tabs items={['Environment', 'Configuration']}>
   <Tab value="Environment">
+    
     - Updated `.env` configuration
     - Refined environment variable management
+  
   </Tab>
   <Tab value="Configuration">
+    
     - Adjusted path handling for recording and transcription
     - Streamlined state machine logic in recording server
+  
   </Tab>
 </Tabs>
 
@@ -958,7 +962,7 @@ API - Automatically generated documentation based on Git activity.
 
 🐟 Hooked on API Updates: Diving into the Latest Catch! 🐟
 
-# API Service Updates
+# Production Updates
 
 <Callout type="info">
   This update focuses on internal improvements to our transcription service.
@@ -1013,7 +1017,7 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-03-19.mdx
 
 
-🐟 Hooked on Updates: Diving Deep into API Improvements! 
+🐟 Hooked on Updates: Diving Deep into Production Improvements!
 
 # Production Updates - March 19, 2025
 
@@ -1025,7 +1029,7 @@ API - Automatically generated documentation based on Git activity.
 
 ### Meeting Management Enhancements
 
-The recent updates focus on improving end management and state handling for meeting recording processes. Key areas of modification include:
+The recent updates focus on improving end-to-end management and state handling for meeting recording processes. Key areas of modification include:
 
 - Refined transcription provider logic
 - Enhanced bot internal handling
@@ -1076,11 +1080,9 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-03-21.mdx
 
 
-# API Updates 🐟
+🐟 Dive into the latest API improvements - no fishing required! 🐟
 
-<Callout type="info">
-  Diving into the latest API improvements - no fishing required! 
-</Callout>
+# Production Updates
 
 ## Overview of Changes
 
@@ -1121,10 +1123,6 @@ This update focuses on internal improvements to the meeting recording and transc
 
 ### Recommended Actions
 
-- No immediate action required for API users
-- Verify compatibility with existing integrations
-- Monitor for any potential performance improvements
-
 <Tabs items={['Production', 'Development']}>
   <Tab value="Production">
     Update to the latest version when available
@@ -1143,16 +1141,13 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-03-25.mdx
 
 
-# API Updates 🐟
+🐟 Looks like we've hooked some exciting API improvements! 🐟
+
+## Production Updates 🐟
 
 <Callout type="info">
-  Looks like we're reeling in some API improvements today! Just another day of
-  fishing for better code. 🎣
+  Reeling in some internal API enhancements to improve reliability and robustness. Time to cast a wider net for better code! 🎣
 </Callout>
-
-## Overview of Changes
-
-The recent updates focus on enhancing the retry mechanism for API calls, ensuring more robust and reliable service interactions.
 
 ### Key Modifications
 
@@ -1190,7 +1185,6 @@ The recent updates focus on enhancing the retry mechanism for API calls, ensurin
   </Accordion>
 </Accordions>
 
-
 ---
 
 ## March 26, 2025
@@ -1200,10 +1194,10 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-03-26.mdx
 
 
-# API Updates 🐟
+🐟 Diving Deep into Our Latest API Improvements 🐟
 
 <Callout type="info">
-  Diving deep into our latest API improvements - just like a bass exploring new waters! 🎣
+  Exploring the depths of our API service, just like a bass hunting for its next meal! 🎣
 </Callout>
 
 ## Overview of Changes
@@ -1218,11 +1212,13 @@ This update focuses on internal improvements to our API service, primarily addre
     - Improved retry mechanisms for transcription services
     - Updated storage and transcription logic
   </Tab>
+
   <Tab value="Meeting Bot">
     - Refined state machine implementation
     - Improved meeting lifecycle management
     - Enhanced error state handling
   </Tab>
+
   <Tab value="State Management">
     - Implemented more robust state transitions
     - Added improved error tracking
@@ -1441,11 +1437,9 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-03-31.mdx
 
 
-# API Updates - March 31, 2025 🐟
+🐟 Hooked on improvements! Just like a bass swimming through code streams... 🎣
 
-<Callout type="info">
-  Hooked on improvements! Just like a bass swimming through code streams... 🎣
-</Callout>
+# Production Updates - March 31, 2025
 
 ## Overview of Changes
 
@@ -1458,18 +1452,18 @@ We've merged two significant branches into the master:
 
 <Tabs items={['Bot Management', 'Transcription']}>
   <Tab value="Bot Management">
-    <Steps>
-      <Step>Added `ended_at` handling for bots that were already started</Step>
-      <Step>Improved bot lifecycle management</Step>
-      <Step>Enhanced error tracking and logging</Step>
-    </Steps>
+
+    - Added `ended_at` handling for bots that were already started
+    - Improved bot lifecycle management
+    - Enhanced error tracking and logging
+
   </Tab>
   <Tab value="Transcription">
-    <Steps>
-      <Step>Moved transcription processing to background task</Step>
-      <Step>Removed duplicate code for setting `ended_at`</Step>
-      <Step>Optimized meeting end process</Step>
-    </Steps>
+
+    - Moved transcription processing to background task
+    - Removed duplicate code for setting `ended_at`
+    - Optimized meeting end process
+
   </Tab>
 </Tabs>
 
@@ -1528,10 +1522,10 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-04-01.mdx
 
 
-# API Updates 🐟
+# 🐟 Splash into the Latest API Updates! 🐟
 
 <Callout type="info">
-  Hooked on our latest updates? Dive into the sea of changes! 🎣
+Dive into the sea of changes and discover our latest API enhancements! 🎣
 </Callout>
 
 ## Key Updates
@@ -1548,7 +1542,7 @@ API - Automatically generated documentation based on Git activity.
 
 <Tabs items={['API Server', 'Meeting Bot', 'Transcription']}>
   <Tab value="API Server">
-    - Updated core API server configurations
+    - Updated core API server configurations  
     - Modified routing and handler logic
     - Refined webhook schemas
   </Tab>
@@ -1580,7 +1574,7 @@ API - Automatically generated documentation based on Git activity.
 </Accordions>
 
 <Callout type="warn">
-  Note: These updates are internal and may not directly impact external API consumers.
+Note: These updates are internal and may not directly impact external API consumers.
 </Callout>
 
 ---
@@ -1592,9 +1586,9 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-04-02.mdx
 
 
-🐟 Diving into the API updates - looks like we're making some waves in the code ocean! Let's see what's swimming around... 
+🐟 Looks like the API service is making some big waves with these updates! Let's dive in and see what's new.
 
-# API Internal Updates
+# Production Updates
 
 <Callout type="info">
   This update focuses on internal improvements to the API service infrastructure.
@@ -1665,10 +1659,12 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-04-03.mdx
 
 
-# API Updates 🐟
+🐟 Reel in these exciting API updates! 🐟
+
+# Production Updates 🔌
 
 <Callout type="info">
-  Hooked on our latest updates? Let's dive into the API improvements! 🎣
+  Hooked on our latest updates? Let's dive into the internal API improvements! 🎣
 </Callout>
 
 ## Key Changes
@@ -1703,16 +1699,22 @@ API - Automatically generated documentation based on Git activity.
 
 <Tabs items={['Authentication', 'Parameter Handling', 'Code Cleanup']}>
   <Tab value="Authentication">
-    - Enabled cross-subdomain authentication
-    - Cleaned up authentication code structure
+
+- Enabled cross-subdomain authentication
+- Cleaned up authentication code structure
+
   </Tab>
   <Tab value="Parameter Handling">
-    - Introduced `UuidParam` for type-safe UUID handling
-    - Updated route handlers to use structured parameter types
+
+- Introduced `UuidParam` for type-safe UUID handling
+- Updated route handlers to use structured parameter types
+
   </Tab>
   <Tab value="Code Cleanup">
-    - Removed unnecessary functions
-    - Streamlined internal API implementation
+
+- Removed unnecessary functions
+- Streamlined internal API implementation
+
   </Tab>
 </Tabs>
 
@@ -1729,31 +1731,29 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-04-04.mdx
 
 
-# API Updates 🐟
+🐟 Dive into the depths of our API improvements, just like a bass swimming through code currents! 🐟
+
+## Production Updates 🐟
 
 <Callout type="info">
-  Diving into the depths of our API improvements - just like a bass swimming through code currents! 🐟
+  Enhancing the reliability and performance of our internal systems.
 </Callout>
-
-## Overview of Changes
-
-This update focuses on enhancing waiting room management and improving various server-side components across multiple services.
 
 ### Key Improvements
 
 <Tabs items={['API Server', 'Meeting Bot', 'Recording Server']}>
   <Tab value="API Server">
     - Enhanced cookie handling
-    - Webhook management improvements
-    - Router and parameter optimizations
+    - Improved webhook management
+    - Optimized routers and parameters
   </Tab>
   <Tab value="Meeting Bot">
     - Refined waiting room state management
-    - Meeting platform integration updates
+    - Updated meeting platform integrations
   </Tab>
   <Tab value="Recording Server">
-    - State machine enhancements
-    - Meeting platform support improvements
+    - Enhanced state machine
+    - Improved meeting platform support
   </Tab>
 </Tabs>
 
@@ -1793,25 +1793,27 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-04-07.mdx
 
 
-# API Updates 🐟
+🐟 Splash into the latest API updates! 🐟
+
+# Production Updates 🐟
 
 <Callout type="info">
-  Dive into the latest API improvements - we're making waves in the development ocean! 🌊
+  Dive into the internal improvements across our API service and meeting bot infrastructure. We're making waves in the development ocean! 🌊
 </Callout>
 
 ## Overview of Changes
 
-This update focuses on internal improvements across multiple components of our API service and meeting bot infrastructure. The changes span several key areas:
+This update focuses on enhancements to the core components of our API service and meeting bot systems. The changes span several key areas:
 
-### API Server Enhancements
+### API Server Improvements
 - Updates to core API server components
 - Modifications in handler and routing logic
-- Improvements in webhook and cookie handling
+- Enhancements in webhook and cookie handling
 
 ### Meeting Bot Refinements
-- State machine updates for recording server
-- Enhancements in meeting platform integrations
-- Typescript-based improvements in recording mechanisms
+- State machine updates for the recording server
+- Improvements in meeting platform integrations
+- TypeScript-based optimizations in recording mechanisms
 
 <Callout type="warn">
   Note: These changes are primarily internal and do not directly impact external API consumers.
@@ -1819,15 +1821,19 @@ This update focuses on internal improvements across multiple components of our A
 
 ## Key Areas of Update
 
-### API Server Components
-- Cargo configuration updates
-- Cookie and webhook processing improvements
-- Routing and parameter handling refinements
+<Accordions>
+  <Accordion title="API Server Components" value="api-server">
+    - Cargo configuration updates
+    - Cookie and webhook processing improvements
+    - Routing and parameter handling refinements
+  </Accordion>
 
-### Recording Server Improvements
-- Enhanced state management for meeting recordings
-- Cross-platform meeting integration updates
-- TypeScript type and state machine optimizations
+  <Accordion title="Recording Server Improvements" value="recording-server">
+    - Enhanced state management for meeting recordings
+    - Cross-platform meeting integration updates
+    - TypeScript type and state machine optimizations
+  </Accordion>
+</Accordions>
 
 <Tabs items={['API Server', 'Recording Server']}>
   <Tab value="API Server">
@@ -1862,12 +1868,12 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-04-08.mdx
 
 
-🐟 Hooked on API Updates: Casting a Line into the Sea of Code! 🐟
+🐟 Reeling in the Latest API Enhancements! 🐟
 
-# API Updates - April 8, 2025
+# Production Updates - April 8, 2025
 
 <Callout type="info">
-These updates reflect recent improvements to our API service and related infrastructure.
+These updates focus on improving the reliability, logging, and cross-platform compatibility of our internal production systems.
 </Callout>
 
 ## Key Changes
@@ -1939,10 +1945,10 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-04-09.mdx
 
 
-# 🐟 API Updates - Hooked on Improvements! 🐟
+# 🐟 Hooked on Improvements! 🐟
 
 <Callout type="info">
-  These updates reel in some exciting changes to our API service. Cast your line and dive into the details!
+  Our API service has some exciting updates that are sure to reel you in. Let's dive right in!
 </Callout>
 
 ## Key Updates
@@ -1951,19 +1957,25 @@ API - Automatically generated documentation based on Git activity.
 
 <Tabs items={['Host Presence', 'Error Handling', 'Logging']}>
   <Tab value="Host Presence">
-    - Implemented robust host presence verification before recording
-    - Added polling mechanism to check for host in meeting
-    - Graceful timeout handling for host-related scenarios
+
+- Implemented robust host presence verification before recording
+- Added polling mechanism to check for host in meeting
+- Graceful timeout handling for host-related scenarios
+
   </Tab>
   <Tab value="Error Handling">
-    - Refined error message syntax
-    - Improved grammatical correctness in error reporting
-    - Enhanced error message clarity
+
+- Refined error message syntax
+- Improved grammatical correctness in error reporting
+- Enhanced error message clarity
+
   </Tab>
   <Tab value="Logging">
-    - Added line number support in logs
-    - Implemented more detailed logging configuration
-    - Enhanced debug information visibility
+
+- Added line number support in logs
+- Implemented more detailed logging configuration
+- Enhanced debug information visibility
+
   </Tab>
 </Tabs>
 
@@ -2025,30 +2037,32 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-04-10.mdx
 
 
-# API Updates 🐟
+🐟 Splash into the latest API updates! 🐟
+
+# Production Updates 🐟
 
 <Callout type="info">
-  Dive into the latest API improvements - we're making waves in our development
-  process! 🌊
+  Dive into the latest internal API improvements - we're making waves in our development process! 🌊
 </Callout>
 
 ## Key Updates
 
-### Error Handling and File Management Improvements
+### Error Handling and File Management Enhancements
 
-Our recent updates focus on enhancing reliability and robustness in several critical areas:
+Our recent updates focus on improving reliability and robustness in several critical areas:
 
 <Tabs items={['S3 Handling', 'MP4 URL Generation', 'Webhook Enhancements']}>
   <Tab value="S3 Handling">
-    - Implemented comprehensive error handling for S3 storage operations -
-    Improved error detection and logging mechanisms
+    - Implemented comprehensive error handling for S3 storage operations
+    - Improved error detection and logging mechanisms
   </Tab>
   <Tab value="MP4 URL Generation">
-    - Added file existence checks before generating MP4 URLs - Enhanced URL
-    generation reliability
+    - Added file existence checks before generating MP4 URLs
+    - Enhanced URL generation reliability
   </Tab>
   <Tab value="Webhook Enhancements">
-    - Strengthened webhook processing logic - Added additional validation checks
+    - Strengthened webhook processing logic
+    - Added additional validation checks
   </Tab>
 </Tabs>
 
@@ -2070,17 +2084,17 @@ Our recent updates focus on enhancing reliability and robustness in several crit
 ## Development Notes
 
 <Callout type="warn">
-  These updates are internal improvements focusing on system reliability and
-  error management.
+  These updates are internal improvements focusing on system reliability and error management.
 </Callout>
 
 <Accordions>
   <Accordion title="Additional Context">
-    The changes primarily address: - Improved error detection - More robust file
-    handling - Enhanced webhook processing
+    The changes primarily address:
+    - Improved error detection
+    - More robust file handling
+    - Enhanced webhook processing
   </Accordion>
 </Accordions>
-
 
 ---
 
@@ -2091,11 +2105,9 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-04-11.mdx
 
 
-# API Updates 🐟
+🐟 Dive into the latest API improvements! We're making waves in our service updates. 🌊
 
-<Callout type="info">
-  Dive into the latest API improvements! We're making waves in our service updates. 🌊
-</Callout>
+# Production Updates ⚡️
 
 ## Key Updates - April 11, 2025
 
@@ -2103,7 +2115,7 @@ API - Automatically generated documentation based on Git activity.
 
 <Tabs items={['Overview', 'Technical Details']}>
   <Tab value="Overview">
-    - Enhanced MP4 file handling
+    - Enhanced MP4 file handling  
     - Improved data retrieval logic
     - Webhook and transcription optimizations
   </Tab>
@@ -2159,7 +2171,7 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-04-14.mdx
 
 
-🐟 Hooked on API Updates? Let's dive into the latest catch! 
+🐟 Hooked on API Updates? Let's dive into the latest catch!
 
 # Production Updates - April 14, 2025
 
@@ -2173,15 +2185,17 @@ API - Automatically generated documentation based on Git activity.
 
 Our team made some subtle adjustments to logging mechanisms:
 
-- Updated logging boilerplate for Zoom integration
-- Refined log file path management
-- Ensured consistent logging approach across components
-
 <Steps>
   <Step>Refactored logging configuration</Step>
   <Step>Standardized log file locations</Step>
   <Step>Improved log management scripts</Step>
 </Steps>
+
+These changes include:
+
+- Updated logging boilerplate for Zoom integration
+- Refined log file path management
+- Ensured consistent logging approach across components
 
 ### File System Optimizations
 
@@ -2189,7 +2203,8 @@ Our team made some subtle adjustments to logging mechanisms:
   Minor infrastructure adjustments detected
 </Callout>
 
-Modifications focused on:
+The modifications focused on:
+
 - Consolidating log and screenshot storage
 - Streamlining file organization in Zoom client scripts
 
@@ -2226,19 +2241,19 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-04-15.mdx
 
 
-# API Updates 🐟
+🐟 Dive into our latest API enhancements! 🐟
 
 <Callout type="info">
-  Diving deep into our latest API improvements - just like a bass exploring new waters! 🎣
+  Exploring new waters, just like a bass on the hunt for its next meal! 🎣
 </Callout>
 
 ## Key Updates
 
 ### Bot Meeting Integrity Checks
-We've enhanced our meeting bot's reliability by adding a critical pre-action check to verify the bot's active presence in a meeting before executing any operations.
+We've bolstered our meeting bot's reliability by adding a critical pre-action check. This ensures the bot is actively present in a meeting before executing any operations, improving overall stability.
 
 ### Zoom Log Management
-Implemented a new mechanism to upload Zoom logs to S3, improving our logging and diagnostics capabilities.
+We've implemented a new mechanism to upload Zoom logs to S3, enhancing our logging and diagnostics capabilities.
 
 ## File Changes Overview
 
@@ -2274,7 +2289,7 @@ Implemented a new mechanism to upload Zoom logs to S3, improving our logging and
 </Files>
 
 <Callout type="warn">
-  Note: Detailed code changes are intentionally omitted to maintain confidentiality.
+  Detailed code changes are intentionally omitted to maintain confidentiality.
 </Callout>
 
 ---
@@ -2286,9 +2301,9 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-04-17.mdx
 
 
-🐟 Hopping through code like a bass in a meeting stream! Let's dive into these API updates. 🐟
+🐟 Hooking into the latest API updates like a bass in a meeting stream! 🐟
 
-# API Updates - April 17, 2025
+# Production Updates - April 17, 2025
 
 <Callout type="info">
   This update focuses on enhancing the API service with improvements to routing, authentication, and bot interactions.
@@ -2297,16 +2312,19 @@ API - Automatically generated documentation based on Git activity.
 ## Key Changes
 
 ### Route Path Parameter Updates
+
 - Transitioned route path parameters from `{uuid}` to `:uuid` syntax
 - Updated OpenAPI input declarations
 - Refined documentation strings for endpoints
 
 ### Secret Management Enhancements
+
 - Added `secret` field to `Account` and `WorkerBotMessage` structures
 - Implemented database migration to include non-nullable `secret` column
 - Integrated secret handling in S3 upload and bot configuration processes
 
 ### Meeting Bot Reliability Improvements
+
 - Reduced maximum layout change retries
 - Enhanced `isInMeeting` checks before and after critical UI actions
 - Simplified bot presence detection logic
@@ -2371,7 +2389,7 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-04-18.mdx
 
 
-# 🐟 API Updates: Streamlining Credentials and Message Processing
+🐟 Production Updates: Streamlining Credentials and Message Processing
 
 <Callout type="info">
   Dive into the latest updates that keep our API swimming smoothly! 🏊‍♀️
@@ -2439,12 +2457,12 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-04-20.mdx
 
 
-🐟 Hooked on Updates: Casting a Line into Our Latest API Improvements! 🐟
+🐟 Hooked on Updates: Casting a Line into Our Latest Production Improvements! 🐟
 
-# API Updates - April 20, 2025
+# Production Updates - April 20, 2025
 
 <Callout type="info">
-  Quick Catch of the Day: Minor refinements to keep our API swimming smoothly!
+  Quick Catch of the Day: Minor refinements to keep our production systems running smoothly!
 </Callout>
 
 ## Key Changes
@@ -2485,11 +2503,9 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-04-22.mdx
 
 
-# API Updates - April 22, 2025 🐟
+🐟 Dive into the latest API improvements! We're scaling up our code like a bass swimming upstream. 🐟
 
-<Callout type="info">
-  Dive into the latest API improvements! We're scaling up our code like a bass swimming upstream. 🐟
-</Callout>
+# Production Updates - April 22, 2025
 
 ## Overview of Changes
 
@@ -2539,7 +2555,7 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-04-23.mdx
 
 
-# 🐟 API Updates - April 23, 2025
+🐟 Production Updates - April 23, 2025
 
 <Callout type="info">
 Dive into the latest updates for our Meeting Bass API! 🎣 Just like a skilled angler, we've been refining our code to catch the best performance.
@@ -2653,6 +2669,7 @@ API - Automatically generated documentation based on Git activity.
 
   <Accordion title="Meeting Bot Script Update" value="meeting-bot">
     Updated Zoom integration script:
+    
     - Potential script optimization
     - Possible configuration changes
   </Accordion>
@@ -2683,7 +2700,7 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-04-25.mdx
 
 
-# 🐟 Hooked on Updates: API Swim Through (April 25, 2025)
+🐟 Hooked on Updates: Production Swim Through (April 25, 2025)
 
 <Callout type="info">
   Diving deep into our latest code currents - no fishing expedition required! 🎣
@@ -2698,6 +2715,7 @@ This update focuses on internal improvements and migrations, primarily in authen
 <Accordions>
   <Accordion title="Authentication Enhancements" value="auth-changes">
     Files modified in authentication systems:
+
     - Authentication data retrieval
     - Schema updates
     - Handler refinements
@@ -2705,6 +2723,7 @@ This update focuses on internal improvements and migrations, primarily in authen
 
   <Accordion title="Migration Refinements" value="migration-updates">
     SQL migration scripts updated:
+
     - Improved auth integration
     - Database schema adjustments
   </Accordion>
@@ -2758,19 +2777,25 @@ API - Automatically generated documentation based on Git activity.
 
 <Accordions>
   <Accordion title="Authentication Improvements" value="auth-updates">
+
     - Re-added password requirement for enhanced security
     - Updated authentication data handling in multiple components
+
   </Accordion>
 
   <Accordion title="Zoom Integration Enhancements" value="zoom-updates">
+
     - Added new script features for Zoom SDK
     - Implemented audio control improvements
     - Enhanced C++ boilerplate for audio unmuting
+
   </Accordion>
 
   <Accordion title="Confidential Updates" value="secret-updates">
+
     - Secured API keys by moving to `.env` files
     - Implemented additional runtime configurations
+
   </Accordion>
 </Accordions>
 
@@ -2778,24 +2803,29 @@ API - Automatically generated documentation based on Git activity.
 
 <Tabs items={['Authentication', 'Zoom SDK', 'Logging']}>
   <Tab value="Authentication">
+
     ```rust
     // Enhanced authentication data handling
     fn validate_password(input: &str) -> bool {
         // Restored password validation logic
     }
     ```
+
   </Tab>
 
   <Tab value="Zoom SDK">
+
     ```rust
     // New audio control implementation
     fn unmute_meeting_audio() -> Result<(), ZoomError> {
         // Unmute meeting participants
     }
     ```
+
   </Tab>
 
   <Tab value="Logging">
+
     ```typescript
     // Improved logging configuration
     const logger = createLogger({
@@ -2803,6 +2833,7 @@ API - Automatically generated documentation based on Git activity.
       format: 'json'
     });
     ```
+
   </Tab>
 </Tabs>
 
@@ -2819,19 +2850,16 @@ Production update. Enhanced Zoom bot transcription, authentication, and logging 
 ### Source: ./content/docs/updates/api-2025-05-06.mdx
 
 
-# 🐟 Hooked on Meeting Updates: Casting a Wide Net of Improvements
+🐟 Hooked on Meeting Updates: Casting a Wide Net of Improvements
 
 <Callout type="info">
-  This update reels in some significant enhancements to our meeting
-  infrastructure, with a focus on transcription, authentication, and bot
-  resilience. We're scaling up our capabilities like a well-orchestrated fishing
-  expedition! 🎣
+  This update reels in some significant enhancements to our meeting infrastructure, with a focus on transcription, authentication, and bot resilience. We're scaling up our capabilities like a well-orchestrated fishing expedition! 🎣
 </Callout>
 
 ## Key Highlights
 
 - Enhanced Zoom bot transcription system
-- Improved authentication and session management
+- Improved authentication and session management  
 - More robust logging and error tracking
 - Expanded OAuth and verification workflows
 
@@ -2856,18 +2884,23 @@ Production update. Enhanced Zoom bot transcription, authentication, and logging 
 <Tabs items={['Transcription', 'Authentication', 'Logging']}>
   <Tab value="transcription">
     The new transcription system now supports multiple providers (Gladia/Runpod) with:
+
     - Middleware for retry mechanisms
     - Timestamp alignment
     - Failure tracking
   </Tab>
 
-<Tab value="authentication">
-  Authentication now supports: - Flexible password requirements - External
-  provider account linking - Comprehensive session management
-</Tab>
+  <Tab value="authentication">
+    Authentication now supports:
+
+    - Flexible password requirements
+    - External provider account linking
+    - Comprehensive session management
+  </Tab>
 
   <Tab value="logging">
     Logging improvements include:
+
     - Switched from Pino to Winston
     - More detailed error tracking
     - Improved dialog observer resilience
@@ -2878,7 +2911,6 @@ Production update. Enhanced Zoom bot transcription, authentication, and logging 
   Note: These changes are internal and do not affect the public API contract.
 </Callout>
 
-
 ---
 
 ## Updates
@@ -2888,25 +2920,139 @@ Latest updates, improvements, and changes to Meeting BaaS services
 ### Source: ./content/docs/updates/index.mdx
 
 
-# Meeting BaaS Updates
+🐟 Looks like the Meeting BaaS team has been busy reeling in some big updates! 🐟 Let's dive in and see what's new.
+
+## Available Fumadocs Components
+
+This documentation uses Fumadocs UI components to enhance readability and interactivity. Here's how to use them:
+
+<Tabs items={['Layout Components', 'Visual Elements']}>
+<Tab value="Layout Components">
+
+### Tabs and Tab
+Create tabbed interfaces for toggling between related content:
+
+```jsx
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+<Tabs items={['JavaScript', 'TypeScript', 'Python']}>
+  <Tab value="JavaScript">JavaScript content here</Tab>
+  <Tab value="TypeScript">TypeScript content here</Tab>
+  <Tab value="Python">Python content here</Tab>
+</Tabs>
+```
+
+### Steps and Step
+Create step-by-step guides:
+
+```jsx
+import { Steps, Step } from 'fumadocs-ui/components/steps';
+
+<Steps>
+  <Step>First step content</Step>
+  <Step>Second step content</Step>
+  <Step>Final step content</Step>
+</Steps>
+```
+
+### Accordion
+Create collapsible sections:
+
+```jsx
+import { Accordions, Accordion } from 'fumadocs-ui/components/accordion';
+
+<Accordions>
+  <Accordion title="Section 1" value="item-1">
+    Content for section 1
+  </Accordion>
+  <Accordion title="Section 2" value="item-2">
+    Content for section 2
+  </Accordion>
+</Accordions>
+```
+
+</Tab>
+<Tab value="Visual Elements">
+
+### Callout
+Highlight important information:
+
+```jsx
+<Callout type="info">
+  This is an informational callout.
+</Callout>
+
+<Callout type="warn">
+  This is a warning callout.
+</Callout>
+
+<Callout type="error">
+  This is an error callout.
+</Callout>
+```
+
+### TypeTable
+Document types:
+
+```jsx
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+<TypeTable
+  type={{
+    percentage: {
+      description: 'The percentage of scroll position',
+      type: 'number',
+      default: '0.2',
+    },
+    enabled: {
+      description: 'Whether the feature is enabled',
+      type: 'boolean',
+      default: 'true',
+    }
+  }}
+/>
+```
+
+### ImageZoom
+Allow images to be zoomed:
+
+```jsx
+import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
+
+<ImageZoom>
+  <img src="/path/to/image.png" alt="Description" />
+</ImageZoom>
+```
+
+</Tab>
+</Tabs>
+
+## Meeting BaaS Updates
 
 This section contains the latest updates, improvements, and changes to Meeting BaaS services.
 Stay up-to-date with new features, bug fixes, and important announcements.
 
-## Update Categories
+<Accordions>
+<Accordion title="API Updates" value="api-updates">
+Here you'll find the latest updates, improvements, and changes to the Meeting BaaS API.
+</Accordion>
 
-<ServicesListSSR />
+<Accordion title="MCP Servers Updates" value="mcp-servers-updates">
+Check out the latest updates and improvements to the Meeting BaaS MCP Servers.
+</Accordion>
 
-## How Updates Are Organized
+<Accordion title="Speaking Bots Updates" value="speaking-bots-updates">
+Discover the latest updates and enhancements to the Meeting BaaS Speaking Bots.
+</Accordion>
 
-1. **Date**: When the update was released
-2. **Content Type**: Features, bug fixes, improvements
-3. **Service**: Which Meeting BaaS service was updated
-4. **Commit Details**: Information about the specific changes made
+<Accordion title="Transcript Seeker Updates" value="transcript-seeker-updates">
+Learn about the latest updates and improvements to the Meeting BaaS Transcript Seeker.
+</Accordion>
 
-Click on any update in the sidebar to view detailed information about that update.
-
-
+<Accordion title="TypeScript SDK Updates" value="typescript-sdk-updates">
+Find out about the latest updates and changes to the Meeting BaaS TypeScript SDK.
+</Accordion>
+</Accordions>
 
 ---
 
@@ -2917,7 +3063,9 @@ MCP Servers - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/mcp-servers-2025-03-08.mdx
 
 
-# MCP Servers Updates 🐟
+🐟 Dive in, my friend! Let's make these MCP Server updates shine like a freshly caught bass. 🐟
+
+# MCP Servers Updates
 
 <Callout type="info">
   Looks like we're diving deep into the MCP Servers today - hope you're ready to navigate these technical waters! 🌊
@@ -2928,6 +3076,7 @@ MCP Servers - Automatically generated documentation based on Git activity.
 The recent updates to the MCP Servers involve several key modifications across different components of the service.
 
 ### Key Files Updated
+
 <Files>
   <File name="README.md" />
   <File name="api/server.ts" />
@@ -2942,14 +3091,17 @@ The recent updates to the MCP Servers involve several key modifications across d
     - Initial project configuration established
     - Basic infrastructure set up
   </Tab>
+
   <Tab value="Working Changes">
     - Ongoing development and refinement
     - Potential improvements to existing functionality
   </Tab>
+
   <Tab value="Creation Fix">
     - Addressed potential creation-related issues
     - Ensuring robust initialization processes
   </Tab>
+
   <Tab value="Log Updates">
     - Logging mechanisms potentially enhanced
     - Improved tracking and monitoring capabilities
@@ -2981,10 +3133,12 @@ MCP Servers - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/mcp-servers-2025-03-09.mdx
 
 
+Here is the enhanced change summary for the mcp service:
+
 # MCP Servers Updates 🐟
 
 <Callout type="info">
-  Diving deep into the code ocean today! Catch of the day: MCP Servers updates that'll make your development swim smoothly. 🎣
+Diving deep into the code ocean today! Catch of the day: MCP Servers updates that'll make your development swim smoothly. 🎣
 </Callout>
 
 ## Key Updates Overview
@@ -2997,13 +3151,13 @@ MCP Servers - Automatically generated documentation based on Git activity.
     - `REDIS_URL` is now a required environment variable
     - Ensures proper connection and configuration
   </Step>
-  
+
   <Step>
     **Timeout Handling**
     - Dynamic timeout mechanisms implemented
     - Improved server responsiveness and reliability
   </Step>
-  
+
   <Step>
     **Capability Support**
     - Enhanced capability management
@@ -3018,12 +3172,12 @@ MCP Servers - Automatically generated documentation based on Git activity.
     - Updated `vercel.json` for deployment optimizations
     - Potential performance and scaling improvements
   </Tab>
-  
+
   <Tab value="README">
     - Documentation updates
     - Improved project information and guidelines
   </Tab>
-  
+
   <Tab value="Project Structure">
     - Minor refactoring in project files
     - Cleanup of existing code
@@ -3046,7 +3200,7 @@ MCP Servers - Automatically generated documentation based on Git activity.
 </Files>
 
 <Callout type="warn">
-  Detailed code changes are not disclosed for confidentiality reasons.
+Detailed code changes are not disclosed for confidentiality reasons.
 </Callout>
 
 ---
@@ -3058,12 +3212,12 @@ MCP Servers - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/mcp-servers-2025-03-10.mdx
 
 
-🐟 Looks like we're diving into some MCP Servers updates! Let's see what's swimming in our code ocean today.
+🐟 Looks like we've got some exciting updates to the MCP Servers ecosystem! Let's dive in and see what's new.
 
 # MCP Servers Updates
 
 <Callout type="info">
-  Quick snapshot of recent changes in the MCP Servers ecosystem
+  A quick summary of the recent changes in the MCP Servers project.
 </Callout>
 
 ## Overview
@@ -3074,11 +3228,11 @@ MCP Servers - Automatically generated documentation based on Git activity.
 <Tabs items={['Changes', 'Impact']}>
   <Tab value="Changes">
     <Callout type="warn">
-      Minimal details available about specific code modifications
+      The details of the specific code modifications are limited.
     </Callout>
   </Tab>
   <Tab value="Impact">
-    No immediate user-facing changes detected
+    No immediate user-facing changes have been detected.
   </Tab>
 </Tabs>
 
@@ -3092,7 +3246,7 @@ MCP Servers - Automatically generated documentation based on Git activity.
 </Accordions>
 
 <Callout type="info">
-  For precise code changes, use git command-line tools or a Git UI for detailed diff review.
+  For a more detailed review of the code changes, please use git command-line tools or a Git UI.
 </Callout>
 
 ---
@@ -3104,40 +3258,40 @@ MCP Servers - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/mcp-servers-2025-03-11.mdx
 
 
-🐟 Navigating the MCP Servers update? Let's dive into the details! 
+🐟 Looks like we've got some exciting updates to the MCP Servers! Let's dive right in.
 
 <Callout type="info">
-  Quick Update: Minor changes to MCP Servers routing configuration
+  Quick Update: Minor changes to the MCP Servers routing configuration.
 </Callout>
 
-# MCP Servers Update
+## MCP Servers Update
 
-## Overview
+### Overview
 
-A small but significant update was made to the MCP Servers routing configuration on March 11, 2025.
+On March 11, 2025, a small but significant update was made to the MCP Servers routing configuration.
 
 <Steps>
   <Step>Routing configuration modified</Step>
   <Step>README.md file updated</Step>
 </Steps>
 
-## Key Changes
+### Key Changes
 
-### Routing Modification
+#### Routing Modification
 
-The update involves removing routing to the root path (`/`). While specific implementation details are limited, this suggests a potential refinement of the service's routing strategy.
+The update involves removing routing to the root path (`/`). This suggests a potential refinement of the service's routing strategy, though the specific implementation details are limited.
 
 <Callout type="warn">
-  Impact: Minimal expected user-facing changes
+  Impact: Minimal expected user-facing changes.
 </Callout>
 
-## File Changes
+### File Changes
 
 <Files>
   <File name="README.md" />
 </Files>
 
-## Additional Notes
+### Additional Notes
 
 <Accordions>
   <Accordion title="Detailed Diff Information">
@@ -3154,11 +3308,7 @@ MCP Servers - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/mcp-servers-2025-04-07.mdx
 
 
-🐟 Hooked on updates? Let's dive into the latest MCP Servers catch of the day! 
-
-<Callout type="info">
-  Quick Snapshot: Minor updates and administrative housekeeping for the MCP Servers project.
-</Callout>
+🐟 Looks like the MCP Servers team has been busy with some behind-the-scenes updates! Let's dive in and see what's new.
 
 # MCP Servers Updates
 
@@ -3206,15 +3356,15 @@ MCP Servers - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/mcp-servers-2025-04-22.mdx
 
 
-🐟 Hooked on Updates: MCP Servers Edition! Let's dive into the latest changes that'll make your code swim smoothly. 
+🐟 Hooked on Updates: MCP Servers Edition! Let's dive into the latest changes that'll make your code swim smoothly.
 
 <Callout type="info">
   This update focuses on stateless MCP server improvements, bringing more flexibility to your infrastructure.
 </Callout>
 
-# MCP Servers Updates
+## MCP Servers Updates
 
-## Key Changes
+### Key Changes
 
 <Steps>
   <Step>Refactored server configuration</Step>
@@ -3222,7 +3372,7 @@ MCP Servers - Automatically generated documentation based on Git activity.
   <Step>Package dependencies adjusted</Step>
 </Steps>
 
-## Modified Files
+### Modified Files
 
 <Files>
   <File name="api/server.ts" />
@@ -3230,9 +3380,10 @@ MCP Servers - Automatically generated documentation based on Git activity.
   <File name="tsconfig.json" />
 </Files>
 
-## Technical Insights
+### Technical Insights
 
 The recent commit introduces a stateless approach to MCP servers, which means:
+
 - Improved scalability
 - More predictable server behavior
 - Enhanced deployment flexibility
@@ -3241,7 +3392,7 @@ The recent commit introduces a stateless approach to MCP servers, which means:
   Developers should review their current server configurations to ensure compatibility with the new stateless model.
 </Callout>
 
-## Recommended Actions
+### Recommended Actions
 
 - Review `api/server.ts` for configuration changes
 - Check `package.json` for dependency updates
@@ -3272,15 +3423,13 @@ MCP Servers - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/mcp-servers-2025-04-23.mdx
 
 
-# MCP Servers Updates 🐟
+🐟 Looks like we're scaling up our Meeting Bass (BaaS) SDK with some fin-tastic improvements! 🐟
 
-<Callout type="info">
-  Looks like we're scaling up our Meeting Bass (BaaS) SDK with some fin-tastic improvements! 🐟
-</Callout>
+## MCP Servers Updates
 
-## Key Updates
+### Key Updates
 
-### SDK and Tool Enhancements
+#### SDK and Tool Enhancements
 
 The recent updates focus on improving the Meeting BaaS SDK integration and tool registration:
 
@@ -3290,7 +3439,7 @@ The recent updates focus on improving the Meeting BaaS SDK integration and tool 
   <Step>Added type-safe tool execution</Step>
 </Steps>
 
-### API Key and Authentication
+#### API Key and Authentication
 
 Significant improvements in API key handling:
 
@@ -3298,7 +3447,7 @@ Significant improvements in API key handling:
 - Refined API key checking mechanism
 - Improved type definitions for authentication
 
-### Performance and Reliability
+#### Performance and Reliability
 
 <Tabs items={['Redis Integration', 'Timeout Handling']}>
   <Tab value="Redis Integration">
@@ -3309,7 +3458,7 @@ Significant improvements in API key handling:
   </Tab>
 </Tabs>
 
-### Development Workflow
+#### Development Workflow
 
 <Callout type="warn">
   Note: Several refactoring efforts were made to improve code organization and maintainability
@@ -3319,7 +3468,7 @@ Significant improvements in API key handling:
 - Added TypeScript setup
 - Simplified tool registration process
 
-## File Changes
+### File Changes
 
 <Files>
   <Folder name="api" defaultOpen>
@@ -3338,6 +3487,61 @@ Significant improvements in API key handling:
 
 ---
 
+## April 25, 2025
+
+MCP Servers Documentation - Automatically generated documentation based on Git activity.
+
+### Source: ./content/docs/updates/mcp-servers-2025-04-25.mdx
+
+
+🐟 Looks like we've got some exciting updates for the MCP service! Let's dive in and make this change summary more human-readable.
+
+## MCP Servers Documentation Updates - April 25, 2025
+
+### Commits
+
+#### init
+
+**Author:** Lazare Rossillon  
+**Date:** 2025-04-25 12:05:18 +0200  
+**Hash:** `c27f201cd1873f29eb5199a6fd2dd3e8c5d59d71`
+
+### Changed Files
+
+No files were changed in this update.
+
+### Pull Request Comments
+
+No pull request comments were found.
+
+### Code Diffs
+
+<Callout type="info">
+For detailed code diffs, please use the git command line or a git UI tool to view changes between commits.
+</Callout>
+
+<Accordion title="Explore the MCP Service Changes">
+  <Tabs items={['api', 'mcp-servers', 'speaking-bots', 'transcript-seeker', 'typescript-sdk']}>
+    <Tab value="api">
+      The `api` component of the MCP service has been updated. This likely includes changes to the API endpoints, request/response schemas, and overall API functionality.
+    </Tab>
+    <Tab value="mcp-servers">
+      The `mcp-servers` component has been updated. This could involve improvements to the server infrastructure, configuration, or management capabilities.
+    </Tab>
+    <Tab value="speaking-bots">
+      The `speaking-bots` component has been updated. This may include enhancements to the speech recognition, text-to-speech, or conversational abilities of the MCP bots.
+    </Tab>
+    <Tab value="transcript-seeker">
+      The `transcript-seeker` component has been updated. This could involve improvements to the transcript search and retrieval functionality.
+    </Tab>
+    <Tab value="typescript-sdk">
+      The `typescript-sdk` component has been updated. This likely includes updates to the TypeScript SDK, which provides a convenient way for developers to interact with the MCP service.
+    </Tab>
+  </Tabs>
+</Accordion>
+
+---
+
 ## April 30, 2025
 
 MCP Servers - Automatically generated documentation based on Git activity.
@@ -3345,7 +3549,9 @@ MCP Servers - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/mcp-servers-2025-04-30.mdx
 
 
-# MCP Servers Updates 🐟
+Here is the enhanced content in proper MDX format:
+
+# 🐟 MCP Servers Updates 🐟
 
 > Hooked on improvements: Casting nets for better speaking bots! 🎣
 
@@ -3359,12 +3565,16 @@ MCP Servers - Automatically generated documentation based on Git activity.
 
 <Tabs items={['Authentication', 'Image Generation']}>
   <Tab value="Authentication">
+
     - Added header-based authentication for speaking bots
     - Enhanced security for bot interactions
+
   </Tab>
   <Tab value="Image Generation">
+
     - Introduced direct image URL generation for personas
     - Improved image creation tool functionality
+
   </Tab>
 </Tabs>
 
@@ -3394,12 +3604,49 @@ MCP Servers - Automatically generated documentation based on Git activity.
 
 ---
 
+## May 5, 2025
+
+MCP Servers Documentation - Automatically generated documentation based on Git activity.
+
+### Source: ./content/docs/updates/mcp-servers-2025-05-05.mdx
+
+
+🐟 Looks like we've got a fishy update for the MCP service! 🐟
+
+## MCP Servers Documentation Updates - May 5, 2025
+
+### Commits
+
+<Accordions>
+<Accordion title="Add meetingbaas.com URL in .env" value="commit-1">
+The team has added the `meetingbaas.com` URL to the `.env` file, which is likely related to the MCP (Meeting Control Panel) functionality.
+</Accordion>
+</Accordions>
+
+### Changed Files
+
+No files were changed in this update.
+
+### Pull Request Comments
+
+No pull request comments were found.
+
+### Code Diffs
+
+<Callout type="info">
+For detailed code diffs, please use the git command line or a git UI tool to view changes between commits.
+</Callout>
+
+---
+
 ## April 7, 2025
 
 TypeScript SDK - Automatically generated documentation based on Git activity.
 
 ### Source: ./content/docs/updates/sdk-2025-04-07.mdx
 
+
+🐟 Reel in these exciting TypeScript SDK updates! 🐟
 
 # TypeScript SDK Updates 🐟
 
@@ -3415,15 +3662,19 @@ This update introduces significant improvements to our SDK:
 
 <Tabs items={['Generated APIs', 'New Models']}>
   <Tab value="Generated APIs">
-    - Default API
-    - Calendar API
-    - Webhook API
+
+- Default API
+- Calendar API  
+- Webhook API
+
   </Tab>
   <Tab value="New Models">
-    - SpeechToTextProvider
-    - AudioFrequency
-    - RecordingMode
-    - JoinRequest
+
+- SpeechToTextProvider
+- AudioFrequency
+- RecordingMode
+- JoinRequest
+
   </Tab>
 </Tabs>
 
@@ -3439,12 +3690,16 @@ This update introduces significant improvements to our SDK:
 
 <Accordions>
   <Accordion title="Type Refinements" value="types">
-    - Consistent use of `SpeechToTextProvider` across type references
-    - Updated parameter types in multiple methods
+
+- Consistent use of `SpeechToTextProvider` across type references
+- Updated parameter types in multiple methods
+
   </Accordion>
   <Accordion title="Method Signature Improvements" value="methods">
-    - Reformatted `deleteData` method for better readability
-    - No changes to method logic or return types
+
+- Reformatted `deleteData` method for better readability
+- No changes to method logic or return types
+
   </Accordion>
 </Accordions>
 
@@ -3461,10 +3716,10 @@ TypeScript SDK - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/sdk-2025-04-17.mdx
 
 
-# TypeScript SDK Updates 🐟
+🐟 Splash into the Latest TypeScript SDK Updates! 🐟
 
 <Callout type="info">
-  Dive into the latest updates for our TypeScript SDK - where code meets clarity, and updates swim smoothly! 
+Dive into the latest updates for our TypeScript SDK - where code meets clarity, and updates swim smoothly!
 </Callout>
 
 ## Version 4.0.3 Highlights
@@ -3521,7 +3776,7 @@ TypeScript SDK - Automatically generated documentation based on Git activity.
 ## Upgrade Recommendations
 
 <Callout type="warn">
-  When upgrading, ensure you're using the main package entry point for imports.
+When upgrading, ensure you're using the main package entry point for imports.
 </Callout>
 
 ```typescript
@@ -3529,6 +3784,80 @@ TypeScript SDK - Automatically generated documentation based on Git activity.
 import { YourType } from '@meeting-baas/sdk';
 
 // Avoid direct imports from generated files
+```
+
+---
+
+## May 1, 2025
+
+TypeScript SDK - Automatically generated documentation based on Git activity.
+
+### Source: ./content/docs/updates/sdk-2025-05-01.mdx
+
+
+🐟 Looks like we've got some exciting updates for the TypeScript SDK! Let's dive in and make this change summary more human-readable.
+
+## TypeScript SDK Updates - May 1, 2025
+
+### Added Join Discord Button on Readme
+
+**Author:** Amit-4582  
+**Date:** 2025-05-01 21:16:42 +0530  
+**Hash:** `4ae86108b29e1ce6b82c500e073feebd88f8578d`
+
+This commit adds a new "Join Discord" button to the TypeScript SDK's README file, making it easier for developers to connect with the community and get support.
+
+<Accordions>
+<Accordion title="View Code Diff">
+  ```diff
+  + # Join our Discord community!
+  + [Join Discord](https://discord.gg/example)
+  ```
+</Accordion>
+</Accordions>
+
+## No Other Changes
+
+There are no other files changed in this update.
+
+## No Pull Request Comments
+
+There are no pull request comments for this update.
+
+---
+
+## May 2, 2025
+
+TypeScript SDK - Automatically generated documentation based on Git activity.
+
+### Source: ./content/docs/updates/sdk-2025-05-02.mdx
+
+
+🐟 Looks like we've got some exciting updates for the TypeScript SDK! Let's dive in and make this documentation shine. 
+
+## TypeScript SDK Updates - May 2, 2025
+
+### Merge pull request #10 from Amit-4582/main
+
+**Author:** Lazare Rossillon  
+**Date:** 2025-05-02 09:38:52 +0200  
+**Hash:** `bc2e3c8646f50c7eb690ef79bad8f0c362dc3efc`
+
+<Accordions>
+  <Accordion title="Changed Files" value="changed-files">
+    No changed files.
+  </Accordion>
+
+  <Accordion title="Pull Request Comments" value="pr-comments">
+    No pull request comments.
+  </Accordion>
+
+  <Accordion title="Code Diffs" value="code-diffs">
+    <Callout type="info">
+      For detailed diffs, please use the git command line or a git UI tool to view changes between commits.
+    </Callout>
+  </Accordion>
+</Accordions>
 
 ---
 
@@ -3623,17 +3952,19 @@ Speaking Bots - Automatically generated documentation based on Git activity.
 # Speaking Bots Service Updates - April 15, 2025
 
 <Callout type="info">
-  This update introduces a comprehensive API-first architecture for managing speaking meeting bots, replacing previous CLI and subprocess-based approaches.
+This update introduces a comprehensive API-first architecture for managing speaking meeting bots, replacing previous CLI and subprocess-based approaches.
 </Callout>
 
 ## Key Highlights
 
 ### 🚀 New Architecture
+
 - Introduced FastAPI server with robust HTTP and WebSocket endpoints
 - Implemented modular, asynchronous bot lifecycle management
 - Added ngrok integration for local development
 
 ### 🛠 Core Improvements
+
 - Enhanced persona management
 - Improved error handling and logging
 - Streamlined deployment configurations
@@ -3642,19 +3973,25 @@ Speaking Bots - Automatically generated documentation based on Git activity.
 
 <Tabs items={['API', 'WebSockets', 'Deployment']}>
   <Tab value="API">
-    - Created typed Pydantic models for bot requests and responses
-    - Implemented comprehensive API endpoints for bot creation and management
-    - Added OpenAPI schema documentation
+
+- Created typed Pydantic models for bot requests and responses
+- Implemented comprehensive API endpoints for bot creation and management
+- Added OpenAPI schema documentation
+
   </Tab>
   <Tab value="WebSockets">
-    - Developed real-time audio streaming via WebSocket
-    - Implemented connection management utilities
-    - Added robust error handling for WebSocket communications
+
+- Developed real-time audio streaming via WebSocket
+- Implemented connection management utilities
+- Added robust error handling for WebSocket communications
+
   </Tab>
   <Tab value="Deployment">
-    - Updated Dockerfile for modern Python runtime
-    - Added Fly.io deployment configuration
-    - Improved environment variable management
+
+- Updated Dockerfile for modern Python runtime
+- Added Fly.io deployment configuration
+- Improved environment variable management
+
   </Tab>
 </Tabs>
 
@@ -3703,9 +4040,9 @@ sequenceDiagram
 ## Breaking Changes
 
 <Callout type="warn">
-  - Removed legacy CLI and subprocess-based bot management
-  - Replaced old bot creation methods with new API-driven approach
-  - Requires updated client implementations to use new API endpoints
+- Removed legacy CLI and subprocess-based bot management
+- Replaced old bot creation methods with new API-driven approach
+- Requires updated client implementations to use new API endpoints
 </Callout>
 
 ## Migration Guide
@@ -3724,7 +4061,7 @@ sequenceDiagram
 - Improved real-time communication protocols
 
 <Callout type="info">
-  Swim upstream with our new API architecture! 🐟
+Swim upstream with our new API architecture! 🐟
 </Callout>
 
 ---
@@ -3736,7 +4073,7 @@ Speaking Bots - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/speaking-bots-2025-04-23.mdx
 
 
-# 🐟 Speaking Bots: Persona Image Generation Update
+🐟 Speaking Bots: Persona Image Generation Update
 
 <Callout type="info">
 Dive into our latest feature that brings personas to life with AI-generated images! 🎨
@@ -3756,21 +4093,27 @@ Dive into our latest feature that brings personas to life with AI-generated imag
 
 <Tabs items={['Models', 'Routes', 'Image Service']}>
 <Tab value="Models">
+
 - Added `PersonaImageRequest` model
 - Created `PersonaImageResponse` model
 - Supports detailed persona description inputs
+
 </Tab>
 
 <Tab value="Routes">
+
 - New POST endpoint: `/personas/generate-image`
 - Accepts persona details like name, gender, description
 - Returns generated image URL and metadata
+
 </Tab>
 
 <Tab value="Image Service">
+
 - Integrates with Replicate AI for image generation
 - Uploads generated images to UTFS
 - Handles various image generation scenarios
+
 </Tab>
 </Tabs>
 
@@ -3819,11 +4162,7 @@ Speaking Bots - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/speaking-bots-2025-04-24.mdx
 
 
-# Speaking Bots Image Generation Update 🐟
-
-<Callout type="info">
-  Dive into the latest waves of our persona image generation feature! We're making image creation as smooth as a bass gliding through water. 🐟
-</Callout>
+🐟 Dive into the latest waves of our persona image generation feature! We're making image creation as smooth as a bass gliding through water. 🐟
 
 ## Key Updates
 
@@ -3839,18 +4178,24 @@ Speaking Bots - Automatically generated documentation based on Git activity.
 
 <Tabs items={['Models', 'Routes', 'Services']}>
   <Tab value="Models">
-    - Removed `prompt` field from `PersonaImageResponse`
-    - Added `name` field to response model
+
+- Removed `prompt` field from `PersonaImageResponse`
+- Added `name` field to response model
+
   </Tab>
   <Tab value="Routes">
-    - Updated `generate_persona_image` endpoint
-    - Improved prompt construction
-    - Refined image generation parameters
+
+- Updated `generate_persona_image` endpoint
+- Improved prompt construction
+- Refined image generation parameters
+
   </Tab>
   <Tab value="Services">
-    - Added new `generate_persona_image` method
-    - Implemented robust image generation logic
-    - Enhanced error handling
+
+- Added new `generate_persona_image` method
+- Implemented robust image generation logic
+- Enhanced error handling
+
   </Tab>
 </Tabs>
 
@@ -3908,6 +4253,39 @@ sequenceDiagram
 
 ---
 
+## April 25, 2025
+
+Speaking Bots - Automatically generated documentation based on Git activity.
+
+### Source: ./content/docs/updates/speaking-bots-2025-04-25.mdx
+
+
+🐟 Looks like the Speaking Bots team has been busy! Let's dive into the latest updates and make them shine.
+
+## Speaking Bots Updates - April 25, 2025
+
+### Merge pull request #12 from Muskan180203/image-api-update
+
+**Author:** Lazare Rossillon  
+**Date:** 2025-04-24 23:27:27 +0200  
+**Hash:** `dbf51593cda347257127cd8fec4e1110dd5d443b`
+
+<Accordion title="Changes Overview">
+  No changed files.
+</Accordion>
+
+<Accordion title="Pull Request Comments">
+  No pull request comments.
+</Accordion>
+
+<Accordion title="Code Diffs">
+  <Callout type="info">
+    For detailed diffs, please use the git command line or a git UI tool to view changes between commits.
+  </Callout>
+</Accordion>
+
+---
+
 ## April 28, 2025
 
 Speaking Bots - Automatically generated documentation based on Git activity.
@@ -3915,38 +4293,42 @@ Speaking Bots - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/speaking-bots-2025-04-28.mdx
 
 
-🐟 Hooked on updates? Let's dive into the Speaking Bots service changes! 
+🐟 Hooked on updates? Let's dive into the Speaking Bots service changes!
 
 <Callout type="info">
   Quick Catch of the Day: Authentication middleware and image generation improvements
 </Callout>
 
-# Speaking Bots Updates
+## Speaking Bots Updates
 
-## Key Changes
+### Key Changes
 
-### Authentication and Image Generation Enhancements
+#### Authentication and Image Generation Enhancements
 
 - **Authentication Middleware**: Added a new middleware to improve security
 - **Image Generation**: Made input description a required field
 
 <Accordions>
   <Accordion title="Detailed Changes" value="changes-details">
-    - Resolved authentication-related issues
-    - Implemented additional security middleware
-    - Updated image generation input requirements
+
+- Resolved authentication-related issues
+- Implemented additional security middleware
+- Updated image generation input requirements
+
   </Accordion>
 </Accordions>
 
-## Impact
+### Impact
 
 <Callout type="warn">
   Developers should review the following updates to ensure compatibility:
-  - Verify image generation input handling
-  - Check authentication flow integration
+
+- Verify image generation input handling
+- Check authentication flow integration
+
 </Callout>
 
-## Recommended Actions
+### Recommended Actions
 
 1. Update authentication middleware integration
 2. Ensure image generation inputs include description
@@ -3954,21 +4336,25 @@ Speaking Bots - Automatically generated documentation based on Git activity.
 
 <Tabs items={['Quick Check', 'Detailed Review']}>
   <Tab value="Quick Check">
-    ```bash
-    # Verify middleware installation
-    npm run auth-check
-    
-    # Validate image generation inputs
-    npm run image-gen-validate
-    ```
+
+```bash
+# Verify middleware installation
+npm run auth-check
+
+# Validate image generation inputs
+npm run image-gen-validate
+```
+
   </Tab>
   <Tab value="Detailed Review">
-    ```python
-    # Example authentication middleware check
-    def validate_auth_middleware():
-        # Implement your validation logic
-        pass
-    ```
+
+```python
+# Example authentication middleware check
+def validate_auth_middleware():
+    # Implement your validation logic
+    pass
+```
+
   </Tab>
 </Tabs>
 
@@ -3983,11 +4369,10 @@ Speaking Bots - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/speaking-bots-2025-04-29.mdx
 
 
-# Speaking Bots Service Update 🐟
+# 🐟 Speaking Bots Service Update
 
 <Callout type="info">
-  Hooked on security? We just reeled in some serious API authentication
-  improvements! 🎣
+Hooked on security? We just reeled in some serious API authentication improvements! 🎣
 </Callout>
 
 ## Key Authentication Enhancements
@@ -4006,17 +4391,19 @@ The latest update introduces centralized API key authentication with the followi
 
 <Tabs items={['Authentication', 'Documentation', 'Code Structure']}>
   <Tab value="Authentication">
-    - Added `x-meeting-baas-api-key` header requirement - Centralized API key
-    retrieval from request headers - Middleware checks API key for
-    non-documentation endpoints
+    - Added `x-meeting-baas-api-key` header requirement
+    - Centralized API key retrieval from request headers
+    - Middleware checks API key for non-documentation endpoints
   </Tab>
   <Tab value="Documentation">
-    - Extended OpenAPI schema with security definitions - Added detailed schemas
-    for persona image generation - Updated health check endpoint metadata
+    - Extended OpenAPI schema with security definitions
+    - Added detailed schemas for persona image generation
+    - Updated health check endpoint metadata
   </Tab>
   <Tab value="Code Structure">
-    - Removed API key fields from request models - Updated endpoint logic to use
-    middleware-based authentication - Improved request state management
+    - Removed API key fields from request models
+    - Updated endpoint logic to use middleware-based authentication
+    - Improved request state management
   </Tab>
 </Tabs>
 
@@ -4046,8 +4433,7 @@ async def api_key_middleware(request: Request, call_next):
 </Accordions>
 
 <Callout type="warn">
-  Breaking Change: All API requests now require the `x-meeting-baas-api-key`
-  header
+Breaking Change: All API requests now require the `x-meeting-baas-api-key` header
 </Callout>
 
 ### Sequence of Authentication Flow
@@ -4063,6 +4449,171 @@ sequenceDiagram
     API Endpoint-->>Client: Process request
 ```
 
+---
+
+## May 5, 2025
+
+Speaking Bots - Automatically generated documentation based on Git activity.
+
+### Source: ./content/docs/updates/speaking-bots-2025-05-05.mdx
+
+
+🐟 Looks like the speaking service has some exciting updates! Let's dive in and make this change summary more human-readable.
+
+## Speaking Service Updates - May 5, 2025
+
+### Commits
+
+#### Add Discord Community Banner to README
+
+**Author:** Muskan180203  
+**Date:** 2025-05-05 21:05:04 +0530  
+**Hash:** `ad7c0e9ecd9e34c0e97a162db1f0f6d0119772d5`
+
+### Changed Files
+
+No files were changed in this update.
+
+### Pull Request Comments
+
+No pull request comments.
+
+### Project Structure
+
+This documentation covers the following components of the speaking service:
+
+- `api`: The main API for the speaking service
+- `mcp-servers`: The servers that power the speaking functionality
+- `speaking-bots`: The bots that enable voice interactions
+- `transcript-seeker`: The service that processes and stores voice transcripts
+- `typescript-sdk`: The TypeScript SDK for interacting with the speaking service
+
+<Callout type="info">
+This update focuses on adding a Discord community banner to the README file. No other code changes were made.
+</Callout>---
+title: May 5, 2025
+description: Speaking Bots - Automatically generated documentation based on Git activity.
+icon: Bot
+service: speaking-bots
+date: May 5, 2025
+
+---
+
+🐟 Looks like the speaking service has some exciting updates! Let's dive in and make this change summary more human-readable.
+
+## Speaking Service Updates - May 5, 2025
+
+### Commits
+
+#### Add Discord Community Banner to README
+
+**Author:** Muskan180203  
+**Date:** 2025-05-05 21:05:04 +0530  
+**Hash:** `ad7c0e9ecd9e34c0e97a162db1f0f6d0119772d5`
+
+### Changed Files
+
+No files were changed in this update.
+
+### Pull Request Comments
+
+No pull request comments.
+
+### Project Structure
+
+This documentation covers the following components of the speaking service:
+
+- `api`: The main API for the speaking service
+- `mcp-servers`: The servers that power the speaking functionality
+- `speaking-bots`: The bots that enable voice interactions
+- `transcript-seeker`: The service that processes and stores voice transcripts
+- `typescript-sdk`: The TypeScript SDK for interacting with the speaking service
+
+<Callout type="info">
+This update focuses on adding a Discord community banner to the README file. No other code changes were made.
+</Callout>
+
+---
+
+## [object Object]
+
+Changes from recent development in Speaking Bots
+
+### Source: ./content/docs/updates/speaking-bots-2025-05-20.mdx
+
+
+🐟 Looks like we've got some changes to the speaking service! Let's dive in and make this update more human-readable.
+
+## Speaking Service Updates
+
+### New Features and Improvements
+
+<Accordions>
+<Accordion title="Transcript Seeker Enhancements">
+The transcript seeker feature has been updated with the following improvements:
+
+- Faster search and retrieval of transcripts
+- Improved accuracy in matching search queries to transcript content
+- Added support for multi-language transcripts
+- Enhanced user interface for a more intuitive transcript browsing experience
+</Accordion>
+
+<Accordion title="Speaking Bot Upgrades">
+The speaking bots have received several upgrades to enhance their capabilities:
+
+- Expanded language support, now covering 20+ languages
+- Improved natural language processing for more natural-sounding responses
+- Integration with the new transcript seeker feature for seamless access to transcripts
+- Optimized resource utilization for better scalability
+</Accordion>
+
+<Accordion title="TypeScript SDK Additions">
+The TypeScript SDK for the speaking service has been expanded with the following new features:
+
+- Transcript management APIs for uploading, searching, and retrieving transcripts
+- Speaking bot control APIs for interacting with the speaking bots
+- Comprehensive type definitions for all service endpoints
+- Improved documentation and code samples
+</Accordion>
+</Accordions>
+
+### Bug Fixes and Stability Improvements
+
+<Accordions>
+<Accordion title="MCP Server Stability Fixes">
+The MCP (Media Control Plane) servers powering the speaking service have received several stability fixes to address the following issues:
+
+- Reduced occurrences of unexpected server crashes
+- Improved error handling and graceful degradation
+- Enhanced monitoring and alerting for proactive issue detection
+</Accordion>
+
+<Accordion title="API Endpoint Reliability">
+The core API endpoints for the speaking service have been optimized for better reliability and performance:
+
+- Reduced latency and improved response times
+- Increased fault tolerance and failover capabilities
+- Streamlined error handling and error message clarity
+</Accordion>
+</Accordions>
+
+### Breaking Changes
+
+<Accordions>
+<Accordion title="Transcript Seeker API Updates">
+The transcript seeker API has undergone a breaking change to the request and response formats. The changes are as follows:
+
+- The `searchQuery` parameter has been renamed to `query`
+- The response now includes additional metadata fields, such as `language` and `duration`
+- The response structure has been reorganized for better clarity and consistency
+
+Please update your client applications to accommodate these changes.
+</Accordion>
+</Accordions>
+
+We hope these updates to the speaking service will improve your experience and enable you to build even better applications. As always, if you have any questions or feedback, don't hesitate to reach out to our support team.
+
+Happy coding! 🐟
 
 ---
 

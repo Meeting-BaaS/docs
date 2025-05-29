@@ -7,11 +7,7 @@ date: April 24, 2025
 
 ---
 
-# Speaking Bots Image Generation Update 🐟
-
-<Callout type="info">
-  Dive into the latest waves of our persona image generation feature! We're making image creation as smooth as a bass gliding through water. 🐟
-</Callout>
+🐟 Dive into the latest waves of our persona image generation feature! We're making image creation as smooth as a bass gliding through water. 🐟
 
 ## Key Updates
 
@@ -27,22 +23,26 @@ date: April 24, 2025
 
 <Tabs items={['Models', 'Routes', 'Services']}>
   <Tab value="Models">
-    - Removed `prompt` field from `PersonaImageResponse`
-    - Added `name` field to response model
+
+- Removed `prompt` field from `PersonaImageResponse`
+- Added `name` field to response model
+
   </Tab>
   <Tab value="Routes">
-    - Updated `generate_persona_image` endpoint
-    - Improved prompt construction
-    - Refined image generation parameters
+
+- Updated `generate_persona_image` endpoint
+- Improved prompt construction
+- Refined image generation parameters
+
   </Tab>
   <Tab value="Services">
-    - Added new `generate_persona_image` method
-    - Implemented robust image generation logic
-    - Enhanced error handling
+
+- Added new `generate_persona_image` method
+- Implemented robust image generation logic
+- Enhanced error handling
+
   </Tab>
 </Tabs>
-
-### Technical Highlights
 
 <Callout type="warn">
   Image generation now focuses on creating persona-specific images using the persona's name as a key input.

@@ -7,38 +7,42 @@ date: April 28, 2025
 
 ---
 
-🐟 Hooked on updates? Let's dive into the Speaking Bots service changes! 
+🐟 Hooked on updates? Let's dive into the Speaking Bots service changes!
 
 <Callout type="info">
   Quick Catch of the Day: Authentication middleware and image generation improvements
 </Callout>
 
-# Speaking Bots Updates
+## Speaking Bots Updates
 
-## Key Changes
+### Key Changes
 
-### Authentication and Image Generation Enhancements
+#### Authentication and Image Generation Enhancements
 
 - **Authentication Middleware**: Added a new middleware to improve security
 - **Image Generation**: Made input description a required field
 
 <Accordions>
   <Accordion title="Detailed Changes" value="changes-details">
-    - Resolved authentication-related issues
-    - Implemented additional security middleware
-    - Updated image generation input requirements
+
+- Resolved authentication-related issues
+- Implemented additional security middleware  
+- Updated image generation input requirements
+
   </Accordion>
 </Accordions>
 
-## Impact
+### Impact
 
 <Callout type="warn">
   Developers should review the following updates to ensure compatibility:
-  - Verify image generation input handling
-  - Check authentication flow integration
+
+- Verify image generation input handling
+- Check authentication flow integration
+
 </Callout>
 
-## Recommended Actions
+### Recommended Actions
 
 1. Update authentication middleware integration
 2. Ensure image generation inputs include description
@@ -46,21 +50,25 @@ date: April 28, 2025
 
 <Tabs items={['Quick Check', 'Detailed Review']}>
   <Tab value="Quick Check">
-    ```bash
-    # Verify middleware installation
-    npm run auth-check
-    
-    # Validate image generation inputs
-    npm run image-gen-validate
-    ```
+
+```bash
+# Verify middleware installation
+npm run auth-check
+
+# Validate image generation inputs  
+npm run image-gen-validate
+```
+
   </Tab>
   <Tab value="Detailed Review">
-    ```python
-    # Example authentication middleware check
-    def validate_auth_middleware():
-        # Implement your validation logic
-        pass
-    ```
+
+```python
+# Example authentication middleware check
+def validate_auth_middleware():
+    # Implement your validation logic
+    pass
+```
+
   </Tab>
 </Tabs>
 

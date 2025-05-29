@@ -4,9 +4,10 @@ description: API - New webhooks, events, and pagination updates
 icon: Webhook
 service: api
 date: December 12, 2024
+
 ---
 
-# 🐟 API Updates - Calendar API Update
+🐟 Production Updates - Calendar API Improvements
 
 <Callout type="info" icon={<Info className="h-5 w-5" />}>
   Paris, the 12th of December 2024.
@@ -18,50 +19,48 @@ We're excited to announce several improvements to our Calendar API endpoints. Th
 
 ### Webhook Configuration Flexibility
 
-- The `webhook_url` parameter is now optional on [`POST /calendar`](/docs/api/reference/calendars/create_calendar) endpoint if a webhook URL is already configured on the account
+The `webhook_url` parameter is now optional on the [`POST /calendar`](/docs/api/reference/calendars/create_calendar) endpoint if a webhook URL is already configured on the account.
 
 ### Enhanced Event Information
 
-- [`GET /calendar_events`](/docs/api/reference/calendars/list_events) now includes attendees information for each event
-- [`GET /calendar_events/uuid`](/docs/api/reference/calendars/get_event) now returns the `calendar_id` of the event
+- The [`GET /calendar_events`](/docs/api/reference/calendars/list_events) endpoint now includes attendees information for each event.
+- The [`GET /calendar_events/uuid`](/docs/api/reference/calendars/get_event) endpoint now returns the `calendar_id` of the event.
 
 ### Recurring Events Bot Management
 
-- New query parameter `all_occurrences` added to [`POST /calendar_events/uuid/bot`](/docs/api/reference/calendars/schedule_record_event)
-- Allows scheduling a bot for all instances of a recurring event
-- Same functionality added to [`DELETE /calendar_events/uuid/bot`](/docs/api/reference/calendars/unschedule_record_event)
-- Enables bot removal from all occurrences of a recurring event
+- A new query parameter `all_occurrences` has been added to the [`POST /calendar_events/uuid/bot`](/docs/api/reference/calendars/schedule_record_event) and [`DELETE /calendar_events/uuid/bot`](/docs/api/reference/calendars/unschedule_record_event) endpoints.
+- This allows scheduling or unscheduling a bot for all instances of a recurring event.
 
 ## Breaking Changes
 
 <Callout type="warn">
 ### Bot Management Response Format
 
-- [`POST /calendar_events/uuid/bot`](/docs/api/reference/calendars/schedule_record_event) now returns an array of events instead of a single event
-- [`DELETE /calendar_events/uuid/bot`](/docs/api/reference/calendars/unschedule_record_event) now returns an array of events instead of a single event
-
+- The [`POST /calendar_events/uuid/bot`](/docs/api/reference/calendars/schedule_record_event) and [`DELETE /calendar_events/uuid/bot`](/docs/api/reference/calendars/unschedule_record_event) endpoints now return an array of events instead of a single event.
 </Callout>
 
 <Callout type="warn">
 ### Pagination Changes
-- [`GET /calendar_events`](/docs/api/reference/list_events) endpoint no longer supports `offset/limit` pagination
-- Implemented cursor-based pagination
-- Response format changed to include a `next` field for fetching subsequent events
-- Events are returned in batches of 100
+
+- The [`GET /calendar_events`](/docs/api/reference/list_events) endpoint no longer supports `offset/limit` pagination.
+- Cursor-based pagination has been implemented instead.
+- The response format now includes a `next` field for fetching subsequent events.
+- Events are returned in batches of 100.
 - Example response structure:
-  ````json
+  ```json
   {
     "events": [...],
     "next": "cursor_token_for_next_page"
   }
-  ````
+  ```
 </Callout>
+
 ## Migration Guide
 
-1. Update your pagination implementation to use the new cursor-based system
-2. Modify your bot management logic to handle arrays of events instead of single events
-3. Review any webhook configuration logic to take advantage of the new optional webhook_url parameter
+1. Update your pagination implementation to use the new cursor-based system.
+2. Modify your bot management logic to handle arrays of events instead of single events.
+3. Review any webhook configuration logic to take advantage of the new optional `webhook_url` parameter.
 
 ## Implementation Timeline
 
-These changes are now live in production.
+These changes are now live in production. 🐟🐟🐟

@@ -7,9 +7,9 @@ date: April 17, 2025
 
 ---
 
-🐟 Hopping through code like a bass in a meeting stream! Let's dive into these API updates. 🐟
+🐟 Hooking into the latest API updates like a bass in a meeting stream! 🐟
 
-# API Updates - April 17, 2025
+# Production Updates - April 17, 2025
 
 <Callout type="info">
   This update focuses on enhancing the API service with improvements to routing, authentication, and bot interactions.
@@ -18,16 +18,19 @@ date: April 17, 2025
 ## Key Changes
 
 ### Route Path Parameter Updates
+
 - Transitioned route path parameters from `{uuid}` to `:uuid` syntax
 - Updated OpenAPI input declarations
 - Refined documentation strings for endpoints
 
 ### Secret Management Enhancements
+
 - Added `secret` field to `Account` and `WorkerBotMessage` structures
 - Implemented database migration to include non-nullable `secret` column
 - Integrated secret handling in S3 upload and bot configuration processes
 
 ### Meeting Bot Reliability Improvements
+
 - Reduced maximum layout change retries
 - Enhanced `isInMeeting` checks before and after critical UI actions
 - Simplified bot presence detection logic

@@ -4,13 +4,13 @@ description: Speaking Bots - Automatically generated documentation based on Git 
 icon: Bot
 service: speaking-bots
 date: April 29, 2025
+
 ---
 
-# Speaking Bots Service Update 🐟
+🐟 Speaking Bots Service Update
 
 <Callout type="info">
-  Hooked on security? We just reeled in some serious API authentication
-  improvements! 🎣
+Hooked on security? We just reeled in some serious API authentication improvements! 🎣
 </Callout>
 
 ## Key Authentication Enhancements
@@ -29,17 +29,19 @@ The latest update introduces centralized API key authentication with the followi
 
 <Tabs items={['Authentication', 'Documentation', 'Code Structure']}>
   <Tab value="Authentication">
-    - Added `x-meeting-baas-api-key` header requirement - Centralized API key
-    retrieval from request headers - Middleware checks API key for
-    non-documentation endpoints
+    - Added `x-meeting-baas-api-key` header requirement
+    - Centralized API key retrieval from request headers
+    - Middleware checks API key for non-documentation endpoints
   </Tab>
   <Tab value="Documentation">
-    - Extended OpenAPI schema with security definitions - Added detailed schemas
-    for persona image generation - Updated health check endpoint metadata
+    - Extended OpenAPI schema with security definitions
+    - Added detailed schemas for persona image generation
+    - Updated health check endpoint metadata
   </Tab>
   <Tab value="Code Structure">
-    - Removed API key fields from request models - Updated endpoint logic to use
-    middleware-based authentication - Improved request state management
+    - Removed API key fields from request models
+    - Updated endpoint logic to use middleware-based authentication
+    - Improved request state management
   </Tab>
 </Tabs>
 
@@ -69,8 +71,7 @@ async def api_key_middleware(request: Request, call_next):
 </Accordions>
 
 <Callout type="warn">
-  Breaking Change: All API requests now require the `x-meeting-baas-api-key`
-  header
+Breaking Change: All API requests now require the `x-meeting-baas-api-key` header
 </Callout>
 
 ### Sequence of Authentication Flow

@@ -49,6 +49,7 @@ The Speaking Bots API provides endpoints to:
 - Have bots join meetings
 - Make bots leave meetings
 - Control bot behavior during meetings
+- Generate persona images for bots
 
 Each endpoint is documented with:
 
@@ -56,6 +57,8 @@ Each endpoint is documented with:
 - Request parameters and body schema
 - Response details
 - Example requests and responses
+
+All API requests require a MeetingBaas API key to be passed in the `x-meeting-baas-api-key` header.
 
 Use the navigation to explore the available endpoints.
 

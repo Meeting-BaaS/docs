@@ -12,17 +12,19 @@ date: April 15, 2025
 # Speaking Bots Service Updates - April 15, 2025
 
 <Callout type="info">
-  This update introduces a comprehensive API-first architecture for managing speaking meeting bots, replacing previous CLI and subprocess-based approaches.
+This update introduces a comprehensive API-first architecture for managing speaking meeting bots, replacing previous CLI and subprocess-based approaches.
 </Callout>
 
 ## Key Highlights
 
 ### 🚀 New Architecture
+
 - Introduced FastAPI server with robust HTTP and WebSocket endpoints
 - Implemented modular, asynchronous bot lifecycle management
 - Added ngrok integration for local development
 
 ### 🛠 Core Improvements
+
 - Enhanced persona management
 - Improved error handling and logging
 - Streamlined deployment configurations
@@ -31,19 +33,25 @@ date: April 15, 2025
 
 <Tabs items={['API', 'WebSockets', 'Deployment']}>
   <Tab value="API">
-    - Created typed Pydantic models for bot requests and responses
-    - Implemented comprehensive API endpoints for bot creation and management
-    - Added OpenAPI schema documentation
+
+- Created typed Pydantic models for bot requests and responses
+- Implemented comprehensive API endpoints for bot creation and management
+- Added OpenAPI schema documentation
+
   </Tab>
   <Tab value="WebSockets">
-    - Developed real-time audio streaming via WebSocket
-    - Implemented connection management utilities
-    - Added robust error handling for WebSocket communications
+
+- Developed real-time audio streaming via WebSocket
+- Implemented connection management utilities
+- Added robust error handling for WebSocket communications
+
   </Tab>
   <Tab value="Deployment">
-    - Updated Dockerfile for modern Python runtime
-    - Added Fly.io deployment configuration
-    - Improved environment variable management
+
+- Updated Dockerfile for modern Python runtime
+- Added Fly.io deployment configuration
+- Improved environment variable management
+
   </Tab>
 </Tabs>
 
@@ -87,14 +95,14 @@ sequenceDiagram
     API Server->>Pipecat: Forward Data
     Pipecat-->>API Server: Response
     API Server-->>Client: Forward Response
-```
+</Sequence>
 
 ## Breaking Changes
 
 <Callout type="warn">
-  - Removed legacy CLI and subprocess-based bot management
-  - Replaced old bot creation methods with new API-driven approach
-  - Requires updated client implementations to use new API endpoints
+- Removed legacy CLI and subprocess-based bot management
+- Replaced old bot creation methods with new API-driven approach
+- Requires updated client implementations to use new API endpoints
 </Callout>
 
 ## Migration Guide
@@ -113,5 +121,5 @@ sequenceDiagram
 - Improved real-time communication protocols
 
 <Callout type="info">
-  Swim upstream with our new API architecture! 🐟
+Swim upstream with our new API architecture! 🐟
 </Callout>
