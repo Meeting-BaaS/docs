@@ -1290,8 +1290,8 @@ Get started with the Meeting BaaS API
 
 
 <Callout type="info">
-  We provide detailed documentation optimized for both human readers and AI assistants. For more information about our LLM integration, see
-  [LLMs](../llms/available).
+  We provide optimized documentation for both LLMs and recent MCP server updates. For more on our LLM integration, 
+  see [LLMs](/llms/api) and for MCP access, visit [auth.meetingbaas.com](https://auth.meetingbaas.com/home).
 </Callout>
 
 **Meeting BaaS** 🐟 provides _Meetings Bots As A Service_, with integrated transcription.
