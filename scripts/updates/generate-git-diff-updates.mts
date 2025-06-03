@@ -91,6 +91,7 @@ interface CommitInfo {
   comments?: string[];
   type?: string;
   branch: string;
+  gitDiff?: string;
 }
 
 // Add these interfaces at the top of the file with the other interfaces
@@ -281,6 +282,8 @@ function parseStandardFormat(lines: string[]): CommitInfo[] {
   const commits: CommitInfo[] = [];
   let currentCommit: Partial<CommitInfo> = {};
   let inCommit = false;
+  let inGitDiff = false;
+  let gitDiffLines: string[] = [];
 
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
@@ -288,14 +291,29 @@ function parseStandardFormat(lines: string[]): CommitInfo[] {
     if (line.startsWith('#KEY#START_COMMIT#')) {
       inCommit = true;
       currentCommit = {};
+      inGitDiff = false;
+      gitDiffLines = [];
     } else if (line.startsWith('#KEY#END_COMMIT#')) {
       if (inCommit && currentCommit.hash) {
+        if (gitDiffLines.length > 0) {
+          currentCommit.gitDiff = gitDiffLines.join('\n');
+        }
         commits.push(currentCommit as CommitInfo);
       }
       inCommit = false;
+      inGitDiff = false;
+      gitDiffLines = [];
       currentCommit = {};
     } else if (inCommit) {
-      if (line.startsWith('#KEY#COMMIT_HASH#')) {
+      if (line.startsWith('#KEY#GIT_DIFF#')) {
+        inGitDiff = true;
+        gitDiffLines = [];
+      } else if (inGitDiff && (line.startsWith('#KEY#') || line.startsWith('#KEY#END_COMMIT#'))) {
+        inGitDiff = false;
+        i--; // reprocess this line in the next iteration
+      } else if (inGitDiff) {
+        gitDiffLines.push(line);
+      } else if (line.startsWith('#KEY#COMMIT_HASH#')) {
         currentCommit.hash = line.replace('#KEY#COMMIT_HASH#', '').trim();
       } else if (line.startsWith('#KEY#COMMIT_DATE#')) {
         currentCommit.date = line.replace('#KEY#COMMIT_DATE#', '').trim();
@@ -304,11 +322,8 @@ function parseStandardFormat(lines: string[]): CommitInfo[] {
       } else if (line.startsWith('#KEY#COMMIT_MESSAGE#')) {
         currentCommit.message = line.replace('#KEY#COMMIT_MESSAGE#', '').trim();
       } else if (line.startsWith('#KEY#RELATED_PR_MR#')) {
-        currentCommit.relatedPrMr = line
-          .replace('#KEY#RELATED_PR_MR#', '')
-          .trim();
+        currentCommit.relatedPrMr = line.replace('#KEY#RELATED_PR_MR#', '').trim();
       } else if (line.startsWith('#KEY#CHANGED_FILES#')) {
-        // Get the changed files (may span multiple lines)
         const changedFiles: string[] = [];
         let j = i + 1;
         while (j < lines.length && !lines[j].startsWith('#KEY#')) {
@@ -318,12 +333,10 @@ function parseStandardFormat(lines: string[]): CommitInfo[] {
           j++;
         }
         currentCommit.changedFiles = changedFiles;
-        i = j - 1; // Skip ahead
+        i = j - 1;
       } else if (line.startsWith('#KEY#PR_MR_COMMENTS#')) {
-        // Get the PR/MR comments (may span multiple lines)
         const comments: string[] = [];
         let j = i + 1;
-        // Keep reading until we hit another key or run out of lines
         while (j < lines.length && !lines[j].match(/^#KEY#[A-Z_]+#/)) {
           if (lines[j].trim()) {
             comments.push(lines[j].trim());
@@ -331,11 +344,10 @@ function parseStandardFormat(lines: string[]): CommitInfo[] {
           j++;
         }
         currentCommit.comments = comments;
-        i = j - 1; // Skip ahead
+        i = j - 1;
       }
     }
   }
-
   return commits;
 }
 
@@ -656,7 +668,10 @@ async function generateUpdatePage(
         `**Author:** ${author}\n\n` +
         `**Date:** ${commitDate}\n\n` +
         `**Hash:** \`${hash}\`\n\n` +
-        (relatedPrMr ? `**Related PR/MR:** ${relatedPrMr}\n\n` : '')
+        (relatedPrMr ? `**Related PR/MR:** ${relatedPrMr}\n\n` : '') +
+        (commit.gitDiff && commit.gitDiff.trim().length > 0
+          ? `\n**Code Diff:**\n\n\`\`\`diff\n${commit.gitDiff}\n\`\`\`\n`
+          : '')
       );
     })
     .join('\n\n');
