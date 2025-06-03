@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Generated git diff files are stored in git_greppers/<repo>-git-diffs/ as diffs-YYYY-MM-DD.diff
+# To clean all old git diff files, run:
+#   rm git_greppers/*-git-diffs/diffs-*.diff
+
 # Force unbuffered output for all commands
 export PYTHONUNBUFFERED=1
 export PYTHONIOENCODING=UTF-8

@@ -561,7 +561,7 @@ function getDirectoryName(path: string): string {
  * Escapes special characters that might cause issues in MDX and cleans up problematic content
  */
 function escapeMdxContent(text: string): string {
-  // First handle basic character escaping
+  // Escape problematic characters
   let escapedText = text
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
@@ -569,24 +569,17 @@ function escapeMdxContent(text: string): string {
     .replace(/\}/g, '&#125;')
     .replace(/!/g, '&#33;')
     .replace(/\[/g, '&#91;')
-    .replace(/\]/g, '&#93;');
+    .replace(/\]/g, '&#93;')
+    .replace(/\$/g, '&#36;') // Escape dollar sign
+    .replace(/`/g, '&#96;'); // Escape backtick
 
-  // Fix specific issues:
+  // Replace any accidental MDX/JSX expressions
+  escapedText = escapedText.replace(/([a-zA-Z0-9_]+)\s*=\s*{[^}]*}/g, '$1="..."');
 
-  // 1. ShikiError: Replace ANY problematic code language specifiers
-  escapedText = escapedText.replace(/```suggestion:[-+\d]+/g, '```text');
-  escapedText = escapedText.replace(
-    /```(diff|idiff|version|suggestion)/g,
-    '```text',
-  );
-
-  // 2. Sanitize any potentially malformed code block markers
+  // Sanitize code block markers
   escapedText = escapedText.replace(/```([^a-zA-Z0-9\s])/g, '```text$1');
 
-  // 3. Process links to avoid nested <a> tags (convert to plain text)
-  escapedText = escapedText.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
-
-  // 4. Remove any HTML tags that might cause rendering issues
+  // Remove any HTML tags that might cause rendering issues
   escapedText = escapedText.replace(/<\/?a[^>]*>/g, '');
 
   return escapedText;

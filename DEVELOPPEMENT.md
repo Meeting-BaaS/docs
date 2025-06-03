@@ -178,3 +178,17 @@ pnpm setup:git-updates
 > - `test:git-updates` only creates new files without modifying existing ones
 > - `regenerate:git-updates` deletes all existing update files before creating new ones (will overwrite customized files)
 > - If you've customized any update files, prefer using `test:git-updates` to preserve your changes
+
+## Cleaning Old Git Diff Files
+
+To remove all old generated git diff files (for a full refresh or to save disk space), run:
+
+```bash
+rm git_greppers/*-git-diffs/diffs-*.diff
+```
+
+This will delete all files named diffs-YYYY-MM-DD.diff in every repository's git diff directory under `git_greppers/`. You can also remove log files if desired:
+
+```bash
+rm git_greppers/*-git-diffs/*
+```

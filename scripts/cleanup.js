@@ -119,6 +119,10 @@ function resetMetaJson() {
   }
 }
 
+// NOTE: This script does NOT clean the raw git diff files in git_greppers/*-git-diffs/.
+// To clean those, use:
+//   rm git_greppers/*-git-diffs/diffs-*.diff
+
 try {
   // 1. Get all files that need to be cleaned or restored
   const updateFiles = getUpdateFiles();
