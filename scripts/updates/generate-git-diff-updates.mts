@@ -72,6 +72,13 @@ const GIT_DIFF_FOLDER_MAP: Record<string, ServiceConfig> = {
     additionalTags: ['transcript', 'seeker'],
     serviceName: 'Transcript Seeker',
   },
+  'meeting-baas-docs-reference-git-diffs': {
+    name: 'API',
+    icon: 'Webhook',
+    serviceKey: 'api',
+    additionalTags: ['api-reference'],
+    serviceName: 'API',
+  },
 };
 
 interface CommitInfo {
