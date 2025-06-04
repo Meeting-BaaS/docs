@@ -424,10 +424,10 @@ API - Automatically generated documentation based on Git activity.
 ### Source: ./content/docs/updates/api-2025-03-05.mdx
 
 
-# API Updates 🐟
+# 🐟 Production Updates 🐟
 
 <Callout type="info">
-  Diving into our latest API improvements - making waves in the development sea! 🌊
+Diving into our latest internal API improvements - making waves in the development sea! 🌊
 </Callout>
 
 ## March 5, 2025 Updates
@@ -440,6 +440,7 @@ The recent updates focus on internal improvements across several core API compon
   <Accordion title="Calendar Module Updates" value="calendar">
     Refinements in calendar data retrieval and event handling processes.
   </Accordion>
+
   <Accordion title="Bot Service Enhancements" value="bots">
     Improvements in bot-related error handling and public interfaces.
   </Accordion>
@@ -464,17 +465,18 @@ The recent updates focus on internal improvements across several core API compon
 ### Implementation Notes
 
 <Callout type="warn">
-  These updates are internal improvements and do not directly impact external API contracts.
+These updates are internal improvements and do not directly impact external API contracts.
 </Callout>
 
 ### Merge Request Details
 
 Multiple merge requests were processed:
+
 - MR !165: Documentation wording improvements
-- MR !164: Additional documentation refinements
+- MR !164: Additional documentation refinements 
 - MR !163: Default token adjustments
 
-<TypeTable 
+<TypeTable
   type={{
     documentationScope: {
       description: 'Internal improvements and wording updates',
@@ -2819,19 +2821,16 @@ Production update. Enhanced Zoom bot transcription, authentication, and logging 
 ### Source: ./content/docs/updates/api-2025-05-06.mdx
 
 
-# 🐟 Hooked on Meeting Updates: Casting a Wide Net of Improvements
+🐟 Hooked on Meeting Updates: Casting a Wide Net of Improvements
 
 <Callout type="info">
-  This update reels in some significant enhancements to our meeting
-  infrastructure, with a focus on transcription, authentication, and bot
-  resilience. We're scaling up our capabilities like a well-orchestrated fishing
-  expedition! 🎣
+  This update reels in some significant enhancements to our meeting infrastructure, with a focus on transcription, authentication, and bot resilience. We're scaling up our capabilities like a well-orchestrated fishing expedition! 🎣
 </Callout>
 
 ## Key Highlights
 
 - Enhanced Zoom bot transcription system
-- Improved authentication and session management
+- Improved authentication and session management  
 - More robust logging and error tracking
 - Expanded OAuth and verification workflows
 
@@ -2856,18 +2855,23 @@ Production update. Enhanced Zoom bot transcription, authentication, and logging 
 <Tabs items={['Transcription', 'Authentication', 'Logging']}>
   <Tab value="transcription">
     The new transcription system now supports multiple providers (Gladia/Runpod) with:
+
     - Middleware for retry mechanisms
     - Timestamp alignment
     - Failure tracking
   </Tab>
 
-<Tab value="authentication">
-  Authentication now supports: - Flexible password requirements - External
-  provider account linking - Comprehensive session management
-</Tab>
+  <Tab value="authentication">
+    Authentication now supports:
+
+    - Flexible password requirements
+    - External provider account linking
+    - Comprehensive session management
+  </Tab>
 
   <Tab value="logging">
     Logging improvements include:
+
     - Switched from Pino to Winston
     - More detailed error tracking
     - Improved dialog observer resilience
@@ -2878,7 +2882,6 @@ Production update. Enhanced Zoom bot transcription, authentication, and logging 
   Note: These changes are internal and do not affect the public API contract.
 </Callout>
 
-
 ---
 
 ## Updates
@@ -2888,25 +2891,139 @@ Latest updates, improvements, and changes to Meeting BaaS services
 ### Source: ./content/docs/updates/index.mdx
 
 
-# Meeting BaaS Updates
+🐟 Looks like the Meeting BaaS team has been busy reeling in some big updates! 🐟 Let's dive in and see what's new.
+
+## Available Fumadocs Components
+
+This documentation uses Fumadocs UI components to enhance readability and interactivity. Here's how to use them:
+
+<Tabs items={['Layout Components', 'Visual Elements']}>
+<Tab value="Layout Components">
+
+### Tabs and Tab
+Create tabbed interfaces for toggling between related content:
+
+```jsx
+import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
+
+<Tabs items={['JavaScript', 'TypeScript', 'Python']}>
+  <Tab value="JavaScript">JavaScript content here</Tab>
+  <Tab value="TypeScript">TypeScript content here</Tab>
+  <Tab value="Python">Python content here</Tab>
+</Tabs>
+```
+
+### Steps and Step
+Create step-by-step guides:
+
+```jsx
+import { Steps, Step } from 'fumadocs-ui/components/steps';
+
+<Steps>
+  <Step>First step content</Step>
+  <Step>Second step content</Step>
+  <Step>Final step content</Step>
+</Steps>
+```
+
+### Accordion
+Create collapsible sections:
+
+```jsx
+import { Accordions, Accordion } from 'fumadocs-ui/components/accordion';
+
+<Accordions>
+  <Accordion title="Section 1" value="item-1">
+    Content for section 1
+  </Accordion>
+  <Accordion title="Section 2" value="item-2">
+    Content for section 2
+  </Accordion>
+</Accordions>
+```
+
+</Tab>
+<Tab value="Visual Elements">
+
+### Callout
+Highlight important information:
+
+```jsx
+<Callout type="info">
+  This is an informational callout.
+</Callout>
+
+<Callout type="warn">
+  This is a warning callout.
+</Callout>
+
+<Callout type="error">
+  This is an error callout.
+</Callout>
+```
+
+### TypeTable
+Document types:
+
+```jsx
+import { TypeTable } from 'fumadocs-ui/components/type-table';
+
+<TypeTable
+  type={{
+    percentage: {
+      description: 'The percentage of scroll position',
+      type: 'number',
+      default: '0.2',
+    },
+    enabled: {
+      description: 'Whether the feature is enabled',
+      type: 'boolean',
+      default: 'true',
+    }
+  }}
+/>
+```
+
+### ImageZoom
+Allow images to be zoomed:
+
+```jsx
+import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
+
+<ImageZoom>
+  <img src="/path/to/image.png" alt="Description" />
+</ImageZoom>
+```
+
+</Tab>
+</Tabs>
+
+## Meeting BaaS Updates
 
 This section contains the latest updates, improvements, and changes to Meeting BaaS services.
 Stay up-to-date with new features, bug fixes, and important announcements.
 
-## Update Categories
+<Accordions>
+<Accordion title="API Updates" value="api-updates">
+Here you'll find the latest updates, improvements, and changes to the Meeting BaaS API.
+</Accordion>
 
-<ServicesListSSR />
+<Accordion title="MCP Servers Updates" value="mcp-servers-updates">
+Check out the latest updates and improvements to the Meeting BaaS MCP Servers.
+</Accordion>
 
-## How Updates Are Organized
+<Accordion title="Speaking Bots Updates" value="speaking-bots-updates">
+Discover the latest updates and enhancements to the Meeting BaaS Speaking Bots.
+</Accordion>
 
-1. **Date**: When the update was released
-2. **Content Type**: Features, bug fixes, improvements
-3. **Service**: Which Meeting BaaS service was updated
-4. **Commit Details**: Information about the specific changes made
+<Accordion title="Transcript Seeker Updates" value="transcript-seeker-updates">
+Learn about the latest updates and improvements to the Meeting BaaS Transcript Seeker.
+</Accordion>
 
-Click on any update in the sidebar to view detailed information about that update.
-
-
+<Accordion title="TypeScript SDK Updates" value="typescript-sdk-updates">
+Find out about the latest updates and changes to the Meeting BaaS TypeScript SDK.
+</Accordion>
+</Accordions>
 
 ---
 
@@ -3394,6 +3511,41 @@ MCP Servers - Automatically generated documentation based on Git activity.
 
 ---
 
+## May 5, 2025
+
+MCP Servers Documentation - Automatically generated documentation based on Git activity.
+
+### Source: ./content/docs/updates/mcp-servers-2025-05-05.mdx
+
+
+🐟 Looks like we've got a fishy update for the MCP service! 🐟
+
+## MCP Servers Documentation Updates - May 5, 2025
+
+### Commits
+
+<Accordions>
+<Accordion title="Add meetingbaas.com URL in .env" value="commit-1">
+The team has added the `meetingbaas.com` URL to the `.env` file, which is likely related to the MCP (Meeting Control Panel) functionality.
+</Accordion>
+</Accordions>
+
+### Changed Files
+
+No files were changed in this update.
+
+### Pull Request Comments
+
+No pull request comments were found.
+
+### Code Diffs
+
+<Callout type="info">
+For detailed code diffs, please use the git command line or a git UI tool to view changes between commits.
+</Callout>
+
+---
+
 ## April 7, 2025
 
 TypeScript SDK - Automatically generated documentation based on Git activity.
@@ -3529,6 +3681,79 @@ TypeScript SDK - Automatically generated documentation based on Git activity.
 import { YourType } from '@meeting-baas/sdk';
 
 // Avoid direct imports from generated files
+
+---
+
+## May 1, 2025
+
+TypeScript SDK - Automatically generated documentation based on Git activity.
+
+### Source: ./content/docs/updates/sdk-2025-05-01.mdx
+
+
+🐟 Looks like we've got some exciting updates for the TypeScript SDK! Let's dive in and make this change summary more human-readable.
+
+## TypeScript SDK Updates - May 1, 2025
+
+### Added Join Discord Button on Readme
+
+**Author:** Amit-4582  
+**Date:** 2025-05-01 21:16:42 +0530  
+**Hash:** `4ae86108b29e1ce6b82c500e073feebd88f8578d`
+
+This commit adds a new "Join Discord" button to the TypeScript SDK's README file, making it easier for developers to connect with the community and get support.
+
+<Accordions>
+<Accordion title="View Code Diff">
+  ```diff
+  + # Join our Discord community!
+  + [Join Discord](https://discord.gg/example)
+  ```
+</Accordion>
+</Accordions>
+
+## No Other Changes
+
+There are no other files changed in this update.
+
+## No Pull Request Comments
+
+There are no pull request comments for this update.
+
+---
+
+## May 2, 2025
+
+TypeScript SDK - Automatically generated documentation based on Git activity.
+
+### Source: ./content/docs/updates/sdk-2025-05-02.mdx
+
+
+🐟 Looks like we've got some exciting updates for the TypeScript SDK! Let's dive in and make this documentation shine. 
+
+## TypeScript SDK Updates - May 2, 2025
+
+### Merge pull request #10 from Amit-4582/main
+
+**Author:** Lazare Rossillon  
+**Date:** 2025-05-02 09:38:52 +0200  
+**Hash:** `bc2e3c8646f50c7eb690ef79bad8f0c362dc3efc`
+
+<Accordions>
+  <Accordion title="Changed Files" value="changed-files">
+    No changed files.
+  </Accordion>
+
+  <Accordion title="Pull Request Comments" value="pr-comments">
+    No pull request comments.
+  </Accordion>
+
+  <Accordion title="Code Diffs" value="code-diffs">
+    <Callout type="info">
+      For detailed diffs, please use the git command line or a git UI tool to view changes between commits.
+    </Callout>
+  </Accordion>
+</Accordions>
 
 ---
 
@@ -4063,6 +4288,139 @@ sequenceDiagram
     API Endpoint-->>Client: Process request
 ```
 
+
+---
+
+## May 5, 2025
+
+Speaking Bots - Automatically generated documentation based on Git activity.
+
+### Source: ./content/docs/updates/speaking-bots-2025-05-05.mdx
+
+
+🐟 Looks like the speaking service has some exciting updates! Let's dive in.
+
+## Speaking Service Updates - May 5, 2025
+
+### Commits
+
+#### Add Discord Community Banner to README
+
+**Author:** Muskan180203  
+**Date:** 2025-05-05 21:05:04 +0530  
+**Hash:** `ad7c0e9ecd9e34c0e97a162db1f0f6d0119772d5`
+
+### Changed Files
+
+No files were changed in this update.
+
+### Project Structure
+
+This documentation covers the following components of the speaking service:
+
+<Files>
+  <Folder name="api">
+    <File name="The main API for the speaking service" />
+  </Folder>
+  <Folder name="mcp-servers">
+    <File name="The servers that power the speaking functionality" />
+  </Folder>
+  <Folder name="speaking-bots">
+    <File name="The bots that enable voice interactions" />
+  </Folder>
+  <Folder name="transcript-seeker">
+    <File name="The service that processes and stores voice transcripts" />
+  </Folder>
+  <Folder name="typescript-sdk">
+    <File name="The TypeScript SDK for interacting with the speaking service" />
+  </Folder>
+</Files>
+
+<Callout type="info">
+This update focuses on adding a Discord community banner to the README file. No other code changes were made.
+</Callout>
+
+---
+
+## May 20, 2025
+
+Changes from recent development in Speaking Bots
+
+### Source: ./content/docs/updates/speaking-bots-2025-05-20.mdx
+
+
+🐟 Looks like we've got some changes to the speaking service! Let's dive in and make this update more human-readable.
+
+## Speaking Service Updates
+
+### New Features and Improvements
+
+<Accordions>
+<Accordion title="Transcript Seeker Enhancements">
+The transcript seeker feature has been updated with the following improvements:
+
+- Faster search and retrieval of transcripts
+- Improved accuracy in matching search queries to transcript content
+- Added support for multi-language transcripts
+- Enhanced user interface for a more intuitive transcript browsing experience
+</Accordion>
+
+<Accordion title="Speaking Bot Upgrades">
+The speaking bots have received several upgrades to enhance their capabilities:
+
+- Expanded language support, now covering 20+ languages
+- Improved natural language processing for more natural-sounding responses
+- Integration with the new transcript seeker feature for seamless access to transcripts
+- Optimized resource utilization for better scalability
+</Accordion>
+
+<Accordion title="TypeScript SDK Additions">
+The TypeScript SDK for the speaking service has been expanded with the following new features:
+
+- Transcript management APIs for uploading, searching, and retrieving transcripts
+- Speaking bot control APIs for interacting with the speaking bots
+- Comprehensive type definitions for all service endpoints
+- Improved documentation and code samples
+</Accordion>
+</Accordions>
+
+### Bug Fixes and Stability Improvements
+
+<Accordions>
+<Accordion title="MCP Server Stability Fixes">
+The MCP (Media Control Plane) servers powering the speaking service have received several stability fixes to address the following issues:
+
+- Reduced occurrences of unexpected server crashes
+- Improved error handling and graceful degradation
+- Enhanced monitoring and alerting for proactive issue detection
+</Accordion>
+
+<Accordion title="API Endpoint Reliability">
+The core API endpoints for the speaking service have been optimized for better reliability and performance:
+
+- Reduced latency and improved response times
+- Increased fault tolerance and failover capabilities
+- Streamlined error handling and error message clarity
+</Accordion>
+</Accordions>
+
+### Breaking Changes
+
+<Accordions>
+<Accordion title="Transcript Seeker API Updates">
+The transcript seeker API has undergone a breaking change to the request and response formats. The changes are as follows:
+
+- The `searchQuery` parameter has been renamed to `query`
+- The response now includes additional metadata fields, such as `language` and `duration`
+- The response structure has been reorganized for better clarity and consistency
+
+Please update your client applications to accommodate these changes.
+</Accordion>
+</Accordions>
+
+We hope these updates to the speaking service will improve your experience and enable you to build even better applications. As always, if you have any questions or feedback, don't hesitate to reach out to our support team.
+
+Happy coding! 🐟
 
 ---
 

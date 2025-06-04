@@ -966,7 +966,7 @@ Get started with Transcript Seeker for Meeting BaaS
 
 <Callout type="info">
   We provide optimized documentation for both LLMs and recent MCP server updates. For more on our LLM integration, 
-  see [LLMs](../llms/transcript-seeker) and for MCP access, visit [auth.meetingbaas.com](https://auth.meetingbaas.com/home).
+  see [LLMs](/llms/transcript-seeker) and for MCP access, visit [auth.meetingbaas.com](https://auth.meetingbaas.com/home).
 </Callout>
 
 ## Introduction

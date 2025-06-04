@@ -200,10 +200,6 @@ Get your API key by:
 1. Signing up for [MeetingBaas](https://meetingbaas.com)
 2. Accessing your API key from the MeetingBaas dashboard
 
-<Callout type="info">
-  All API requests must include the MeetingBaas API key in the `x-meeting-baas-api-key` header.
-</Callout>
-
 </Step>
 
 <Step>
@@ -551,10 +547,10 @@ This small open-source API demonstrates the capabilities of [MeetingBaas](https:
 ```bash
 curl -X POST https://speaking.meetingbaas.com/bots \
   -H "Content-Type: application/json" \
-  -H "x-meeting-baas-api-key: your-api-key"\
   -d '{
     "meeting_url": "https://us06web.zoom.us/j/123456789?pwd=example",
-    "personas": ["baas_onboarder"]
+    "personas": ["baas_onboarder"],
+    "meeting_baas_api_key": "your-api-key"
   }'
 ```
 
@@ -988,7 +984,9 @@ Each endpoint is documented with:
 - Example requests and responses
 
 All API requests require a MeetingBaas API key to be passed in the `x-meeting-baas-api-key` header.
+
 Use the navigation to explore the available endpoints.
+
 
 ---
 

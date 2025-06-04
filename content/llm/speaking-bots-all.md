@@ -59,6 +59,7 @@ Each endpoint is documented with:
 - Example requests and responses
 
 All API requests require a MeetingBaas API key to be passed in the `x-meeting-baas-api-key` header.
+
 Use the navigation to explore the available endpoints.
 
 
