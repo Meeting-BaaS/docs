@@ -7,10 +7,9 @@
     "index",
     "getting-started",
     "quick-start",
-    "advanced-examples",
     "integration",
     "mpc-tools",
-    "complete-reference",
-    "reference"
+    "advanced-examples",
+    "complete-reference"
   ]
 }

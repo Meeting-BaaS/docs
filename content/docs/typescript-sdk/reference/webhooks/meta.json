@@ -1,9 +1,0 @@
-{
-  "title": "Webhooks",
-  "icon": "Webhook",
-  "pages": [
-    "getwebhookurlresponse",
-    "postwebhookurlrequest",
-    "retrywebhookquery"
-  ]
-}

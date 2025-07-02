@@ -1,14 +1,20 @@
 ---
-title: Available Functions
+title: API Reference
 description: Complete reference of all methods in the Meeting BaaS TypeScript SDK
 icon: SquareFunction
 ---
 
 ## Client Creation
 
-### `createBaasClient(config: BaasClientConfig)`
+### `createBaasClient`
 
 Creates a new Meeting BaaS client instance.
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `api_key` | `string` | ✅ Yes | - | Your Meeting BaaS API key. Get yours at [settings.meetingbaas.com](https://settings.meetingbaas.com/credentials) |
+| `timeout` | `number` | ❌ No | `30000` | Request timeout in milliseconds. Some requests may take longer, so we recommend setting a longer timeout if you notice timeouts |
+| `base_url` | `string` | ❌ No | `"https://api.meetingbaas.com"` | Base URL for the API (internal parameter) |
 
 ```typescript
 import { createBaasClient } from "@meeting-baas/sdk";
@@ -19,18 +25,30 @@ const client = createBaasClient({
 });
 ```
 
-**Configuration Options:**
-- `api_key` (required): Your Meeting BaaS API key
-- `timeout` (optional): Request timeout in milliseconds (default: 30000)
-- `base_url` (optional): Base URL for the API (internal use)
+**Returns:**
+- `BaasClient` instance
 
 ## Bot Management Methods
 
-### `joinMeeting(params: JoinRequest)`
+### `joinMeeting`
 
 Have a bot join a meeting, now or in the future.
 
+**Parameters:**
+- `params`: [JoinRequest](/docs/api/reference/join#request-body) - Join meeting configuration
+
+**Returns:**
+- `success`: Boolean (true if bot joined successfully, false in case of any errors)
+- `data`: [JoinResponse](/docs/api/reference/join) - bot_id of the bot joining the meeting
+- `error`: Error, if any
+
 ```typescript
+// Type imports
+import type { JoinRequest, JoinResponse } from "@meeting-baas/sdk";
+```
+
+```typescript
+// Example
 const { success, data, error } = await client.joinMeeting({
   bot_name: "Meeting Assistant",
   meeting_url: "https://meet.google.com/abc-def-ghi",
@@ -52,9 +70,22 @@ if (success) {
 }
 ```
 
-### `leaveMeeting(params: { uuid: string })`
+### `leaveMeeting`
 
 Have a bot leave a meeting.
+
+**Parameters:**
+- `params`: `{ uuid: string }` - Bot UUID to leave the meeting
+
+**Returns:**
+- `success`: Boolean (true if bot left successfully, false in case of any errors)
+- `data`: [LeaveResponse](/docs/api/reference/leave) - Bot leave confirmation data
+- `error`: Error, if any
+
+```typescript
+// Type imports
+import type { LeaveResponse } from "@meeting-baas/sdk";
+```
 
 ```typescript
 const { success, data, error } = await client.leaveMeeting({
@@ -68,9 +99,22 @@ if (success) {
 }
 ```
 
-### `getMeetingData(params: GetMeetingDataParams)`
+### `getMeetingData`
 
 Get meeting recording and metadata.
+
+**Parameters:**
+- `params`: [GetMeetingDataParams](/docs/api/reference/get_meeting_data#query-parameters) - Parameters for retrieving meeting data
+
+**Returns:**
+- `success`: Boolean (true if meeting data retrieved successfully, false in case of any errors)
+- `data`: [Metadata](/docs/api/reference/get_meeting_data) - Meeting metadata and recording information
+- `error`: Error, if any
+
+```typescript
+// Type imports
+import type { GetMeetingDataParams, Metadata } from "@meeting-baas/sdk";
+```
 
 ```typescript
 const { success, data, error } = await client.getMeetingData({
@@ -87,9 +131,22 @@ if (success) {
 }
 ```
 
-### `deleteBotData(params: { uuid: string })`
+### `deleteBotData`
 
-Delete bot data.
+Delete bot data permanently.
+
+**Parameters:**
+- `params`: `{ uuid: string }` - Bot UUID to delete
+
+**Returns:**
+- `success`: Boolean (true if bot data deleted successfully, false in case of any errors)
+- `data`: [DeleteResponse](/docs/api/reference/delete_data) - Deletion confirmation
+- `error`: Error, if any
+
+```typescript
+// Type imports
+import type { DeleteResponse } from "@meeting-baas/sdk";
+```
 
 ```typescript
 const { success, data, error } = await client.deleteBotData({
@@ -103,9 +160,22 @@ if (success) {
 }
 ```
 
-### `listBots(params?: BotsWithMetadataParams)`
+### `listBots`
 
-Retrieves a paginated list of the user's bots with essential metadata.
+Retrieves a paginated list of the user's bots with essential metadata, including IDs, names, and meeting details.
+
+**Parameters:**
+- `params?`: [BotsWithMetadataParams](/docs/api/reference/bots_with_metadata#query-parameters) - Optional filtering and pagination parameters
+
+**Returns:**
+- `success`: Boolean (true if bots retrieved successfully, false in case of any errors)
+- `data`: [ListRecentBotsResponse](/docs/api/reference/bots_with_metadata) - Paginated list of bots with metadata
+- `error`: Error, if any
+
+```typescript
+// Type imports
+import type { BotsWithMetadataParams, ListRecentBotsResponse } from "@meeting-baas/sdk";
+```
 
 ```typescript
 const { success, data, error } = await client.listBots({
@@ -124,12 +194,24 @@ if (success) {
 }
 ```
 
-### `retranscribeBot(params: RetranscribeBody)`
+### `retranscribeBot`
 
 Transcribe or retranscribe a bot's audio using the Default or your provided Speech to Text Provider.
 
+**Parameters:**
+- `params`: [RetranscribeBody](/docs/api/reference/retranscribe_bot#request-body) - Retranscription configuration
+
+**Returns:**
+- `success`: Boolean (true if retranscription started successfully, false in case of any errors)
+- `error`: Error, if any
+
 ```typescript
-const { success, data, error } = await client.retranscribeBot({
+// Type imports
+import type { RetranscribeBody } from "@meeting-baas/sdk";
+```
+
+```typescript
+const { success, error } = await client.retranscribeBot({
   bot_uuid: "123e4567-e89b-12d3-a456-426614174000",
   speech_to_text: { provider: "Gladia" },
   webhook_url: "https://example.com/webhook"
@@ -142,9 +224,22 @@ if (success) {
 }
 ```
 
-### `getScreenshots(params: { uuid: string })`
+### `getScreenshots`
 
 Retrieves screenshots captured during the bot's session before it joins a meeting.
+
+**Parameters:**
+- `params`: `{ uuid: string }` - Bot UUID to retrieve screenshots for
+
+**Returns:**
+- `success`: Boolean (true if screenshots retrieved successfully, false in case of any errors)
+- `data`: [ScreenshotsList](/docs/api/reference/get_screenshots) - Array of screenshot data
+- `error`: Error, if any
+
+```typescript
+// Type imports
+import type { ScreenshotsList } from "@meeting-baas/sdk";
+```
 
 ```typescript
 const { success, data, error } = await client.getScreenshots({
@@ -163,9 +258,22 @@ if (success) {
 
 ## Calendar Management Methods
 
-### `createCalendar(params: CreateCalendarParams)`
+### `createCalendar`
 
-Integrates a new calendar with the system using OAuth credentials.
+Integrates a new calendar with the system using OAuth credentials. This endpoint establishes a connection with the calendar provider (Google, Microsoft), sets up webhook notifications for real-time updates, and performs an initial sync of all calendar events. It requires OAuth credentials (client ID, client secret, and refresh token) and the platform type. Once created, the calendar is assigned a unique UUID that should be used for all subsequent operations. Returns the newly created calendar object with all integration details.
+
+**Parameters:**
+- `params`: [CreateCalendarParams](/docs/api/reference/calendars/create_calendar#request-body) - Calendar integration parameters
+
+**Returns:**
+- `success`: Boolean (true if calendar created successfully, false in case of any errors)
+- `data`: [CreateCalendarResponse](/docs/api/reference/calendars/create_calendar) - Created calendar information
+- `error`: Error, if any
+
+```typescript
+// Type imports
+import type { CreateCalendarParams, CreateCalendarResponse } from "@meeting-baas/sdk";
+```
 
 ```typescript
 const { success, data, error } = await client.createCalendar({
@@ -184,9 +292,22 @@ if (success) {
 }
 ```
 
-### `listCalendars()`
+### `listCalendars`
 
-Retrieves all calendars that have been integrated with the system.
+Retrieves all calendars that have been integrated with the system for the authenticated user. Returns a list of calendars with their names, email addresses, provider information, and sync status. This endpoint shows only calendars that have been formally connected through the create_calendar endpoint, not all available calendars from the provider.
+
+**Parameters:**
+- None
+
+**Returns:**
+- `success`: Boolean (true if calendars retrieved successfully, false in case of any errors)
+- `data`: [Calendar[]](/docs/api/reference/calendars/list_calendars) - Array of integrated calendars
+- `error`: Error, if any
+
+```typescript
+// Type imports
+import type { Calendar } from "@meeting-baas/sdk";
+```
 
 ```typescript
 const { success, data, error } = await client.listCalendars();
@@ -201,9 +322,22 @@ if (success) {
 }
 ```
 
-### `getCalendar(params: { uuid: string })`
+### `getCalendar`
 
-Retrieves detailed information about a specific calendar integration.
+Retrieves detailed information about a specific calendar integration by its UUID. Returns comprehensive calendar data including the calendar name, email address, provider details (Google, Microsoft), sync status, and other metadata. This endpoint is useful for displaying calendar information to users or verifying the status of a calendar integration before performing operations on its events.
+
+**Parameters:**
+- `params`: `{ uuid: string }` - Calendar UUID to retrieve
+
+**Returns:**
+- `success`: Boolean (true if calendar retrieved successfully, false in case of any errors)
+- `data`: [Calendar](/docs/api/reference/calendars/get_calendar) - Calendar details
+- `error`: Error, if any
+
+```typescript
+// Type imports
+import type { Calendar } from "@meeting-baas/sdk";
+```
 
 ```typescript
 const { success, data, error } = await client.getCalendar({
@@ -217,9 +351,22 @@ if (success) {
 }
 ```
 
-### `updateCalendar(params: { uuid: string; body: UpdateCalendarParams })`
+### `updateCalendar`
 
-Updates a calendar integration with new credentials or platform.
+Updates a calendar integration with new credentials or platform while maintaining the same UUID. This operation is performed as an atomic transaction to ensure data integrity. The system automatically unschedules existing bots to prevent duplicates, updates the calendar credentials, and triggers a full resync of all events. Useful when OAuth tokens need to be refreshed or when migrating a calendar between providers. Returns the updated calendar object with its new configuration.
+
+**Parameters:**
+- `params`: `{ uuid: string; body: [UpdateCalendarParams](/docs/api/reference/calendars/update_calendar#request-body) }` - Calendar UUID and update parameters
+
+**Returns:**
+- `success`: Boolean (true if calendar updated successfully, false in case of any errors)
+- `data`: [CreateCalendarResponse](/docs/api/reference/calendars/update_calendar) - Updated calendar information
+- `error`: Error, if any
+
+```typescript
+// Type imports
+import type { UpdateCalendarParams, CreateCalendarResponse } from "@meeting-baas/sdk";
+```
 
 ```typescript
 const { success, data, error } = await client.updateCalendar({
@@ -239,12 +386,19 @@ if (success) {
 }
 ```
 
-### `deleteCalendar(params: { uuid: string })`
+### `deleteCalendar`
 
-Permanently removes a calendar integration.
+Permanently removes a calendar integration by its UUID, including all associated events and bot configurations. This operation cancels any active subscriptions with the calendar provider, stops all webhook notifications, and unschedules any pending recordings. All related resources are cleaned up in the database. This action cannot be undone, and subsequent requests to this calendar's UUID will return 404 Not Found errors.
+
+**Parameters:**
+- `params`: `{ uuid: string }` - Calendar UUID to delete
+
+**Returns:**
+- `success`: Boolean (true if calendar deleted successfully, false in case of any errors)
+- `error`: Error, if any
 
 ```typescript
-const { success, data, error } = await client.deleteCalendar({
+const { success, error } = await client.deleteCalendar({
   uuid: "123e4567-e89b-12d3-a456-426614174000"
 });
 
@@ -255,9 +409,22 @@ if (success) {
 }
 ```
 
-### `getCalendarEvent(params: { uuid: string })`
+### `getCalendarEvent`
 
-Retrieves comprehensive details about a specific calendar event.
+Retrieves comprehensive details about a specific calendar event by its UUID. Returns complete event information including title, meeting link, start and end times, organizer status, recurrence information, and the full list of attendees with their names and email addresses. Also includes any associated bot parameters if recording is scheduled for this event. The raw calendar data from the provider is also included for advanced use cases.
+
+**Parameters:**
+- `params`: `{ uuid: string }` - Event UUID to retrieve
+
+**Returns:**
+- `success`: Boolean (true if event retrieved successfully, false in case of any errors)
+- `data`: [Event](/docs/api/reference/calendars/get_event) - Event details
+- `error`: Error, if any
+
+```typescript
+// Type imports
+import type { Event } from "@meeting-baas/sdk";
+```
 
 ```typescript
 const { success, data, error } = await client.getCalendarEvent({
@@ -274,9 +441,22 @@ if (success) {
 }
 ```
 
-### `scheduleCalendarRecordEvent(params: { uuid: string; body: BotParam2; query?: ScheduleRecordEventParams })`
+### `scheduleCalendarRecordEvent`
 
-Configures a bot to automatically join and record a specific calendar event.
+Configures a bot to automatically join and record a specific calendar event at its scheduled time. The request body contains detailed bot configuration, including recording options, streaming settings, and webhook notification URLs. For recurring events, the 'all_occurrences' parameter can be set to true to schedule recording for all instances of the recurring series, or false (default) to schedule only the specific instance. Returns the updated event(s) with the bot parameters attached.
+
+**Parameters:**
+- `params`: `{` uuid: string; body: [BotParam2](/docs/api/reference/calendars/schedule_record_event#request-body); query?: [ScheduleRecordEventParams](/docs/api/reference/calendars/schedule_record_event#query-parameters) `}` - Event UUID, bot configuration, and optional query parameters
+
+**Returns:**
+- `success`: Boolean (true if recording scheduled successfully, false in case of any errors)
+- `data`: [Event[]](/docs/api/reference/calendars/schedule_record_event) - Array of scheduled events
+- `error`: Error, if any
+
+```typescript
+// Type imports
+import type { BotParam2, ScheduleRecordEventParams, Event } from "@meeting-baas/sdk";
+```
 
 ```typescript
 const { success, data, error } = await client.scheduleCalendarRecordEvent({
@@ -299,9 +479,22 @@ if (success) {
 }
 ```
 
-### `unscheduleCalendarRecordEvent(params: { uuid: string; query?: UnscheduleRecordEventParams })`
+### `unscheduleCalendarRecordEvent`
 
-Cancels a previously scheduled recording for a calendar event.
+Cancels a previously scheduled recording for a calendar event and releases associated bot resources. For recurring events, the 'all_occurrences' parameter controls whether to unschedule from all instances of the recurring series or just the specific occurrence. This operation is idempotent and will not error if no bot was scheduled. Returns the updated event(s) with the bot parameters removed.
+
+**Parameters:**
+- `params`: `{` uuid: string; query?: [UnscheduleRecordEventParams](/docs/api/reference/calendars/unschedule_record_event#query-parameters) `}` - Event UUID and optional query parameters
+
+**Returns:**
+- `success`: Boolean (true if recording unscheduled successfully, false in case of any errors)
+- `data`: [Event[]](/docs/api/reference/calendars/unschedule_record_event) - Array of unscheduled events
+- `error`: Error, if any
+
+```typescript
+// Type imports
+import type { UnscheduleRecordEventParams, Event } from "@meeting-baas/sdk";
+```
 
 ```typescript
 const { success, data, error } = await client.unscheduleCalendarRecordEvent({
@@ -316,9 +509,22 @@ if (success) {
 }
 ```
 
-### `patchBot(params: { uuid: string; body: BotParam3; query?: PatchBotParams })`
+### `patchBot`
 
-Updates the configuration of a bot already scheduled to record an event.
+Updates the configuration of a bot already scheduled to record an event. Allows modification of recording settings, webhook URLs, and other bot parameters without canceling and recreating the scheduled recording. For recurring events, the 'all_occurrences' parameter determines whether changes apply to all instances or just the specific occurrence. Returns the updated event(s) with the modified bot parameters.
+
+**Parameters:**
+- `params`: `{` uuid: string; body: [BotParam3](/docs/api/reference/calendars/patch_bot#request-body); query?: [PatchBotParams](/docs/api/reference/calendars/patch_bot#query-parameters) `}` - Event UUID, bot configuration updates, and optional query parameters
+
+**Returns:**
+- `success`: Boolean (true if bot configuration updated successfully, false in case of any errors)
+- `data`: [Event[]](/docs/api/reference/calendars/patch_bot) - Array of updated events
+- `error`: Error, if any
+
+```typescript
+// Type imports
+import type { BotParam3, PatchBotParams, Event } from "@meeting-baas/sdk";
+```
 
 ```typescript
 const { success, data, error } = await client.patchBot({
@@ -338,9 +544,22 @@ if (success) {
 }
 ```
 
-### `listCalendarEvents(query: ListEventsParams)`
+### `listCalendarEvents`
 
-Retrieves a paginated list of calendar events with comprehensive filtering options.
+Retrieves a paginated list of calendar events with comprehensive filtering options. Supports filtering by organizer email, attendee email, date ranges (start_date_gte, start_date_lte), and event status. Results can be limited to upcoming events (default), past events, or all events. Each event includes full details such as meeting links, participants, and recording status. The response includes a 'next' pagination cursor for retrieving additional results.
+
+**Parameters:**
+- `query`: [ListEventsParams](/docs/api/reference/calendars/list_events#query-parameters) - Filtering and pagination parameters
+
+**Returns:**
+- `success`: Boolean (true if events retrieved successfully, false in case of any errors)
+- `data`: [ListEventResponse](/docs/api/reference/calendars/list_events) - Paginated list of events
+- `error`: Error, if any
+
+```typescript
+// Type imports
+import type { ListEventsParams, ListEventResponse } from "@meeting-baas/sdk";
+```
 
 ```typescript
 const { success, data, error } = await client.listCalendarEvents({
@@ -360,9 +579,22 @@ if (success) {
 }
 ```
 
-### `resyncAllCalendars()`
+### `resyncAllCalendars`
 
-Triggers a full resync of all calendar events for all integrated calendars.
+Triggers a full resync of all calendar events for all integrated calendars. This operation is useful when you need to ensure that all calendar data is up-to-date in the system. It will re-fetch all events from the calendar providers and update the system's internal state. Returns a response indicating the status of the resync operation.
+
+**Parameters:**
+- None
+
+**Returns:**
+- `success`: Boolean (true if calendars resynced successfully, false in case of any errors)
+- `data`: [ResyncAllResponse](/docs/api/reference/calendars/resync_all) - Resync results and any errors
+- `error`: Error, if any
+
+```typescript
+// Type imports
+import type { ResyncAllResponse } from "@meeting-baas/sdk";
+```
 
 ```typescript
 const { success, data, error } = await client.resyncAllCalendars();
@@ -377,9 +609,22 @@ if (success) {
 }
 ```
 
-### `listRawCalendars(params: ListRawCalendarsParams)`
+### `listRawCalendars`
 
-Retrieves unprocessed calendar data directly from the provider.
+Retrieves unprocessed calendar data directly from the provider (Google, Microsoft) using provided OAuth credentials. This endpoint is typically used during the initial setup process to allow users to select which calendars to integrate. Returns a list of available calendars with their unique IDs, email addresses, and primary status. This data is not persisted until a calendar is formally created using the create_calendar endpoint.
+
+**Parameters:**
+- `params`: [ListRawCalendarsParams](/docs/api/reference/calendars/list_raw_calendars#request-body) - OAuth credentials and platform
+
+**Returns:**
+- `success`: Boolean (true if raw calendars retrieved successfully, false in case of any errors)
+- `data`: [ListRawCalendarsResponse](/docs/api/reference/calendars/list_raw_calendars) - Raw calendar data from provider
+- `error`: Error, if any
+
+```typescript
+// Type imports
+import type { ListRawCalendarsParams, ListRawCalendarsResponse } from "@meeting-baas/sdk";
+```
 
 ```typescript
 const { success, data, error } = await client.listRawCalendars({
@@ -401,9 +646,17 @@ if (success) {
 
 ## Webhook Methods
 
-### `getWebhookDocumentation()`
+### `getWebhookDocumentation`
 
-Retrieves the full documentation for webhook events.
+Retrieves the full documentation for the webhook events that Meeting BaaS sends to your webhook URL. This includes all event types, their payload structures, and any additional metadata. Useful for developers to understand and integrate webhook functionality into their applications.
+
+**Parameters:**
+- None
+
+**Returns:**
+- `success`: Boolean (true if documentation retrieved successfully, false in case of any errors)
+- `data`: [Webhook documentation data](/docs/api/reference/webhooks/webhook_documentation#webhook-event-types)
+- `error`: Error, if any
 
 ```typescript
 const { success, data, error } = await client.getWebhookDocumentation();
@@ -415,32 +668,42 @@ if (success) {
 }
 ```
 
-### `getBotWebhookDocumentation()`
+### `getBotWebhookDocumentation`
 
-Retrieves the full documentation for bot webhook events.
+Retrieves the full documentation for the webhook events that Meeting BaaS sends to your webhook URL for a specific bot. This includes all event types, their payload structures, and any additional metadata. Useful for developers to understand and integrate webhook functionality into their applications.
+
+**Parameters:**
+- None
+
+**Returns:**
+- `success`: Boolean (true if documentation retrieved successfully, false in case of any errors)
+- `data`: [Bot webhook documentation data](/docs/api/reference/webhooks/bot_webhook_documentation#bot-webhook-event-types)
+- `error`: Error, if any
 
 ```typescript
 const { success, data, error } = await client.getBotWebhookDocumentation();
 
 if (success) {
-  console.log("Bot webhook documentation:", data);
+  console.log("Bot Webhook documentation:", data);
 } else {
   console.error("Error getting bot webhook documentation:", error);
 }
 ```
 
-### `getCalendarWebhookDocumentation()`
+### `getCalendarWebhookDocumentation`
 
-Retrieves the full documentation for calendar webhook events.
+Retrieves the full documentation for the webhook events that Meeting BaaS sends to your webhook URL for a specific calendar. This includes all event types, their payload structures, and any additional metadata. Useful for developers to understand and integrate webhook functionality into their applications.
+
+**Parameters:**
+- None
+
+**Returns:**
+- `success`: Boolean (true if documentation retrieved successfully, false in case of any errors)
+- `data`: [Calendar webhook documentation data](/docs/api/reference/webhooks/calendar_webhook_documentation#calendar-webhook-event-types)
+- `error`: Error, if any
 
 ```typescript
 const { success, data, error } = await client.getCalendarWebhookDocumentation();
-
-if (success) {
-  console.log("Calendar webhook documentation:", data);
-} else {
-  console.error("Error getting calendar webhook documentation:", error);
-}
 ```
 
 ## Response Types
@@ -509,22 +772,10 @@ const joinParams: JoinRequest = {
 };
 ```
 
-## Configuration
+## Related Documentation
 
-### BaasClientConfig Interface
-
-```typescript
-interface BaasClientConfig {
-  api_key: string;           // Required: Your Meeting BaaS API key
-  timeout?: number;          // Optional: Request timeout in ms (default: 30000)
-  base_url?: string;         // Optional: Base URL (internal use)
-}
-```
-
-### Configuration Options
-
-| Option | Type | Required | Default | Description |
-|--------|------|----------|---------|-------------|
-| `api_key` | `string` | ✅ Yes | - | Your Meeting BaaS API key. Get yours at [settings.meetingbaas.com](https://settings.meetingbaas.com/credentials) |
-| `timeout` | `number` | ❌ No | `30000` | Request timeout in milliseconds. Some requests may take longer, so we recommend setting a longer timeout if you notice timeouts |
-| `base_url` | `string` | ❌ No | `"https://api.meetingbaas.com"` | Base URL for the API (internal parameter) |
+- **[Getting Started](/docs/typescript-sdk/getting-started)** - Quick setup guide
+- **[Quick Start](/docs/typescript-sdk/quick-start)** - Comprehensive usage examples
+- **[Integration Guide](/docs/typescript-sdk/integration)** - Advanced integration patterns
+- **[MCP Tools](/docs/typescript-sdk/mpc-tools)** - Using with Model Context Protocol
+- **[Advanced Examples](/docs/typescript-sdk/advanced-examples)** - Complex use cases
