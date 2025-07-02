@@ -463,15 +463,14 @@ async function retryOperation<T>(
     backoffMultiplier: 2
   }
 ): Promise<T> {
-  let lastError: Error;
   
   for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
     try {
       return await operation();
     } catch (error) {
-      lastError = error;
       
       if (attempt === config.maxAttempts) {
+        // throw error if last attempt
         throw error;
       }
       
@@ -485,8 +484,6 @@ async function retryOperation<T>(
       await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
-  
-  throw lastError!;
 }
 
 async function robustBotOperation() {

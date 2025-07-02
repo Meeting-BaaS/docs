@@ -85,7 +85,7 @@ headers: {
 ### Basic Server Setup
 
 ```typescript
-import { BaasClient } from "@meeting-baas/sdk/dist/baas/api/client";
+import { BaasClient } from "@meeting-baas/sdk";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp";
 
 // Initialize the MCP server
@@ -95,9 +95,8 @@ const server = new McpServer();
 const apiKey = process.env.MEETING_BAAS_API_KEY;
 
 // Initialize the BaaS client
-const baasClient = new BaasClient({
-  apiKey: apiKey,
-  baseUrl: "https://api.meetingbaas.com/",
+const baasClient = createBaasClient({
+  api_key: apiKey
 });
 
 // Register required tools and middleware

@@ -46,7 +46,7 @@ export const categoryConfig: CategoryConfigMap = {
     "title": "Calendars API, for managing calendar integrations and events",
     "description": "Documentation for calendar integration endpoints and functionality.",
     "patterns": [
-      "./content/docs/typescript-sdk/reference/calendars/**/*.mdx"
+      "./content/docs/api/reference/calendars/**/*.mdx"
     ]
   },
   "api/webhooks": {
@@ -60,7 +60,7 @@ export const categoryConfig: CategoryConfigMap = {
     "title": "Webhooks API, for event notifications and integrations",
     "description": "Documentation for webhook integration endpoints and functionality.",
     "patterns": [
-      "./content/docs/typescript-sdk/reference/webhooks/**/*.mdx"
+      "./content/docs/api/reference/webhooks/**/*.mdx"
     ]
   },
   "mcp-servers": {
@@ -117,69 +117,6 @@ export const categoryConfig: CategoryConfigMap = {
     "description": "TypeScript SDK documentation for programmatically interacting with Meeting BaaS APIs.",
     "patterns": [
       "./content/docs/typescript-sdk/**/*.mdx"
-    ]
-  },
-  "typescript-sdk/all": {
-    "title": "Complete typescript-sdk Reference",
-    "description": "Complete reference for typescript-sdk.",
-    "patterns": [
-      "./content/docs/typescript-sdk/reference/**/*.mdx"
-    ]
-  },
-  "typescript-sdk/bots": {
-    "title": "bots typescript-sdk Reference",
-    "description": "Reference documentation for bots in typescript-sdk.",
-    "patterns": [
-      "./content/docs/typescript-sdk/reference/bots/**/*.mdx"
-    ]
-  },
-  "typescript-sdk/calendars": {
-    "title": "calendars typescript-sdk Reference",
-    "description": "Reference documentation for calendars in typescript-sdk.",
-    "patterns": [
-      "./content/docs/typescript-sdk/reference/calendars/**/*.mdx"
-    ]
-  },
-  "typescript-sdk/common": {
-    "title": "common typescript-sdk Reference",
-    "description": "Reference documentation for common in typescript-sdk.",
-    "patterns": [
-      "./content/docs/typescript-sdk/reference/common/**/*.mdx"
-    ]
-  },
-  "typescript-sdk/webhooks": {
-    "title": "webhooks typescript-sdk Reference",
-    "description": "Reference documentation for webhooks in typescript-sdk.",
-    "patterns": [
-      "./content/docs/typescript-sdk/reference/webhooks/**/*.mdx"
-    ]
-  },
-  "typescript-sdk-bots": {
-    "title": "bots-related TypeScript SDK methods and types",
-    "description": "bots integration methods and types in the TypeScript SDK.",
-    "patterns": [
-      "./content/docs/typescript-sdk/reference/bots/**/*.mdx"
-    ]
-  },
-  "typescript-sdk-calendars": {
-    "title": "calendars-related TypeScript SDK methods and types",
-    "description": "calendars integration methods and types in the TypeScript SDK.",
-    "patterns": [
-      "./content/docs/typescript-sdk/reference/calendars/**/*.mdx"
-    ]
-  },
-  "typescript-sdk-common": {
-    "title": "common-related TypeScript SDK methods and types",
-    "description": "common integration methods and types in the TypeScript SDK.",
-    "patterns": [
-      "./content/docs/typescript-sdk/reference/common/**/*.mdx"
-    ]
-  },
-  "typescript-sdk-webhooks": {
-    "title": "webhooks-related TypeScript SDK methods and types",
-    "description": "webhooks integration methods and types in the TypeScript SDK.",
-    "patterns": [
-      "./content/docs/typescript-sdk/reference/webhooks/**/*.mdx"
     ]
   },
   "updates": {
@@ -263,47 +200,6 @@ export const knownTxtPaths: string[][] = [
   [
     "llms",
     "typescript-sdk"
-  ],
-  [
-    "llms",
-    "typescript-sdk",
-    "all"
-  ],
-  [
-    "llms",
-    "typescript-sdk",
-    "bots"
-  ],
-  [
-    "llms",
-    "typescript-sdk",
-    "calendars"
-  ],
-  [
-    "llms",
-    "typescript-sdk",
-    "common"
-  ],
-  [
-    "llms",
-    "typescript-sdk",
-    "webhooks"
-  ],
-  [
-    "llms",
-    "typescript-sdk-bots"
-  ],
-  [
-    "llms",
-    "typescript-sdk-calendars"
-  ],
-  [
-    "llms",
-    "typescript-sdk-common"
-  ],
-  [
-    "llms",
-    "typescript-sdk-webhooks"
   ],
   [
     "llms",

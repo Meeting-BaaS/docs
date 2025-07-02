@@ -169,10 +169,18 @@ export async function POST(req: Request) {
       bot_id: result.data.bot_id 
     });
   } else {
-    return Response.json({ 
-      success: false, 
-      error: result.error.message 
-    }, { status: 400 });
+    // Error could be an instance of Error or ZodError
+    if(result.error instanceof Error) {
+      return Response.json({ 
+        success: false, 
+        error: result.error.message
+      }, { status: 400 });
+    } else {
+      return Response.json({ 
+        success: false, 
+        error: "Validation error"
+      }, { status: 422 });
+    }
   }
 }
 ```

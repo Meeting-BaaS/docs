@@ -704,6 +704,12 @@ Retrieves the full documentation for the webhook events that Meeting BaaS sends 
 
 ```typescript
 const { success, data, error } = await client.getCalendarWebhookDocumentation();
+
+if (success) {
+  console.log("Calendar Webhook documentation:", data);
+} else {
+  console.error("Error getting calendar webhook documentation:", error);
+}
 ```
 
 ## Response Types

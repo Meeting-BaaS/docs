@@ -4,1689 +4,1334 @@ TypeScript SDK documentation for programmatically interacting with Meeting BaaS 
 
 ## Advanced Examples
 
-The Meeting BaaS SDK comes with pre-generated MPC (Model Context Protocol) tools that can be easily integrated with any MPC server implementation. These tools are bundled by default and can be imported directly.
+Advanced usage patterns and complex integration examples with the Meeting BaaS SDK.
 
 ### Source: ./content/docs/typescript-sdk/advanced-examples.mdx
 
 
-## Calendars API
+### Comprehensive Bot Management Workflow
 
-### createCalendar(createCalendarParams: CreateCalendarParams)
-
-SomeCalendarsApi
+Here's a complete workflow for managing bots throughout their lifecycle:
 
 ```typescript
-import { CreateCalendarParams } from "@meeting-baas/sdk";
+import { createBaasClient } from "@meeting-baas/sdk";
 
-// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
-await client.calendars.createCalendar({
-  // ... CreateCalendarParams properties
+const client = createBaasClient({
+  api_key: "your-api-key",
+  timeout: 60000
 });
-```
 
-### deleteCalendar(uuid: string)
+async function comprehensiveBotWorkflow() {
+  try {
+    // 1. Join a meeting with advanced configuration
+    const joinResult = await client.joinMeeting({
+      meeting_url: "https://meet.google.com/abc-defg-hij",
+      bot_name: "Advanced Workflow Bot",
+      reserved: false,
+      bot_image: "https://example.com/bot-avatar.jpg",
+      enter_message: "Hello! I'm here to record and transcribe this meeting.",
+      extra: { 
+        workflow_id: "comprehensive-example",
+        user_id: "user123",
+        session_type: "team-meeting"
+      },
+      recording_mode: "speaker_view",
+      speech_to_text: { 
+        provider: "Gladia",
+        api_key: "your-gladia-key"
+      },
+      webhook_url: "https://your-app.com/webhooks/meeting-baas",
+      noone_joined_timeout: 300, // 5 minutes
+      waiting_room_timeout: 600  // 10 minutes
+    });
 
-Permanently removes a calendar integration by its UUID, including all associated events and bot configurations
+    if (!joinResult.success) {
+      console.error("Failed to join meeting:", joinResult.error);
+      return;
+    }
 
-```typescript
-// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
-await client.calendars.deleteCalendar('example');
-```
+    const botId = joinResult.data.bot_id;
+    console.log("Bot joined successfully:", botId);
 
-### getCalendar(uuid: string)
+    // 2. Monitor bot status and get meeting data
+    let meetingData = null;
+    let attempts = 0;
+    const maxAttempts = 10;
 
-Retrieves detailed information about a specific calendar integration by its UUID
+    while (attempts < maxAttempts) {
+      const dataResult = await client.getMeetingData({
+        bot_id: botId,
+        include_transcripts: true
+      });
 
-```typescript
-// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
-await client.calendars.getCalendar('example');
-```
+      if (dataResult.success) {
+        meetingData = dataResult.data;
+        
+        // Check if meeting has ended
+        if (meetingData.duration > 0) {
+          console.log("Meeting completed. Duration:", meetingData.duration);
+          break;
+        }
+      }
 
-### getEvent(uuid: string)
+      // Wait before next attempt
+      await new Promise(resolve => setTimeout(resolve, 30000)); // 30 seconds
+      attempts++;
+    }
 
-Retrieves comprehensive details about a specific calendar event by its UUID
+    // 3. Process meeting data
+    if (meetingData) {
+      console.log("Meeting duration:", meetingData.duration);
+      console.log("MP4 URL:", meetingData.mp4);
+      console.log("Transcript count:", meetingData.bot_data.transcripts.length);
+      
+      // Process transcripts
+      meetingData.bot_data.transcripts.forEach(transcript => {
+        console.log(`Speaker: ${transcript.speaker}, Duration: ${transcript.end_time - transcript.start_time}s`);
+      });
+    }
 
-```typescript
-// Returns: Promise<Event>
-await client.calendars.getEvent('example');
-```
+    // 4. Leave the meeting
+    const leaveResult = await client.leaveMeeting({ uuid: botId });
+    if (leaveResult.success) {
+      console.log("Bot left meeting successfully");
+    }
 
-### listEvents(calendarId: string, attendeeEmail?: string?, cursor?: string?, organizerEmail?: string?, startDateGte?: string?, startDateLte?: string?, status?: string?, updatedAtGte?: string?)
+    // 5. Clean up bot data
+    const deleteResult = await client.deleteBotData({ uuid: botId });
+    if (deleteResult.success) {
+      console.log("Bot data deleted successfully");
+    }
 
-Retrieves a paginated list of calendar events with comprehensive filtering options
-
-```typescript
-/ Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
-await client.calendars.listEvents('example', 'example', 'example', 'example', 'example', 'example', 'example', 'example');
-```
-
-### listRawCalendars(listRawCalendarsParams: ListRawCalendarsParams)
-
-Retrieves unprocessed calendar data directly from the provider (Google, Microsoft) using provided OAuth credentials
-
-```typescript
-import { ListRawCalendarsParams } from "@meeting-baas/sdk";
-
-// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
-await client.calendars.listRawCalendars({
-  // ... ListRawCalendarsParams properties
-});
-```
-
-### patchBot(uuid: string, botParam3: BotParam3, allOccurrences?: boolean?)
-
-Updates the configuration of a bot already scheduled to record an event
-
-```typescript
-import { BotParam3 } from "@meeting-baas/sdk";
-
-// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
-await client.calendars.patchBot('example', {
-  // ... BotParam3 properties
-}, true);
-```
-
-### scheduleRecordEvent(uuid: string, botParam2: BotParam2, allOccurrences?: boolean?)
-
-Configures a bot to automatically join and record a specific calendar event at its scheduled time
-
-```typescript
-import { BotParam2 } from "@meeting-baas/sdk";
-
-// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
-await client.calendars.scheduleRecordEvent('example', {
-  // ... BotParam2 properties
-}, true);
-```
-
-### unscheduleRecordEvent(uuid: string, allOccurrences?: boolean?)
-
-Cancels a previously scheduled recording for a calendar event and releases associated bot resources
-
-```typescript
-// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
-await client.calendars.unscheduleRecordEvent('example', true);
-```
-
-### updateCalendar(uuid: string, updateCalendarParams: UpdateCalendarParams)
-
-Updates a calendar integration with new credentials or platform while maintaining the same UUID
-
-```typescript
-import { UpdateCalendarParams } from "@meeting-baas/sdk";
-
-// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
-await client.calendars.updateCalendar('example', {
-  // ... UpdateCalendarParams properties
-});
-```
-
-## Next.js API Route Example
-
-For Next.js applications:
-
-```typescript
-// app/api/mcp/route.ts
-import { allTools, registerTools } from "@meeting-baas/sdk/tools";
-import { BaasClient } from "@meeting-baas/sdk";
-import { McpServer } from "your-mcp-server-library";
-
-export async function POST(req: Request) {
-  const { messages } = await req.json();
-
-  // Initialize your MPC server
-  const server = new McpServer();
-
-  // Create BaaS client
-  const client = new BaasClient({
-    apiKey: process.env.MEETING_BAAS_API_KEY,
-  });
-
-  // Register tools
-  await registerTools(allTools, server.registerTool);
-
-  // Process the request with your MPC server
-  const result = await server.processRequest(messages);
-
-  return Response.json(result);
+  } catch (error) {
+    console.error("Unexpected error in workflow:", error);
+  }
 }
 ```
 
+### Calendar Integration with Event Scheduling
+
+Advanced calendar integration with automatic event scheduling:
+
+```typescript
+import { createBaasClient } from "@meeting-baas/sdk";
+
+const client = createBaasClient({
+  api_key: "your-api-key"
+});
+
+async function advancedCalendarWorkflow() {
+  try {
+    // 1. Create calendar integration
+    const calendarResult = await client.createCalendar({
+      oauth_client_id: "your-oauth-client-id",
+      oauth_client_secret: "your-oauth-client-secret",
+      oauth_refresh_token: "your-oauth-refresh-token",
+      platform: "Google"
+    });
+
+    if (!calendarResult.success) {
+      console.error("Failed to create calendar:", calendarResult.error);
+      return;
+    }
+
+    const calendarId = calendarResult.data.calendar.uuid;
+    console.log("Calendar created:", calendarId);
+
+    // 2. List upcoming events
+    const eventsResult = await client.listCalendarEvents({
+      calendar_id: calendarId,
+      start_date_gte: new Date().toISOString(),
+      start_date_lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      status: "upcoming"
+    });
+
+    if (!eventsResult.success) {
+      console.error("Failed to list events:", eventsResult.error);
+      return;
+    }
+
+    console.log(`Found ${eventsResult.data.events.length} upcoming events`);
+
+    // 3. Schedule recordings for events with meeting URLs
+    for (const event of eventsResult.data.events) {
+      if (event.meeting_url && event.is_organizer) {
+        console.log(`Scheduling recording for: ${event.name}`);
+        
+        const scheduleResult = await client.scheduleCalendarRecordEvent({
+          uuid: event.uuid,
+          body: {
+            bot_name: `Recording Bot - ${event.name}`,
+            extra: {
+              event_name: event.name,
+              scheduled_by: "advanced-workflow",
+              calendar_id: calendarId
+            },
+            recording_mode: "speaker_view",
+            speech_to_text: { provider: "Gladia" },
+            webhook_url: "https://your-app.com/webhooks/calendar-events",
+            enter_message: `Hello! I'm here to record the meeting: ${event.name}`
+          },
+          query: { all_occurrences: event.is_recurring }
+        });
+
+        if (scheduleResult.success) {
+          console.log(`Successfully scheduled recording for: ${event.name}`);
+        } else {
+          console.error(`Failed to schedule recording for: ${event.name}`, scheduleResult.error);
+        }
+      }
+    }
+
+    // 4. Monitor scheduled events
+    const scheduledEventsResult = await client.listCalendarEvents({
+      calendar_id: calendarId,
+      status: "upcoming"
+    });
+
+    if (scheduledEventsResult.success) {
+      scheduledEventsResult.data.events.forEach(event => {
+        if (event.bot_param) {
+          console.log(`Event "${event.name}" has bot scheduled:`, {
+            bot_name: event.bot_param.bot_name,
+            scheduled_time: event.start_time,
+            meeting_url: event.meeting_url
+          });
+        }
+      });
+    }
+
+  } catch (error) {
+    console.error("Unexpected error in calendar workflow:", error);
+  }
+}
+```
+
+### Batch Operations and Error Handling
+
+Advanced pattern for handling multiple operations with proper error handling:
+
+```typescript
+import { createBaasClient } from "@meeting-baas/sdk";
+
+const client = createBaasClient({
+  api_key: "your-api-key"
+});
+
+interface BatchOperation {
+  id: string;
+  meeting_url: string;
+  bot_name: string;
+  expected_duration: number;
+}
+
+async function batchBotOperations(operations: BatchOperation[]) {
+  const results = {
+    successful: [] as string[],
+    failed: [] as { id: string; error: string }[],
+    in_progress: [] as string[]
+  };
+
+  // 1. Join all meetings
+  const joinPromises = operations.map(async (op) => {
+    try {
+      const result = await client.joinMeeting({
+        meeting_url: op.meeting_url,
+        bot_name: op.bot_name,
+        reserved: false,
+        extra: { batch_id: op.id, expected_duration: op.expected_duration },
+        webhook_url: "https://your-app.com/webhooks/batch-operations"
+      });
+
+      if (result.success) {
+        results.in_progress.push(op.id);
+        return { id: op.id, bot_id: result.data.bot_id, success: true };
+      } else {
+        results.failed.push({ id: op.id, error: result.error.message });
+        return { id: op.id, success: false, error: result.error.message };
+      }
+    } catch (error) {
+      results.failed.push({ id: op.id, error: error.message });
+      return { id: op.id, success: false, error: error.message };
+    }
+  });
+
+  const joinResults = await Promise.allSettled(joinPromises);
+  
+  // Process join results
+  joinResults.forEach((result, index) => {
+    if (result.status === 'fulfilled' && result.value.success) {
+      console.log(`Bot joined for operation ${result.value.id}: ${result.value.bot_id}`);
+    }
+  });
+
+  // 2. Monitor all active bots
+  const activeBots = joinResults
+    .filter((result, index) => result.status === 'fulfilled' && result.value.success)
+    .map(result => (result as PromiseFulfilledResult<any>).value);
+
+  if (activeBots.length > 0) {
+    console.log(`Monitoring ${activeBots.length} active bots...`);
+    
+    // Wait for all meetings to complete
+    const monitoringPromises = activeBots.map(async (bot) => {
+      let attempts = 0;
+      const maxAttempts = 60; // 30 minutes with 30-second intervals
+      
+      while (attempts < maxAttempts) {
+        const dataResult = await client.getMeetingData({
+          bot_id: bot.bot_id,
+          include_transcripts: true
+        });
+
+        if (dataResult.success && dataResult.data.duration > 0) {
+          // Meeting completed
+          results.successful.push(bot.id);
+          
+          // Clean up
+          await client.deleteBotData({ uuid: bot.bot_id });
+          return { id: bot.id, duration: dataResult.data.duration };
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 30000));
+        attempts++;
+      }
+
+      // Timeout - force leave
+      await client.leaveMeeting({ uuid: bot.bot_id });
+      results.failed.push({ id: bot.id, error: "Meeting monitoring timeout" });
+      return { id: bot.id, error: "Timeout" };
+    });
+
+    const monitoringResults = await Promise.allSettled(monitoringPromises);
+    
+    // Process monitoring results
+    monitoringResults.forEach((result) => {
+      if (result.status === 'fulfilled' && !result.value.error) {
+        console.log(`Operation ${result.value.id} completed in ${result.value.duration}s`);
+      }
+    });
+  }
+
+  // 3. Generate summary
+  console.log("Batch operation summary:");
+  console.log(`- Successful: ${results.successful.length}`);
+  console.log(`- Failed: ${results.failed.length}`);
+  console.log(`- In Progress: ${results.in_progress.length}`);
+
+  if (results.failed.length > 0) {
+    console.log("Failed operations:");
+    results.failed.forEach(failure => {
+      console.log(`  - ${failure.id}: ${failure.error}`);
+    });
+  }
+
+  return results;
+}
+
+// Usage example
+const operations: BatchOperation[] = [
+  {
+    id: "meeting-1",
+    meeting_url: "https://meet.google.com/abc-def-ghi",
+    bot_name: "Batch Bot 1",
+    expected_duration: 3600
+  },
+  {
+    id: "meeting-2", 
+    meeting_url: "https://meet.google.com/jkl-mno-pqr",
+    bot_name: "Batch Bot 2",
+    expected_duration: 1800
+  }
+];
+
+batchBotOperations(operations).then(summary => {
+  console.log("Batch operations completed:", summary);
+});
+```
+
+### Webhook Integration with Event Processing
+
+Advanced webhook handling and event processing:
+
+```typescript
+import { createBaasClient } from "@meeting-baas/sdk";
+import express from 'express';
+
+const app = express();
+app.use(express.json());
+
+const client = createBaasClient({
+  api_key: "your-api-key"
+});
+
+// Webhook event handler
+app.post('/webhooks/meeting-baas', async (req, res) => {
+  const { event_type, bot_id, data } = req.body;
+
+  try {
+    switch (event_type) {
+      case 'bot_joined':
+        console.log(`Bot ${bot_id} joined meeting`);
+        // Update UI, send notifications, etc.
+        break;
+
+      case 'bot_left':
+        console.log(`Bot ${bot_id} left meeting`);
+        
+        // Get final meeting data
+        const meetingDataResult = await client.getMeetingData({
+          bot_id: bot_id,
+          include_transcripts: true
+        });
+
+        if (meetingDataResult.success) {
+          const meetingData = meetingDataResult.data;
+          
+          // Process meeting data
+          await processMeetingData(meetingData);
+          
+          // Clean up bot data
+          await client.deleteBotData({ uuid: bot_id });
+        }
+        break;
+
+      case 'transcription_completed':
+        console.log(`Transcription completed for bot ${bot_id}`);
+        // Process transcripts, update database, etc.
+        break;
+
+      case 'error':
+        console.error(`Error for bot ${bot_id}:`, data.error);
+        // Handle errors, retry logic, etc.
+        break;
+
+      default:
+        console.log(`Unknown event type: ${event_type}`);
+    }
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Webhook processing error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+async function processMeetingData(meetingData: any) {
+  // Process meeting data based on your application needs
+  console.log(`Processing meeting data: ${meetingData.duration}s duration`);
+  
+  if (meetingData.mp4) {
+    console.log(`Recording available at: ${meetingData.mp4}`);
+  }
+  
+  if (meetingData.bot_data.transcripts.length > 0) {
+    console.log(`Found ${meetingData.bot_data.transcripts.length} transcripts`);
+    
+    // Process transcripts
+    meetingData.bot_data.transcripts.forEach((transcript: any) => {
+      console.log(`Speaker: ${transcript.speaker}, Words: ${transcript.words.length}`);
+    });
+  }
+}
+
+app.listen(3000, () => {
+  console.log('Webhook server running on port 3000');
+});
+```
+
+### Error Recovery and Retry Logic
+
+Advanced error handling with retry logic:
+
+```typescript
+import { createBaasClient } from "@meeting-baas/sdk";
+
+const client = createBaasClient({
+  api_key: "your-api-key",
+  timeout: 60000
+});
+
+interface RetryConfig {
+  maxAttempts: number;
+  baseDelay: number;
+  maxDelay: number;
+  backoffMultiplier: number;
+}
+
+async function retryOperation<T>(
+  operation: () => Promise<T>,
+  config: RetryConfig = {
+    maxAttempts: 3,
+    baseDelay: 1000,
+    maxDelay: 10000,
+    backoffMultiplier: 2
+  }
+): Promise<T> {
+  
+  for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      
+      if (attempt === config.maxAttempts) {
+        // throw error if last attempt
+        throw error;
+      }
+      
+      // Calculate delay with exponential backoff
+      const delay = Math.min(
+        config.baseDelay * Math.pow(config.backoffMultiplier, attempt - 1),
+        config.maxDelay
+      );
+      
+      console.log(`Attempt ${attempt} failed, retrying in ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+}
+
+async function robustBotOperation() {
+  try {
+    // Join meeting with retry logic
+    const joinResult = await retryOperation(async () => {
+      const result = await client.joinMeeting({
+        meeting_url: "https://meet.google.com/abc-def-ghi",
+        bot_name: "Robust Bot",
+        reserved: false
+      });
+
+      if (!result.success) {
+        throw new Error(result.error.message);
+      }
+
+      return result;
+    });
+
+    console.log("Bot joined successfully:", joinResult.data.bot_id);
+
+    // Monitor with retry logic
+    const meetingData = await retryOperation(async () => {
+      const result = await client.getMeetingData({
+        bot_id: joinResult.data.bot_id,
+        include_transcripts: true
+      });
+
+      if (!result.success) {
+        throw new Error(result.error.message);
+      }
+
+      if (result.data.duration === 0) {
+        throw new Error("Meeting not yet completed");
+      }
+
+      return result;
+    }, {
+      maxAttempts: 20, // More attempts for monitoring
+      baseDelay: 5000, // 5 second base delay
+      maxDelay: 30000, // Max 30 second delay
+      backoffMultiplier: 1.5
+    });
+
+    console.log("Meeting completed:", meetingData.data.duration);
+
+  } catch (error) {
+    console.error("Operation failed after all retries:", error);
+  }
+}
+```
+
+
 ---
 
-## SDK Reference
+## API Reference
 
-Complete reference of all methods and types in the Meeting BaaS TypeScript SDK
+Complete reference of all methods in the Meeting BaaS TypeScript SDK
 
 ### Source: ./content/docs/typescript-sdk/complete-reference.mdx
 
 
-## Methods
+## Client Creation
 
+### `createBaasClient`
 
-### Bots
+Creates a new Meeting BaaS client instance.
 
-
-#### `botsWithMetadata`
-
-```typescript
-botsWithMetadata(requestParameters: import("@meeting-baas/sdk/api/default-api").DefaultApiBotsWithMetadataRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `deleteData`
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `api_key` | `string` | ✅ Yes | - | Your Meeting BaaS API key. Get yours at [settings.meetingbaas.com](https://settings.meetingbaas.com/credentials) |
+| `timeout` | `number` | ❌ No | `30000` | Request timeout in milliseconds. Some requests may take longer, so we recommend setting a longer timeout if you notice timeouts |
+| `base_url` | `string` | ❌ No | `"https://api.meetingbaas.com"` | Base URL for the API (internal parameter) |
 
 ```typescript
-deleteData(options: RawAxiosRequestConfig): Promise<any>
-```
+import { createBaasClient } from "@meeting-baas/sdk";
 
-
-
-
-
-
-#### `getMeetingData`
-
-```typescript
-getMeetingData(requestParameters: import("@meeting-baas/sdk/api/default-api").DefaultApiGetMeetingDataRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-<Callout type="info">
-  Example:
-  
-  ```typescript
-  // Get meeting data
-const meetingData = await client.getMeetingData(botId);
-console.log("Meeting data:", meetingData);
-  ```
-</Callout>
-
-
-
-#### `join`
-
-```typescript
-join(requestParameters: import("@meeting-baas/sdk/api/default-api").DefaultApiJoinRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `leave`
-
-```typescript
-leave(options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `retranscribeBot`
-
-```typescript
-retranscribeBot(requestParameters: import("@meeting-baas/sdk/api/default-api").DefaultApiRetranscribeBotRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-
-### Calendars
-
-
-#### `createCalendar`
-
-```typescript
-createCalendar(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiCreateCalendarRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-<Callout type="info">
-  Example:
-  
-  ```typescript
-  // Create a calendar integration
-const calendar = await client.createCalendar({
-  oauthClientId: "your-oauth-client-id",
-  oauthClientSecret: "your-oauth-client-secret",
-  oauthRefreshToken: "your-oauth-refresh-token",
-  platform: Provider.Google,
+const client = createBaasClient({
+  api_key: "your-api-key",
+  timeout: 30000 // optional, default: 30000
 });
-  ```
-</Callout>
-
-
-
-#### `deleteCalendar`
-
-```typescript
-deleteCalendar(options: RawAxiosRequestConfig): Promise<any>
 ```
 
+**Returns:**
+- `BaasClient` instance
 
+## Bot Management Methods
 
+### `joinMeeting`
 
+Have a bot join a meeting, now or in the future.
 
+**Parameters:**
+- `params`: [JoinRequest](/docs/api/reference/join#request-body) - Join meeting configuration
 
-#### `getCalendar`
-
-```typescript
-getCalendar(options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `getEvent`
-
-```typescript
-getEvent(options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `listCalendars`
+**Returns:**
+- `success`: Boolean (true if bot joined successfully, false in case of any errors)
+- `data`: [JoinResponse](/docs/api/reference/join) - bot_id of the bot joining the meeting
+- `error`: Error, if any
 
 ```typescript
-listCalendars(options: RawAxiosRequestConfig): Promise<any>
+// Type imports
+import type { JoinRequest, JoinResponse } from "@meeting-baas/sdk";
 ```
-
-
-
-
-
-
-#### `listEvents`
 
 ```typescript
-listEvents(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiListEventsRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-<Callout type="info">
-  Example:
-  
-  ```typescript
-  // List events from a calendar
-const events = await client.listEvents(calendar.uuid, {
-  startDateGte: "2024-01-01T00:00:00Z",
-  status: "upcoming"
+// Example
+const { success, data, error } = await client.joinMeeting({
+  bot_name: "Meeting Assistant",
+  meeting_url: "https://meet.google.com/abc-def-ghi",
+  reserved: true,
+  bot_image: "https://example.com/bot-image.jpg",
+  enter_message: "Hello from the bot!",
+  extra: { custom_id: "my-meeting" },
+  recording_mode: "speaker_view",
+  speech_to_text: { provider: "Gladia" },
+  webhook_url: "https://example.com/webhook",
+  noone_joined_timeout: 300,
+  waiting_room_timeout: 600
 });
-  ```
-</Callout>
 
-
-
-#### `listRawCalendars`
-
-```typescript
-listRawCalendars(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiListRawCalendarsRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `patchBot`
-
-```typescript
-patchBot(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiPatchBotRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `resyncAllCalendars`
-
-```typescript
-resyncAllCalendars(options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `scheduleRecordEvent`
-
-```typescript
-scheduleRecordEvent(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiScheduleRecordEventRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `unscheduleRecordEvent`
-
-```typescript
-unscheduleRecordEvent(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiUnscheduleRecordEventRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `updateCalendar`
-
-```typescript
-updateCalendar(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiUpdateCalendarRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-
-
-
-## Types
-
-
-### Bots
-
-
-#### `DefaultApiBotsWithMetadataRequest`
-
-```typescript
-interface DefaultApiBotsWithMetadataRequest {
-  botName: string
-  createdAfter: string
-  createdBefore: string
-  cursor: string
-  filterByExtra: string
-  limit: number
-  meetingUrl: string
-  sortByExtra: string
-  speakerName: string
-}
-```
-
-
-
-
-#### `DefaultApiGetMeetingDataRequest`
-
-```typescript
-interface DefaultApiGetMeetingDataRequest {
-  botId: string
-}
-```
-
-
-
-
-#### `DefaultApiInterface`
-
-```typescript
-interface DefaultApiInterface {
-  
-}
-```
-
-
-
-
-#### `DefaultApiJoinRequest`
-
-```typescript
-interface DefaultApiJoinRequest {
-  joinRequest: import("@meeting-baas/sdk/models/join-request").JoinRequest
-}
-```
-
-
-
-
-#### `DefaultApiRetranscribeBotRequest`
-
-```typescript
-interface DefaultApiRetranscribeBotRequest {
-  retranscribeBody: import("@meeting-baas/sdk/models/retranscribe-body").RetranscribeBody
-}
-```
-
-
-
-
-
-### Calendars
-
-
-#### `CalendarsApiCreateCalendarRequest`
-
-```typescript
-interface CalendarsApiCreateCalendarRequest {
-  createCalendarParams: import("@meeting-baas/sdk/models/create-calendar-params").CreateCalendarParams
-}
-```
-
-
-
-
-#### `CalendarsApiInterface`
-
-```typescript
-interface CalendarsApiInterface {
-  
-}
-```
-
-
-
-
-#### `CalendarsApiListEventsRequest`
-
-```typescript
-interface CalendarsApiListEventsRequest {
-  calendarId: string
-  attendeeEmail: string
-  cursor: string
-  organizerEmail: string
-  startDateGte: string
-  startDateLte: string
-  status: string
-  updatedAtGte: string
-}
-```
-
-
-
-
-#### `CalendarsApiListRawCalendarsRequest`
-
-```typescript
-interface CalendarsApiListRawCalendarsRequest {
-  listRawCalendarsParams: import("@meeting-baas/sdk/models/list-raw-calendars-params").ListRawCalendarsParams
-}
-```
-
-
-
-
-#### `CalendarsApiPatchBotRequest`
-
-```typescript
-interface CalendarsApiPatchBotRequest {
-  botParam3: import("@meeting-baas/sdk/models/bot-param3").BotParam3
-  allOccurrences: boolean
-}
-```
-
-
-
-
-#### `CalendarsApiScheduleRecordEventRequest`
-
-```typescript
-interface CalendarsApiScheduleRecordEventRequest {
-  botParam2: import("@meeting-baas/sdk/models/bot-param2").BotParam2
-  allOccurrences: boolean
-}
-```
-
-
-
-
-#### `CalendarsApiUnscheduleRecordEventRequest`
-
-```typescript
-interface CalendarsApiUnscheduleRecordEventRequest {
-  allOccurrences: boolean
-}
-```
-
-
-
-
-#### `CalendarsApiUpdateCalendarRequest`
-
-```typescript
-interface CalendarsApiUpdateCalendarRequest {
-  updateCalendarParams: import("@meeting-baas/sdk/models/update-calendar-params").UpdateCalendarParams
-}
-```
-
-
-
-
-
-### Webhooks
-
-
-#### `GetWebhookUrlResponse`
-
-```typescript
-interface GetWebhookUrlResponse {
-  'webhook_url': string
-}
-```
-
-
-
-
-#### `PostWebhookUrlRequest`
-
-```typescript
-interface PostWebhookUrlRequest {
-  'webhookUrl': string
-}
-```
-
-
-
-
-#### `RetryWebhookQuery`
-
-```typescript
-interface RetryWebhookQuery {
-  'botUuid': string
-}
-```
-
-
-
-
-
-### Common
-
-
-#### `Account`
-
-```typescript
-interface Account {
-  'company_name': string
-  'createdAt': import("@meeting-baas/sdk/models/system-time").SystemTime
-  'email': string
-  'firstname': string
-  'id': number
-  'lastname': string
-  'phone': string
-  'status': number
-}
-```
-
-
-
-
-#### `AccountInfos`
-
-```typescript
-interface AccountInfos {
-  'account': import("@meeting-baas/sdk/models/account").Account
-}
-```
-
-
-
-
-#### `ApiKeyResponse`
-
-```typescript
-interface ApiKeyResponse {
-  'apiKey': string
-}
-```
-
-
-
-
-#### `Attendee`
-
-```typescript
-interface Attendee {
-  'email': string
-  'name': string
-}
-```
-
-
-
-
-#### `AutomaticLeaveRequest`
-
-```typescript
-interface AutomaticLeaveRequest {
-  'noone_joined_timeout': number
-  'waiting_room_timeout': number
-}
-```
-
-
-
-
-#### `BaasClientConfig`
-
-```typescript
-interface BaasClientConfig {
-  apiKey: string
-  baseUrl: string
-}
-```
-
-
-
-
-#### `Bot`
-
-```typescript
-interface Bot {
-  'bot': import("@meeting-baas/sdk/models/bot2").Bot2
-  'duration': number
-  'params': import("@meeting-baas/sdk/models/bot-param").BotParam
-}
-```
-
-
-
-
-#### `Bot2`
-
-```typescript
-interface Bot2 {
-  'accountId': number
-  'botParamId': number
-  'createdAt': string
-  'diarization_v2': boolean
-  'endedAt': string
-  'errors': string
-  'event_id': number
-  'id': number
-  'meetingUrl': string
-  'mp4_s3_path': string
-  'reserved': boolean
-  'scheduled_bot_id': number
-  'session_id': string
-  'uuid': string
-}
-```
-
-
-
-
-#### `BotData`
-
-```typescript
-interface BotData {
-  'bot': import("@meeting-baas/sdk/models/bot-with-params").BotWithParams
-  'transcripts': import("@meeting-baas/sdk/models/transcript").Transcript[]
-}
-```
-
-
-
-
-#### `BotPagined`
-
-```typescript
-interface BotPagined {
-  'bots': import("@meeting-baas/sdk/models/bot").Bot[]
-  'hasMore': boolean
-}
-```
-
-
-
-
-#### `BotParam`
-
-```typescript
-interface BotParam {
-  'bot_image': string
-  'botName': string
-  'deduplication_key': string
-  'enter_message': string
-  'extra': { [key: string]: any; }
-  'noone_joined_timeout': number
-  'recording_mode': string
-  'speech_to_text_api_key': string
-  'speech_to_text_provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
-  'streaming_audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'streaming_input': string
-  'streaming_output': string
-  'waiting_room_timeout': number
-  'webhookUrl': string
+if (success) {
+  console.log("Bot joined successfully:", data.bot_id);
+} else {
+  console.error("Error joining meeting:", error);
 }
 ```
 
+### `leaveMeeting`
 
+Have a bot leave a meeting.
 
+**Parameters:**
+- `params`: `{ uuid: string }` - Bot UUID to leave the meeting
 
-#### `BotParam2`
+**Returns:**
+- `success`: Boolean (true if bot left successfully, false in case of any errors)
+- `data`: [LeaveResponse](/docs/api/reference/leave) - Bot leave confirmation data
+- `error`: Error, if any
 
 ```typescript
-interface BotParam2 {
-  'bot_image': string
-  'botName': string
-  'deduplication_key': string
-  'enter_message': string
-  'extra': { [key: string]: any; }
-  'noone_joined_timeout': number
-  'recording_mode': string
-  'speech_to_text': import("@meeting-baas/sdk/models/speech-to-text").SpeechToText
-  'streaming_audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'streaming_input': string
-  'streaming_output': string
-  'waiting_room_timeout': number
-  'webhook_url': string
-}
+// Type imports
+import type { LeaveResponse } from "@meeting-baas/sdk";
 ```
-
-
-
 
-#### `BotParam3`
-
 ```typescript
-interface BotParam3 {
-  'bot_image': string
-  'bot_name': string
-  'deduplication_key': string
-  'enter_message': string
-  'extra': any
-  'noone_joined_timeout': number
-  'recording_mode': string
-  'speech_to_text': import("@meeting-baas/sdk/models/speech-to-text").SpeechToText
-  'streaming_audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'streaming_input': string
-  'streaming_output': string
-  'waiting_room_timeout': number
-  'webhook_url': string
-}
-```
-
+const { success, data, error } = await client.leaveMeeting({
+  uuid: "123e4567-e89b-12d3-a456-426614174000"
+});
 
-
-
-#### `BotWithParams`
-
-```typescript
-interface BotWithParams {
-  'accountId': number
-  'bot_image': string
-  'botName': string
-  'botParamId': number
-  'createdAt': string
-  'deduplication_key': string
-  'diarization_v2': boolean
-  'endedAt': string
-  'enter_message': string
-  'errors': string
-  'event_id': number
-  'extra': { [key: string]: any; }
-  'id': number
-  'meetingUrl': string
-  'mp4_s3_path': string
-  'noone_joined_timeout': number
-  'recording_mode': string
-  'reserved': boolean
-  'scheduled_bot_id': number
-  'session_id': string
-  'speech_to_text_api_key': string
-  'speech_to_text_provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
-  'streaming_audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'streaming_input': string
-  'streaming_output': string
-  'uuid': string
-  'waiting_room_timeout': number
-  'webhookUrl': string
+if (success) {
+  console.log("Bot left successfully:", data.bot_id);
+} else {
+  console.error("Error leaving meeting:", error);
 }
 ```
 
+### `getMeetingData`
 
+Get meeting recording and metadata.
 
+**Parameters:**
+- `params`: [GetMeetingDataParams](/docs/api/reference/get_meeting_data#query-parameters) - Parameters for retrieving meeting data
 
-#### `Calendar`
+**Returns:**
+- `success`: Boolean (true if meeting data retrieved successfully, false in case of any errors)
+- `data`: [Metadata](/docs/api/reference/get_meeting_data) - Meeting metadata and recording information
+- `error`: Error, if any
 
 ```typescript
-interface Calendar {
-  'email': string
-  'googleId': string
-  'name': string
-  'resource_id': string
-  'uuid': string
-}
+// Type imports
+import type { GetMeetingDataParams, Metadata } from "@meeting-baas/sdk";
 ```
-
 
-
-
-#### `CalendarListEntry`
-
 ```typescript
-interface CalendarListEntry {
-  'email': string
-  'id': string
-  'isPrimary': boolean
-}
-```
-
-
-
+const { success, data, error } = await client.getMeetingData({
+  bot_id: "123e4567-e89b-12d3-a456-426614174000",
+  include_transcripts: true
+});
 
-#### `CreateCalendarParams`
-
-```typescript
-interface CreateCalendarParams {
-  'oauthClientId': string
-  'oauthClientSecret': string
-  'oauthRefreshToken': string
-  'platform': import("@meeting-baas/sdk/models/provider").Provider
-  'raw_calendar_id': string
+if (success) {
+  console.log("Meeting duration:", data.duration);
+  console.log("MP4 URL:", data.mp4);
+  console.log("Transcript count:", data.bot_data.transcripts.length);
+} else {
+  console.error("Error getting meeting data:", error);
 }
 ```
 
+### `deleteBotData`
 
+Delete bot data permanently.
 
+**Parameters:**
+- `params`: `{ uuid: string }` - Bot UUID to delete
 
-#### `CreateCalendarResponse`
+**Returns:**
+- `success`: Boolean (true if bot data deleted successfully, false in case of any errors)
+- `data`: [DeleteResponse](/docs/api/reference/delete_data) - Deletion confirmation
+- `error`: Error, if any
 
 ```typescript
-interface CreateCalendarResponse {
-  'calendar': import("@meeting-baas/sdk/models/calendar").Calendar
-}
+// Type imports
+import type { DeleteResponse } from "@meeting-baas/sdk";
 ```
-
 
-
-
-#### `DailyTokenConsumption`
-
 ```typescript
-interface DailyTokenConsumption {
-  'consumptionByService': import("@meeting-baas/sdk/models/token-consumption-by-service").TokenConsumptionByService
-  'date': string
-}
-```
-
-
-
+const { success, data, error } = await client.deleteBotData({
+  uuid: "123e4567-e89b-12d3-a456-426614174000"
+});
 
-#### `DeleteResponse`
-
-```typescript
-interface DeleteResponse {
-  'ok': boolean
-  'status': string
+if (success) {
+  console.log("Bot data deleted successfully");
+} else {
+  console.error("Error deleting bot data:", error);
 }
 ```
 
+### `listBots`
 
+Retrieves a paginated list of the user's bots with essential metadata, including IDs, names, and meeting details.
 
+**Parameters:**
+- `params?`: [BotsWithMetadataParams](/docs/api/reference/bots_with_metadata#query-parameters) - Optional filtering and pagination parameters
 
-#### `EndMeetingQuery`
+**Returns:**
+- `success`: Boolean (true if bots retrieved successfully, false in case of any errors)
+- `data`: [ListRecentBotsResponse](/docs/api/reference/bots_with_metadata) - Paginated list of bots with metadata
+- `error`: Error, if any
 
 ```typescript
-interface EndMeetingQuery {
-  'botUuid': string
-}
+// Type imports
+import type { BotsWithMetadataParams, ListRecentBotsResponse } from "@meeting-baas/sdk";
 ```
-
 
-
-
-#### `EndMeetingTrampolineQuery`
-
 ```typescript
-interface EndMeetingTrampolineQuery {
-  'botUuid': string
-}
-```
-
-
-
+const { success, data, error } = await client.listBots({
+  limit: 10,
+  cursor: "base64-cursor-string",
+  bot_name: "Sales",
+  created_after: "2024-01-01T00:00:00Z",
+  filter_by_extra: "customer_id:12345"
+});
 
-#### `EndMeetingTrampolineRequest`
-
-```typescript
-interface EndMeetingTrampolineRequest {
-  'diarization_v2': boolean
+if (success) {
+  console.log("Bots found:", data.bots.length);
+  console.log("Has more:", data.has_more);
+} else {
+  console.error("Error listing bots:", error);
 }
 ```
 
+### `retranscribeBot`
 
+Transcribe or retranscribe a bot's audio using the Default or your provided Speech to Text Provider.
 
+**Parameters:**
+- `params`: [RetranscribeBody](/docs/api/reference/retranscribe_bot#request-body) - Retranscription configuration
 
-#### `Event`
+**Returns:**
+- `success`: Boolean (true if retranscription started successfully, false in case of any errors)
+- `error`: Error, if any
 
 ```typescript
-interface Event {
-  'attendees': import("@meeting-baas/sdk/models/attendee").Attendee[]
-  'bot_param': import("@meeting-baas/sdk/models/bot-param").BotParam
-  'calendarUuid': string
-  'deleted': boolean
-  'endTime': string
-  'googleId': string
-  'isOrganizer': boolean
-  'isRecurring': boolean
-  'lastUpdatedAt': string
-  'meetingUrl': string
-  'name': string
-  'raw': { [key: string]: any; }
-  'recurring_event_id': string
-  'startTime': string
-  'uuid': string
-}
+// Type imports
+import type { RetranscribeBody } from "@meeting-baas/sdk";
 ```
-
 
-
-
-#### `FailedRecordRequest`
-
 ```typescript
-interface FailedRecordRequest {
-  'meetingUrl': string
-  'message': string
-}
-```
-
-
-
+const { success, error } = await client.retranscribeBot({
+  bot_uuid: "123e4567-e89b-12d3-a456-426614174000",
+  speech_to_text: { provider: "Gladia" },
+  webhook_url: "https://example.com/webhook"
+});
 
-#### `GetAllBotsQuery`
-
-```typescript
-interface GetAllBotsQuery {
-  'bot_id': string
-  'end_date': string
-  'limit': number
-  'offset': number
-  'start_date': string
+if (success) {
+  console.log("Retranscription started successfully");
+} else {
+  console.error("Error starting retranscription:", error);
 }
 ```
 
+### `getScreenshots`
 
+Retrieves screenshots captured during the bot's session before it joins a meeting.
 
+**Parameters:**
+- `params`: `{ uuid: string }` - Bot UUID to retrieve screenshots for
 
-#### `GetMeetingDataQuery`
+**Returns:**
+- `success`: Boolean (true if screenshots retrieved successfully, false in case of any errors)
+- `data`: [ScreenshotsList](/docs/api/reference/get_screenshots) - Array of screenshot data
+- `error`: Error, if any
 
 ```typescript
-interface GetMeetingDataQuery {
-  'botId': string
-}
+// Type imports
+import type { ScreenshotsList } from "@meeting-baas/sdk";
 ```
-
 
-
-
-#### `GetStartedAccount`
-
 ```typescript
-interface GetStartedAccount {
-  'email': string
-  'firstname': string
-  'google_token_id': string
-  'lastname': string
-  'microsoft_token_id': string
-}
-```
-
-
-
+const { success, data, error } = await client.getScreenshots({
+  uuid: "123e4567-e89b-12d3-a456-426614174000"
+});
 
-#### `GetstartedQuery`
-
-```typescript
-interface GetstartedQuery {
-  'redirect_url': string
+if (success) {
+  console.log("Screenshots found:", data.length);
+  data.forEach(screenshot => {
+    console.log("Screenshot:", screenshot.url, "Date:", screenshot.date);
+  });
+} else {
+  console.error("Error getting screenshots:", error);
 }
 ```
-
-
 
-
-#### `JoinRequest`
-
-```typescript
-interface JoinRequest {
-  'automatic_leave': import("@meeting-baas/sdk/models/join-request-automatic-leave").JoinRequestAutomaticLeave
-  'bot_image': string
-  'botName': string
-  'deduplication_key': string
-  'entry_message': string
-  'extra': { [key: string]: any; }
-  'meetingUrl': string
-  'recording_mode': import("@meeting-baas/sdk/models/join-request-recording-mode").JoinRequestRecordingMode
-  'reserved': boolean
-  'speech_to_text': import("@meeting-baas/sdk/models/join-request-speech-to-text").JoinRequestSpeechToText
-  'start_time': number
-  'streaming': import("@meeting-baas/sdk/models/join-request-streaming").JoinRequestStreaming
-  'webhook_url': string
-}
-```
+## Calendar Management Methods
 
+### `createCalendar`
 
+Integrates a new calendar with the system using OAuth credentials. This endpoint establishes a connection with the calendar provider (Google, Microsoft), sets up webhook notifications for real-time updates, and performs an initial sync of all calendar events. It requires OAuth credentials (client ID, client secret, and refresh token) and the platform type. Once created, the calendar is assigned a unique UUID that should be used for all subsequent operations. Returns the newly created calendar object with all integration details.
 
+**Parameters:**
+- `params`: [CreateCalendarParams](/docs/api/reference/calendars/create_calendar#request-body) - Calendar integration parameters
 
-#### `JoinRequestAutomaticLeave`
+**Returns:**
+- `success`: Boolean (true if calendar created successfully, false in case of any errors)
+- `data`: [CreateCalendarResponse](/docs/api/reference/calendars/create_calendar) - Created calendar information
+- `error`: Error, if any
 
 ```typescript
-interface JoinRequestAutomaticLeave {
-  'noone_joined_timeout': number
-  'waiting_room_timeout': number
-}
+// Type imports
+import type { CreateCalendarParams, CreateCalendarResponse } from "@meeting-baas/sdk";
 ```
-
-
 
-
-#### `JoinRequestRecordingMode`
-
 ```typescript
-interface JoinRequestRecordingMode {
-  
-}
-```
+const { success, data, error } = await client.createCalendar({
+  oauth_client_id: "your-oauth-client-id",
+  oauth_client_secret: "your-oauth-client-secret",
+  oauth_refresh_token: "your-oauth-refresh-token",
+  platform: "Google",
+  raw_calendar_id: "optional-calendar-id"
+});
 
-
-
-
-#### `JoinRequestScheduled`
-
-```typescript
-interface JoinRequestScheduled {
-  'botParamId': number
-  'meetingUrl': string
-  'scheduleOrigin': import("@meeting-baas/sdk/models/schedule-origin").ScheduleOrigin
+if (success) {
+  console.log("Calendar created:", data.calendar.name);
+  console.log("Calendar UUID:", data.calendar.uuid);
+} else {
+  console.error("Error creating calendar:", error);
 }
 ```
 
+### `listCalendars`
 
+Retrieves all calendars that have been integrated with the system for the authenticated user. Returns a list of calendars with their names, email addresses, provider information, and sync status. This endpoint shows only calendars that have been formally connected through the create_calendar endpoint, not all available calendars from the provider.
 
+**Parameters:**
+- None
 
-#### `JoinRequestSpeechToText`
+**Returns:**
+- `success`: Boolean (true if calendars retrieved successfully, false in case of any errors)
+- `data`: [Calendar[]](/docs/api/reference/calendars/list_calendars) - Array of integrated calendars
+- `error`: Error, if any
 
 ```typescript
-interface JoinRequestSpeechToText {
-  'api_key': string
-  'provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
-}
+// Type imports
+import type { Calendar } from "@meeting-baas/sdk";
 ```
-
-
 
-
-#### `JoinRequestStreaming`
-
 ```typescript
-interface JoinRequestStreaming {
-  'audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'input': string
-  'output': string
-}
-```
-
-
-
-
-#### `JoinResponse`
+const { success, data, error } = await client.listCalendars();
 
-```typescript
-interface JoinResponse {
-  'botId': string
+if (success) {
+  console.log("Calendars found:", data.length);
+  data.forEach(calendar => {
+    console.log("Calendar:", calendar.name, "Email:", calendar.email);
+  });
+} else {
+  console.error("Error listing calendars:", error);
 }
 ```
 
+### `getCalendar`
 
+Retrieves detailed information about a specific calendar integration by its UUID. Returns comprehensive calendar data including the calendar name, email address, provider details (Google, Microsoft), sync status, and other metadata. This endpoint is useful for displaying calendar information to users or verifying the status of a calendar integration before performing operations on its events.
 
+**Parameters:**
+- `params`: `{ uuid: string }` - Calendar UUID to retrieve
 
-#### `JoinResponse2`
+**Returns:**
+- `success`: Boolean (true if calendar retrieved successfully, false in case of any errors)
+- `data`: [Calendar](/docs/api/reference/calendars/get_calendar) - Calendar details
+- `error`: Error, if any
 
 ```typescript
-interface JoinResponse2 {
-  'botId': string
-}
+// Type imports
+import type { Calendar } from "@meeting-baas/sdk";
 ```
-
-
 
-
-#### `LeaveResponse`
-
 ```typescript
-interface LeaveResponse {
-  'ok': boolean
-}
-```
+const { success, data, error } = await client.getCalendar({
+  uuid: "123e4567-e89b-12d3-a456-426614174000"
+});
 
-
-
-
-#### `ListEventResponse`
-
-```typescript
-interface ListEventResponse {
-  'data': import("@meeting-baas/sdk/models/event").Event[]
-  'next': string
+if (success) {
+  console.log("Calendar details:", data);
+} else {
+  console.error("Error getting calendar:", error);
 }
 ```
 
+### `updateCalendar`
 
+Updates a calendar integration with new credentials or platform while maintaining the same UUID. This operation is performed as an atomic transaction to ensure data integrity. The system automatically unschedules existing bots to prevent duplicates, updates the calendar credentials, and triggers a full resync of all events. Useful when OAuth tokens need to be refreshed or when migrating a calendar between providers. Returns the updated calendar object with its new configuration.
 
+**Parameters:**
+- `params`: `{ uuid: string; body: [UpdateCalendarParams](/docs/api/reference/calendars/update_calendar#request-body) }` - Calendar UUID and update parameters
 
-#### `ListRawCalendarsParams`
+**Returns:**
+- `success`: Boolean (true if calendar updated successfully, false in case of any errors)
+- `data`: [CreateCalendarResponse](/docs/api/reference/calendars/update_calendar) - Updated calendar information
+- `error`: Error, if any
 
 ```typescript
-interface ListRawCalendarsParams {
-  'oauthClientId': string
-  'oauthClientSecret': string
-  'oauthRefreshToken': string
-  'platform': import("@meeting-baas/sdk/models/provider").Provider
-}
+// Type imports
+import type { UpdateCalendarParams, CreateCalendarResponse } from "@meeting-baas/sdk";
 ```
-
-
 
-
-#### `ListRawCalendarsResponse`
-
 ```typescript
-interface ListRawCalendarsResponse {
-  'calendars': import("@meeting-baas/sdk/models/calendar-list-entry").CalendarListEntry[]
-}
-```
-
-
-
-
-#### `ListRecentBotsQuery`
+const { success, data, error } = await client.updateCalendar({
+  uuid: "123e4567-e89b-12d3-a456-426614174000",
+  body: {
+    oauth_client_id: "new-oauth-client-id",
+    oauth_client_secret: "new-oauth-client-secret",
+    oauth_refresh_token: "new-oauth-refresh-token",
+    platform: "Google"
+  }
+});
 
-```typescript
-interface ListRecentBotsQuery {
-  'bot_name': string
-  'created_after': string
-  'created_before': string
-  'cursor': string
-  'filter_by_extra': string
-  'limit': number
-  'meeting_url': string
-  'sort_by_extra': string
-  'speaker_name': string
+if (success) {
+  console.log("Calendar updated successfully");
+} else {
+  console.error("Error updating calendar:", error);
 }
 ```
 
+### `deleteCalendar`
 
+Permanently removes a calendar integration by its UUID, including all associated events and bot configurations. This operation cancels any active subscriptions with the calendar provider, stops all webhook notifications, and unschedules any pending recordings. All related resources are cleaned up in the database. This action cannot be undone, and subsequent requests to this calendar's UUID will return 404 Not Found errors.
 
+**Parameters:**
+- `params`: `{ uuid: string }` - Calendar UUID to delete
 
-#### `ListRecentBotsResponse`
+**Returns:**
+- `success`: Boolean (true if calendar deleted successfully, false in case of any errors)
+- `error`: Error, if any
 
 ```typescript
-interface ListRecentBotsResponse {
-  'lastUpdated': string
-  'next_cursor': string
-  'recentBots': import("@meeting-baas/sdk/models/recent-bot-entry").RecentBotEntry[]
-}
-```
-
+const { success, error } = await client.deleteCalendar({
+  uuid: "123e4567-e89b-12d3-a456-426614174000"
+});
 
-
-
-#### `LoginAccount`
-
-```typescript
-interface LoginAccount {
-  'app_signin_token': string
-  'google_chrome_token_id': string
-  'google_token_id': string
-  'microsoft_token_id': string
-  'password': string
-  'pseudo': string
+if (success) {
+  console.log("Calendar deleted successfully");
+} else {
+  console.error("Error deleting calendar:", error);
 }
 ```
 
+### `getCalendarEvent`
 
+Retrieves comprehensive details about a specific calendar event by its UUID. Returns complete event information including title, meeting link, start and end times, organizer status, recurrence information, and the full list of attendees with their names and email addresses. Also includes any associated bot parameters if recording is scheduled for this event. The raw calendar data from the provider is also included for advanced use cases.
 
+**Parameters:**
+- `params`: `{ uuid: string }` - Event UUID to retrieve
 
-#### `LoginQuery`
+**Returns:**
+- `success`: Boolean (true if event retrieved successfully, false in case of any errors)
+- `data`: [Event](/docs/api/reference/calendars/get_event) - Event details
+- `error`: Error, if any
 
 ```typescript
-interface LoginQuery {
-  'redirect_url': string
-}
+// Type imports
+import type { Event } from "@meeting-baas/sdk";
 ```
-
-
-
 
-#### `Metadata`
-
 ```typescript
-interface Metadata {
-  'botData': import("@meeting-baas/sdk/models/bot-data").BotData
-  'contentDeleted': boolean
-  'duration': number
-  'mp4': string
-}
-```
-
+const { success, data, error } = await client.getCalendarEvent({
+  uuid: "123e4567-e89b-12d3-a456-426614174000"
+});
 
-
-
-#### `QueryListEvent`
-
-```typescript
-interface QueryListEvent {
-  'attendee_email': string
-  'calendarId': string
-  'cursor': string
-  'organizer_email': string
-  'start_date_gte': string
-  'start_date_lte': string
-  'status': string
-  'updated_at_gte': string
+if (success) {
+  console.log("Event:", data.name);
+  console.log("Start time:", data.start_time);
+  console.log("Meeting URL:", data.meeting_url);
+  console.log("Attendees:", data.attendees.length);
+} else {
+  console.error("Error getting event:", error);
 }
 ```
 
+### `scheduleCalendarRecordEvent`
 
+Configures a bot to automatically join and record a specific calendar event at its scheduled time. The request body contains detailed bot configuration, including recording options, streaming settings, and webhook notification URLs. For recurring events, the 'all_occurrences' parameter can be set to true to schedule recording for all instances of the recurring series, or false (default) to schedule only the specific instance. Returns the updated event(s) with the bot parameters attached.
 
+**Parameters:**
+- `params`: `{` uuid: string; body: [BotParam2](/docs/api/reference/calendars/schedule_record_event#request-body); query?: [ScheduleRecordEventParams](/docs/api/reference/calendars/schedule_record_event#query-parameters) `}` - Event UUID, bot configuration, and optional query parameters
 
-#### `QueryPatchRecordEvent`
+**Returns:**
+- `success`: Boolean (true if recording scheduled successfully, false in case of any errors)
+- `data`: [Event[]](/docs/api/reference/calendars/schedule_record_event) - Array of scheduled events
+- `error`: Error, if any
 
 ```typescript
-interface QueryPatchRecordEvent {
-  'all_occurrences': boolean
-}
+// Type imports
+import type { BotParam2, ScheduleRecordEventParams, Event } from "@meeting-baas/sdk";
 ```
-
-
-
 
-#### `QueryScheduleRecordEvent`
-
 ```typescript
-interface QueryScheduleRecordEvent {
-  'all_occurrences': boolean
-}
-```
-
+const { success, data, error } = await client.scheduleCalendarRecordEvent({
+  uuid: "123e4567-e89b-12d3-a456-426614174000",
+  body: {
+    bot_name: "Event Recording Bot",
+    extra: { event_id: "my-event-123" },
+    recording_mode: "speaker_view",
+    speech_to_text: { provider: "Gladia" },
+    webhook_url: "https://example.com/webhook",
+    enter_message: "Hello! I'm here to record this meeting."
+  },
+  query: { all_occurrences: true }
+});
 
-
-
-#### `QueryUnScheduleRecordEvent`
-
-```typescript
-interface QueryUnScheduleRecordEvent {
-  'all_occurrences': boolean
+if (success) {
+  console.log("Recording scheduled successfully");
+} else {
+  console.error("Error scheduling recording:", error);
 }
 ```
 
+### `unscheduleCalendarRecordEvent`
 
+Cancels a previously scheduled recording for a calendar event and releases associated bot resources. For recurring events, the 'all_occurrences' parameter controls whether to unschedule from all instances of the recurring series or just the specific occurrence. This operation is idempotent and will not error if no bot was scheduled. Returns the updated event(s) with the bot parameters removed.
 
+**Parameters:**
+- `params`: `{` uuid: string; query?: [UnscheduleRecordEventParams](/docs/api/reference/calendars/unschedule_record_event#query-parameters) `}` - Event UUID and optional query parameters
 
-#### `ReceivedMessageQuery`
+**Returns:**
+- `success`: Boolean (true if recording unscheduled successfully, false in case of any errors)
+- `data`: [Event[]](/docs/api/reference/calendars/unschedule_record_event) - Array of unscheduled events
+- `error`: Error, if any
 
 ```typescript
-interface ReceivedMessageQuery {
-  'sessionId': string
-}
+// Type imports
+import type { UnscheduleRecordEventParams, Event } from "@meeting-baas/sdk";
 ```
-
-
-
 
-#### `RecentBotEntry`
-
 ```typescript
-interface RecentBotEntry {
-  'access_count': number
-  'contentDeleted': boolean
-  'createdAt': string
-  'duration': number
-  'ended_at': string
-  'extra': { [key: string]: any; }
-  'id': string
-  'last_accessed_at': string
-  'meetingUrl': string
-  'name': string
-  'session_id': string
-  'speakers': string[]
-}
-```
-
+const { success, data, error } = await client.unscheduleCalendarRecordEvent({
+  uuid: "123e4567-e89b-12d3-a456-426614174000",
+  query: { all_occurrences: true }
+});
 
-
-
-#### `RecognizerWord`
-
-```typescript
-interface RecognizerWord {
-  'endTime': number
-  'startTime': number
-  'text': string
-  'user_id': number
+if (success) {
+  console.log("Recording unscheduled successfully");
+} else {
+  console.error("Error unscheduling recording:", error);
 }
 ```
 
+### `patchBot`
 
+Updates the configuration of a bot already scheduled to record an event. Allows modification of recording settings, webhook URLs, and other bot parameters without canceling and recreating the scheduled recording. For recurring events, the 'all_occurrences' parameter determines whether changes apply to all instances or just the specific occurrence. Returns the updated event(s) with the modified bot parameters.
 
+**Parameters:**
+- `params`: `{` uuid: string; body: [BotParam3](/docs/api/reference/calendars/patch_bot#request-body); query?: [PatchBotParams](/docs/api/reference/calendars/patch_bot#query-parameters) `}` - Event UUID, bot configuration updates, and optional query parameters
 
-#### `ResyncAllCalendarsResponse`
+**Returns:**
+- `success`: Boolean (true if bot configuration updated successfully, false in case of any errors)
+- `data`: [Event[]](/docs/api/reference/calendars/patch_bot) - Array of updated events
+- `error`: Error, if any
 
 ```typescript
-interface ResyncAllCalendarsResponse {
-  'errors': any[][]
-  'syncedCalendars': string[]
-}
+// Type imports
+import type { BotParam3, PatchBotParams, Event } from "@meeting-baas/sdk";
 ```
-
-
-
 
-#### `ResyncAllResponse`
-
 ```typescript
-interface ResyncAllResponse {
-  'errors': any[][]
-  'syncedCalendars': string[]
-}
-```
-
+const { success, data, error } = await client.patchBot({
+  uuid: "123e4567-e89b-12d3-a456-426614174000",
+  body: {
+    bot_name: "Updated Bot Name",
+    enter_message: "Updated enter message",
+    webhook_url: "https://new-webhook.com/webhook"
+  },
+  query: { all_occurrences: false }
+});
 
-
-
-#### `RetranscribeBody`
-
-```typescript
-interface RetranscribeBody {
-  'botUuid': string
-  'speech_to_text': import("@meeting-baas/sdk/models/speech-to-text").SpeechToText
-  'webhook_url': string
+if (success) {
+  console.log("Bot configuration updated successfully");
+} else {
+  console.error("Error updating bot configuration:", error);
 }
 ```
 
+### `listCalendarEvents`
 
+Retrieves a paginated list of calendar events with comprehensive filtering options. Supports filtering by organizer email, attendee email, date ranges (start_date_gte, start_date_lte), and event status. Results can be limited to upcoming events (default), past events, or all events. Each event includes full details such as meeting links, participants, and recording status. The response includes a 'next' pagination cursor for retrieving additional results.
 
+**Parameters:**
+- `query`: [ListEventsParams](/docs/api/reference/calendars/list_events#query-parameters) - Filtering and pagination parameters
 
-#### `ScheduleOriginOneOf`
+**Returns:**
+- `success`: Boolean (true if events retrieved successfully, false in case of any errors)
+- `data`: [ListEventResponse](/docs/api/reference/calendars/list_events) - Paginated list of events
+- `error`: Error, if any
 
 ```typescript
-interface ScheduleOriginOneOf {
-  'Event': import("@meeting-baas/sdk/models/schedule-origin-one-of-event").ScheduleOriginOneOfEvent
-}
+// Type imports
+import type { ListEventsParams, ListEventResponse } from "@meeting-baas/sdk";
 ```
-
-
-
 
-#### `ScheduleOriginOneOf1`
-
 ```typescript
-interface ScheduleOriginOneOf1 {
-  'ScheduledBot': import("@meeting-baas/sdk/models/schedule-origin-one-of-event").ScheduleOriginOneOfEvent
-}
-```
-
+const { success, data, error } = await client.listCalendarEvents({
+  calendar_id: "123e4567-e89b-12d3-a456-426614174000",
+  start_date_gte: "2024-01-01T00:00:00Z",
+  start_date_lte: "2024-12-31T23:59:59Z",
+  status: "upcoming",
+  attendee_email: "user@example.com",
+  organizer_email: "organizer@example.com"
+});
 
-
-
-#### `ScheduleOriginOneOfEvent`
-
-```typescript
-interface ScheduleOriginOneOfEvent {
-  'id': number
+if (success) {
+  console.log("Events found:", data.events.length);
+  console.log("Next cursor:", data.next);
+} else {
+  console.error("Error listing events:", error);
 }
 ```
 
+### `resyncAllCalendars`
 
+Triggers a full resync of all calendar events for all integrated calendars. This operation is useful when you need to ensure that all calendar data is up-to-date in the system. It will re-fetch all events from the calendar providers and update the system's internal state. Returns a response indicating the status of the resync operation.
 
+**Parameters:**
+- None
 
-#### `SpeechToText`
+**Returns:**
+- `success`: Boolean (true if calendars resynced successfully, false in case of any errors)
+- `data`: [ResyncAllResponse](/docs/api/reference/calendars/resync_all) - Resync results and any errors
+- `error`: Error, if any
 
 ```typescript
-interface SpeechToText {
-  'api_key': string
-  'provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
-}
+// Type imports
+import type { ResyncAllResponse } from "@meeting-baas/sdk";
 ```
-
-
-
 
-#### `SpeechToTextApiParameter`
-
 ```typescript
-interface SpeechToTextApiParameter {
-  'api_key': string
-  'provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
-}
-```
-
+const { success, data, error } = await client.resyncAllCalendars();
 
-
-
-#### `StartRecordFailedQuery`
-
-```typescript
-interface StartRecordFailedQuery {
-  'bot_uuid': string
+if (success) {
+  console.log("Calendars synced:", data.synced_calendars.length);
+  if (data.errors.length > 0) {
+    console.log("Sync errors:", data.errors);
+  }
+} else {
+  console.error("Error resyncing calendars:", error);
 }
 ```
 
+### `listRawCalendars`
 
+Retrieves unprocessed calendar data directly from the provider (Google, Microsoft) using provided OAuth credentials. This endpoint is typically used during the initial setup process to allow users to select which calendars to integrate. Returns a list of available calendars with their unique IDs, email addresses, and primary status. This data is not persisted until a calendar is formally created using the create_calendar endpoint.
 
+**Parameters:**
+- `params`: [ListRawCalendarsParams](/docs/api/reference/calendars/list_raw_calendars#request-body) - OAuth credentials and platform
 
-#### `StreamingApiParameter`
+**Returns:**
+- `success`: Boolean (true if raw calendars retrieved successfully, false in case of any errors)
+- `data`: [ListRawCalendarsResponse](/docs/api/reference/calendars/list_raw_calendars) - Raw calendar data from provider
+- `error`: Error, if any
 
 ```typescript
-interface StreamingApiParameter {
-  'audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'input': string
-  'output': string
-}
+// Type imports
+import type { ListRawCalendarsParams, ListRawCalendarsResponse } from "@meeting-baas/sdk";
 ```
-
-
-
 
-#### `SyncResponse`
-
 ```typescript
-interface SyncResponse {
-  'affected_event_uuids': string[]
-  'has_updates': string
-}
-```
-
+const { success, data, error } = await client.listRawCalendars({
+  oauth_client_id: "your-oauth-client-id",
+  oauth_client_secret: "your-oauth-client-secret",
+  oauth_refresh_token: "your-oauth-refresh-token",
+  platform: "Google"
+});
 
-
-
-#### `SystemTime`
-
-```typescript
-interface SystemTime {
-  'nanosSinceEpoch': number
-  'secsSinceEpoch': number
+if (success) {
+  console.log("Raw calendars found:", data.calendars.length);
+  data.calendars.forEach(calendar => {
+    console.log("Calendar:", calendar.email, "Primary:", calendar.is_primary);
+  });
+} else {
+  console.error("Error listing raw calendars:", error);
 }
 ```
-
-
-
-
-#### `TokenConsumptionByService`
 
-```typescript
-interface TokenConsumptionByService {
-  'duration': string
-  'recordingTokens': string
-  'streamingInputHour': string
-  'streamingInputTokens': string
-  'streamingOutputHour': string
-  'streamingOutputTokens': string
-  'transcriptionByokHour': string
-  'transcriptionByokTokens': string
-  'transcriptionHour': string
-  'transcriptionTokens': string
-}
-```
+## Webhook Methods
 
+### `getWebhookDocumentation`
 
+Retrieves the full documentation for the webhook events that Meeting BaaS sends to your webhook URL. This includes all event types, their payload structures, and any additional metadata. Useful for developers to understand and integrate webhook functionality into their applications.
 
+**Parameters:**
+- None
 
-#### `TokenConsumptionQuery`
+**Returns:**
+- `success`: Boolean (true if documentation retrieved successfully, false in case of any errors)
+- `data`: [Webhook documentation data](/docs/api/reference/webhooks/webhook_documentation#webhook-event-types)
+- `error`: Error, if any
 
 ```typescript
-interface TokenConsumptionQuery {
-  'endDate': string
-  'startDate': string
-}
-```
-
-
-
+const { success, data, error } = await client.getWebhookDocumentation();
 
-#### `Transcript`
-
-```typescript
-interface Transcript {
-  'botId': number
-  'end_time': number
-  'id': number
-  'lang': string
-  'speaker': string
-  'startTime': number
-  'user_id': number
-  'words': import("@meeting-baas/sdk/models/word").Word[]
+if (success) {
+  console.log("Webhook documentation:", data);
+} else {
+  console.error("Error getting webhook documentation:", error);
 }
 ```
 
+### `getBotWebhookDocumentation`
 
+Retrieves the full documentation for the webhook events that Meeting BaaS sends to your webhook URL for a specific bot. This includes all event types, their payload structures, and any additional metadata. Useful for developers to understand and integrate webhook functionality into their applications.
 
+**Parameters:**
+- None
 
-#### `Transcript2`
+**Returns:**
+- `success`: Boolean (true if documentation retrieved successfully, false in case of any errors)
+- `data`: [Bot webhook documentation data](/docs/api/reference/webhooks/bot_webhook_documentation#bot-webhook-event-types)
+- `error`: Error, if any
 
 ```typescript
-interface Transcript2 {
-  'botId': number
-  'end_time': number
-  'lang': string
-  'speaker': string
-  'startTime': number
-  'user_id': number
-}
-```
-
-
-
-
-#### `Transcript3`
+const { success, data, error } = await client.getBotWebhookDocumentation();
 
-```typescript
-interface Transcript3 {
-  'botId': number
-  'end_time': number
-  'id': number
-  'lang': string
-  'speaker': string
-  'startTime': number
-  'user_id': number
+if (success) {
+  console.log("Bot Webhook documentation:", data);
+} else {
+  console.error("Error getting bot webhook documentation:", error);
 }
 ```
 
+### `getCalendarWebhookDocumentation`
 
+Retrieves the full documentation for the webhook events that Meeting BaaS sends to your webhook URL for a specific calendar. This includes all event types, their payload structures, and any additional metadata. Useful for developers to understand and integrate webhook functionality into their applications.
 
+**Parameters:**
+- None
 
-#### `Transcript4`
+**Returns:**
+- `success`: Boolean (true if documentation retrieved successfully, false in case of any errors)
+- `data`: [Calendar webhook documentation data](/docs/api/reference/webhooks/calendar_webhook_documentation#calendar-webhook-event-types)
+- `error`: Error, if any
 
 ```typescript
-interface Transcript4 {
-  'bot_id': number
-  'end_time': number
-  'id': number
-  'lang': string
-  'speaker': string
-  'start_time': number
-  'user_id': number
+const { success, data, error } = await client.getCalendarWebhookDocumentation();
+
+if (success) {
+  console.log("Calendar Webhook documentation:", data);
+} else {
+  console.error("Error getting calendar webhook documentation:", error);
 }
 ```
-
-
 
+## Response Types
 
-#### `UpdateCalendarParams`
+All SDK methods return a discriminated union response:
 
 ```typescript
-interface UpdateCalendarParams {
-  'oauthClientId': string
-  'oauthClientSecret': string
-  'oauthRefreshToken': string
-  'platform': import("@meeting-baas/sdk/models/provider").Provider
-}
+type ApiResponse<T> = 
+  | { success: true; data: T; error?: never }
+  | { success: false; error: ZodError | Error; data?: never }
 ```
 
+### Success Response
+When `success` is `true`, the response contains:
+- `data`: The actual response data of type `T`
+- `error`: Never present
 
+### Error Response
+When `success` is `false`, the response contains:
+- `error`: Either a `ZodError` (validation error) or `Error` (API error)
+- `data`: Never present
 
+## Error Handling
 
-#### `UserTokensResponse`
+The SDK provides type-safe error handling:
 
 ```typescript
-interface UserTokensResponse {
-  'availableTokens': string
-  'last_purchase_date': string
-  'totalTokensPurchased': string
-}
-```
-
+import { ZodError } from "zod";
 
+const result = await client.joinMeeting({
+  meeting_url: "https://meet.google.com/abc-def-ghi",
+  bot_name: "My Bot"
+});
 
-
-#### `Version`
-
-```typescript
-interface Version {
-  'buildDate': string
-  'buildTimestamp': string
-  'location': string
+if (result.success) {
+  // TypeScript knows result.data is JoinResponse
+  console.log("Bot ID:", result.data.bot_id);
+} else {
+  // TypeScript knows result.error is ZodError | Error
+  if (result.error instanceof ZodError) {
+    console.error("Validation error:", result.error.errors);
+  } else {
+    console.error("API error:", result.error.message);
+  }
 }
 ```
-
 
+## TypeScript Support
 
+The SDK provides full TypeScript support with generated types from the OpenAPI specification:
 
-#### `Word`
-
 ```typescript
-interface Word {
-  'botId': number
-  'endTime': number
-  'id': number
-  'startTime': number
-  'text': string
-  'user_id': number
-}
-```
+import type { 
+  JoinRequest, 
+  JoinResponse, 
+  CreateCalendarParams,
+  BotParam2,
+  Metadata 
+} from "@meeting-baas/sdk";
 
-
+// All types are available for advanced usage
+const joinParams: JoinRequest = {
+  meeting_url: "https://meet.google.com/abc-def-ghi",
+  bot_name: "My Bot",
+  reserved: false
+};
+```
 
+## Related Documentation
 
+- **[Getting Started](/docs/typescript-sdk/getting-started)** - Quick setup guide
+- **[Quick Start](/docs/typescript-sdk/quick-start)** - Comprehensive usage examples
+- **[Integration Guide](/docs/typescript-sdk/integration)** - Advanced integration patterns
+- **[MCP Tools](/docs/typescript-sdk/mpc-tools)** - Using with Model Context Protocol
+- **[Advanced Examples](/docs/typescript-sdk/advanced-examples)** - Complex use cases
 
 
 ---
@@ -1728,11 +1373,11 @@ yarn add @meeting-baas/sdk
 Create a new instance of the BaaS client with your API key:
 
 ```typescript
-import { BaasClient } from "@meeting-baas/sdk";
+import { createBaasClient } from "@meeting-baas/sdk";
 
 // Create a BaaS client
-const client = new BaasClient({
-  apiKey: "your-api-key", // Get yours at https://meetingbaas.com
+const client = createBaasClient({
+  api_key: "your-api-key", // Get yours at https://meetingbaas.com
 });
 ```
 
@@ -1743,45 +1388,41 @@ const client = new BaasClient({
 </Step>
 
 <Step>
-### Join a Meeting
+### Invoke Meeting BaaS methods
 
-Use the client to join a meeting with a bot:
+With this client instance created, you can call Meeting BaaS methods, such as:
 
 ```typescript
 // Join a meeting
-const botId = await client.joinMeeting({
-  botName: "Meeting Assistant",
-  meetingUrl: "https://meet.google.com/abc-def-ghi",
+const { success, data, error } = await client.joinMeeting({
+  bot_name: "Meeting Assistant",
+  meeting_url: "https://meet.google.com/abc-def-ghi",
   reserved: true,
 });
 
-// Get meeting data
-const meetingData = await client.getMeetingData(botId);
-console.log("Meeting data:", meetingData);
+if (success) {
+  console.log("Bot joined successfully:", data.bot_id);
+} else {
+  console.error("Error joining meeting:", error);
+}
 ```
-
-</Step>
-
-<Step>
-### Handle Webhooks
-
-Set up webhook handling to receive real-time updates about your meetings:
 
 ```typescript
-// Set up webhook handling
-client.on("complete", (data) => {
-  console.log("Meeting completed:", data);
+// Leave a meeting
+const { success, data, error } = await client.leaveMeeting({
+  uuid: "123e4567-e89b-12d3-a456-426614174000"
 });
 
-client.on("failed", (data) => {
-  console.log("Meeting failed:", data);
-});
+if (success) {
+  console.log("Bot left the meeting successfully:", data.bot_id);
+} else {
+  console.error("Error leaving meeting:", error);
+}
 ```
-
-For more information about webhooks, see the [Webhooks documentation](/docs/typescript-sdk/reference/webhooks).
 
 </Step>
 </Steps> 
+
 
 ---
 
@@ -1797,14 +1438,44 @@ Get started with the Meeting BaaS TypeScript SDK
   see [LLMs](../llms/sdk) and for MCP access, visit [auth.meetingbaas.com](https://auth.meetingbaas.com/home).
 </Callout>
 
+<Callout type="warn">
+  **New in v5.0.0**: Complete architectural redesign with improved TypeScript support, better error handling, and enhanced developer experience. 
+  If you're upgrading from v4.x, see our [Migration Guide](https://github.com/Meeting-BaaS/sdk-generator/blob/main/MIGRATION.md) for detailed upgrade instructions.
+</Callout>
+
 ## Introduction
 
 The **Meeting BaaS SDK** is the officially supported TypeScript package that empowers developers to integrate with the Meeting BaaS API - the universal interface for automating meetings across Google Meet, Zoom, and Microsoft Teams. This SDK provides:
 
-- Complete type safety with comprehensive TypeScript definitions
-- Automatic updates synced with our OpenAPI specification
-- Simplified access to all meeting automation capabilities
-- Cross-platform consistency for all supported meeting providers
+- **Complete type safety** with comprehensive TypeScript definitions and discriminated union responses
+- **Automatic parameter validation** using Zod schemas for all API calls
+- **Simplified error handling** with no try/catch required for API errors
+- **Tree-shakeable client** for optimized bundle sizes
+- **Cross-platform consistency** for all supported meeting providers
+
+## Quick Example
+
+```typescript
+import { createBaasClient } from "@meeting-baas/sdk";
+
+// Create a client
+const client = createBaasClient({
+  api_key: "your-api-key", // Get yours at https://meetingbaas.com
+});
+
+// Join a meeting with type-safe error handling
+const { success, data, error } = await client.joinMeeting({
+  bot_name: "Meeting Assistant",
+  meeting_url: "https://meet.google.com/abc-def-ghi",
+  reserved: true,
+});
+
+if (success) {
+  console.log("Bot joined successfully:", data.bot_id);
+} else {
+  console.error("Error joining meeting:", error);
+}
+```
 
 <Cards>
   <Card title="GitHub Repository" icon={<Github className="text-gray-400" />} href="https://github.com/Meeting-Baas/sdk-generator">
@@ -1818,56 +1489,59 @@ The **Meeting BaaS SDK** is the officially supported TypeScript package that emp
 ## Features
 
 <Cards>
-  <Card title="BaaS API Client" icon={<Code className="text-blue-400" />}>
-    Strongly typed functions for interacting with the complete Meeting BaaS API,
-    providing access to all endpoints with full TypeScript support.
+  <Card title="Type-Safe API Client" icon={<Code className="text-blue-400" />}>
+    Factory-based client creation with discriminated union responses for type-safe error handling.
+    All parameters automatically validated using Zod schemas.
   </Card>
   <Card title="Bot Management" icon={<Bot className="text-green-400" />}>
     Create, join, and manage meeting bots across platforms including Google
-    Meet, Zoom, and Microsoft Teams.
+    Meet, Zoom, and Microsoft Teams with comprehensive lifecycle management.
   </Card>
   <Card
     title="Calendar Integration"
     icon={<Calendar className="text-purple-400" />}
   >
     Connect calendars and automatically schedule meeting recordings with support
-    for multiple providers.
+    for Google Calendar and Microsoft Outlook integration.
   </Card>
   <Card
     title="Complete API Coverage"
     icon={<CheckCircle className="text-teal-400" />}
   >
     Access to all Meeting BaaS API endpoints with consistent, well-documented
-    interfaces.
+    interfaces and automatic code generation from OpenAPI specification.
   </Card>
   <Card
-    title="TypeScript Support"
+    title="Enhanced TypeScript Support"
     icon={<FileType className="text-orange-400" />}
   >
-    Full TypeScript definitions for all APIs, including request/response types
-    and error handling.
+    Full TypeScript definitions for all APIs, including request/response types,
+    discriminated union responses, and comprehensive error handling.
   </Card>
   <Card
-    title="MPC Tool Integration"
+    title="Flexible MCP Integration"
     icon={<Wrench className="text-yellow-400" />}
   >
-    Pre-generated MPC tools for easy integration with AI systems and simple
-    registration process.
+    Use SDK functions directly in your MCP tool handlers for complete control over
+    schemas, descriptions, and error handling in your Model Context Protocol servers.
   </Card>
-  <Card title="CLI Interface" icon={<Terminal className="text-red-400" />}>
-    Command-line tools included for common operations and quick testing.
+  <Card title="Node.js Compatibility" icon={<ShieldCheck className="text-red-400" />}>
+    Compatible and tested with Node.js versions 18, 19, 20, 21, and 22.
+    Comprehensive test coverage across all supported versions.
   </Card>
   <Card
-    title="Automatic Tool Generation"
+    title="Automated Updates"
     icon={<Cog className="text-indigo-400" />}
   >
-    MPC tools automatically generated for all SDK methods, ensuring consistency.
+    SDK automatically stays up-to-date with API changes through daily automated
+    workflows. No manual intervention required.
   </Card>
   <Card
-    title="Combined Package Mode"
+    title="Tree-Shakeable Bundle"
     icon={<Package className="text-pink-400" />}
   >
-    Special optimized bundle available for MPC server installations.
+    Optimized bundle with tree shaking capabilities. Only import and ship the
+    methods you actually use in your application.
   </Card>
 </Cards>
 
@@ -1876,20 +1550,27 @@ The **Meeting BaaS SDK** is the officially supported TypeScript package that emp
 <Cards>
   <Card
     title="Getting Started"
-    icon={<Zap />}
+    icon={<Download />}
     href="/docs/typescript-sdk/getting-started"
   >
     Quick start guide with installation and basic usage examples.
   </Card>
   <Card
-    title="API Reference"
-    icon={<FileText />}
-    href="/docs/typescript-sdk/reference"
+    title="Quick Start"
+    icon={<Zap />}
+    href="/docs/typescript-sdk/quick-start"
   >
-    Complete API documentation for all SDK methods and types.
+    Comprehensive guide with advanced examples and integration patterns.
   </Card>
   <Card
-    title="MPC Tools"
+    title="Integration"
+    icon={<FileText />}
+    href="/docs/typescript-sdk/integration"
+  >
+    Learn how to integrate the Meeting BaaS SDK with your applications and MCP servers.
+  </Card>
+  <Card
+    title="MCP Tools"
     icon={<Wrench />}
     href="/docs/typescript-sdk/mpc-tools"
   >
@@ -1902,6 +1583,13 @@ The **Meeting BaaS SDK** is the officially supported TypeScript package that emp
   >
     Complex integration patterns and use cases.
   </Card>
+  <Card
+    title="API Reference"
+    icon={<SquareFunction />}
+    href="/docs/typescript-sdk/complete-reference"
+  >
+    Complete API documentation for all SDK methods and types.
+  </Card>
 </Cards>
 
 
@@ -1909,48 +1597,90 @@ The **Meeting BaaS SDK** is the officially supported TypeScript package that emp
 
 ## Integration
 
-The Meeting BaaS SDK comes with pre-generated MPC (Model Context Protocol) tools that can be easily integrated with any MPC server implementation. These tools are bundled by default and can be imported directly.
+Learn how to integrate the Meeting BaaS SDK with your applications and MCP servers.
 
 ### Source: ./content/docs/typescript-sdk/integration.mdx
 
 
-## MPC Server Integration
+## SDK Integration
 
-The SDK includes pre-generated MPC (Model Context Protocol) tools that can be easily integrated with any MPC server implementation:
+The Meeting BaaS SDK provides a clean, type-safe interface for integrating with the Meeting BaaS API. Here are the main integration patterns:
 
-### Simple Integration
+### Basic SDK Integration
 
-The simplest way to use the MPC tools:
+The simplest way to integrate the SDK:
 
 ```typescript
-import { allTools, registerTools } from '@meeting-baas/sdk/tools';
-import { BaasClient } from '@meeting-baas/sdk';
+import { createBaasClient } from '@meeting-baas/sdk';
 
 // Create a BaaS client with your API key
-const client = new BaasClient({
-  apiKey: process.env.MEETING_BAAS_API_KEY,
+const client = createBaasClient({
+  api_key: process.env.MEETING_BAAS_API_KEY,
 });
 
-// Register all tools with your MPC server
-// Replace registerTool with your server's registration function
-registerTools(allTools, (tool) => {
-  server.registerTool(tool);
+// Use the client for API calls
+const { success, data, error } = await client.joinMeeting({
+  bot_name: 'My Bot',
+  meeting_url: 'https://meet.google.com/abc-def-ghi',
+  reserved: true,
 });
+
+if (success) {
+  console.log('Bot joined successfully:', data.bot_id);
+} else {
+  console.error('Error joining meeting:', error);
+}
 ```
 
-### One-Line Setup
+### MCP Server Integration
 
-For even simpler integration, use the setupBaasTools convenience function:
+For MCP (Model Context Protocol) server integration, you can use the SDK functions directly within your tool handlers:
 
 ```typescript
-import { allTools, setupBaasTools } from '@meeting-baas/sdk/tools';
+import { type JoinRequest, createBaasClient } from "@meeting-baas/sdk"
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+import { z } from "zod"
 
-// Create a client and register all tools in one step
-const client = setupBaasTools(
-  allTools,
-  server.registerTool,
-  process.env.MEETING_BAAS_API_KEY,
-);
+// Create an MCP server
+const server = new McpServer({
+  name: "demo-server",
+  version: "1.0.0"
+})
+
+// @modelcontextprotocol/sdk expects the input schema to be a ZodRawShape (plain object with zod types)
+const joinToolInputSchema = {
+  bot_name: z.string().default("Meeting BaaS Bot"),
+  meeting_url: z.string(),
+  reserved: z.boolean().default(false)
+}
+
+// Add a joinMeeting tool
+server.registerTool(
+  "joinMeeting",
+  {
+    title: "Send a Meeting BaaS bot to a meeting",
+    description:
+      "Send a Meeting BaaS bot to a Google Meet/Teams/Zoom meeting to automatically record and transcribe the meeting with speech diarization",
+    inputSchema: joinToolInputSchema
+  },
+  async (args) => {
+    const client = createBaasClient({
+      api_key: "your-api-key"
+    })
+
+    const { success, data, error } = await client.joinMeeting(args as JoinRequest)
+
+    if (success) {
+      return {
+        content: [{ type: "text", text: `Successfully joined meeting: ${JSON.stringify(data)}` }]
+      }
+    }
+
+    return {
+      content: [{ type: "text", text: `Failed to join meeting: ${error}` }]
+    }
+  }
+)
 ```
 
 ### Calendar Integration
@@ -1958,146 +1688,534 @@ const client = setupBaasTools(
 For calendar integration:
 
 ```typescript
-import { BaasClient, Provider } from '@meeting-baas/sdk';
+import { createBaasClient } from '@meeting-baas/sdk';
 
-const client = new BaasClient({
-  apiKey: 'your-api-key',
+const client = createBaasClient({
+  api_key: 'your-api-key',
 });
 
 // Create a calendar integration
-const calendar = await client.createCalendar({
-  oauthClientId: 'your-oauth-client-id',
-  oauthClientSecret: 'your-oauth-client-secret',
-  oauthRefreshToken: 'your-oauth-refresh-token',
-  platform: Provider.Google,
+const calendarResult = await client.createCalendar({
+  oauth_client_id: 'your-oauth-client-id',
+  oauth_client_secret: 'your-oauth-client-secret',
+  oauth_refresh_token: 'your-oauth-refresh-token',
+  platform: 'Google',
 });
 
-// List all calendars
-const calendars = await client.listCalendars();
+if (calendarResult.success) {
+  console.log('Calendar created:', calendarResult.data);
 
-// List events from a calendar
-const events = await client.listEvents(calendar.uuid);
+  // List all calendars
+  const calendarsResult = await client.listCalendars();
+  if (calendarsResult.success) {
+    console.log('All calendars:', calendarsResult.data);
+  }
 
-// Schedule a recording for an event
-await client.scheduleRecordEvent(events[0].uuid, {
-  botName: 'Event Recording Bot',
-  extra: { customId: 'my-event-123' },
+  // List events from a calendar
+  const eventsResult = await client.listCalendarEvents({
+    calendar_id: calendarResult.data.calendar.uuid
+  });
+  
+  if (eventsResult.success) {
+    console.log('Events:', eventsResult.data);
+  }
+
+  // Schedule a recording for an event
+  if (eventsResult.success && eventsResult.data.events.length > 0) {
+    const scheduleResult = await client.scheduleCalendarRecordEvent({
+      uuid: eventsResult.data.events[0].uuid,
+      body: {
+        bot_name: 'Event Recording Bot',
+        extra: { custom_id: 'my-event-123' },
+        webhook_url: 'https://example.com/webhook'
+      }
+    });
+    
+    if (scheduleResult.success) {
+      console.log('Recording scheduled successfully');
+    }
+  }
+} else {
+  console.error('Error creating calendar:', calendarResult.error);
+}
+```
+
+### Next.js API Route Example
+
+For Next.js applications:
+
+```typescript
+// app/api/meeting-baas/route.ts
+import { createBaasClient } from "@meeting-baas/sdk";
+
+export async function POST(req: Request) {
+  const { meeting_url, bot_name } = await req.json();
+
+  const client = createBaasClient({
+    api_key: process.env.MEETING_BAAS_API_KEY!,
+  });
+
+  const result = await client.joinMeeting({
+    meeting_url,
+    bot_name: bot_name || 'Meeting BaaS Bot',
+    reserved: false,
+  });
+
+  if (result.success) {
+    return Response.json({ 
+      success: true, 
+      bot_id: result.data.bot_id 
+    });
+  } else {
+    // Error could be an instance of Error or ZodError
+    if(result.error instanceof Error) {
+      return Response.json({ 
+        success: false, 
+        error: result.error.message
+      }, { status: 400 });
+    } else {
+      return Response.json({ 
+        success: false, 
+        error: "Validation error"
+      }, { status: 422 });
+    }
+  }
+}
+```
+
+### Express.js Integration
+
+For Express.js applications:
+
+```typescript
+import express from 'express';
+import { createBaasClient } from '@meeting-baas/sdk';
+
+const app = express();
+app.use(express.json());
+
+const client = createBaasClient({
+  api_key: process.env.MEETING_BAAS_API_KEY!,
+});
+
+app.post('/join-meeting', async (req, res) => {
+  const { meeting_url, bot_name } = req.body;
+
+  const result = await client.joinMeeting({
+    meeting_url,
+    bot_name: bot_name || 'Meeting BaaS Bot',
+    reserved: false,
+  });
+
+  if (result.success) {
+    res.json({ 
+      success: true, 
+      bot_id: result.data.bot_id 
+    });
+  } else {
+    res.status(400).json({ 
+      success: false, 
+      error: result.error.message 
+    });
+  }
+});
+
+app.listen(3000, () => {
+  console.log('Server running on port 3000');
 });
 ```
 
 
 ---
 
-## MPC Tools
+## MCP Tools
 
-The Meeting BaaS SDK comes with pre-generated MPC (Model Context Protocol) tools that can be easily integrated with any MPC server implementation. These tools are bundled by default and can be imported directly.
+Learn how to create MCP (Model Context Protocol) tools using the Meeting BaaS SDK functions.
 
-### Source: ./content/docs/typescript-sdk/mpc-tools.mdx
+### Source: ./content/docs/typescript-sdk/mcp-tools.mdx
 
 
-## Available MPC Tools
+## Creating MCP Tools with the SDK
 
-The SDK includes pre-generated MPC tools for all API endpoints that can be directly imported and used in your MPC server implementation.
+The Meeting BaaS SDK v5.0.0 provides a clean approach for creating MCP tools by using the SDK functions directly within your tool handlers. This gives you full control over tool schemas, descriptions, and registration.
 
-### Using MPC Tools
+### Basic MCP Tool Creation
 
-The Meeting BaaS SDK provides MPC tools with zero configuration. You can import and use them directly:
-
-```typescript
-// Import specific tools
-import {
-  join_meeting_tool,
-  leave_meeting_tool,
-  get_meeting_data_tool,
-} from '@meeting-baas/sdk/tools';
-
-// Import all tools
-import { allTools } from '@meeting-baas/sdk/tools';
-
-// Register with your MPC server
-import { register_tool } from 'your-mpc-server';
-
-// Register individual tools
-register_tool(join_meeting_tool);
-register_tool(get_meeting_data_tool);
-
-// Or register all tools at once
-import { registerTools } from '@meeting-baas/sdk/tools';
-await registerTools(allTools, register_tool);
-```
-
-### MPC Server Bundle Mode
-
-For MPC server deployments, use the combined package mode:
+Here's how to create MCP tools using the SDK:
 
 ```typescript
-import { BaasClient, registerTools, SDK_MODE } from "@meeting-baas/sdk/tools";
-import { allTools } from "@meeting-baas/sdk/tools";
+import { type JoinRequest, createBaasClient } from "@meeting-baas/sdk"
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+import { z } from "zod"
 
-// Verify we're using the MPC tools package
-console.log(`SDK Mode: ${SDK_MODE}`); // Outputs: SDK Mode: MPC_TOOLS
+// Create an MCP server
+const server = new McpServer({
+  name: "meeting-baas-server",
+  version: "1.0.0"
+})
 
-// Create a BaaS client
-const client = new BaasClient({
-  apiKey: "your-api-key",
-});
+// Define the input schema for the join meeting tool
+const joinToolInputSchema = {
+  bot_name: z.string().default("Meeting BaaS Bot"),
+  meeting_url: z.string(),
+  reserved: z.boolean().default(false)
+}
 
-// Register all tools with your MPC server
-import { register_tool } from "your-mpc-server";
-await registerTools(allTools, register_tool);
+// Register the join meeting tool
+server.registerTool(
+  "joinMeeting",
+  {
+    title: "Send a Meeting BaaS bot to a meeting",
+    description:
+      "Send a Meeting BaaS bot to a Google Meet/Teams/Zoom meeting to automatically record and transcribe the meeting with speech diarization",
+    inputSchema: joinToolInputSchema
+  },
+  async (args) => {
+    const client = createBaasClient({
+      api_key: "your-api-key"
+    })
+
+    const { success, data, error } = await client.joinMeeting(args as JoinRequest)
+
+    if (success) {
+      return {
+        content: [{ type: "text", text: `Successfully joined meeting: ${JSON.stringify(data)}` }]
+      }
+    }
+
+    return {
+      content: [{ type: "text", text: `Failed to join meeting: ${error}` }]
+    }
+  }
+)
 ```
 
-## Generated MPC Tools List
+### Multiple Tools Example
 
-All SDK methods are automatically converted to snake_case MPC tools. Here's the complete list organized by API category:
+Here's how to create multiple MCP tools:
 
-### Bots API Tools
-- `join_meeting_tool` - Joins a meeting as a bot
-- `leave_meeting_tool` - Leaves a meeting
-- `get_meeting_data_tool` - Retrieves meeting data
-- `delete_data_tool` - Deletes bot data
-- `bots_with_metadata_tool` - Lists bots with metadata
-- `list_recent_bots_tool` - Lists recently used bots
-- `retranscribe_bot_tool` - Retranscribes bot recordings
+```typescript
+import { 
+  type JoinRequest, 
+  type GetMeetingDataParams,
+  type LeaveRequest,
+  createBaasClient 
+} from "@meeting-baas/sdk"
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+import { z } from "zod"
 
-### Calendars API Tools
-- `create_calendar_tool` - Creates a new calendar
-- `delete_calendar_tool` - Deletes a calendar
-- `get_calendar_tool` - Retrieves calendar details
+const server = new McpServer({
+  name: "meeting-baas-server",
+  version: "1.0.0"
+})
 
-### Webhooks API Tools
-- `bot_webhook_documentation_tool` - Provides bot webhook docs
-- `calendar_webhook_documentation_tool` - Provides calendar webhook docs
-- `webhook_documentation_tool` - General webhook documentation
+// Join Meeting Tool
+server.registerTool(
+  "joinMeeting",
+  {
+    title: "Send a Meeting BaaS bot to a meeting",
+    description: "Send a Meeting BaaS bot to a meeting to record and transcribe",
+    inputSchema: {
+      bot_name: z.string().default("Meeting BaaS Bot"),
+      meeting_url: z.string(),
+      reserved: z.boolean().default(false)
+    }
+  },
+  async (args) => {
+    const client = createBaasClient({ api_key: "your-api-key" })
+    const { success, data, error } = await client.joinMeeting(args as JoinRequest)
+    
+    if (success) {
+      return {
+        content: [{ type: "text", text: `Bot joined successfully with ID: ${data.bot_id}` }]
+      }
+    }
+    
+    return {
+      content: [{ type: "text", text: `Failed to join meeting: ${error}` }]
+    }
+  }
+)
+
+// Get Meeting Data Tool
+server.registerTool(
+  "getMeetingData",
+  {
+    title: "Get meeting recording and metadata",
+    description: "Retrieve meeting data including transcripts and recording URL",
+    inputSchema: {
+      bot_id: z.string(),
+      include_transcripts: z.boolean().default(true)
+    }
+  },
+  async (args) => {
+    const client = createBaasClient({ api_key: "your-api-key" })
+    const { success, data, error } = await client.getMeetingData(args as GetMeetingDataParams)
+    
+    if (success) {
+      return {
+        content: [{ 
+          type: "text", 
+          text: `Meeting data retrieved: Duration: ${data.duration}s, MP4: ${data.mp4 || 'Not available'}` 
+        }]
+      }
+    }
+    
+    return {
+      content: [{ type: "text", text: `Failed to get meeting data: ${error}` }]
+    }
+  }
+)
+
+// Leave Meeting Tool
+server.registerTool(
+  "leaveMeeting",
+  {
+    title: "Have a bot leave a meeting",
+    description: "Make a bot leave the meeting it's currently in",
+    inputSchema: {
+      uuid: z.string()
+    }
+  },
+  async (args) => {
+    const client = createBaasClient({ api_key: "your-api-key" })
+    const { success, data, error } = await client.leaveMeeting(args as LeaveRequest)
+    
+    if (success) {
+      return {
+        content: [{ type: "text", text: `Bot left meeting successfully: ${data.bot_id}` }]
+      }
+    }
+    
+    return {
+      content: [{ type: "text", text: `Failed to leave meeting: ${error}` }]
+    }
+  }
+)
+```
+
+### Calendar Tools Example
+
+Here's how to create calendar-related MCP tools:
+
+```typescript
+import { 
+  type CreateCalendarParams,
+  type ListCalendarEventsParams,
+  createBaasClient 
+} from "@meeting-baas/sdk"
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+import { z } from "zod"
+
+const server = new McpServer({
+  name: "meeting-baas-calendar-server",
+  version: "1.0.0"
+})
+
+// Create Calendar Tool
+server.registerTool(
+  "createCalendar",
+  {
+    title: "Create a calendar integration",
+    description: "Integrate a new calendar with Meeting BaaS using OAuth credentials",
+    inputSchema: {
+      oauth_client_id: z.string(),
+      oauth_client_secret: z.string(),
+      oauth_refresh_token: z.string(),
+      platform: z.enum(["Google", "Microsoft"]),
+      raw_calendar_id: z.string().optional()
+    }
+  },
+  async (args) => {
+    const client = createBaasClient({ api_key: "your-api-key" })
+    const { success, data, error } = await client.createCalendar(args as CreateCalendarParams)
+    
+    if (success) {
+      return {
+        content: [{ 
+          type: "text", 
+          text: `Calendar created successfully: ${data.calendar.name} (${data.calendar.uuid})` 
+        }]
+      }
+    }
+    
+    return {
+      content: [{ type: "text", text: `Failed to create calendar: ${error}` }]
+    }
+  }
+)
+
+// List Calendar Events Tool
+server.registerTool(
+  "listCalendarEvents",
+  {
+    title: "List calendar events",
+    description: "Get a list of events from a specific calendar",
+    inputSchema: {
+      calendar_id: z.string(),
+      start_date_gte: z.string().optional(),
+      start_date_lte: z.string().optional(),
+      status: z.enum(["upcoming", "past", "all"]).default("upcoming")
+    }
+  },
+  async (args) => {
+    const client = createBaasClient({ api_key: "your-api-key" })
+    const { success, data, error } = await client.listCalendarEvents(args as ListCalendarEventsParams)
+    
+    if (success) {
+      const eventCount = data.events.length
+      return {
+        content: [{ 
+          type: "text", 
+          text: `Found ${eventCount} events in calendar. Next cursor: ${data.next || 'None'}` 
+        }]
+      }
+    }
+    
+    return {
+      content: [{ type: "text", text: `Failed to list events: ${error}` }]
+    }
+  }
+)
+```
+
+### Error Handling Best Practices
+
+When creating MCP tools, it's important to handle errors gracefully:
+
+```typescript
+server.registerTool(
+  "joinMeeting",
+  {
+    title: "Join Meeting",
+    description: "Join a meeting with a bot",
+    inputSchema: {
+      meeting_url: z.string(),
+      bot_name: z.string().default("Meeting BaaS Bot")
+    }
+  },
+  async (args) => {
+    try {
+      const client = createBaasClient({ api_key: "your-api-key" })
+      const { success, data, error } = await client.joinMeeting(args)
+      
+      if (success) {
+        return {
+          content: [{ 
+            type: "text", 
+            text: `Successfully joined meeting. Bot ID: ${data.bot_id}` 
+          }]
+        }
+      } else {
+        // Handle API errors
+        if (error instanceof z.ZodError) {
+          return {
+            content: [{ 
+              type: "text", 
+              text: `Validation error: ${error.errors.map(e => e.message).join(', ')}` 
+            }]
+          }
+        }
+        
+        return {
+          content: [{ 
+            type: "text", 
+            text: `API error: ${error.message}` 
+          }]
+        }
+      }
+    } catch (unexpectedError) {
+      // Handle unexpected errors
+      return {
+        content: [{ 
+          type: "text", 
+          text: `Unexpected error: ${unexpectedError}` 
+        }]
+      }
+    }
+  }
+)
+```
+
+### Available SDK Methods for MCP Tools
+
+You can create MCP tools for any of these SDK methods:
+
+#### Bot Management
+- `joinMeeting` - Have a bot join a meeting
+- `leaveMeeting` - Have a bot leave a meeting
+- `getMeetingData` - Get meeting recording and metadata
+- `deleteBotData` - Delete bot data
+- `listBots` - List bots with metadata
+- `retranscribeBot` - Retranscribe bot recordings
+- `getScreenshots` - Get bot screenshots
+
+#### Calendar Management
+- `createCalendar` - Create a calendar integration
+- `listCalendars` - List all calendars
+- `getCalendar` - Get calendar details
+- `updateCalendar` - Update calendar credentials
+- `deleteCalendar` - Delete a calendar
+- `getCalendarEvent` - Get event details
+- `scheduleCalendarRecordEvent` - Schedule recording for an event
+- `unscheduleCalendarRecordEvent` - Unschedule recording
+- `patchBot` - Update scheduled bot configuration
+- `listCalendarEvents` - List calendar events
+- `resyncAllCalendars` - Resync all calendars
+- `listRawCalendars` - List raw calendars from provider
+
+#### Webhooks
+- `getWebhookDocumentation` - Get webhook documentation
+- `getBotWebhookDocumentation` - Get bot webhook documentation
+- `getCalendarWebhookDocumentation` - Get calendar webhook documentation
+
+### Benefits of This Approach
+
+1. **Full Control**: You have complete control over tool schemas and descriptions
+2. **Type Safety**: Full TypeScript support with generated types
+3. **Flexibility**: Customize error handling and responses
+4. **Consistency**: Use the same SDK functions across your application
+5. **Maintainability**: Easy to update when the SDK changes
 
 
 ---
 
 ## Quick Start
 
-Comprehensive guide for integrating with Meeting BaaS services.
+Quick guide for integrating with Meeting BaaS services.
 
 ### Source: ./content/docs/typescript-sdk/quick-start.mdx
 
 
 ```typescript
-import { BaasClient } from '@meeting-baas/sdk';
+import { createBaasClient } from '@meeting-baas/sdk';
 
 // Create a BaaS client
-const client = new BaasClient({
-  apiKey: 'your-api-key', // Get yours at https://meetingbaas.com
+const client = createBaasClient({
+  api_key: 'your-api-key', // Get yours at https://meetingbaas.com
 });
 
 // Join a meeting
-const botId = await client.joinMeeting({
-  botName: 'Meeting Assistant',
-  meetingUrl: 'https://meet.google.com/abc-def-ghi',
+const { success, data, error } = await client.joinMeeting({
+  bot_name: 'Meeting Assistant',
+  meeting_url: 'https://meet.google.com/abc-def-ghi',
   reserved: true,
 });
 
-// Get meeting data
-const meetingData = await client.getMeetingData(botId);
-console.log('Meeting data:', meetingData);
+if (success) {
+  console.log('Bot joined successfully:', data.bot_id);
+  
+  // Get meeting data
+  const meetingDataResult = await client.getMeetingData({
+    bot_id: data.bot_id
+  });
+  
+  if (meetingDataResult.success) {
+    console.log('Meeting data:', meetingDataResult.data);
+  }
+} else {
+  console.error('Error joining meeting:', error);
+}
 ```
 
 ## Usage Examples
@@ -2105,3107 +2223,149 @@ console.log('Meeting data:', meetingData);
 ### Basic Usage
 
 ```typescript
-import { BaasClient } from '@meeting-baas/sdk';
+import { createBaasClient } from '@meeting-baas/sdk';
 
 // Create a BaaS client
-const client = new BaasClient({
-  apiKey: 'your-api-key',
+const client = createBaasClient({
+  api_key: 'your-api-key',
 });
 
 // Join a meeting
-const botId = await client.joinMeeting({
-  botName: 'My Assistant',
-  meetingUrl: 'https://meet.google.com/abc-def-ghi',
+const joinResult = await client.joinMeeting({
+  bot_name: 'My Assistant',
+  meeting_url: 'https://meet.google.com/abc-def-ghi',
   reserved: true,
 });
 
-// Get meeting data
-const meetingData = await client.getMeetingData(botId);
-console.log('Meeting data:', meetingData);
-
-// Delete meeting data
-await client.deleteData(botId);
+if (joinResult.success) {
+  console.log('Bot joined successfully:', joinResult.data.bot_id);
+  
+  // Get meeting data
+  const meetingDataResult = await client.getMeetingData({
+    bot_id: joinResult.data.bot_id
+  });
+  
+  if (meetingDataResult.success) {
+    console.log('Meeting data:', meetingDataResult.data);
+  } else {
+    console.error('Error getting meeting data:', meetingDataResult.error);
+  }
+  
+  // Delete meeting data
+  const deleteResult = await client.deleteBotData({
+    uuid: joinResult.data.bot_id
+  });
+  
+  if (deleteResult.success) {
+    console.log('Bot data deleted successfully');
+  }
+} else {
+  console.error('Error joining meeting:', joinResult.error);
+}
 ```
 
-### Using MPC Tools
+### Calendar Integration
 
 ```typescript
-import { register_tool } from 'your-mpc-server';
-import {
-  join_meeting_tool,
-  get_meeting_data_tool,
-  delete_data_tool,
-} from '@meeting-baas/sdk/tools';
+import { createBaasClient } from '@meeting-baas/sdk';
 
-// Register tools with your MPC server
-register_tool(join_meeting_tool);
-register_tool(get_meeting_data_tool);
-register_tool(delete_data_tool);
-
-// Or import all tools at once
-import { allTools, registerTools } from '@meeting-baas/sdk/tools';
-await registerTools(allTools, register_tool);
-```
-
-### MPC Server Bundle Mode
-
-For MPC server deployments, use the combined package mode:
-
-```typescript
-import { BaasClient, Provider } from '@meeting-baas/sdk';
-
-const client = new BaasClient({
-  apiKey: 'your-api-key',
+const client = createBaasClient({
+  api_key: 'your-api-key',
 });
 
 // Create a calendar integration
-const calendar = await client.createCalendar({
-  oauthClientId: 'your-oauth-client-id',
-  oauthClientSecret: 'your-oauth-client-secret',
-  oauthRefreshToken: 'your-oauth-refresh-token',
-  platform: Provider.Google,
+const calendarResult = await client.createCalendar({
+  oauth_client_id: 'your-oauth-client-id',
+  oauth_client_secret: 'your-oauth-client-secret',
+  oauth_refresh_token: 'your-oauth-refresh-token',
+  platform: 'Google',
 });
 
-// List all calendars
-const calendars = await client.listCalendars();
+if (calendarResult.success) {
+  console.log('Calendar created:', calendarResult.data);
+
+  // List all calendars
+  const calendarsResult = await client.listCalendars();
+  if (calendarsResult.success) {
+    console.log('All calendars:', calendarsResult.data);
+  }
 
-// List events from a calendar
-const events = await client.listEvents(calendar.uuid);
-
-// Schedule a recording for an event
-await client.scheduleRecordEvent(events[0].uuid, {
-  botName: 'Event Recording Bot',
-  extra: { customId: 'my-event-123' },
-});
-```
-
-
----
-
-## botsWithMetadata
-
-### Source: ./content/docs/typescript-sdk/reference/bots/botswithmetadata.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-## Usage
-
-```typescript
-botsWithMetadata(requestParameters: import("@meeting-baas/sdk/api/default-api").DefaultApiBotsWithMetadataRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-## Parameters
-
-
-### `requestParameters`
-
-Type: `import("@meeting-baas/sdk/api/default-api").DefaultApiBotsWithMetadataRequest`
-
-
-
-
-### `options`
-
-Type: `RawAxiosRequestConfig`
-
-
-
-
-## Returns
-
-`Promise<any>`
-
-
-
-## Common Use Cases
-
-No common use cases documented yet.
-
-## Related Methods
-
-
-
-
----
-
-## DefaultApiBotsWithMetadataRequest
-
-### Source: ./content/docs/typescript-sdk/reference/bots/defaultapibotswithmetadatarequest.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface DefaultApiBotsWithMetadataRequest {
-  botName: string
-  createdAfter: string
-  createdBefore: string
-  cursor: string
-  filterByExtra: string
-  limit: number
-  meetingUrl: string
-  sortByExtra: string
-  speakerName: string
-}
-```
-
-
----
-
-## DefaultApiGetMeetingDataRequest
-
-### Source: ./content/docs/typescript-sdk/reference/bots/defaultapigetmeetingdatarequest.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface DefaultApiGetMeetingDataRequest {
-  botId: string
-}
-```
-
-
----
-
-## DefaultApiInterface
-
-### Source: ./content/docs/typescript-sdk/reference/bots/defaultapiinterface.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface DefaultApiInterface {
-  
-}
-```
-
-
----
-
-## DefaultApiJoinRequest
-
-### Source: ./content/docs/typescript-sdk/reference/bots/defaultapijoinrequest.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface DefaultApiJoinRequest {
-  joinRequest: import("@meeting-baas/sdk/models/join-request").JoinRequest
-}
-```
-
-
----
-
-## DefaultApiRetranscribeBotRequest
-
-### Source: ./content/docs/typescript-sdk/reference/bots/defaultapiretranscribebotrequest.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface DefaultApiRetranscribeBotRequest {
-  retranscribeBody: import("@meeting-baas/sdk/models/retranscribe-body").RetranscribeBody
-}
-```
-
-
----
-
-## deleteData
-
-### Source: ./content/docs/typescript-sdk/reference/bots/deletedata.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-## Usage
-
-```typescript
-deleteData(options: RawAxiosRequestConfig): Promise<any>
-```
-
-## Parameters
-
-
-### `options`
-
-Type: `RawAxiosRequestConfig`
-
-
-
-
-## Returns
-
-`Promise<any>`
-
-
-
-## Common Use Cases
-
-- Removing meeting data for privacy
-- Cleaning up old meeting records
-- Managing storage usage
-- Handling data retention policies
-
-## Related Methods
-
-- [join](./join.mdx)
-- [getMeetingData](./getmeetingdata.mdx)
-
-
----
-
-## getMeetingData
-
-### Source: ./content/docs/typescript-sdk/reference/bots/getmeetingdata.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-## Usage
-
-```typescript
-getMeetingData(requestParameters: import("@meeting-baas/sdk/api/default-api").DefaultApiGetMeetingDataRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-## Parameters
-
-
-### `requestParameters`
-
-Type: `import("@meeting-baas/sdk/api/default-api").DefaultApiGetMeetingDataRequest`
-
-
-
-
-### `options`
-
-Type: `RawAxiosRequestConfig`
-
-
-
-
-## Returns
-
-`Promise<any>`
-
-
-## Example
-
-<Callout type="info">
-  Example:
-  
-  ```typescript
-  // Get meeting data
-const meetingData = await client.getMeetingData(botId);
-console.log("Meeting data:", meetingData);
-  ```
-</Callout>
-
-
-## Common Use Cases
-
-- Retrieving meeting transcripts
-- Accessing meeting metadata
-- Getting bot status and configuration
-- Downloading meeting recordings
-
-## Related Methods
-
-- [join](./join.mdx)
-- [leave](./leave.mdx)
-- [deleteData](./deletedata.mdx)
-
-
----
-
-## Bots
-
-Bots API Reference
-
-### Source: ./content/docs/typescript-sdk/reference/bots/index.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-- [botsWithMetadata](/docs/typescript-sdk/reference/bots/botswithmetadata)
-- [deleteData](/docs/typescript-sdk/reference/bots/deletedata)
-- [getMeetingData](/docs/typescript-sdk/reference/bots/getmeetingdata)
-- [join](/docs/typescript-sdk/reference/bots/join)
-- [leave](/docs/typescript-sdk/reference/bots/leave)
-- [retranscribeBot](/docs/typescript-sdk/reference/bots/retranscribebot)
-- [DefaultApiInterface](/docs/typescript-sdk/reference/bots/defaultapiinterface)
-- [DefaultApiBotsWithMetadataRequest](/docs/typescript-sdk/reference/bots/defaultapibotswithmetadatarequest)
-- [DefaultApiGetMeetingDataRequest](/docs/typescript-sdk/reference/bots/defaultapigetmeetingdatarequest)
-- [DefaultApiJoinRequest](/docs/typescript-sdk/reference/bots/defaultapijoinrequest)
-- [DefaultApiRetranscribeBotRequest](/docs/typescript-sdk/reference/bots/defaultapiretranscribebotrequest)
-
-
----
-
-## join
-
-### Source: ./content/docs/typescript-sdk/reference/bots/join.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-## Usage
-
-```typescript
-join(requestParameters: import("@meeting-baas/sdk/api/default-api").DefaultApiJoinRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-## Parameters
-
-
-### `requestParameters`
-
-Type: `import("@meeting-baas/sdk/api/default-api").DefaultApiJoinRequest`
-
-
-
-
-### `options`
-
-Type: `RawAxiosRequestConfig`
-
-
-
-
-## Returns
-
-`Promise<any>`
-
-
-
-## Common Use Cases
-
-- Joining a meeting with a bot for recording
-- Setting up a bot with custom parameters
-- Configuring webhook notifications for a specific bot
-- Starting a meeting recording with automatic transcription
-
-## Related Methods
-
-- [leave](./leave.mdx)
-- [getMeetingData](./getmeetingdata.mdx)
-- [deleteData](./deletedata.mdx)
-
-
----
-
-## leave
-
-### Source: ./content/docs/typescript-sdk/reference/bots/leave.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-## Usage
-
-```typescript
-leave(options: RawAxiosRequestConfig): Promise<any>
-```
-
-## Parameters
-
-
-### `options`
-
-Type: `RawAxiosRequestConfig`
-
-
-
-
-## Returns
-
-`Promise<any>`
-
-
-
-## Common Use Cases
-
-- Ending a bot's participation in a meeting
-- Stopping a meeting recording
-- Cleaning up bot resources after a meeting
-- Handling meeting completion
-
-## Related Methods
-
-- [join](./join.mdx)
-- [getMeetingData](./getmeetingdata.mdx)
-
-
----
-
-## retranscribeBot
-
-### Source: ./content/docs/typescript-sdk/reference/bots/retranscribebot.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-## Usage
-
-```typescript
-retranscribeBot(requestParameters: import("@meeting-baas/sdk/api/default-api").DefaultApiRetranscribeBotRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-## Parameters
-
-
-### `requestParameters`
-
-Type: `import("@meeting-baas/sdk/api/default-api").DefaultApiRetranscribeBotRequest`
-
-
-
-
-### `options`
-
-Type: `RawAxiosRequestConfig`
-
-
-
-
-## Returns
-
-`Promise<any>`
-
-
-
-## Common Use Cases
-
-No common use cases documented yet.
-
-## Related Methods
-
-
-
-
----
-
-## CalendarsApiCreateCalendarRequest
-
-### Source: ./content/docs/typescript-sdk/reference/calendars/calendarsapicreatecalendarrequest.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface CalendarsApiCreateCalendarRequest {
-  createCalendarParams: import("@meeting-baas/sdk/models/create-calendar-params").CreateCalendarParams
-}
-```
-
-
----
-
-## CalendarsApiInterface
-
-### Source: ./content/docs/typescript-sdk/reference/calendars/calendarsapiinterface.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface CalendarsApiInterface {
-  
-}
-```
-
-
----
-
-## CalendarsApiListEventsRequest
-
-### Source: ./content/docs/typescript-sdk/reference/calendars/calendarsapilisteventsrequest.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface CalendarsApiListEventsRequest {
-  calendarId: string
-  attendeeEmail: string
-  cursor: string
-  organizerEmail: string
-  startDateGte: string
-  startDateLte: string
-  status: string
-  updatedAtGte: string
-}
-```
-
-
----
-
-## CalendarsApiListRawCalendarsRequest
-
-### Source: ./content/docs/typescript-sdk/reference/calendars/calendarsapilistrawcalendarsrequest.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface CalendarsApiListRawCalendarsRequest {
-  listRawCalendarsParams: import("@meeting-baas/sdk/models/list-raw-calendars-params").ListRawCalendarsParams
-}
-```
-
-
----
-
-## CalendarsApiPatchBotRequest
-
-### Source: ./content/docs/typescript-sdk/reference/calendars/calendarsapipatchbotrequest.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface CalendarsApiPatchBotRequest {
-  botParam3: import("@meeting-baas/sdk/models/bot-param3").BotParam3
-  allOccurrences: boolean
-}
-```
-
-
----
-
-## CalendarsApiScheduleRecordEventRequest
-
-### Source: ./content/docs/typescript-sdk/reference/calendars/calendarsapischedulerecordeventrequest.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface CalendarsApiScheduleRecordEventRequest {
-  botParam2: import("@meeting-baas/sdk/models/bot-param2").BotParam2
-  allOccurrences: boolean
-}
-```
-
-
----
-
-## CalendarsApiUnscheduleRecordEventRequest
-
-### Source: ./content/docs/typescript-sdk/reference/calendars/calendarsapiunschedulerecordeventrequest.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface CalendarsApiUnscheduleRecordEventRequest {
-  allOccurrences: boolean
-}
-```
-
-
----
-
-## CalendarsApiUpdateCalendarRequest
-
-### Source: ./content/docs/typescript-sdk/reference/calendars/calendarsapiupdatecalendarrequest.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface CalendarsApiUpdateCalendarRequest {
-  updateCalendarParams: import("@meeting-baas/sdk/models/update-calendar-params").UpdateCalendarParams
-}
-```
-
-
----
-
-## createCalendar
-
-### Source: ./content/docs/typescript-sdk/reference/calendars/createcalendar.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-## Usage
-
-```typescript
-createCalendar(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiCreateCalendarRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-## Parameters
-
-
-### `requestParameters`
-
-Type: `import("@meeting-baas/sdk/api/calendars-api").CalendarsApiCreateCalendarRequest`
-
-
-
-
-### `options`
-
-Type: `RawAxiosRequestConfig`
-
-
-
-
-## Returns
-
-`Promise<any>`
-
-
-## Example
-
-<Callout type="info">
-  Example:
-  
-  ```typescript
-  // Create a calendar integration
-const calendar = await client.createCalendar({
-  oauthClientId: "your-oauth-client-id",
-  oauthClientSecret: "your-oauth-client-secret",
-  oauthRefreshToken: "your-oauth-refresh-token",
-  platform: Provider.Google,
-});
-  ```
-</Callout>
-
-
-## Common Use Cases
-
-- Setting up Google Calendar integration
-- Connecting Microsoft Teams calendar
-- Configuring calendar sync settings
-- Managing calendar permissions
-
-## Related Methods
-
-- [listCalendars](./listcalendars.mdx)
-- [getCalendar](./getcalendar.mdx)
-- [updateCalendar](./updatecalendar.mdx)
-- [deleteCalendar](./deletecalendar.mdx)
-
-
----
-
-## deleteCalendar
-
-### Source: ./content/docs/typescript-sdk/reference/calendars/deletecalendar.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-## Usage
-
-```typescript
-deleteCalendar(options: RawAxiosRequestConfig): Promise<any>
-```
-
-## Parameters
-
-
-### `options`
-
-Type: `RawAxiosRequestConfig`
-
-
-
-
-## Returns
-
-`Promise<any>`
-
-
-
-## Common Use Cases
-
-- Removing calendar integration
-- Cleaning up unused calendars
-- Managing calendar connections
-- Handling calendar disconnection
-
-## Related Methods
-
-- [createCalendar](./createcalendar.mdx)
-- [listCalendars](./listcalendars.mdx)
-- [getCalendar](./getcalendar.mdx)
-- [updateCalendar](./updatecalendar.mdx)
-
-
----
-
-## getCalendar
-
-### Source: ./content/docs/typescript-sdk/reference/calendars/getcalendar.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-## Usage
-
-```typescript
-getCalendar(options: RawAxiosRequestConfig): Promise<any>
-```
-
-## Parameters
-
-
-### `options`
-
-Type: `RawAxiosRequestConfig`
-
-
-
-
-## Returns
-
-`Promise<any>`
-
-
-
-## Common Use Cases
-
-- Viewing calendar details
-- Checking calendar sync status
-- Verifying calendar permissions
-- Managing calendar settings
-
-## Related Methods
-
-- [createCalendar](./createcalendar.mdx)
-- [listCalendars](./listcalendars.mdx)
-- [updateCalendar](./updatecalendar.mdx)
-- [deleteCalendar](./deletecalendar.mdx)
-
-
----
-
-## getEvent
-
-### Source: ./content/docs/typescript-sdk/reference/calendars/getevent.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-## Usage
-
-```typescript
-getEvent(options: RawAxiosRequestConfig): Promise<any>
-```
-
-## Parameters
-
-
-### `options`
-
-Type: `RawAxiosRequestConfig`
-
-
-
-
-## Returns
-
-`Promise<any>`
-
-
-
-## Common Use Cases
-
-- Viewing event details
-- Checking recording status
-- Managing event settings
-- Verifying event configuration
-
-## Related Methods
-
-- [listEvents](./listevents.mdx)
-- [scheduleRecordEvent](./schedulerecordevent.mdx)
-- [unscheduleRecordEvent](./unschedulerecordevent.mdx)
-
-
----
-
-## Calendars
-
-Calendars API Reference
-
-### Source: ./content/docs/typescript-sdk/reference/calendars/index.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-- [createCalendar](/docs/typescript-sdk/reference/calendars/createcalendar)
-- [deleteCalendar](/docs/typescript-sdk/reference/calendars/deletecalendar)
-- [getCalendar](/docs/typescript-sdk/reference/calendars/getcalendar)
-- [getEvent](/docs/typescript-sdk/reference/calendars/getevent)
-- [listCalendars](/docs/typescript-sdk/reference/calendars/listcalendars)
-- [listEvents](/docs/typescript-sdk/reference/calendars/listevents)
-- [listRawCalendars](/docs/typescript-sdk/reference/calendars/listrawcalendars)
-- [patchBot](/docs/typescript-sdk/reference/calendars/patchbot)
-- [resyncAllCalendars](/docs/typescript-sdk/reference/calendars/resyncallcalendars)
-- [scheduleRecordEvent](/docs/typescript-sdk/reference/calendars/schedulerecordevent)
-- [unscheduleRecordEvent](/docs/typescript-sdk/reference/calendars/unschedulerecordevent)
-- [updateCalendar](/docs/typescript-sdk/reference/calendars/updatecalendar)
-- [CalendarsApiInterface](/docs/typescript-sdk/reference/calendars/calendarsapiinterface)
-- [CalendarsApiCreateCalendarRequest](/docs/typescript-sdk/reference/calendars/calendarsapicreatecalendarrequest)
-- [CalendarsApiListEventsRequest](/docs/typescript-sdk/reference/calendars/calendarsapilisteventsrequest)
-- [CalendarsApiListRawCalendarsRequest](/docs/typescript-sdk/reference/calendars/calendarsapilistrawcalendarsrequest)
-- [CalendarsApiPatchBotRequest](/docs/typescript-sdk/reference/calendars/calendarsapipatchbotrequest)
-- [CalendarsApiScheduleRecordEventRequest](/docs/typescript-sdk/reference/calendars/calendarsapischedulerecordeventrequest)
-- [CalendarsApiUnscheduleRecordEventRequest](/docs/typescript-sdk/reference/calendars/calendarsapiunschedulerecordeventrequest)
-- [CalendarsApiUpdateCalendarRequest](/docs/typescript-sdk/reference/calendars/calendarsapiupdatecalendarrequest)
-
-
----
-
-## listCalendars
-
-### Source: ./content/docs/typescript-sdk/reference/calendars/listcalendars.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-## Usage
-
-```typescript
-listCalendars(options: RawAxiosRequestConfig): Promise<any>
-```
-
-## Parameters
-
-
-### `options`
-
-Type: `RawAxiosRequestConfig`
-
-
-
-
-## Returns
-
-`Promise<any>`
-
-
-
-## Common Use Cases
-
-- Viewing all connected calendars
-- Checking calendar sync status
-- Managing multiple calendar integrations
-- Verifying calendar permissions
-
-## Related Methods
-
-- [createCalendar](./createcalendar.mdx)
-- [getCalendar](./getcalendar.mdx)
-- [updateCalendar](./updatecalendar.mdx)
-- [deleteCalendar](./deletecalendar.mdx)
-
-
----
-
-## listEvents
-
-### Source: ./content/docs/typescript-sdk/reference/calendars/listevents.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-## Usage
-
-```typescript
-listEvents(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiListEventsRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-## Parameters
-
-
-### `requestParameters`
-
-Type: `import("@meeting-baas/sdk/api/calendars-api").CalendarsApiListEventsRequest`
-
-
-
-
-### `options`
-
-Type: `RawAxiosRequestConfig`
-
-
-
-
-## Returns
-
-`Promise<any>`
-
-
-## Example
-
-<Callout type="info">
-  Example:
-  
-  ```typescript
   // List events from a calendar
-const events = await client.listEvents(calendar.uuid, {
-  startDateGte: "2024-01-01T00:00:00Z",
-  status: "upcoming"
-});
-  ```
-</Callout>
-
-
-## Common Use Cases
-
-- Viewing upcoming meetings
-- Checking scheduled recordings
-- Managing calendar events
-- Filtering events by date or status
-
-## Related Methods
-
-- [getEvent](./getevent.mdx)
-- [scheduleRecordEvent](./schedulerecordevent.mdx)
-- [unscheduleRecordEvent](./unschedulerecordevent.mdx)
-
-
----
-
-## listRawCalendars
-
-### Source: ./content/docs/typescript-sdk/reference/calendars/listrawcalendars.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-## Usage
-
-```typescript
-listRawCalendars(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiListRawCalendarsRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-## Parameters
-
-
-### `requestParameters`
-
-Type: `import("@meeting-baas/sdk/api/calendars-api").CalendarsApiListRawCalendarsRequest`
-
-
-
-
-### `options`
-
-Type: `RawAxiosRequestConfig`
-
-
-
-
-## Returns
-
-`Promise<any>`
-
-
-
-## Common Use Cases
-
-No common use cases documented yet.
-
-## Related Methods
-
-
-
-
----
-
-## patchBot
-
-### Source: ./content/docs/typescript-sdk/reference/calendars/patchbot.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-## Usage
-
-```typescript
-patchBot(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiPatchBotRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-## Parameters
-
-
-### `requestParameters`
-
-Type: `import("@meeting-baas/sdk/api/calendars-api").CalendarsApiPatchBotRequest`
-
-
-
-
-### `options`
-
-Type: `RawAxiosRequestConfig`
-
-
-
-
-## Returns
-
-`Promise<any>`
-
-
-
-## Common Use Cases
-
-No common use cases documented yet.
-
-## Related Methods
-
-
-
-
----
-
-## resyncAllCalendars
-
-### Source: ./content/docs/typescript-sdk/reference/calendars/resyncallcalendars.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-## Usage
-
-```typescript
-resyncAllCalendars(options: RawAxiosRequestConfig): Promise<any>
-```
-
-## Parameters
-
-
-### `options`
-
-Type: `RawAxiosRequestConfig`
-
-
-
-
-## Returns
-
-`Promise<any>`
-
-
-
-## Common Use Cases
-
-No common use cases documented yet.
-
-## Related Methods
-
-
-
-
----
-
-## scheduleRecordEvent
-
-### Source: ./content/docs/typescript-sdk/reference/calendars/schedulerecordevent.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-## Usage
-
-```typescript
-scheduleRecordEvent(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiScheduleRecordEventRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-## Parameters
-
-
-### `requestParameters`
-
-Type: `import("@meeting-baas/sdk/api/calendars-api").CalendarsApiScheduleRecordEventRequest`
-
-
-
-
-### `options`
-
-Type: `RawAxiosRequestConfig`
-
-
-
-
-## Returns
-
-`Promise<any>`
-
-
-
-## Common Use Cases
-
-- Setting up automatic recording
-- Configuring bot parameters for an event
-- Managing recording schedules
-- Setting up recurring recordings
-
-## Related Methods
-
-- [listEvents](./listevents.mdx)
-- [getEvent](./getevent.mdx)
-- [unscheduleRecordEvent](./unschedulerecordevent.mdx)
-
-
----
-
-## unscheduleRecordEvent
-
-### Source: ./content/docs/typescript-sdk/reference/calendars/unschedulerecordevent.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-## Usage
-
-```typescript
-unscheduleRecordEvent(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiUnscheduleRecordEventRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-## Parameters
-
-
-### `requestParameters`
-
-Type: `import("@meeting-baas/sdk/api/calendars-api").CalendarsApiUnscheduleRecordEventRequest`
-
-
-
-
-### `options`
-
-Type: `RawAxiosRequestConfig`
-
-
-
-
-## Returns
-
-`Promise<any>`
-
-
-
-## Common Use Cases
-
-- Canceling scheduled recordings
-- Removing bot from events
-- Managing recording schedules
-- Handling event changes
-
-## Related Methods
-
-- [listEvents](./listevents.mdx)
-- [getEvent](./getevent.mdx)
-- [scheduleRecordEvent](./schedulerecordevent.mdx)
-
-
----
-
-## updateCalendar
-
-### Source: ./content/docs/typescript-sdk/reference/calendars/updatecalendar.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-## Usage
-
-```typescript
-updateCalendar(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiUpdateCalendarRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-## Parameters
-
-
-### `requestParameters`
-
-Type: `import("@meeting-baas/sdk/api/calendars-api").CalendarsApiUpdateCalendarRequest`
-
-
-
-
-### `options`
-
-Type: `RawAxiosRequestConfig`
-
-
-
-
-## Returns
-
-`Promise<any>`
-
-
-
-## Common Use Cases
-
-- Updating calendar credentials
-- Changing calendar sync settings
-- Modifying calendar permissions
-- Refreshing calendar integration
-
-## Related Methods
-
-- [createCalendar](./createcalendar.mdx)
-- [listCalendars](./listcalendars.mdx)
-- [getCalendar](./getcalendar.mdx)
-- [deleteCalendar](./deletecalendar.mdx)
-
-
----
-
-## Account
-
-### Source: ./content/docs/typescript-sdk/reference/common/account.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface Account {
-  'company_name': string
-  'createdAt': import("@meeting-baas/sdk/models/system-time").SystemTime
-  'email': string
-  'firstname': string
-  'id': number
-  'lastname': string
-  'phone': string
-  'status': number
-}
-```
-
-
----
-
-## AccountInfos
-
-### Source: ./content/docs/typescript-sdk/reference/common/accountinfos.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface AccountInfos {
-  'account': import("@meeting-baas/sdk/models/account").Account
-}
-```
-
-
----
-
-## ApiKeyResponse
-
-### Source: ./content/docs/typescript-sdk/reference/common/apikeyresponse.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface ApiKeyResponse {
-  'apiKey': string
-}
-```
-
-
----
-
-## Attendee
-
-### Source: ./content/docs/typescript-sdk/reference/common/attendee.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface Attendee {
-  'email': string
-  'name': string
-}
-```
-
-
----
-
-## AutomaticLeaveRequest
-
-### Source: ./content/docs/typescript-sdk/reference/common/automaticleaverequest.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface AutomaticLeaveRequest {
-  'noone_joined_timeout': number
-  'waiting_room_timeout': number
-}
-```
-
-
----
-
-## BaasClientConfig
-
-### Source: ./content/docs/typescript-sdk/reference/common/baasclientconfig.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface BaasClientConfig {
-  apiKey: string
-  baseUrl: string
-}
-```
-
-
----
-
-## Bot
-
-### Source: ./content/docs/typescript-sdk/reference/common/bot.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface Bot {
-  'bot': import("@meeting-baas/sdk/models/bot2").Bot2
-  'duration': number
-  'params': import("@meeting-baas/sdk/models/bot-param").BotParam
-}
-```
-
-
----
-
-## Bot2
-
-### Source: ./content/docs/typescript-sdk/reference/common/bot2.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface Bot2 {
-  'accountId': number
-  'botParamId': number
-  'createdAt': string
-  'diarization_v2': boolean
-  'endedAt': string
-  'errors': string
-  'event_id': number
-  'id': number
-  'meetingUrl': string
-  'mp4_s3_path': string
-  'reserved': boolean
-  'scheduled_bot_id': number
-  'session_id': string
-  'uuid': string
-}
-```
-
-
----
-
-## BotData
-
-### Source: ./content/docs/typescript-sdk/reference/common/botdata.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface BotData {
-  'bot': import("@meeting-baas/sdk/models/bot-with-params").BotWithParams
-  'transcripts': import("@meeting-baas/sdk/models/transcript").Transcript[]
-}
-```
-
-
----
-
-## BotPagined
-
-### Source: ./content/docs/typescript-sdk/reference/common/botpagined.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface BotPagined {
-  'bots': import("@meeting-baas/sdk/models/bot").Bot[]
-  'hasMore': boolean
-}
-```
-
-
----
-
-## BotParam
-
-### Source: ./content/docs/typescript-sdk/reference/common/botparam.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface BotParam {
-  'bot_image': string
-  'botName': string
-  'deduplication_key': string
-  'enter_message': string
-  'extra': { [key: string]: any; }
-  'noone_joined_timeout': number
-  'recording_mode': string
-  'speech_to_text_api_key': string
-  'speech_to_text_provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
-  'streaming_audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'streaming_input': string
-  'streaming_output': string
-  'waiting_room_timeout': number
-  'webhookUrl': string
-}
-```
-
-
----
-
-## BotParam2
-
-### Source: ./content/docs/typescript-sdk/reference/common/botparam2.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface BotParam2 {
-  'bot_image': string
-  'botName': string
-  'deduplication_key': string
-  'enter_message': string
-  'extra': { [key: string]: any; }
-  'noone_joined_timeout': number
-  'recording_mode': string
-  'speech_to_text': import("@meeting-baas/sdk/models/speech-to-text").SpeechToText
-  'streaming_audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'streaming_input': string
-  'streaming_output': string
-  'waiting_room_timeout': number
-  'webhook_url': string
-}
-```
-
-
----
-
-## BotParam3
-
-### Source: ./content/docs/typescript-sdk/reference/common/botparam3.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface BotParam3 {
-  'bot_image': string
-  'bot_name': string
-  'deduplication_key': string
-  'enter_message': string
-  'extra': any
-  'noone_joined_timeout': number
-  'recording_mode': string
-  'speech_to_text': import("@meeting-baas/sdk/models/speech-to-text").SpeechToText
-  'streaming_audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'streaming_input': string
-  'streaming_output': string
-  'waiting_room_timeout': number
-  'webhook_url': string
-}
-```
-
-
----
-
-## BotWithParams
-
-### Source: ./content/docs/typescript-sdk/reference/common/botwithparams.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface BotWithParams {
-  'accountId': number
-  'bot_image': string
-  'botName': string
-  'botParamId': number
-  'createdAt': string
-  'deduplication_key': string
-  'diarization_v2': boolean
-  'endedAt': string
-  'enter_message': string
-  'errors': string
-  'event_id': number
-  'extra': { [key: string]: any; }
-  'id': number
-  'meetingUrl': string
-  'mp4_s3_path': string
-  'noone_joined_timeout': number
-  'recording_mode': string
-  'reserved': boolean
-  'scheduled_bot_id': number
-  'session_id': string
-  'speech_to_text_api_key': string
-  'speech_to_text_provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
-  'streaming_audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'streaming_input': string
-  'streaming_output': string
-  'uuid': string
-  'waiting_room_timeout': number
-  'webhookUrl': string
-}
-```
-
-
----
-
-## Calendar
-
-### Source: ./content/docs/typescript-sdk/reference/common/calendar.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface Calendar {
-  'email': string
-  'googleId': string
-  'name': string
-  'resource_id': string
-  'uuid': string
-}
-```
-
-
----
-
-## CalendarListEntry
-
-### Source: ./content/docs/typescript-sdk/reference/common/calendarlistentry.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface CalendarListEntry {
-  'email': string
-  'id': string
-  'isPrimary': boolean
-}
-```
-
-
----
-
-## CreateCalendarParams
-
-### Source: ./content/docs/typescript-sdk/reference/common/createcalendarparams.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface CreateCalendarParams {
-  'oauthClientId': string
-  'oauthClientSecret': string
-  'oauthRefreshToken': string
-  'platform': import("@meeting-baas/sdk/models/provider").Provider
-  'raw_calendar_id': string
-}
-```
-
-
----
-
-## CreateCalendarResponse
-
-### Source: ./content/docs/typescript-sdk/reference/common/createcalendarresponse.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface CreateCalendarResponse {
-  'calendar': import("@meeting-baas/sdk/models/calendar").Calendar
-}
-```
-
-
----
-
-## DailyTokenConsumption
-
-### Source: ./content/docs/typescript-sdk/reference/common/dailytokenconsumption.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface DailyTokenConsumption {
-  'consumptionByService': import("@meeting-baas/sdk/models/token-consumption-by-service").TokenConsumptionByService
-  'date': string
-}
-```
-
-
----
-
-## DeleteResponse
-
-### Source: ./content/docs/typescript-sdk/reference/common/deleteresponse.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface DeleteResponse {
-  'ok': boolean
-  'status': string
-}
-```
-
-
----
-
-## EndMeetingQuery
-
-### Source: ./content/docs/typescript-sdk/reference/common/endmeetingquery.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface EndMeetingQuery {
-  'botUuid': string
-}
-```
-
-
----
-
-## EndMeetingTrampolineQuery
-
-### Source: ./content/docs/typescript-sdk/reference/common/endmeetingtrampolinequery.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface EndMeetingTrampolineQuery {
-  'botUuid': string
-}
-```
-
-
----
-
-## EndMeetingTrampolineRequest
-
-### Source: ./content/docs/typescript-sdk/reference/common/endmeetingtrampolinerequest.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface EndMeetingTrampolineRequest {
-  'diarization_v2': boolean
-}
-```
-
-
----
-
-## Event
-
-### Source: ./content/docs/typescript-sdk/reference/common/event.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface Event {
-  'attendees': import("@meeting-baas/sdk/models/attendee").Attendee[]
-  'bot_param': import("@meeting-baas/sdk/models/bot-param").BotParam
-  'calendarUuid': string
-  'deleted': boolean
-  'endTime': string
-  'googleId': string
-  'isOrganizer': boolean
-  'isRecurring': boolean
-  'lastUpdatedAt': string
-  'meetingUrl': string
-  'name': string
-  'raw': { [key: string]: any; }
-  'recurring_event_id': string
-  'startTime': string
-  'uuid': string
-}
-```
-
-
----
-
-## FailedRecordRequest
-
-### Source: ./content/docs/typescript-sdk/reference/common/failedrecordrequest.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface FailedRecordRequest {
-  'meetingUrl': string
-  'message': string
-}
-```
-
-
----
-
-## GetAllBotsQuery
-
-### Source: ./content/docs/typescript-sdk/reference/common/getallbotsquery.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface GetAllBotsQuery {
-  'bot_id': string
-  'end_date': string
-  'limit': number
-  'offset': number
-  'start_date': string
-}
-```
-
-
----
-
-## GetMeetingDataQuery
-
-### Source: ./content/docs/typescript-sdk/reference/common/getmeetingdataquery.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface GetMeetingDataQuery {
-  'botId': string
-}
-```
-
-
----
-
-## GetStartedAccount
-
-### Source: ./content/docs/typescript-sdk/reference/common/getstartedaccount.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface GetStartedAccount {
-  'email': string
-  'firstname': string
-  'google_token_id': string
-  'lastname': string
-  'microsoft_token_id': string
-}
-```
-
-
----
-
-## GetstartedQuery
-
-### Source: ./content/docs/typescript-sdk/reference/common/getstartedquery.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface GetstartedQuery {
-  'redirect_url': string
-}
-```
-
-
----
-
-## Common
-
-Common API Reference
-
-### Source: ./content/docs/typescript-sdk/reference/common/index.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-- [BaasClientConfig](/docs/typescript-sdk/reference/common/baasclientconfig)
-- [AccountInfos](/docs/typescript-sdk/reference/common/accountinfos)
-- [Account](/docs/typescript-sdk/reference/common/account)
-- [ApiKeyResponse](/docs/typescript-sdk/reference/common/apikeyresponse)
-- [Attendee](/docs/typescript-sdk/reference/common/attendee)
-- [AutomaticLeaveRequest](/docs/typescript-sdk/reference/common/automaticleaverequest)
-- [BotData](/docs/typescript-sdk/reference/common/botdata)
-- [BotPagined](/docs/typescript-sdk/reference/common/botpagined)
-- [BotParam](/docs/typescript-sdk/reference/common/botparam)
-- [BotParam2](/docs/typescript-sdk/reference/common/botparam2)
-- [BotParam3](/docs/typescript-sdk/reference/common/botparam3)
-- [BotWithParams](/docs/typescript-sdk/reference/common/botwithparams)
-- [Bot](/docs/typescript-sdk/reference/common/bot)
-- [Bot2](/docs/typescript-sdk/reference/common/bot2)
-- [CalendarListEntry](/docs/typescript-sdk/reference/common/calendarlistentry)
-- [Calendar](/docs/typescript-sdk/reference/common/calendar)
-- [CreateCalendarParams](/docs/typescript-sdk/reference/common/createcalendarparams)
-- [CreateCalendarResponse](/docs/typescript-sdk/reference/common/createcalendarresponse)
-- [DailyTokenConsumption](/docs/typescript-sdk/reference/common/dailytokenconsumption)
-- [DeleteResponse](/docs/typescript-sdk/reference/common/deleteresponse)
-- [EndMeetingQuery](/docs/typescript-sdk/reference/common/endmeetingquery)
-- [EndMeetingTrampolineQuery](/docs/typescript-sdk/reference/common/endmeetingtrampolinequery)
-- [EndMeetingTrampolineRequest](/docs/typescript-sdk/reference/common/endmeetingtrampolinerequest)
-- [Event](/docs/typescript-sdk/reference/common/event)
-- [FailedRecordRequest](/docs/typescript-sdk/reference/common/failedrecordrequest)
-- [GetAllBotsQuery](/docs/typescript-sdk/reference/common/getallbotsquery)
-- [GetMeetingDataQuery](/docs/typescript-sdk/reference/common/getmeetingdataquery)
-- [GetStartedAccount](/docs/typescript-sdk/reference/common/getstartedaccount)
-- [GetstartedQuery](/docs/typescript-sdk/reference/common/getstartedquery)
-- [JoinRequestAutomaticLeave](/docs/typescript-sdk/reference/common/joinrequestautomaticleave)
-- [JoinRequestRecordingMode](/docs/typescript-sdk/reference/common/joinrequestrecordingmode)
-- [JoinRequestScheduled](/docs/typescript-sdk/reference/common/joinrequestscheduled)
-- [JoinRequestSpeechToText](/docs/typescript-sdk/reference/common/joinrequestspeechtotext)
-- [JoinRequestStreaming](/docs/typescript-sdk/reference/common/joinrequeststreaming)
-- [JoinRequest](/docs/typescript-sdk/reference/common/joinrequest)
-- [JoinResponse](/docs/typescript-sdk/reference/common/joinresponse)
-- [JoinResponse2](/docs/typescript-sdk/reference/common/joinresponse2)
-- [LeaveResponse](/docs/typescript-sdk/reference/common/leaveresponse)
-- [ListEventResponse](/docs/typescript-sdk/reference/common/listeventresponse)
-- [ListRawCalendarsParams](/docs/typescript-sdk/reference/common/listrawcalendarsparams)
-- [ListRawCalendarsResponse](/docs/typescript-sdk/reference/common/listrawcalendarsresponse)
-- [ListRecentBotsQuery](/docs/typescript-sdk/reference/common/listrecentbotsquery)
-- [ListRecentBotsResponse](/docs/typescript-sdk/reference/common/listrecentbotsresponse)
-- [LoginAccount](/docs/typescript-sdk/reference/common/loginaccount)
-- [LoginQuery](/docs/typescript-sdk/reference/common/loginquery)
-- [Metadata](/docs/typescript-sdk/reference/common/metadata)
-- [QueryListEvent](/docs/typescript-sdk/reference/common/querylistevent)
-- [QueryPatchRecordEvent](/docs/typescript-sdk/reference/common/querypatchrecordevent)
-- [QueryScheduleRecordEvent](/docs/typescript-sdk/reference/common/queryschedulerecordevent)
-- [QueryUnScheduleRecordEvent](/docs/typescript-sdk/reference/common/queryunschedulerecordevent)
-- [ReceivedMessageQuery](/docs/typescript-sdk/reference/common/receivedmessagequery)
-- [RecentBotEntry](/docs/typescript-sdk/reference/common/recentbotentry)
-- [RecognizerWord](/docs/typescript-sdk/reference/common/recognizerword)
-- [ResyncAllCalendarsResponse](/docs/typescript-sdk/reference/common/resyncallcalendarsresponse)
-- [ResyncAllResponse](/docs/typescript-sdk/reference/common/resyncallresponse)
-- [RetranscribeBody](/docs/typescript-sdk/reference/common/retranscribebody)
-- [ScheduleOriginOneOfEvent](/docs/typescript-sdk/reference/common/scheduleoriginoneofevent)
-- [ScheduleOriginOneOf](/docs/typescript-sdk/reference/common/scheduleoriginoneof)
-- [ScheduleOriginOneOf1](/docs/typescript-sdk/reference/common/scheduleoriginoneof1)
-- [SpeechToTextApiParameter](/docs/typescript-sdk/reference/common/speechtotextapiparameter)
-- [SpeechToText](/docs/typescript-sdk/reference/common/speechtotext)
-- [StartRecordFailedQuery](/docs/typescript-sdk/reference/common/startrecordfailedquery)
-- [StreamingApiParameter](/docs/typescript-sdk/reference/common/streamingapiparameter)
-- [SyncResponse](/docs/typescript-sdk/reference/common/syncresponse)
-- [SystemTime](/docs/typescript-sdk/reference/common/systemtime)
-- [TokenConsumptionByService](/docs/typescript-sdk/reference/common/tokenconsumptionbyservice)
-- [TokenConsumptionQuery](/docs/typescript-sdk/reference/common/tokenconsumptionquery)
-- [Transcript](/docs/typescript-sdk/reference/common/transcript)
-- [Transcript2](/docs/typescript-sdk/reference/common/transcript2)
-- [Transcript3](/docs/typescript-sdk/reference/common/transcript3)
-- [Transcript4](/docs/typescript-sdk/reference/common/transcript4)
-- [UpdateCalendarParams](/docs/typescript-sdk/reference/common/updatecalendarparams)
-- [UserTokensResponse](/docs/typescript-sdk/reference/common/usertokensresponse)
-- [Version](/docs/typescript-sdk/reference/common/version)
-- [Word](/docs/typescript-sdk/reference/common/word)
-
-
----
-
-## JoinRequest
-
-### Source: ./content/docs/typescript-sdk/reference/common/joinrequest.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface JoinRequest {
-  'automatic_leave': import("@meeting-baas/sdk/models/join-request-automatic-leave").JoinRequestAutomaticLeave
-  'bot_image': string
-  'botName': string
-  'deduplication_key': string
-  'entry_message': string
-  'extra': { [key: string]: any; }
-  'meetingUrl': string
-  'recording_mode': import("@meeting-baas/sdk/models/join-request-recording-mode").JoinRequestRecordingMode
-  'reserved': boolean
-  'speech_to_text': import("@meeting-baas/sdk/models/join-request-speech-to-text").JoinRequestSpeechToText
-  'start_time': number
-  'streaming': import("@meeting-baas/sdk/models/join-request-streaming").JoinRequestStreaming
-  'webhook_url': string
-}
-```
-
-
----
-
-## JoinRequestAutomaticLeave
-
-### Source: ./content/docs/typescript-sdk/reference/common/joinrequestautomaticleave.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface JoinRequestAutomaticLeave {
-  'noone_joined_timeout': number
-  'waiting_room_timeout': number
-}
-```
-
-
----
-
-## JoinRequestRecordingMode
-
-### Source: ./content/docs/typescript-sdk/reference/common/joinrequestrecordingmode.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface JoinRequestRecordingMode {
+  const eventsResult = await client.listCalendarEvents({
+    calendar_id: calendarResult.data.calendar.uuid,
+    start_date_gte: new Date().toISOString(),
+    start_date_lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+  });
   
+  if (eventsResult.success) {
+    console.log('Events:', eventsResult.data);
+  }
+} else {
+  console.error('Error creating calendar:', calendarResult.error);
 }
 ```
 
-
----
-
-## JoinRequestScheduled
-
-### Source: ./content/docs/typescript-sdk/reference/common/joinrequestscheduled.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
+### Advanced Usage with Error Handling
 
 ```typescript
-interface JoinRequestScheduled {
-  'botParamId': number
-  'meetingUrl': string
-  'scheduleOrigin': import("@meeting-baas/sdk/models/schedule-origin").ScheduleOrigin
-}
-```
-
-
----
-
-## JoinRequestSpeechToText
-
-### Source: ./content/docs/typescript-sdk/reference/common/joinrequestspeechtotext.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface JoinRequestSpeechToText {
-  'api_key': string
-  'provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
-}
-```
-
-
----
-
-## JoinRequestStreaming
-
-### Source: ./content/docs/typescript-sdk/reference/common/joinrequeststreaming.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface JoinRequestStreaming {
-  'audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'input': string
-  'output': string
-}
-```
-
-
----
-
-## JoinResponse
-
-### Source: ./content/docs/typescript-sdk/reference/common/joinresponse.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface JoinResponse {
-  'botId': string
-}
-```
-
-
----
-
-## JoinResponse2
-
-### Source: ./content/docs/typescript-sdk/reference/common/joinresponse2.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface JoinResponse2 {
-  'botId': string
-}
-```
-
-
----
-
-## LeaveResponse
-
-### Source: ./content/docs/typescript-sdk/reference/common/leaveresponse.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface LeaveResponse {
-  'ok': boolean
-}
-```
-
-
----
-
-## ListEventResponse
-
-### Source: ./content/docs/typescript-sdk/reference/common/listeventresponse.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface ListEventResponse {
-  'data': import("@meeting-baas/sdk/models/event").Event[]
-  'next': string
-}
-```
-
-
----
-
-## ListRawCalendarsParams
-
-### Source: ./content/docs/typescript-sdk/reference/common/listrawcalendarsparams.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface ListRawCalendarsParams {
-  'oauthClientId': string
-  'oauthClientSecret': string
-  'oauthRefreshToken': string
-  'platform': import("@meeting-baas/sdk/models/provider").Provider
-}
-```
-
-
----
-
-## ListRawCalendarsResponse
-
-### Source: ./content/docs/typescript-sdk/reference/common/listrawcalendarsresponse.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface ListRawCalendarsResponse {
-  'calendars': import("@meeting-baas/sdk/models/calendar-list-entry").CalendarListEntry[]
-}
-```
-
-
----
-
-## ListRecentBotsQuery
-
-### Source: ./content/docs/typescript-sdk/reference/common/listrecentbotsquery.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface ListRecentBotsQuery {
-  'bot_name': string
-  'created_after': string
-  'created_before': string
-  'cursor': string
-  'filter_by_extra': string
-  'limit': number
-  'meeting_url': string
-  'sort_by_extra': string
-  'speaker_name': string
-}
-```
-
-
----
-
-## ListRecentBotsResponse
-
-### Source: ./content/docs/typescript-sdk/reference/common/listrecentbotsresponse.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface ListRecentBotsResponse {
-  'lastUpdated': string
-  'next_cursor': string
-  'recentBots': import("@meeting-baas/sdk/models/recent-bot-entry").RecentBotEntry[]
-}
-```
-
-
----
-
-## LoginAccount
-
-### Source: ./content/docs/typescript-sdk/reference/common/loginaccount.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface LoginAccount {
-  'app_signin_token': string
-  'google_chrome_token_id': string
-  'google_token_id': string
-  'microsoft_token_id': string
-  'password': string
-  'pseudo': string
-}
-```
-
-
----
-
-## LoginQuery
-
-### Source: ./content/docs/typescript-sdk/reference/common/loginquery.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface LoginQuery {
-  'redirect_url': string
-}
-```
-
-
----
-
-## Metadata
-
-### Source: ./content/docs/typescript-sdk/reference/common/metadata.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface Metadata {
-  'botData': import("@meeting-baas/sdk/models/bot-data").BotData
-  'contentDeleted': boolean
-  'duration': number
-  'mp4': string
-}
-```
-
-
----
-
-## QueryListEvent
-
-### Source: ./content/docs/typescript-sdk/reference/common/querylistevent.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface QueryListEvent {
-  'attendee_email': string
-  'calendarId': string
-  'cursor': string
-  'organizer_email': string
-  'start_date_gte': string
-  'start_date_lte': string
-  'status': string
-  'updated_at_gte': string
-}
-```
-
-
----
-
-## QueryPatchRecordEvent
-
-### Source: ./content/docs/typescript-sdk/reference/common/querypatchrecordevent.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface QueryPatchRecordEvent {
-  'all_occurrences': boolean
-}
-```
-
-
----
-
-## QueryScheduleRecordEvent
-
-### Source: ./content/docs/typescript-sdk/reference/common/queryschedulerecordevent.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface QueryScheduleRecordEvent {
-  'all_occurrences': boolean
-}
-```
-
-
----
-
-## QueryUnScheduleRecordEvent
-
-### Source: ./content/docs/typescript-sdk/reference/common/queryunschedulerecordevent.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface QueryUnScheduleRecordEvent {
-  'all_occurrences': boolean
-}
-```
-
-
----
-
-## ReceivedMessageQuery
-
-### Source: ./content/docs/typescript-sdk/reference/common/receivedmessagequery.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface ReceivedMessageQuery {
-  'sessionId': string
-}
-```
-
-
----
-
-## RecentBotEntry
-
-### Source: ./content/docs/typescript-sdk/reference/common/recentbotentry.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface RecentBotEntry {
-  'access_count': number
-  'contentDeleted': boolean
-  'createdAt': string
-  'duration': number
-  'ended_at': string
-  'extra': { [key: string]: any; }
-  'id': string
-  'last_accessed_at': string
-  'meetingUrl': string
-  'name': string
-  'session_id': string
-  'speakers': string[]
-}
-```
-
-
----
-
-## RecognizerWord
-
-### Source: ./content/docs/typescript-sdk/reference/common/recognizerword.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface RecognizerWord {
-  'endTime': number
-  'startTime': number
-  'text': string
-  'user_id': number
-}
-```
-
-
----
-
-## ResyncAllCalendarsResponse
-
-### Source: ./content/docs/typescript-sdk/reference/common/resyncallcalendarsresponse.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface ResyncAllCalendarsResponse {
-  'errors': any[][]
-  'syncedCalendars': string[]
-}
-```
-
-
----
-
-## ResyncAllResponse
-
-### Source: ./content/docs/typescript-sdk/reference/common/resyncallresponse.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface ResyncAllResponse {
-  'errors': any[][]
-  'syncedCalendars': string[]
-}
-```
-
-
----
-
-## RetranscribeBody
-
-### Source: ./content/docs/typescript-sdk/reference/common/retranscribebody.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface RetranscribeBody {
-  'botUuid': string
-  'speech_to_text': import("@meeting-baas/sdk/models/speech-to-text").SpeechToText
-  'webhook_url': string
-}
-```
-
-
----
-
-## ScheduleOriginOneOf
-
-### Source: ./content/docs/typescript-sdk/reference/common/scheduleoriginoneof.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface ScheduleOriginOneOf {
-  'Event': import("@meeting-baas/sdk/models/schedule-origin-one-of-event").ScheduleOriginOneOfEvent
-}
-```
-
-
----
-
-## ScheduleOriginOneOf1
-
-### Source: ./content/docs/typescript-sdk/reference/common/scheduleoriginoneof1.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface ScheduleOriginOneOf1 {
-  'ScheduledBot': import("@meeting-baas/sdk/models/schedule-origin-one-of-event").ScheduleOriginOneOfEvent
-}
-```
-
-
----
-
-## ScheduleOriginOneOfEvent
-
-### Source: ./content/docs/typescript-sdk/reference/common/scheduleoriginoneofevent.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface ScheduleOriginOneOfEvent {
-  'id': number
-}
-```
-
-
----
-
-## SpeechToText
-
-### Source: ./content/docs/typescript-sdk/reference/common/speechtotext.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface SpeechToText {
-  'api_key': string
-  'provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
-}
-```
-
-
----
-
-## SpeechToTextApiParameter
-
-### Source: ./content/docs/typescript-sdk/reference/common/speechtotextapiparameter.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface SpeechToTextApiParameter {
-  'api_key': string
-  'provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
-}
-```
-
-
----
-
-## StartRecordFailedQuery
-
-### Source: ./content/docs/typescript-sdk/reference/common/startrecordfailedquery.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface StartRecordFailedQuery {
-  'bot_uuid': string
-}
-```
-
-
----
-
-## StreamingApiParameter
-
-### Source: ./content/docs/typescript-sdk/reference/common/streamingapiparameter.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface StreamingApiParameter {
-  'audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'input': string
-  'output': string
-}
-```
-
-
----
-
-## SyncResponse
-
-### Source: ./content/docs/typescript-sdk/reference/common/syncresponse.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface SyncResponse {
-  'affected_event_uuids': string[]
-  'has_updates': string
-}
-```
-
-
----
-
-## SystemTime
-
-### Source: ./content/docs/typescript-sdk/reference/common/systemtime.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface SystemTime {
-  'nanosSinceEpoch': number
-  'secsSinceEpoch': number
-}
-```
-
-
----
-
-## TokenConsumptionByService
-
-### Source: ./content/docs/typescript-sdk/reference/common/tokenconsumptionbyservice.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface TokenConsumptionByService {
-  'duration': string
-  'recordingTokens': string
-  'streamingInputHour': string
-  'streamingInputTokens': string
-  'streamingOutputHour': string
-  'streamingOutputTokens': string
-  'transcriptionByokHour': string
-  'transcriptionByokTokens': string
-  'transcriptionHour': string
-  'transcriptionTokens': string
-}
-```
-
-
----
-
-## TokenConsumptionQuery
-
-### Source: ./content/docs/typescript-sdk/reference/common/tokenconsumptionquery.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface TokenConsumptionQuery {
-  'endDate': string
-  'startDate': string
-}
-```
-
-
----
-
-## Transcript
-
-### Source: ./content/docs/typescript-sdk/reference/common/transcript.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface Transcript {
-  'botId': number
-  'end_time': number
-  'id': number
-  'lang': string
-  'speaker': string
-  'startTime': number
-  'user_id': number
-  'words': import("@meeting-baas/sdk/models/word").Word[]
-}
-```
-
-
----
-
-## Transcript2
-
-### Source: ./content/docs/typescript-sdk/reference/common/transcript2.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface Transcript2 {
-  'botId': number
-  'end_time': number
-  'lang': string
-  'speaker': string
-  'startTime': number
-  'user_id': number
-}
-```
-
-
----
-
-## Transcript3
-
-### Source: ./content/docs/typescript-sdk/reference/common/transcript3.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface Transcript3 {
-  'botId': number
-  'end_time': number
-  'id': number
-  'lang': string
-  'speaker': string
-  'startTime': number
-  'user_id': number
-}
-```
-
-
----
-
-## Transcript4
-
-### Source: ./content/docs/typescript-sdk/reference/common/transcript4.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface Transcript4 {
-  'bot_id': number
-  'end_time': number
-  'id': number
-  'lang': string
-  'speaker': string
-  'start_time': number
-  'user_id': number
-}
-```
-
-
----
-
-## UpdateCalendarParams
-
-### Source: ./content/docs/typescript-sdk/reference/common/updatecalendarparams.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface UpdateCalendarParams {
-  'oauthClientId': string
-  'oauthClientSecret': string
-  'oauthRefreshToken': string
-  'platform': import("@meeting-baas/sdk/models/provider").Provider
-}
-```
-
-
----
-
-## UserTokensResponse
-
-### Source: ./content/docs/typescript-sdk/reference/common/usertokensresponse.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface UserTokensResponse {
-  'availableTokens': string
-  'last_purchase_date': string
-  'totalTokensPurchased': string
-}
-```
-
-
----
-
-## Version
-
-### Source: ./content/docs/typescript-sdk/reference/common/version.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface Version {
-  'buildDate': string
-  'buildTimestamp': string
-  'location': string
-}
-```
-
-
----
-
-## Word
-
-### Source: ./content/docs/typescript-sdk/reference/common/word.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface Word {
-  'botId': number
-  'endTime': number
-  'id': number
-  'startTime': number
-  'text': string
-  'user_id': number
-}
-```
-
-
----
-
-## SDK Reference
-
-Complete reference of all methods and types in the Meeting BaaS TypeScript SDK
-
-### Source: ./content/docs/typescript-sdk/reference/index.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-## Common
-
-- [Common](./reference/common)
-
-## Bots
-
-- [Bots](./reference/bots)
-
-## Calendars
-
-- [Calendars](./reference/calendars)
-
-## Webhooks
-
-- [Webhooks](./reference/webhooks)
-
-
----
-
-## GetWebhookUrlResponse
-
-### Source: ./content/docs/typescript-sdk/reference/webhooks/getwebhookurlresponse.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface GetWebhookUrlResponse {
-  'webhook_url': string
-}
-```
-
-
----
-
-## Webhooks
-
-Webhooks API Reference
-
-### Source: ./content/docs/typescript-sdk/reference/webhooks/index.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-- [GetWebhookUrlResponse](/docs/typescript-sdk/reference/webhooks/getwebhookurlresponse)
-- [PostWebhookUrlRequest](/docs/typescript-sdk/reference/webhooks/postwebhookurlrequest)
-- [RetryWebhookQuery](/docs/typescript-sdk/reference/webhooks/retrywebhookquery)
-
-
----
-
-## PostWebhookUrlRequest
-
-### Source: ./content/docs/typescript-sdk/reference/webhooks/postwebhookurlrequest.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface PostWebhookUrlRequest {
-  'webhookUrl': string
-}
-```
-
-
----
-
-## RetryWebhookQuery
-
-### Source: ./content/docs/typescript-sdk/reference/webhooks/retrywebhookquery.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-
-
-```typescript
-interface RetryWebhookQuery {
-  'botUuid': string
+import { createBaasClient } from '@meeting-baas/sdk';
+
+const client = createBaasClient({
+  api_key: 'your-api-key',
+  timeout: 60000
+});
+
+async function comprehensiveExample() {
+  try {
+    // Join a meeting with all options
+    const joinResult = await client.joinMeeting({
+      meeting_url: 'https://meet.google.com/abc-defg-hij',
+      bot_name: 'Advanced Test Bot',
+      reserved: false,
+      bot_image: 'https://example.com/bot-image.jpg',
+      enter_message: 'Hello from the advanced test bot!',
+      extra: { test_id: 'advanced-example' },
+      recording_mode: 'speaker_view',
+      speech_to_text: { provider: 'Gladia' },
+      webhook_url: 'https://example.com/webhook'
+    });
+
+    if (joinResult.success) {
+      const botId = joinResult.data.bot_id;
+      console.log('Bot joined with ID:', botId);
+
+      // Get meeting data with transcripts
+      const meetingDataResult = await client.getMeetingData({
+        bot_id: botId,
+        include_transcripts: true
+      });
+
+      if (meetingDataResult.success) {
+        console.log('Meeting duration:', meetingDataResult.data.duration);
+        console.log('Has MP4:', !!meetingDataResult.data.mp4);
+      }
+
+      // Leave the meeting
+      const leaveResult = await client.leaveMeeting({
+        uuid: botId
+      });
+
+      if (leaveResult.success) {
+        console.log('Bot left meeting successfully');
+      }
+
+      // Delete bot data
+      const deleteResult = await client.deleteBotData({
+        uuid: botId
+      });
+
+      if (deleteResult.success) {
+        console.log('Bot data deleted successfully');
+      }
+    }
+  } catch (error) {
+    console.error('Unexpected error:', error);
+  }
 }
 ```
 
