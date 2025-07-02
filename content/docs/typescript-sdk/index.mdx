@@ -9,14 +9,44 @@ icon: Book
   see [LLMs](../llms/sdk) and for MCP access, visit [auth.meetingbaas.com](https://auth.meetingbaas.com/home).
 </Callout>
 
+<Callout type="warn">
+  **New in v5.0.0**: Complete architectural redesign with improved TypeScript support, better error handling, and enhanced developer experience. 
+  If you're upgrading from v4.x, see our [Migration Guide](https://github.com/Meeting-BaaS/sdk-generator/blob/main/MIGRATION.md) for detailed upgrade instructions.
+</Callout>
+
 ## Introduction
 
 The **Meeting BaaS SDK** is the officially supported TypeScript package that empowers developers to integrate with the Meeting BaaS API - the universal interface for automating meetings across Google Meet, Zoom, and Microsoft Teams. This SDK provides:
 
-- Complete type safety with comprehensive TypeScript definitions
-- Automatic updates synced with our OpenAPI specification
-- Simplified access to all meeting automation capabilities
-- Cross-platform consistency for all supported meeting providers
+- **Complete type safety** with comprehensive TypeScript definitions and discriminated union responses
+- **Automatic parameter validation** using Zod schemas for all API calls
+- **Simplified error handling** with no try/catch required for API errors
+- **Tree-shakeable client** for optimized bundle sizes
+- **Cross-platform consistency** for all supported meeting providers
+
+## Quick Example
+
+```typescript
+import { createBaasClient } from "@meeting-baas/sdk";
+
+// Create a client
+const client = createBaasClient({
+  api_key: "your-api-key", // Get yours at https://meetingbaas.com
+});
+
+// Join a meeting with type-safe error handling
+const { success, data, error } = await client.joinMeeting({
+  bot_name: "Meeting Assistant",
+  meeting_url: "https://meet.google.com/abc-def-ghi",
+  reserved: true,
+});
+
+if (success) {
+  console.log("Bot joined successfully:", data.bot_id);
+} else {
+  console.error("Error joining meeting:", error);
+}
+```
 
 <Cards>
   <Card title="GitHub Repository" icon={<Github className="text-gray-400" />} href="https://github.com/Meeting-Baas/sdk-generator">
@@ -30,56 +60,59 @@ The **Meeting BaaS SDK** is the officially supported TypeScript package that emp
 ## Features
 
 <Cards>
-  <Card title="BaaS API Client" icon={<Code className="text-blue-400" />}>
-    Strongly typed functions for interacting with the complete Meeting BaaS API,
-    providing access to all endpoints with full TypeScript support.
+  <Card title="Type-Safe API Client" icon={<Code className="text-blue-400" />}>
+    Factory-based client creation with discriminated union responses for type-safe error handling.
+    All parameters automatically validated using Zod schemas.
   </Card>
   <Card title="Bot Management" icon={<Bot className="text-green-400" />}>
     Create, join, and manage meeting bots across platforms including Google
-    Meet, Zoom, and Microsoft Teams.
+    Meet, Zoom, and Microsoft Teams with comprehensive lifecycle management.
   </Card>
   <Card
     title="Calendar Integration"
     icon={<Calendar className="text-purple-400" />}
   >
     Connect calendars and automatically schedule meeting recordings with support
-    for multiple providers.
+    for Google Calendar and Microsoft Outlook integration.
   </Card>
   <Card
     title="Complete API Coverage"
     icon={<CheckCircle className="text-teal-400" />}
   >
     Access to all Meeting BaaS API endpoints with consistent, well-documented
-    interfaces.
+    interfaces and automatic code generation from OpenAPI specification.
   </Card>
   <Card
-    title="TypeScript Support"
+    title="Enhanced TypeScript Support"
     icon={<FileType className="text-orange-400" />}
   >
-    Full TypeScript definitions for all APIs, including request/response types
-    and error handling.
+    Full TypeScript definitions for all APIs, including request/response types,
+    discriminated union responses, and comprehensive error handling.
   </Card>
   <Card
-    title="MPC Tool Integration"
+    title="Flexible MCP Integration"
     icon={<Wrench className="text-yellow-400" />}
   >
-    Pre-generated MPC tools for easy integration with AI systems and simple
-    registration process.
+    Use SDK functions directly in your MCP tool handlers for complete control over
+    schemas, descriptions, and error handling in your Model Context Protocol servers.
   </Card>
-  <Card title="CLI Interface" icon={<Terminal className="text-red-400" />}>
-    Command-line tools included for common operations and quick testing.
+  <Card title="Node.js Compatibility" icon={<ShieldCheck className="text-red-400" />}>
+    Compatible and tested with Node.js versions 18, 19, 20, 21, and 22.
+    Comprehensive test coverage across all supported versions.
   </Card>
   <Card
-    title="Automatic Tool Generation"
+    title="Automated Updates"
     icon={<Cog className="text-indigo-400" />}
   >
-    MPC tools automatically generated for all SDK methods, ensuring consistency.
+    SDK automatically stays up-to-date with API changes through daily automated
+    workflows. No manual intervention required.
   </Card>
   <Card
-    title="Combined Package Mode"
+    title="Tree-Shakeable Bundle"
     icon={<Package className="text-pink-400" />}
   >
-    Special optimized bundle available for MPC server installations.
+    Optimized bundle with tree shaking capabilities. Only import and ship the
+    methods you actually use in your application.
   </Card>
 </Cards>
 
@@ -94,14 +127,21 @@ The **Meeting BaaS SDK** is the officially supported TypeScript package that emp
     Quick start guide with installation and basic usage examples.
   </Card>
   <Card
+    title="Quick Start"
+    icon={<Rocket />}
+    href="/docs/typescript-sdk/quick-start"
+  >
+    Comprehensive guide with advanced examples and integration patterns.
+  </Card>
+  <Card
     title="API Reference"
     icon={<FileText />}
-    href="/docs/typescript-sdk/reference"
+    href="/docs/typescript-sdk/complete-reference"
   >
     Complete API documentation for all SDK methods and types.
   </Card>
   <Card
-    title="MPC Tools"
+    title="MCP Tools"
     icon={<Wrench />}
     href="/docs/typescript-sdk/mpc-tools"
   >

@@ -1,1532 +1,530 @@
 ---
-title: SDK Reference
-description: Complete reference of all methods and types in the Meeting BaaS TypeScript SDK
-icon: Code
+title: Available Functions
+description: Complete reference of all methods in the Meeting BaaS TypeScript SDK
+icon: SquareFunction
 ---
 
-## Methods
+## Client Creation
 
+### `createBaasClient(config: BaasClientConfig)`
 
-### Bots
-
-
-#### `botsWithMetadata`
+Creates a new Meeting BaaS client instance.
 
 ```typescript
-botsWithMetadata(requestParameters: import("@meeting-baas/sdk/api/default-api").DefaultApiBotsWithMetadataRequest, options: RawAxiosRequestConfig): Promise<any>
-```
+import { createBaasClient } from "@meeting-baas/sdk";
 
-
-
-
-
-
-#### `deleteData`
-
-```typescript
-deleteData(options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `getMeetingData`
-
-```typescript
-getMeetingData(requestParameters: import("@meeting-baas/sdk/api/default-api").DefaultApiGetMeetingDataRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-<Callout type="info">
-  Example:
-  
-  ```typescript
-  // Get meeting data
-const meetingData = await client.getMeetingData(botId);
-console.log("Meeting data:", meetingData);
-  ```
-</Callout>
-
-
-
-#### `join`
-
-```typescript
-join(requestParameters: import("@meeting-baas/sdk/api/default-api").DefaultApiJoinRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `leave`
-
-```typescript
-leave(options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `retranscribeBot`
-
-```typescript
-retranscribeBot(requestParameters: import("@meeting-baas/sdk/api/default-api").DefaultApiRetranscribeBotRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-
-### Calendars
-
-
-#### `createCalendar`
-
-```typescript
-createCalendar(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiCreateCalendarRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-<Callout type="info">
-  Example:
-  
-  ```typescript
-  // Create a calendar integration
-const calendar = await client.createCalendar({
-  oauthClientId: "your-oauth-client-id",
-  oauthClientSecret: "your-oauth-client-secret",
-  oauthRefreshToken: "your-oauth-refresh-token",
-  platform: Provider.Google,
+const client = createBaasClient({
+  api_key: "your-api-key",
+  timeout: 30000 // optional, default: 30000
 });
-  ```
-</Callout>
-
-
-
-#### `deleteCalendar`
-
-```typescript
-deleteCalendar(options: RawAxiosRequestConfig): Promise<any>
 ```
 
+**Configuration Options:**
+- `api_key` (required): Your Meeting BaaS API key
+- `timeout` (optional): Request timeout in milliseconds (default: 30000)
+- `base_url` (optional): Base URL for the API (internal use)
 
+## Bot Management Methods
 
+### `joinMeeting(params: JoinRequest)`
 
-
-
-#### `getCalendar`
-
-```typescript
-getCalendar(options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `getEvent`
+Have a bot join a meeting, now or in the future.
 
 ```typescript
-getEvent(options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `listCalendars`
-
-```typescript
-listCalendars(options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `listEvents`
-
-```typescript
-listEvents(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiListEventsRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-<Callout type="info">
-  Example:
-  
-  ```typescript
-  // List events from a calendar
-const events = await client.listEvents(calendar.uuid, {
-  startDateGte: "2024-01-01T00:00:00Z",
-  status: "upcoming"
+const { success, data, error } = await client.joinMeeting({
+  bot_name: "Meeting Assistant",
+  meeting_url: "https://meet.google.com/abc-def-ghi",
+  reserved: true,
+  bot_image: "https://example.com/bot-image.jpg",
+  enter_message: "Hello from the bot!",
+  extra: { custom_id: "my-meeting" },
+  recording_mode: "speaker_view",
+  speech_to_text: { provider: "Gladia" },
+  webhook_url: "https://example.com/webhook",
+  noone_joined_timeout: 300,
+  waiting_room_timeout: 600
 });
-  ```
-</Callout>
 
-
-
-#### `listRawCalendars`
-
-```typescript
-listRawCalendars(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiListRawCalendarsRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `patchBot`
-
-```typescript
-patchBot(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiPatchBotRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `resyncAllCalendars`
-
-```typescript
-resyncAllCalendars(options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `scheduleRecordEvent`
-
-```typescript
-scheduleRecordEvent(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiScheduleRecordEventRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `unscheduleRecordEvent`
-
-```typescript
-unscheduleRecordEvent(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiUnscheduleRecordEventRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `updateCalendar`
-
-```typescript
-updateCalendar(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiUpdateCalendarRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-
-
-
-## Types
-
-
-### Bots
-
-
-#### `DefaultApiBotsWithMetadataRequest`
-
-```typescript
-interface DefaultApiBotsWithMetadataRequest {
-  botName: string
-  createdAfter: string
-  createdBefore: string
-  cursor: string
-  filterByExtra: string
-  limit: number
-  meetingUrl: string
-  sortByExtra: string
-  speakerName: string
+if (success) {
+  console.log("Bot joined successfully:", data.bot_id);
+} else {
+  console.error("Error joining meeting:", error);
 }
 ```
 
+### `leaveMeeting(params: { uuid: string })`
 
-
-
-#### `DefaultApiGetMeetingDataRequest`
+Have a bot leave a meeting.
 
 ```typescript
-interface DefaultApiGetMeetingDataRequest {
-  botId: string
+const { success, data, error } = await client.leaveMeeting({
+  uuid: "123e4567-e89b-12d3-a456-426614174000"
+});
+
+if (success) {
+  console.log("Bot left successfully:", data.bot_id);
+} else {
+  console.error("Error leaving meeting:", error);
 }
 ```
 
+### `getMeetingData(params: GetMeetingDataParams)`
 
-
-
-#### `DefaultApiInterface`
+Get meeting recording and metadata.
 
 ```typescript
-interface DefaultApiInterface {
-  
+const { success, data, error } = await client.getMeetingData({
+  bot_id: "123e4567-e89b-12d3-a456-426614174000",
+  include_transcripts: true
+});
+
+if (success) {
+  console.log("Meeting duration:", data.duration);
+  console.log("MP4 URL:", data.mp4);
+  console.log("Transcript count:", data.bot_data.transcripts.length);
+} else {
+  console.error("Error getting meeting data:", error);
 }
 ```
 
+### `deleteBotData(params: { uuid: string })`
 
-
-
-#### `DefaultApiJoinRequest`
+Delete bot data.
 
 ```typescript
-interface DefaultApiJoinRequest {
-  joinRequest: import("@meeting-baas/sdk/models/join-request").JoinRequest
+const { success, data, error } = await client.deleteBotData({
+  uuid: "123e4567-e89b-12d3-a456-426614174000"
+});
+
+if (success) {
+  console.log("Bot data deleted successfully");
+} else {
+  console.error("Error deleting bot data:", error);
 }
 ```
 
+### `listBots(params?: BotsWithMetadataParams)`
 
-
-
-#### `DefaultApiRetranscribeBotRequest`
+Retrieves a paginated list of the user's bots with essential metadata.
 
 ```typescript
-interface DefaultApiRetranscribeBotRequest {
-  retranscribeBody: import("@meeting-baas/sdk/models/retranscribe-body").RetranscribeBody
+const { success, data, error } = await client.listBots({
+  limit: 10,
+  cursor: "base64-cursor-string",
+  bot_name: "Sales",
+  created_after: "2024-01-01T00:00:00Z",
+  filter_by_extra: "customer_id:12345"
+});
+
+if (success) {
+  console.log("Bots found:", data.bots.length);
+  console.log("Has more:", data.has_more);
+} else {
+  console.error("Error listing bots:", error);
 }
 ```
 
+### `retranscribeBot(params: RetranscribeBody)`
 
-
-
-
-### Calendars
-
-
-#### `CalendarsApiCreateCalendarRequest`
+Transcribe or retranscribe a bot's audio using the Default or your provided Speech to Text Provider.
 
 ```typescript
-interface CalendarsApiCreateCalendarRequest {
-  createCalendarParams: import("@meeting-baas/sdk/models/create-calendar-params").CreateCalendarParams
+const { success, data, error } = await client.retranscribeBot({
+  bot_uuid: "123e4567-e89b-12d3-a456-426614174000",
+  speech_to_text: { provider: "Gladia" },
+  webhook_url: "https://example.com/webhook"
+});
+
+if (success) {
+  console.log("Retranscription started successfully");
+} else {
+  console.error("Error starting retranscription:", error);
 }
 ```
 
+### `getScreenshots(params: { uuid: string })`
 
-
-
-#### `CalendarsApiInterface`
+Retrieves screenshots captured during the bot's session before it joins a meeting.
 
 ```typescript
-interface CalendarsApiInterface {
-  
+const { success, data, error } = await client.getScreenshots({
+  uuid: "123e4567-e89b-12d3-a456-426614174000"
+});
+
+if (success) {
+  console.log("Screenshots found:", data.length);
+  data.forEach(screenshot => {
+    console.log("Screenshot:", screenshot.url, "Date:", screenshot.date);
+  });
+} else {
+  console.error("Error getting screenshots:", error);
 }
 ```
 
+## Calendar Management Methods
 
+### `createCalendar(params: CreateCalendarParams)`
 
-
-#### `CalendarsApiListEventsRequest`
+Integrates a new calendar with the system using OAuth credentials.
 
 ```typescript
-interface CalendarsApiListEventsRequest {
-  calendarId: string
-  attendeeEmail: string
-  cursor: string
-  organizerEmail: string
-  startDateGte: string
-  startDateLte: string
-  status: string
-  updatedAtGte: string
+const { success, data, error } = await client.createCalendar({
+  oauth_client_id: "your-oauth-client-id",
+  oauth_client_secret: "your-oauth-client-secret",
+  oauth_refresh_token: "your-oauth-refresh-token",
+  platform: "Google",
+  raw_calendar_id: "optional-calendar-id"
+});
+
+if (success) {
+  console.log("Calendar created:", data.calendar.name);
+  console.log("Calendar UUID:", data.calendar.uuid);
+} else {
+  console.error("Error creating calendar:", error);
 }
 ```
 
+### `listCalendars()`
 
-
-
-#### `CalendarsApiListRawCalendarsRequest`
+Retrieves all calendars that have been integrated with the system.
 
 ```typescript
-interface CalendarsApiListRawCalendarsRequest {
-  listRawCalendarsParams: import("@meeting-baas/sdk/models/list-raw-calendars-params").ListRawCalendarsParams
+const { success, data, error } = await client.listCalendars();
+
+if (success) {
+  console.log("Calendars found:", data.length);
+  data.forEach(calendar => {
+    console.log("Calendar:", calendar.name, "Email:", calendar.email);
+  });
+} else {
+  console.error("Error listing calendars:", error);
 }
 ```
 
+### `getCalendar(params: { uuid: string })`
 
-
-
-#### `CalendarsApiPatchBotRequest`
+Retrieves detailed information about a specific calendar integration.
 
 ```typescript
-interface CalendarsApiPatchBotRequest {
-  botParam3: import("@meeting-baas/sdk/models/bot-param3").BotParam3
-  allOccurrences: boolean
+const { success, data, error } = await client.getCalendar({
+  uuid: "123e4567-e89b-12d3-a456-426614174000"
+});
+
+if (success) {
+  console.log("Calendar details:", data);
+} else {
+  console.error("Error getting calendar:", error);
 }
 ```
 
+### `updateCalendar(params: { uuid: string; body: UpdateCalendarParams })`
 
-
-
-#### `CalendarsApiScheduleRecordEventRequest`
+Updates a calendar integration with new credentials or platform.
 
 ```typescript
-interface CalendarsApiScheduleRecordEventRequest {
-  botParam2: import("@meeting-baas/sdk/models/bot-param2").BotParam2
-  allOccurrences: boolean
+const { success, data, error } = await client.updateCalendar({
+  uuid: "123e4567-e89b-12d3-a456-426614174000",
+  body: {
+    oauth_client_id: "new-oauth-client-id",
+    oauth_client_secret: "new-oauth-client-secret",
+    oauth_refresh_token: "new-oauth-refresh-token",
+    platform: "Google"
+  }
+});
+
+if (success) {
+  console.log("Calendar updated successfully");
+} else {
+  console.error("Error updating calendar:", error);
 }
 ```
 
+### `deleteCalendar(params: { uuid: string })`
 
-
-
-#### `CalendarsApiUnscheduleRecordEventRequest`
+Permanently removes a calendar integration.
 
 ```typescript
-interface CalendarsApiUnscheduleRecordEventRequest {
-  allOccurrences: boolean
+const { success, data, error } = await client.deleteCalendar({
+  uuid: "123e4567-e89b-12d3-a456-426614174000"
+});
+
+if (success) {
+  console.log("Calendar deleted successfully");
+} else {
+  console.error("Error deleting calendar:", error);
 }
 ```
 
+### `getCalendarEvent(params: { uuid: string })`
 
-
-
-#### `CalendarsApiUpdateCalendarRequest`
+Retrieves comprehensive details about a specific calendar event.
 
 ```typescript
-interface CalendarsApiUpdateCalendarRequest {
-  updateCalendarParams: import("@meeting-baas/sdk/models/update-calendar-params").UpdateCalendarParams
+const { success, data, error } = await client.getCalendarEvent({
+  uuid: "123e4567-e89b-12d3-a456-426614174000"
+});
+
+if (success) {
+  console.log("Event:", data.name);
+  console.log("Start time:", data.start_time);
+  console.log("Meeting URL:", data.meeting_url);
+  console.log("Attendees:", data.attendees.length);
+} else {
+  console.error("Error getting event:", error);
 }
 ```
 
+### `scheduleCalendarRecordEvent(params: { uuid: string; body: BotParam2; query?: ScheduleRecordEventParams })`
 
-
-
-
-### Webhooks
-
-
-#### `GetWebhookUrlResponse`
+Configures a bot to automatically join and record a specific calendar event.
 
 ```typescript
-interface GetWebhookUrlResponse {
-  'webhook_url': string
+const { success, data, error } = await client.scheduleCalendarRecordEvent({
+  uuid: "123e4567-e89b-12d3-a456-426614174000",
+  body: {
+    bot_name: "Event Recording Bot",
+    extra: { event_id: "my-event-123" },
+    recording_mode: "speaker_view",
+    speech_to_text: { provider: "Gladia" },
+    webhook_url: "https://example.com/webhook",
+    enter_message: "Hello! I'm here to record this meeting."
+  },
+  query: { all_occurrences: true }
+});
+
+if (success) {
+  console.log("Recording scheduled successfully");
+} else {
+  console.error("Error scheduling recording:", error);
 }
 ```
 
+### `unscheduleCalendarRecordEvent(params: { uuid: string; query?: UnscheduleRecordEventParams })`
 
-
-
-#### `PostWebhookUrlRequest`
+Cancels a previously scheduled recording for a calendar event.
 
 ```typescript
-interface PostWebhookUrlRequest {
-  'webhookUrl': string
+const { success, data, error } = await client.unscheduleCalendarRecordEvent({
+  uuid: "123e4567-e89b-12d3-a456-426614174000",
+  query: { all_occurrences: true }
+});
+
+if (success) {
+  console.log("Recording unscheduled successfully");
+} else {
+  console.error("Error unscheduling recording:", error);
 }
 ```
 
+### `patchBot(params: { uuid: string; body: BotParam3; query?: PatchBotParams })`
 
-
-
-#### `RetryWebhookQuery`
+Updates the configuration of a bot already scheduled to record an event.
 
 ```typescript
-interface RetryWebhookQuery {
-  'botUuid': string
+const { success, data, error } = await client.patchBot({
+  uuid: "123e4567-e89b-12d3-a456-426614174000",
+  body: {
+    bot_name: "Updated Bot Name",
+    enter_message: "Updated enter message",
+    webhook_url: "https://new-webhook.com/webhook"
+  },
+  query: { all_occurrences: false }
+});
+
+if (success) {
+  console.log("Bot configuration updated successfully");
+} else {
+  console.error("Error updating bot configuration:", error);
 }
 ```
 
+### `listCalendarEvents(query: ListEventsParams)`
 
-
-
-
-### Common
-
-
-#### `Account`
+Retrieves a paginated list of calendar events with comprehensive filtering options.
 
 ```typescript
-interface Account {
-  'company_name': string
-  'createdAt': import("@meeting-baas/sdk/models/system-time").SystemTime
-  'email': string
-  'firstname': string
-  'id': number
-  'lastname': string
-  'phone': string
-  'status': number
+const { success, data, error } = await client.listCalendarEvents({
+  calendar_id: "123e4567-e89b-12d3-a456-426614174000",
+  start_date_gte: "2024-01-01T00:00:00Z",
+  start_date_lte: "2024-12-31T23:59:59Z",
+  status: "upcoming",
+  attendee_email: "user@example.com",
+  organizer_email: "organizer@example.com"
+});
+
+if (success) {
+  console.log("Events found:", data.events.length);
+  console.log("Next cursor:", data.next);
+} else {
+  console.error("Error listing events:", error);
 }
 ```
 
+### `resyncAllCalendars()`
 
-
-
-#### `AccountInfos`
+Triggers a full resync of all calendar events for all integrated calendars.
 
 ```typescript
-interface AccountInfos {
-  'account': import("@meeting-baas/sdk/models/account").Account
+const { success, data, error } = await client.resyncAllCalendars();
+
+if (success) {
+  console.log("Calendars synced:", data.synced_calendars.length);
+  if (data.errors.length > 0) {
+    console.log("Sync errors:", data.errors);
+  }
+} else {
+  console.error("Error resyncing calendars:", error);
 }
 ```
 
+### `listRawCalendars(params: ListRawCalendarsParams)`
 
-
-
-#### `ApiKeyResponse`
+Retrieves unprocessed calendar data directly from the provider.
 
 ```typescript
-interface ApiKeyResponse {
-  'apiKey': string
+const { success, data, error } = await client.listRawCalendars({
+  oauth_client_id: "your-oauth-client-id",
+  oauth_client_secret: "your-oauth-client-secret",
+  oauth_refresh_token: "your-oauth-refresh-token",
+  platform: "Google"
+});
+
+if (success) {
+  console.log("Raw calendars found:", data.calendars.length);
+  data.calendars.forEach(calendar => {
+    console.log("Calendar:", calendar.email, "Primary:", calendar.is_primary);
+  });
+} else {
+  console.error("Error listing raw calendars:", error);
 }
 ```
 
+## Webhook Methods
 
+### `getWebhookDocumentation()`
 
-
-#### `Attendee`
+Retrieves the full documentation for webhook events.
 
 ```typescript
-interface Attendee {
-  'email': string
-  'name': string
+const { success, data, error } = await client.getWebhookDocumentation();
+
+if (success) {
+  console.log("Webhook documentation:", data);
+} else {
+  console.error("Error getting webhook documentation:", error);
 }
 ```
 
+### `getBotWebhookDocumentation()`
 
-
-
-#### `AutomaticLeaveRequest`
+Retrieves the full documentation for bot webhook events.
 
 ```typescript
-interface AutomaticLeaveRequest {
-  'noone_joined_timeout': number
-  'waiting_room_timeout': number
+const { success, data, error } = await client.getBotWebhookDocumentation();
+
+if (success) {
+  console.log("Bot webhook documentation:", data);
+} else {
+  console.error("Error getting bot webhook documentation:", error);
 }
 ```
 
+### `getCalendarWebhookDocumentation()`
 
+Retrieves the full documentation for calendar webhook events.
 
+```typescript
+const { success, data, error } = await client.getCalendarWebhookDocumentation();
 
-#### `BaasClientConfig`
+if (success) {
+  console.log("Calendar webhook documentation:", data);
+} else {
+  console.error("Error getting calendar webhook documentation:", error);
+}
+```
+
+## Response Types
+
+All SDK methods return a discriminated union response:
+
+```typescript
+type ApiResponse<T> = 
+  | { success: true; data: T; error?: never }
+  | { success: false; error: ZodError | Error; data?: never }
+```
+
+### Success Response
+When `success` is `true`, the response contains:
+- `data`: The actual response data of type `T`
+- `error`: Never present
+
+### Error Response
+When `success` is `false`, the response contains:
+- `error`: Either a `ZodError` (validation error) or `Error` (API error)
+- `data`: Never present
+
+## Error Handling
+
+The SDK provides type-safe error handling:
+
+```typescript
+import { ZodError } from "zod";
+
+const result = await client.joinMeeting({
+  meeting_url: "https://meet.google.com/abc-def-ghi",
+  bot_name: "My Bot"
+});
+
+if (result.success) {
+  // TypeScript knows result.data is JoinResponse
+  console.log("Bot ID:", result.data.bot_id);
+} else {
+  // TypeScript knows result.error is ZodError | Error
+  if (result.error instanceof ZodError) {
+    console.error("Validation error:", result.error.errors);
+  } else {
+    console.error("API error:", result.error.message);
+  }
+}
+```
+
+## TypeScript Support
+
+The SDK provides full TypeScript support with generated types from the OpenAPI specification:
+
+```typescript
+import type { 
+  JoinRequest, 
+  JoinResponse, 
+  CreateCalendarParams,
+  BotParam2,
+  Metadata 
+} from "@meeting-baas/sdk";
+
+// All types are available for advanced usage
+const joinParams: JoinRequest = {
+  meeting_url: "https://meet.google.com/abc-def-ghi",
+  bot_name: "My Bot",
+  reserved: false
+};
+```
+
+## Configuration
+
+### BaasClientConfig Interface
 
 ```typescript
 interface BaasClientConfig {
-  apiKey: string
-  baseUrl: string
+  api_key: string;           // Required: Your Meeting BaaS API key
+  timeout?: number;          // Optional: Request timeout in ms (default: 30000)
+  base_url?: string;         // Optional: Base URL (internal use)
 }
 ```
 
+### Configuration Options
 
-
-
-#### `Bot`
-
-```typescript
-interface Bot {
-  'bot': import("@meeting-baas/sdk/models/bot2").Bot2
-  'duration': number
-  'params': import("@meeting-baas/sdk/models/bot-param").BotParam
-}
-```
-
-
-
-
-#### `Bot2`
-
-```typescript
-interface Bot2 {
-  'accountId': number
-  'botParamId': number
-  'createdAt': string
-  'diarization_v2': boolean
-  'endedAt': string
-  'errors': string
-  'event_id': number
-  'id': number
-  'meetingUrl': string
-  'mp4_s3_path': string
-  'reserved': boolean
-  'scheduled_bot_id': number
-  'session_id': string
-  'uuid': string
-}
-```
-
-
-
-
-#### `BotData`
-
-```typescript
-interface BotData {
-  'bot': import("@meeting-baas/sdk/models/bot-with-params").BotWithParams
-  'transcripts': import("@meeting-baas/sdk/models/transcript").Transcript[]
-}
-```
-
-
-
-
-#### `BotPagined`
-
-```typescript
-interface BotPagined {
-  'bots': import("@meeting-baas/sdk/models/bot").Bot[]
-  'hasMore': boolean
-}
-```
-
-
-
-
-#### `BotParam`
-
-```typescript
-interface BotParam {
-  'bot_image': string
-  'botName': string
-  'deduplication_key': string
-  'enter_message': string
-  'extra': { [key: string]: any; }
-  'noone_joined_timeout': number
-  'recording_mode': string
-  'speech_to_text_api_key': string
-  'speech_to_text_provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
-  'streaming_audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'streaming_input': string
-  'streaming_output': string
-  'waiting_room_timeout': number
-  'webhookUrl': string
-}
-```
-
-
-
-
-#### `BotParam2`
-
-```typescript
-interface BotParam2 {
-  'bot_image': string
-  'botName': string
-  'deduplication_key': string
-  'enter_message': string
-  'extra': { [key: string]: any; }
-  'noone_joined_timeout': number
-  'recording_mode': string
-  'speech_to_text': import("@meeting-baas/sdk/models/speech-to-text").SpeechToText
-  'streaming_audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'streaming_input': string
-  'streaming_output': string
-  'waiting_room_timeout': number
-  'webhook_url': string
-}
-```
-
-
-
-
-#### `BotParam3`
-
-```typescript
-interface BotParam3 {
-  'bot_image': string
-  'bot_name': string
-  'deduplication_key': string
-  'enter_message': string
-  'extra': any
-  'noone_joined_timeout': number
-  'recording_mode': string
-  'speech_to_text': import("@meeting-baas/sdk/models/speech-to-text").SpeechToText
-  'streaming_audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'streaming_input': string
-  'streaming_output': string
-  'waiting_room_timeout': number
-  'webhook_url': string
-}
-```
-
-
-
-
-#### `BotWithParams`
-
-```typescript
-interface BotWithParams {
-  'accountId': number
-  'bot_image': string
-  'botName': string
-  'botParamId': number
-  'createdAt': string
-  'deduplication_key': string
-  'diarization_v2': boolean
-  'endedAt': string
-  'enter_message': string
-  'errors': string
-  'event_id': number
-  'extra': { [key: string]: any; }
-  'id': number
-  'meetingUrl': string
-  'mp4_s3_path': string
-  'noone_joined_timeout': number
-  'recording_mode': string
-  'reserved': boolean
-  'scheduled_bot_id': number
-  'session_id': string
-  'speech_to_text_api_key': string
-  'speech_to_text_provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
-  'streaming_audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'streaming_input': string
-  'streaming_output': string
-  'uuid': string
-  'waiting_room_timeout': number
-  'webhookUrl': string
-}
-```
-
-
-
-
-#### `Calendar`
-
-```typescript
-interface Calendar {
-  'email': string
-  'googleId': string
-  'name': string
-  'resource_id': string
-  'uuid': string
-}
-```
-
-
-
-
-#### `CalendarListEntry`
-
-```typescript
-interface CalendarListEntry {
-  'email': string
-  'id': string
-  'isPrimary': boolean
-}
-```
-
-
-
-
-#### `CreateCalendarParams`
-
-```typescript
-interface CreateCalendarParams {
-  'oauthClientId': string
-  'oauthClientSecret': string
-  'oauthRefreshToken': string
-  'platform': import("@meeting-baas/sdk/models/provider").Provider
-  'raw_calendar_id': string
-}
-```
-
-
-
-
-#### `CreateCalendarResponse`
-
-```typescript
-interface CreateCalendarResponse {
-  'calendar': import("@meeting-baas/sdk/models/calendar").Calendar
-}
-```
-
-
-
-
-#### `DailyTokenConsumption`
-
-```typescript
-interface DailyTokenConsumption {
-  'consumptionByService': import("@meeting-baas/sdk/models/token-consumption-by-service").TokenConsumptionByService
-  'date': string
-}
-```
-
-
-
-
-#### `DeleteResponse`
-
-```typescript
-interface DeleteResponse {
-  'ok': boolean
-  'status': string
-}
-```
-
-
-
-
-#### `EndMeetingQuery`
-
-```typescript
-interface EndMeetingQuery {
-  'botUuid': string
-}
-```
-
-
-
-
-#### `EndMeetingTrampolineQuery`
-
-```typescript
-interface EndMeetingTrampolineQuery {
-  'botUuid': string
-}
-```
-
-
-
-
-#### `EndMeetingTrampolineRequest`
-
-```typescript
-interface EndMeetingTrampolineRequest {
-  'diarization_v2': boolean
-}
-```
-
-
-
-
-#### `Event`
-
-```typescript
-interface Event {
-  'attendees': import("@meeting-baas/sdk/models/attendee").Attendee[]
-  'bot_param': import("@meeting-baas/sdk/models/bot-param").BotParam
-  'calendarUuid': string
-  'deleted': boolean
-  'endTime': string
-  'googleId': string
-  'isOrganizer': boolean
-  'isRecurring': boolean
-  'lastUpdatedAt': string
-  'meetingUrl': string
-  'name': string
-  'raw': { [key: string]: any; }
-  'recurring_event_id': string
-  'startTime': string
-  'uuid': string
-}
-```
-
-
-
-
-#### `FailedRecordRequest`
-
-```typescript
-interface FailedRecordRequest {
-  'meetingUrl': string
-  'message': string
-}
-```
-
-
-
-
-#### `GetAllBotsQuery`
-
-```typescript
-interface GetAllBotsQuery {
-  'bot_id': string
-  'end_date': string
-  'limit': number
-  'offset': number
-  'start_date': string
-}
-```
-
-
-
-
-#### `GetMeetingDataQuery`
-
-```typescript
-interface GetMeetingDataQuery {
-  'botId': string
-}
-```
-
-
-
-
-#### `GetStartedAccount`
-
-```typescript
-interface GetStartedAccount {
-  'email': string
-  'firstname': string
-  'google_token_id': string
-  'lastname': string
-  'microsoft_token_id': string
-}
-```
-
-
-
-
-#### `GetstartedQuery`
-
-```typescript
-interface GetstartedQuery {
-  'redirect_url': string
-}
-```
-
-
-
-
-#### `JoinRequest`
-
-```typescript
-interface JoinRequest {
-  'automatic_leave': import("@meeting-baas/sdk/models/join-request-automatic-leave").JoinRequestAutomaticLeave
-  'bot_image': string
-  'botName': string
-  'deduplication_key': string
-  'entry_message': string
-  'extra': { [key: string]: any; }
-  'meetingUrl': string
-  'recording_mode': import("@meeting-baas/sdk/models/join-request-recording-mode").JoinRequestRecordingMode
-  'reserved': boolean
-  'speech_to_text': import("@meeting-baas/sdk/models/join-request-speech-to-text").JoinRequestSpeechToText
-  'start_time': number
-  'streaming': import("@meeting-baas/sdk/models/join-request-streaming").JoinRequestStreaming
-  'webhook_url': string
-}
-```
-
-
-
-
-#### `JoinRequestAutomaticLeave`
-
-```typescript
-interface JoinRequestAutomaticLeave {
-  'noone_joined_timeout': number
-  'waiting_room_timeout': number
-}
-```
-
-
-
-
-#### `JoinRequestRecordingMode`
-
-```typescript
-interface JoinRequestRecordingMode {
-  
-}
-```
-
-
-
-
-#### `JoinRequestScheduled`
-
-```typescript
-interface JoinRequestScheduled {
-  'botParamId': number
-  'meetingUrl': string
-  'scheduleOrigin': import("@meeting-baas/sdk/models/schedule-origin").ScheduleOrigin
-}
-```
-
-
-
-
-#### `JoinRequestSpeechToText`
-
-```typescript
-interface JoinRequestSpeechToText {
-  'api_key': string
-  'provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
-}
-```
-
-
-
-
-#### `JoinRequestStreaming`
-
-```typescript
-interface JoinRequestStreaming {
-  'audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'input': string
-  'output': string
-}
-```
-
-
-
-
-#### `JoinResponse`
-
-```typescript
-interface JoinResponse {
-  'botId': string
-}
-```
-
-
-
-
-#### `JoinResponse2`
-
-```typescript
-interface JoinResponse2 {
-  'botId': string
-}
-```
-
-
-
-
-#### `LeaveResponse`
-
-```typescript
-interface LeaveResponse {
-  'ok': boolean
-}
-```
-
-
-
-
-#### `ListEventResponse`
-
-```typescript
-interface ListEventResponse {
-  'data': import("@meeting-baas/sdk/models/event").Event[]
-  'next': string
-}
-```
-
-
-
-
-#### `ListRawCalendarsParams`
-
-```typescript
-interface ListRawCalendarsParams {
-  'oauthClientId': string
-  'oauthClientSecret': string
-  'oauthRefreshToken': string
-  'platform': import("@meeting-baas/sdk/models/provider").Provider
-}
-```
-
-
-
-
-#### `ListRawCalendarsResponse`
-
-```typescript
-interface ListRawCalendarsResponse {
-  'calendars': import("@meeting-baas/sdk/models/calendar-list-entry").CalendarListEntry[]
-}
-```
-
-
-
-
-#### `ListRecentBotsQuery`
-
-```typescript
-interface ListRecentBotsQuery {
-  'bot_name': string
-  'created_after': string
-  'created_before': string
-  'cursor': string
-  'filter_by_extra': string
-  'limit': number
-  'meeting_url': string
-  'sort_by_extra': string
-  'speaker_name': string
-}
-```
-
-
-
-
-#### `ListRecentBotsResponse`
-
-```typescript
-interface ListRecentBotsResponse {
-  'lastUpdated': string
-  'next_cursor': string
-  'recentBots': import("@meeting-baas/sdk/models/recent-bot-entry").RecentBotEntry[]
-}
-```
-
-
-
-
-#### `LoginAccount`
-
-```typescript
-interface LoginAccount {
-  'app_signin_token': string
-  'google_chrome_token_id': string
-  'google_token_id': string
-  'microsoft_token_id': string
-  'password': string
-  'pseudo': string
-}
-```
-
-
-
-
-#### `LoginQuery`
-
-```typescript
-interface LoginQuery {
-  'redirect_url': string
-}
-```
-
-
-
-
-#### `Metadata`
-
-```typescript
-interface Metadata {
-  'botData': import("@meeting-baas/sdk/models/bot-data").BotData
-  'contentDeleted': boolean
-  'duration': number
-  'mp4': string
-}
-```
-
-
-
-
-#### `QueryListEvent`
-
-```typescript
-interface QueryListEvent {
-  'attendee_email': string
-  'calendarId': string
-  'cursor': string
-  'organizer_email': string
-  'start_date_gte': string
-  'start_date_lte': string
-  'status': string
-  'updated_at_gte': string
-}
-```
-
-
-
-
-#### `QueryPatchRecordEvent`
-
-```typescript
-interface QueryPatchRecordEvent {
-  'all_occurrences': boolean
-}
-```
-
-
-
-
-#### `QueryScheduleRecordEvent`
-
-```typescript
-interface QueryScheduleRecordEvent {
-  'all_occurrences': boolean
-}
-```
-
-
-
-
-#### `QueryUnScheduleRecordEvent`
-
-```typescript
-interface QueryUnScheduleRecordEvent {
-  'all_occurrences': boolean
-}
-```
-
-
-
-
-#### `ReceivedMessageQuery`
-
-```typescript
-interface ReceivedMessageQuery {
-  'sessionId': string
-}
-```
-
-
-
-
-#### `RecentBotEntry`
-
-```typescript
-interface RecentBotEntry {
-  'access_count': number
-  'contentDeleted': boolean
-  'createdAt': string
-  'duration': number
-  'ended_at': string
-  'extra': { [key: string]: any; }
-  'id': string
-  'last_accessed_at': string
-  'meetingUrl': string
-  'name': string
-  'session_id': string
-  'speakers': string[]
-}
-```
-
-
-
-
-#### `RecognizerWord`
-
-```typescript
-interface RecognizerWord {
-  'endTime': number
-  'startTime': number
-  'text': string
-  'user_id': number
-}
-```
-
-
-
-
-#### `ResyncAllCalendarsResponse`
-
-```typescript
-interface ResyncAllCalendarsResponse {
-  'errors': any[][]
-  'syncedCalendars': string[]
-}
-```
-
-
-
-
-#### `ResyncAllResponse`
-
-```typescript
-interface ResyncAllResponse {
-  'errors': any[][]
-  'syncedCalendars': string[]
-}
-```
-
-
-
-
-#### `RetranscribeBody`
-
-```typescript
-interface RetranscribeBody {
-  'botUuid': string
-  'speech_to_text': import("@meeting-baas/sdk/models/speech-to-text").SpeechToText
-  'webhook_url': string
-}
-```
-
-
-
-
-#### `ScheduleOriginOneOf`
-
-```typescript
-interface ScheduleOriginOneOf {
-  'Event': import("@meeting-baas/sdk/models/schedule-origin-one-of-event").ScheduleOriginOneOfEvent
-}
-```
-
-
-
-
-#### `ScheduleOriginOneOf1`
-
-```typescript
-interface ScheduleOriginOneOf1 {
-  'ScheduledBot': import("@meeting-baas/sdk/models/schedule-origin-one-of-event").ScheduleOriginOneOfEvent
-}
-```
-
-
-
-
-#### `ScheduleOriginOneOfEvent`
-
-```typescript
-interface ScheduleOriginOneOfEvent {
-  'id': number
-}
-```
-
-
-
-
-#### `SpeechToText`
-
-```typescript
-interface SpeechToText {
-  'api_key': string
-  'provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
-}
-```
-
-
-
-
-#### `SpeechToTextApiParameter`
-
-```typescript
-interface SpeechToTextApiParameter {
-  'api_key': string
-  'provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
-}
-```
-
-
-
-
-#### `StartRecordFailedQuery`
-
-```typescript
-interface StartRecordFailedQuery {
-  'bot_uuid': string
-}
-```
-
-
-
-
-#### `StreamingApiParameter`
-
-```typescript
-interface StreamingApiParameter {
-  'audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'input': string
-  'output': string
-}
-```
-
-
-
-
-#### `SyncResponse`
-
-```typescript
-interface SyncResponse {
-  'affected_event_uuids': string[]
-  'has_updates': string
-}
-```
-
-
-
-
-#### `SystemTime`
-
-```typescript
-interface SystemTime {
-  'nanosSinceEpoch': number
-  'secsSinceEpoch': number
-}
-```
-
-
-
-
-#### `TokenConsumptionByService`
-
-```typescript
-interface TokenConsumptionByService {
-  'duration': string
-  'recordingTokens': string
-  'streamingInputHour': string
-  'streamingInputTokens': string
-  'streamingOutputHour': string
-  'streamingOutputTokens': string
-  'transcriptionByokHour': string
-  'transcriptionByokTokens': string
-  'transcriptionHour': string
-  'transcriptionTokens': string
-}
-```
-
-
-
-
-#### `TokenConsumptionQuery`
-
-```typescript
-interface TokenConsumptionQuery {
-  'endDate': string
-  'startDate': string
-}
-```
-
-
-
-
-#### `Transcript`
-
-```typescript
-interface Transcript {
-  'botId': number
-  'end_time': number
-  'id': number
-  'lang': string
-  'speaker': string
-  'startTime': number
-  'user_id': number
-  'words': import("@meeting-baas/sdk/models/word").Word[]
-}
-```
-
-
-
-
-#### `Transcript2`
-
-```typescript
-interface Transcript2 {
-  'botId': number
-  'end_time': number
-  'lang': string
-  'speaker': string
-  'startTime': number
-  'user_id': number
-}
-```
-
-
-
-
-#### `Transcript3`
-
-```typescript
-interface Transcript3 {
-  'botId': number
-  'end_time': number
-  'id': number
-  'lang': string
-  'speaker': string
-  'startTime': number
-  'user_id': number
-}
-```
-
-
-
-
-#### `Transcript4`
-
-```typescript
-interface Transcript4 {
-  'bot_id': number
-  'end_time': number
-  'id': number
-  'lang': string
-  'speaker': string
-  'start_time': number
-  'user_id': number
-}
-```
-
-
-
-
-#### `UpdateCalendarParams`
-
-```typescript
-interface UpdateCalendarParams {
-  'oauthClientId': string
-  'oauthClientSecret': string
-  'oauthRefreshToken': string
-  'platform': import("@meeting-baas/sdk/models/provider").Provider
-}
-```
-
-
-
-
-#### `UserTokensResponse`
-
-```typescript
-interface UserTokensResponse {
-  'availableTokens': string
-  'last_purchase_date': string
-  'totalTokensPurchased': string
-}
-```
-
-
-
-
-#### `Version`
-
-```typescript
-interface Version {
-  'buildDate': string
-  'buildTimestamp': string
-  'location': string
-}
-```
-
-
-
-
-#### `Word`
-
-```typescript
-interface Word {
-  'botId': number
-  'endTime': number
-  'id': number
-  'startTime': number
-  'text': string
-  'user_id': number
-}
-```
-
-
-
-
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `api_key` | `string` | ✅ Yes | - | Your Meeting BaaS API key. Get yours at [settings.meetingbaas.com](https://settings.meetingbaas.com/credentials) |
+| `timeout` | `number` | ❌ No | `30000` | Request timeout in milliseconds. Some requests may take longer, so we recommend setting a longer timeout if you notice timeouts |
+| `base_url` | `string` | ❌ No | `"https://api.meetingbaas.com"` | Base URL for the API (internal parameter) |

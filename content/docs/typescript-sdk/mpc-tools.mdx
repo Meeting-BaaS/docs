@@ -1,80 +1,347 @@
 ---
-title: MPC Tools
-description: The Meeting BaaS SDK comes with pre-generated MPC (Model Context Protocol) tools that can be easily integrated with any MPC server implementation. These tools are bundled by default and can be imported directly.
+title: MCP Tools
+description: Learn how to create MCP (Model Context Protocol) tools using the Meeting BaaS SDK functions.
 icon: Wrench
 ---
 
-## Available MPC Tools
+## Creating MCP Tools with the SDK
 
-The SDK includes pre-generated MPC tools for all API endpoints that can be directly imported and used in your MPC server implementation.
+The Meeting BaaS SDK v5.0.0 provides a clean approach for creating MCP tools by using the SDK functions directly within your tool handlers. This gives you full control over tool schemas, descriptions, and registration.
 
-### Using MPC Tools
+### Basic MCP Tool Creation
 
-The Meeting BaaS SDK provides MPC tools with zero configuration. You can import and use them directly:
-
-```typescript
-// Import specific tools
-import {
-  join_meeting_tool,
-  leave_meeting_tool,
-  get_meeting_data_tool,
-} from '@meeting-baas/sdk/tools';
-
-// Import all tools
-import { allTools } from '@meeting-baas/sdk/tools';
-
-// Register with your MPC server
-import { register_tool } from 'your-mpc-server';
-
-// Register individual tools
-register_tool(join_meeting_tool);
-register_tool(get_meeting_data_tool);
-
-// Or register all tools at once
-import { registerTools } from '@meeting-baas/sdk/tools';
-await registerTools(allTools, register_tool);
-```
-
-### MPC Server Bundle Mode
-
-For MPC server deployments, use the combined package mode:
+Here's how to create MCP tools using the SDK:
 
 ```typescript
-import { BaasClient, registerTools, SDK_MODE } from "@meeting-baas/sdk/tools";
-import { allTools } from "@meeting-baas/sdk/tools";
+import { type JoinRequest, createBaasClient } from "@meeting-baas/sdk"
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+import { z } from "zod"
 
-// Verify we're using the MPC tools package
-console.log(`SDK Mode: ${SDK_MODE}`); // Outputs: SDK Mode: MPC_TOOLS
+// Create an MCP server
+const server = new McpServer({
+  name: "meeting-baas-server",
+  version: "1.0.0"
+})
 
-// Create a BaaS client
-const client = new BaasClient({
-  apiKey: "your-api-key",
-});
+// Define the input schema for the join meeting tool
+const joinToolInputSchema = {
+  bot_name: z.string().default("Meeting BaaS Bot"),
+  meeting_url: z.string(),
+  reserved: z.boolean().default(false)
+}
 
-// Register all tools with your MPC server
-import { register_tool } from "your-mpc-server";
-await registerTools(allTools, register_tool);
+// Register the join meeting tool
+server.registerTool(
+  "joinMeeting",
+  {
+    title: "Send a Meeting BaaS bot to a meeting",
+    description:
+      "Send a Meeting BaaS bot to a Google Meet/Teams/Zoom meeting to automatically record and transcribe the meeting with speech diarization",
+    inputSchema: joinToolInputSchema
+  },
+  async (args) => {
+    const client = createBaasClient({
+      api_key: "your-api-key"
+    })
+
+    const { success, data, error } = await client.joinMeeting(args as JoinRequest)
+
+    if (success) {
+      return {
+        content: [{ type: "text", text: `Successfully joined meeting: ${JSON.stringify(data)}` }]
+      }
+    }
+
+    return {
+      content: [{ type: "text", text: `Failed to join meeting: ${error}` }]
+    }
+  }
+)
 ```
 
-## Generated MPC Tools List
+### Multiple Tools Example
 
-All SDK methods are automatically converted to snake_case MPC tools. Here's the complete list organized by API category:
+Here's how to create multiple MCP tools:
 
-### Bots API Tools
-- `join_meeting_tool` - Joins a meeting as a bot
-- `leave_meeting_tool` - Leaves a meeting
-- `get_meeting_data_tool` - Retrieves meeting data
-- `delete_data_tool` - Deletes bot data
-- `bots_with_metadata_tool` - Lists bots with metadata
-- `list_recent_bots_tool` - Lists recently used bots
-- `retranscribe_bot_tool` - Retranscribes bot recordings
+```typescript
+import { 
+  type JoinRequest, 
+  type GetMeetingDataParams,
+  type LeaveRequest,
+  createBaasClient 
+} from "@meeting-baas/sdk"
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+import { z } from "zod"
 
-### Calendars API Tools
-- `create_calendar_tool` - Creates a new calendar
-- `delete_calendar_tool` - Deletes a calendar
-- `get_calendar_tool` - Retrieves calendar details
+const server = new McpServer({
+  name: "meeting-baas-server",
+  version: "1.0.0"
+})
 
-### Webhooks API Tools
-- `bot_webhook_documentation_tool` - Provides bot webhook docs
-- `calendar_webhook_documentation_tool` - Provides calendar webhook docs
-- `webhook_documentation_tool` - General webhook documentation
+// Join Meeting Tool
+server.registerTool(
+  "joinMeeting",
+  {
+    title: "Send a Meeting BaaS bot to a meeting",
+    description: "Send a Meeting BaaS bot to a meeting to record and transcribe",
+    inputSchema: {
+      bot_name: z.string().default("Meeting BaaS Bot"),
+      meeting_url: z.string(),
+      reserved: z.boolean().default(false)
+    }
+  },
+  async (args) => {
+    const client = createBaasClient({ api_key: "your-api-key" })
+    const { success, data, error } = await client.joinMeeting(args as JoinRequest)
+    
+    if (success) {
+      return {
+        content: [{ type: "text", text: `Bot joined successfully with ID: ${data.bot_id}` }]
+      }
+    }
+    
+    return {
+      content: [{ type: "text", text: `Failed to join meeting: ${error}` }]
+    }
+  }
+)
+
+// Get Meeting Data Tool
+server.registerTool(
+  "getMeetingData",
+  {
+    title: "Get meeting recording and metadata",
+    description: "Retrieve meeting data including transcripts and recording URL",
+    inputSchema: {
+      bot_id: z.string(),
+      include_transcripts: z.boolean().default(true)
+    }
+  },
+  async (args) => {
+    const client = createBaasClient({ api_key: "your-api-key" })
+    const { success, data, error } = await client.getMeetingData(args as GetMeetingDataParams)
+    
+    if (success) {
+      return {
+        content: [{ 
+          type: "text", 
+          text: `Meeting data retrieved: Duration: ${data.duration}s, MP4: ${data.mp4 || 'Not available'}` 
+        }]
+      }
+    }
+    
+    return {
+      content: [{ type: "text", text: `Failed to get meeting data: ${error}` }]
+    }
+  }
+)
+
+// Leave Meeting Tool
+server.registerTool(
+  "leaveMeeting",
+  {
+    title: "Have a bot leave a meeting",
+    description: "Make a bot leave the meeting it's currently in",
+    inputSchema: {
+      uuid: z.string()
+    }
+  },
+  async (args) => {
+    const client = createBaasClient({ api_key: "your-api-key" })
+    const { success, data, error } = await client.leaveMeeting(args as LeaveRequest)
+    
+    if (success) {
+      return {
+        content: [{ type: "text", text: `Bot left meeting successfully: ${data.bot_id}` }]
+      }
+    }
+    
+    return {
+      content: [{ type: "text", text: `Failed to leave meeting: ${error}` }]
+    }
+  }
+)
+```
+
+### Calendar Tools Example
+
+Here's how to create calendar-related MCP tools:
+
+```typescript
+import { 
+  type CreateCalendarParams,
+  type ListCalendarEventsParams,
+  createBaasClient 
+} from "@meeting-baas/sdk"
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+import { z } from "zod"
+
+const server = new McpServer({
+  name: "meeting-baas-calendar-server",
+  version: "1.0.0"
+})
+
+// Create Calendar Tool
+server.registerTool(
+  "createCalendar",
+  {
+    title: "Create a calendar integration",
+    description: "Integrate a new calendar with Meeting BaaS using OAuth credentials",
+    inputSchema: {
+      oauth_client_id: z.string(),
+      oauth_client_secret: z.string(),
+      oauth_refresh_token: z.string(),
+      platform: z.enum(["Google", "Microsoft"]),
+      raw_calendar_id: z.string().optional()
+    }
+  },
+  async (args) => {
+    const client = createBaasClient({ api_key: "your-api-key" })
+    const { success, data, error } = await client.createCalendar(args as CreateCalendarParams)
+    
+    if (success) {
+      return {
+        content: [{ 
+          type: "text", 
+          text: `Calendar created successfully: ${data.calendar.name} (${data.calendar.uuid})` 
+        }]
+      }
+    }
+    
+    return {
+      content: [{ type: "text", text: `Failed to create calendar: ${error}` }]
+    }
+  }
+)
+
+// List Calendar Events Tool
+server.registerTool(
+  "listCalendarEvents",
+  {
+    title: "List calendar events",
+    description: "Get a list of events from a specific calendar",
+    inputSchema: {
+      calendar_id: z.string(),
+      start_date_gte: z.string().optional(),
+      start_date_lte: z.string().optional(),
+      status: z.enum(["upcoming", "past", "all"]).default("upcoming")
+    }
+  },
+  async (args) => {
+    const client = createBaasClient({ api_key: "your-api-key" })
+    const { success, data, error } = await client.listCalendarEvents(args as ListCalendarEventsParams)
+    
+    if (success) {
+      const eventCount = data.events.length
+      return {
+        content: [{ 
+          type: "text", 
+          text: `Found ${eventCount} events in calendar. Next cursor: ${data.next || 'None'}` 
+        }]
+      }
+    }
+    
+    return {
+      content: [{ type: "text", text: `Failed to list events: ${error}` }]
+    }
+  }
+)
+```
+
+### Error Handling Best Practices
+
+When creating MCP tools, it's important to handle errors gracefully:
+
+```typescript
+server.registerTool(
+  "joinMeeting",
+  {
+    title: "Join Meeting",
+    description: "Join a meeting with a bot",
+    inputSchema: {
+      meeting_url: z.string(),
+      bot_name: z.string().default("Meeting BaaS Bot")
+    }
+  },
+  async (args) => {
+    try {
+      const client = createBaasClient({ api_key: "your-api-key" })
+      const { success, data, error } = await client.joinMeeting(args)
+      
+      if (success) {
+        return {
+          content: [{ 
+            type: "text", 
+            text: `Successfully joined meeting. Bot ID: ${data.bot_id}` 
+          }]
+        }
+      } else {
+        // Handle API errors
+        if (error instanceof z.ZodError) {
+          return {
+            content: [{ 
+              type: "text", 
+              text: `Validation error: ${error.errors.map(e => e.message).join(', ')}` 
+            }]
+          }
+        }
+        
+        return {
+          content: [{ 
+            type: "text", 
+            text: `API error: ${error.message}` 
+          }]
+        }
+      }
+    } catch (unexpectedError) {
+      // Handle unexpected errors
+      return {
+        content: [{ 
+          type: "text", 
+          text: `Unexpected error: ${unexpectedError}` 
+        }]
+      }
+    }
+  }
+)
+```
+
+### Available SDK Methods for MCP Tools
+
+You can create MCP tools for any of these SDK methods:
+
+#### Bot Management
+- `joinMeeting` - Have a bot join a meeting
+- `leaveMeeting` - Have a bot leave a meeting
+- `getMeetingData` - Get meeting recording and metadata
+- `deleteBotData` - Delete bot data
+- `listBots` - List bots with metadata
+- `retranscribeBot` - Retranscribe bot recordings
+- `getScreenshots` - Get bot screenshots
+
+#### Calendar Management
+- `createCalendar` - Create a calendar integration
+- `listCalendars` - List all calendars
+- `getCalendar` - Get calendar details
+- `updateCalendar` - Update calendar credentials
+- `deleteCalendar` - Delete a calendar
+- `getCalendarEvent` - Get event details
+- `scheduleCalendarRecordEvent` - Schedule recording for an event
+- `unscheduleCalendarRecordEvent` - Unschedule recording
+- `patchBot` - Update scheduled bot configuration
+- `listCalendarEvents` - List calendar events
+- `resyncAllCalendars` - Resync all calendars
+- `listRawCalendars` - List raw calendars from provider
+
+#### Webhooks
+- `getWebhookDocumentation` - Get webhook documentation
+- `getBotWebhookDocumentation` - Get bot webhook documentation
+- `getCalendarWebhookDocumentation` - Get calendar webhook documentation
+
+### Benefits of This Approach
+
+1. **Full Control**: You have complete control over tool schemas and descriptions
+2. **Type Safety**: Full TypeScript support with generated types
+3. **Flexibility**: Customize error handling and responses
+4. **Consistency**: Use the same SDK functions across your application
+5. **Maintainability**: Easy to update when the SDK changes

@@ -1,46 +1,88 @@
 ---
 title: Integration
-description: The Meeting BaaS SDK comes with pre-generated MPC (Model Context Protocol) tools that can be easily integrated with any MPC server implementation. These tools are bundled by default and can be imported directly.
+description: Learn how to integrate the Meeting BaaS SDK with your applications and MCP servers.
 icon: FileText
 ---
 
-## MPC Server Integration
+## SDK Integration
 
-The SDK includes pre-generated MPC (Model Context Protocol) tools that can be easily integrated with any MPC server implementation:
+The Meeting BaaS SDK provides a clean, type-safe interface for integrating with the Meeting BaaS API. Here are the main integration patterns:
 
-### Simple Integration
+### Basic SDK Integration
 
-The simplest way to use the MPC tools:
+The simplest way to integrate the SDK:
 
 ```typescript
-import { allTools, registerTools } from '@meeting-baas/sdk/tools';
-import { BaasClient } from '@meeting-baas/sdk';
+import { createBaasClient } from '@meeting-baas/sdk';
 
 // Create a BaaS client with your API key
-const client = new BaasClient({
-  apiKey: process.env.MEETING_BAAS_API_KEY,
+const client = createBaasClient({
+  api_key: process.env.MEETING_BAAS_API_KEY,
 });
 
-// Register all tools with your MPC server
-// Replace registerTool with your server's registration function
-registerTools(allTools, (tool) => {
-  server.registerTool(tool);
+// Use the client for API calls
+const { success, data, error } = await client.joinMeeting({
+  bot_name: 'My Bot',
+  meeting_url: 'https://meet.google.com/abc-def-ghi',
+  reserved: true,
 });
+
+if (success) {
+  console.log('Bot joined successfully:', data.bot_id);
+} else {
+  console.error('Error joining meeting:', error);
+}
 ```
 
-### One-Line Setup
+### MCP Server Integration
 
-For even simpler integration, use the setupBaasTools convenience function:
+For MCP (Model Context Protocol) server integration, you can use the SDK functions directly within your tool handlers:
 
 ```typescript
-import { allTools, setupBaasTools } from '@meeting-baas/sdk/tools';
+import { type JoinRequest, createBaasClient } from "@meeting-baas/sdk"
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
+import { z } from "zod"
 
-// Create a client and register all tools in one step
-const client = setupBaasTools(
-  allTools,
-  server.registerTool,
-  process.env.MEETING_BAAS_API_KEY,
-);
+// Create an MCP server
+const server = new McpServer({
+  name: "demo-server",
+  version: "1.0.0"
+})
+
+// @modelcontextprotocol/sdk expects the input schema to be a ZodRawShape (plain object with zod types)
+const joinToolInputSchema = {
+  bot_name: z.string().default("Meeting BaaS Bot"),
+  meeting_url: z.string(),
+  reserved: z.boolean().default(false)
+}
+
+// Add a joinMeeting tool
+server.registerTool(
+  "joinMeeting",
+  {
+    title: "Send a Meeting BaaS bot to a meeting",
+    description:
+      "Send a Meeting BaaS bot to a Google Meet/Teams/Zoom meeting to automatically record and transcribe the meeting with speech diarization",
+    inputSchema: joinToolInputSchema
+  },
+  async (args) => {
+    const client = createBaasClient({
+      api_key: "your-api-key"
+    })
+
+    const { success, data, error } = await client.joinMeeting(args as JoinRequest)
+
+    if (success) {
+      return {
+        content: [{ type: "text", text: `Successfully joined meeting: ${JSON.stringify(data)}` }]
+      }
+    }
+
+    return {
+      content: [{ type: "text", text: `Failed to join meeting: ${error}` }]
+    }
+  }
+)
 ```
 
 ### Calendar Integration
@@ -48,29 +90,131 @@ const client = setupBaasTools(
 For calendar integration:
 
 ```typescript
-import { BaasClient, Provider } from '@meeting-baas/sdk';
+import { createBaasClient } from '@meeting-baas/sdk';
 
-const client = new BaasClient({
-  apiKey: 'your-api-key',
+const client = createBaasClient({
+  api_key: 'your-api-key',
 });
 
 // Create a calendar integration
-const calendar = await client.createCalendar({
-  oauthClientId: 'your-oauth-client-id',
-  oauthClientSecret: 'your-oauth-client-secret',
-  oauthRefreshToken: 'your-oauth-refresh-token',
-  platform: Provider.Google,
+const calendarResult = await client.createCalendar({
+  oauth_client_id: 'your-oauth-client-id',
+  oauth_client_secret: 'your-oauth-client-secret',
+  oauth_refresh_token: 'your-oauth-refresh-token',
+  platform: 'Google',
 });
 
-// List all calendars
-const calendars = await client.listCalendars();
+if (calendarResult.success) {
+  console.log('Calendar created:', calendarResult.data);
 
-// List events from a calendar
-const events = await client.listEvents(calendar.uuid);
+  // List all calendars
+  const calendarsResult = await client.listCalendars();
+  if (calendarsResult.success) {
+    console.log('All calendars:', calendarsResult.data);
+  }
 
-// Schedule a recording for an event
-await client.scheduleRecordEvent(events[0].uuid, {
-  botName: 'Event Recording Bot',
-  extra: { customId: 'my-event-123' },
+  // List events from a calendar
+  const eventsResult = await client.listCalendarEvents({
+    calendar_id: calendarResult.data.calendar.uuid
+  });
+  
+  if (eventsResult.success) {
+    console.log('Events:', eventsResult.data);
+  }
+
+  // Schedule a recording for an event
+  if (eventsResult.success && eventsResult.data.events.length > 0) {
+    const scheduleResult = await client.scheduleCalendarRecordEvent({
+      uuid: eventsResult.data.events[0].uuid,
+      body: {
+        bot_name: 'Event Recording Bot',
+        extra: { custom_id: 'my-event-123' },
+        webhook_url: 'https://example.com/webhook'
+      }
+    });
+    
+    if (scheduleResult.success) {
+      console.log('Recording scheduled successfully');
+    }
+  }
+} else {
+  console.error('Error creating calendar:', calendarResult.error);
+}
+```
+
+### Next.js API Route Example
+
+For Next.js applications:
+
+```typescript
+// app/api/meeting-baas/route.ts
+import { createBaasClient } from "@meeting-baas/sdk";
+
+export async function POST(req: Request) {
+  const { meeting_url, bot_name } = await req.json();
+
+  const client = createBaasClient({
+    api_key: process.env.MEETING_BAAS_API_KEY!,
+  });
+
+  const result = await client.joinMeeting({
+    meeting_url,
+    bot_name: bot_name || 'Meeting BaaS Bot',
+    reserved: false,
+  });
+
+  if (result.success) {
+    return Response.json({ 
+      success: true, 
+      bot_id: result.data.bot_id 
+    });
+  } else {
+    return Response.json({ 
+      success: false, 
+      error: result.error.message 
+    }, { status: 400 });
+  }
+}
+```
+
+### Express.js Integration
+
+For Express.js applications:
+
+```typescript
+import express from 'express';
+import { createBaasClient } from '@meeting-baas/sdk';
+
+const app = express();
+app.use(express.json());
+
+const client = createBaasClient({
+  api_key: process.env.MEETING_BAAS_API_KEY!,
+});
+
+app.post('/join-meeting', async (req, res) => {
+  const { meeting_url, bot_name } = req.body;
+
+  const result = await client.joinMeeting({
+    meeting_url,
+    bot_name: bot_name || 'Meeting BaaS Bot',
+    reserved: false,
+  });
+
+  if (result.success) {
+    res.json({ 
+      success: true, 
+      bot_id: result.data.bot_id 
+    });
+  } else {
+    res.status(400).json({ 
+      success: false, 
+      error: result.error.message 
+    });
+  }
+});
+
+app.listen(3000, () => {
+  console.log('Server running on port 3000');
 });
 ```

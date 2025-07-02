@@ -1,148 +1,540 @@
 ---
 title: Advanced Examples
-description: The Meeting BaaS SDK comes with pre-generated MPC (Model Context Protocol) tools that can be easily integrated with any MPC server implementation. These tools are bundled by default and can be imported directly.
+description: Advanced usage patterns and complex integration examples with the Meeting BaaS SDK.
 icon: MessageSquareText
 ---
 
-## Calendars API
+### Comprehensive Bot Management Workflow
 
-### createCalendar(createCalendarParams: CreateCalendarParams)
-
-SomeCalendarsApi
+Here's a complete workflow for managing bots throughout their lifecycle:
 
 ```typescript
-import { CreateCalendarParams } from "@meeting-baas/sdk";
+import { createBaasClient } from "@meeting-baas/sdk";
 
-// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
-await client.calendars.createCalendar({
-  // ... CreateCalendarParams properties
+const client = createBaasClient({
+  api_key: "your-api-key",
+  timeout: 60000
 });
+
+async function comprehensiveBotWorkflow() {
+  try {
+    // 1. Join a meeting with advanced configuration
+    const joinResult = await client.joinMeeting({
+      meeting_url: "https://meet.google.com/abc-defg-hij",
+      bot_name: "Advanced Workflow Bot",
+      reserved: false,
+      bot_image: "https://example.com/bot-avatar.jpg",
+      enter_message: "Hello! I'm here to record and transcribe this meeting.",
+      extra: { 
+        workflow_id: "comprehensive-example",
+        user_id: "user123",
+        session_type: "team-meeting"
+      },
+      recording_mode: "speaker_view",
+      speech_to_text: { 
+        provider: "Gladia",
+        api_key: "your-gladia-key"
+      },
+      webhook_url: "https://your-app.com/webhooks/meeting-baas",
+      noone_joined_timeout: 300, // 5 minutes
+      waiting_room_timeout: 600  // 10 minutes
+    });
+
+    if (!joinResult.success) {
+      console.error("Failed to join meeting:", joinResult.error);
+      return;
+    }
+
+    const botId = joinResult.data.bot_id;
+    console.log("Bot joined successfully:", botId);
+
+    // 2. Monitor bot status and get meeting data
+    let meetingData = null;
+    let attempts = 0;
+    const maxAttempts = 10;
+
+    while (attempts < maxAttempts) {
+      const dataResult = await client.getMeetingData({
+        bot_id: botId,
+        include_transcripts: true
+      });
+
+      if (dataResult.success) {
+        meetingData = dataResult.data;
+        
+        // Check if meeting has ended
+        if (meetingData.duration > 0) {
+          console.log("Meeting completed. Duration:", meetingData.duration);
+          break;
+        }
+      }
+
+      // Wait before next attempt
+      await new Promise(resolve => setTimeout(resolve, 30000)); // 30 seconds
+      attempts++;
+    }
+
+    // 3. Process meeting data
+    if (meetingData) {
+      console.log("Meeting duration:", meetingData.duration);
+      console.log("MP4 URL:", meetingData.mp4);
+      console.log("Transcript count:", meetingData.bot_data.transcripts.length);
+      
+      // Process transcripts
+      meetingData.bot_data.transcripts.forEach(transcript => {
+        console.log(`Speaker: ${transcript.speaker}, Duration: ${transcript.end_time - transcript.start_time}s`);
+      });
+    }
+
+    // 4. Leave the meeting
+    const leaveResult = await client.leaveMeeting({ uuid: botId });
+    if (leaveResult.success) {
+      console.log("Bot left meeting successfully");
+    }
+
+    // 5. Clean up bot data
+    const deleteResult = await client.deleteBotData({ uuid: botId });
+    if (deleteResult.success) {
+      console.log("Bot data deleted successfully");
+    }
+
+  } catch (error) {
+    console.error("Unexpected error in workflow:", error);
+  }
+}
 ```
 
-### deleteCalendar(uuid: string)
+### Calendar Integration with Event Scheduling
 
-Permanently removes a calendar integration by its UUID, including all associated events and bot configurations
-
-```typescript
-// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
-await client.calendars.deleteCalendar('example');
-```
-
-### getCalendar(uuid: string)
-
-Retrieves detailed information about a specific calendar integration by its UUID
+Advanced calendar integration with automatic event scheduling:
 
 ```typescript
-// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
-await client.calendars.getCalendar('example');
-```
+import { createBaasClient } from "@meeting-baas/sdk";
 
-### getEvent(uuid: string)
-
-Retrieves comprehensive details about a specific calendar event by its UUID
-
-```typescript
-// Returns: Promise<Event>
-await client.calendars.getEvent('example');
-```
-
-### listEvents(calendarId: string, attendeeEmail?: string?, cursor?: string?, organizerEmail?: string?, startDateGte?: string?, startDateLte?: string?, status?: string?, updatedAtGte?: string?)
-
-Retrieves a paginated list of calendar events with comprehensive filtering options
-
-```typescript
-/ Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
-await client.calendars.listEvents('example', 'example', 'example', 'example', 'example', 'example', 'example', 'example');
-```
-
-### listRawCalendars(listRawCalendarsParams: ListRawCalendarsParams)
-
-Retrieves unprocessed calendar data directly from the provider (Google, Microsoft) using provided OAuth credentials
-
-```typescript
-import { ListRawCalendarsParams } from "@meeting-baas/sdk";
-
-// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
-await client.calendars.listRawCalendars({
-  // ... ListRawCalendarsParams properties
+const client = createBaasClient({
+  api_key: "your-api-key"
 });
+
+async function advancedCalendarWorkflow() {
+  try {
+    // 1. Create calendar integration
+    const calendarResult = await client.createCalendar({
+      oauth_client_id: "your-oauth-client-id",
+      oauth_client_secret: "your-oauth-client-secret",
+      oauth_refresh_token: "your-oauth-refresh-token",
+      platform: "Google"
+    });
+
+    if (!calendarResult.success) {
+      console.error("Failed to create calendar:", calendarResult.error);
+      return;
+    }
+
+    const calendarId = calendarResult.data.calendar.uuid;
+    console.log("Calendar created:", calendarId);
+
+    // 2. List upcoming events
+    const eventsResult = await client.listCalendarEvents({
+      calendar_id: calendarId,
+      start_date_gte: new Date().toISOString(),
+      start_date_lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      status: "upcoming"
+    });
+
+    if (!eventsResult.success) {
+      console.error("Failed to list events:", eventsResult.error);
+      return;
+    }
+
+    console.log(`Found ${eventsResult.data.events.length} upcoming events`);
+
+    // 3. Schedule recordings for events with meeting URLs
+    for (const event of eventsResult.data.events) {
+      if (event.meeting_url && event.is_organizer) {
+        console.log(`Scheduling recording for: ${event.name}`);
+        
+        const scheduleResult = await client.scheduleCalendarRecordEvent({
+          uuid: event.uuid,
+          body: {
+            bot_name: `Recording Bot - ${event.name}`,
+            extra: {
+              event_name: event.name,
+              scheduled_by: "advanced-workflow",
+              calendar_id: calendarId
+            },
+            recording_mode: "speaker_view",
+            speech_to_text: { provider: "Gladia" },
+            webhook_url: "https://your-app.com/webhooks/calendar-events",
+            enter_message: `Hello! I'm here to record the meeting: ${event.name}`
+          },
+          query: { all_occurrences: event.is_recurring }
+        });
+
+        if (scheduleResult.success) {
+          console.log(`Successfully scheduled recording for: ${event.name}`);
+        } else {
+          console.error(`Failed to schedule recording for: ${event.name}`, scheduleResult.error);
+        }
+      }
+    }
+
+    // 4. Monitor scheduled events
+    const scheduledEventsResult = await client.listCalendarEvents({
+      calendar_id: calendarId,
+      status: "upcoming"
+    });
+
+    if (scheduledEventsResult.success) {
+      scheduledEventsResult.data.events.forEach(event => {
+        if (event.bot_param) {
+          console.log(`Event "${event.name}" has bot scheduled:`, {
+            bot_name: event.bot_param.bot_name,
+            scheduled_time: event.start_time,
+            meeting_url: event.meeting_url
+          });
+        }
+      });
+    }
+
+  } catch (error) {
+    console.error("Unexpected error in calendar workflow:", error);
+  }
+}
 ```
 
-### patchBot(uuid: string, botParam3: BotParam3, allOccurrences?: boolean?)
+### Batch Operations and Error Handling
 
-Updates the configuration of a bot already scheduled to record an event
-
-```typescript
-import { BotParam3 } from "@meeting-baas/sdk";
-
-// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
-await client.calendars.patchBot('example', {
-  // ... BotParam3 properties
-}, true);
-```
-
-### scheduleRecordEvent(uuid: string, botParam2: BotParam2, allOccurrences?: boolean?)
-
-Configures a bot to automatically join and record a specific calendar event at its scheduled time
+Advanced pattern for handling multiple operations with proper error handling:
 
 ```typescript
-import { BotParam2 } from "@meeting-baas/sdk";
+import { createBaasClient } from "@meeting-baas/sdk";
 
-// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
-await client.calendars.scheduleRecordEvent('example', {
-  // ... BotParam2 properties
-}, true);
-```
-
-### unscheduleRecordEvent(uuid: string, allOccurrences?: boolean?)
-
-Cancels a previously scheduled recording for a calendar event and releases associated bot resources
-
-```typescript
-// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
-await client.calendars.unscheduleRecordEvent('example', true);
-```
-
-### updateCalendar(uuid: string, updateCalendarParams: UpdateCalendarParams)
-
-Updates a calendar integration with new credentials or platform while maintaining the same UUID
-
-```typescript
-import { UpdateCalendarParams } from "@meeting-baas/sdk";
-
-// Returns: Promise<(axios?: AxiosInstance, basePath?: string) =>
-await client.calendars.updateCalendar('example', {
-  // ... UpdateCalendarParams properties
+const client = createBaasClient({
+  api_key: "your-api-key"
 });
-```
 
-## Next.js API Route Example
+interface BatchOperation {
+  id: string;
+  meeting_url: string;
+  bot_name: string;
+  expected_duration: number;
+}
 
-For Next.js applications:
+async function batchBotOperations(operations: BatchOperation[]) {
+  const results = {
+    successful: [] as string[],
+    failed: [] as { id: string; error: string }[],
+    in_progress: [] as string[]
+  };
 
-```typescript
-// app/api/mcp/route.ts
-import { allTools, registerTools } from "@meeting-baas/sdk/tools";
-import { BaasClient } from "@meeting-baas/sdk";
-import { McpServer } from "your-mcp-server-library";
+  // 1. Join all meetings
+  const joinPromises = operations.map(async (op) => {
+    try {
+      const result = await client.joinMeeting({
+        meeting_url: op.meeting_url,
+        bot_name: op.bot_name,
+        reserved: false,
+        extra: { batch_id: op.id, expected_duration: op.expected_duration },
+        webhook_url: "https://your-app.com/webhooks/batch-operations"
+      });
 
-export async function POST(req: Request) {
-  const { messages } = await req.json();
-
-  // Initialize your MPC server
-  const server = new McpServer();
-
-  // Create BaaS client
-  const client = new BaasClient({
-    apiKey: process.env.MEETING_BAAS_API_KEY,
+      if (result.success) {
+        results.in_progress.push(op.id);
+        return { id: op.id, bot_id: result.data.bot_id, success: true };
+      } else {
+        results.failed.push({ id: op.id, error: result.error.message });
+        return { id: op.id, success: false, error: result.error.message };
+      }
+    } catch (error) {
+      results.failed.push({ id: op.id, error: error.message });
+      return { id: op.id, success: false, error: error.message };
+    }
   });
 
-  // Register tools
-  await registerTools(allTools, server.registerTool);
+  const joinResults = await Promise.allSettled(joinPromises);
+  
+  // Process join results
+  joinResults.forEach((result, index) => {
+    if (result.status === 'fulfilled' && result.value.success) {
+      console.log(`Bot joined for operation ${result.value.id}: ${result.value.bot_id}`);
+    }
+  });
 
-  // Process the request with your MPC server
-  const result = await server.processRequest(messages);
+  // 2. Monitor all active bots
+  const activeBots = joinResults
+    .filter((result, index) => result.status === 'fulfilled' && result.value.success)
+    .map(result => (result as PromiseFulfilledResult<any>).value);
 
-  return Response.json(result);
+  if (activeBots.length > 0) {
+    console.log(`Monitoring ${activeBots.length} active bots...`);
+    
+    // Wait for all meetings to complete
+    const monitoringPromises = activeBots.map(async (bot) => {
+      let attempts = 0;
+      const maxAttempts = 60; // 30 minutes with 30-second intervals
+      
+      while (attempts < maxAttempts) {
+        const dataResult = await client.getMeetingData({
+          bot_id: bot.bot_id,
+          include_transcripts: true
+        });
+
+        if (dataResult.success && dataResult.data.duration > 0) {
+          // Meeting completed
+          results.successful.push(bot.id);
+          
+          // Clean up
+          await client.deleteBotData({ uuid: bot.bot_id });
+          return { id: bot.id, duration: dataResult.data.duration };
+        }
+
+        await new Promise(resolve => setTimeout(resolve, 30000));
+        attempts++;
+      }
+
+      // Timeout - force leave
+      await client.leaveMeeting({ uuid: bot.bot_id });
+      results.failed.push({ id: bot.id, error: "Meeting monitoring timeout" });
+      return { id: bot.id, error: "Timeout" };
+    });
+
+    const monitoringResults = await Promise.allSettled(monitoringPromises);
+    
+    // Process monitoring results
+    monitoringResults.forEach((result) => {
+      if (result.status === 'fulfilled' && !result.value.error) {
+        console.log(`Operation ${result.value.id} completed in ${result.value.duration}s`);
+      }
+    });
+  }
+
+  // 3. Generate summary
+  console.log("Batch operation summary:");
+  console.log(`- Successful: ${results.successful.length}`);
+  console.log(`- Failed: ${results.failed.length}`);
+  console.log(`- In Progress: ${results.in_progress.length}`);
+
+  if (results.failed.length > 0) {
+    console.log("Failed operations:");
+    results.failed.forEach(failure => {
+      console.log(`  - ${failure.id}: ${failure.error}`);
+    });
+  }
+
+  return results;
+}
+
+// Usage example
+const operations: BatchOperation[] = [
+  {
+    id: "meeting-1",
+    meeting_url: "https://meet.google.com/abc-def-ghi",
+    bot_name: "Batch Bot 1",
+    expected_duration: 3600
+  },
+  {
+    id: "meeting-2", 
+    meeting_url: "https://meet.google.com/jkl-mno-pqr",
+    bot_name: "Batch Bot 2",
+    expected_duration: 1800
+  }
+];
+
+batchBotOperations(operations).then(summary => {
+  console.log("Batch operations completed:", summary);
+});
+```
+
+### Webhook Integration with Event Processing
+
+Advanced webhook handling and event processing:
+
+```typescript
+import { createBaasClient } from "@meeting-baas/sdk";
+import express from 'express';
+
+const app = express();
+app.use(express.json());
+
+const client = createBaasClient({
+  api_key: "your-api-key"
+});
+
+// Webhook event handler
+app.post('/webhooks/meeting-baas', async (req, res) => {
+  const { event_type, bot_id, data } = req.body;
+
+  try {
+    switch (event_type) {
+      case 'bot_joined':
+        console.log(`Bot ${bot_id} joined meeting`);
+        // Update UI, send notifications, etc.
+        break;
+
+      case 'bot_left':
+        console.log(`Bot ${bot_id} left meeting`);
+        
+        // Get final meeting data
+        const meetingDataResult = await client.getMeetingData({
+          bot_id: bot_id,
+          include_transcripts: true
+        });
+
+        if (meetingDataResult.success) {
+          const meetingData = meetingDataResult.data;
+          
+          // Process meeting data
+          await processMeetingData(meetingData);
+          
+          // Clean up bot data
+          await client.deleteBotData({ uuid: bot_id });
+        }
+        break;
+
+      case 'transcription_completed':
+        console.log(`Transcription completed for bot ${bot_id}`);
+        // Process transcripts, update database, etc.
+        break;
+
+      case 'error':
+        console.error(`Error for bot ${bot_id}:`, data.error);
+        // Handle errors, retry logic, etc.
+        break;
+
+      default:
+        console.log(`Unknown event type: ${event_type}`);
+    }
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Webhook processing error:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+async function processMeetingData(meetingData: any) {
+  // Process meeting data based on your application needs
+  console.log(`Processing meeting data: ${meetingData.duration}s duration`);
+  
+  if (meetingData.mp4) {
+    console.log(`Recording available at: ${meetingData.mp4}`);
+  }
+  
+  if (meetingData.bot_data.transcripts.length > 0) {
+    console.log(`Found ${meetingData.bot_data.transcripts.length} transcripts`);
+    
+    // Process transcripts
+    meetingData.bot_data.transcripts.forEach((transcript: any) => {
+      console.log(`Speaker: ${transcript.speaker}, Words: ${transcript.words.length}`);
+    });
+  }
+}
+
+app.listen(3000, () => {
+  console.log('Webhook server running on port 3000');
+});
+```
+
+### Error Recovery and Retry Logic
+
+Advanced error handling with retry logic:
+
+```typescript
+import { createBaasClient } from "@meeting-baas/sdk";
+
+const client = createBaasClient({
+  api_key: "your-api-key",
+  timeout: 60000
+});
+
+interface RetryConfig {
+  maxAttempts: number;
+  baseDelay: number;
+  maxDelay: number;
+  backoffMultiplier: number;
+}
+
+async function retryOperation<T>(
+  operation: () => Promise<T>,
+  config: RetryConfig = {
+    maxAttempts: 3,
+    baseDelay: 1000,
+    maxDelay: 10000,
+    backoffMultiplier: 2
+  }
+): Promise<T> {
+  let lastError: Error;
+  
+  for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      lastError = error;
+      
+      if (attempt === config.maxAttempts) {
+        throw error;
+      }
+      
+      // Calculate delay with exponential backoff
+      const delay = Math.min(
+        config.baseDelay * Math.pow(config.backoffMultiplier, attempt - 1),
+        config.maxDelay
+      );
+      
+      console.log(`Attempt ${attempt} failed, retrying in ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+  
+  throw lastError!;
+}
+
+async function robustBotOperation() {
+  try {
+    // Join meeting with retry logic
+    const joinResult = await retryOperation(async () => {
+      const result = await client.joinMeeting({
+        meeting_url: "https://meet.google.com/abc-def-ghi",
+        bot_name: "Robust Bot",
+        reserved: false
+      });
+
+      if (!result.success) {
+        throw new Error(result.error.message);
+      }
+
+      return result;
+    });
+
+    console.log("Bot joined successfully:", joinResult.data.bot_id);
+
+    // Monitor with retry logic
+    const meetingData = await retryOperation(async () => {
+      const result = await client.getMeetingData({
+        bot_id: joinResult.data.bot_id,
+        include_transcripts: true
+      });
+
+      if (!result.success) {
+        throw new Error(result.error.message);
+      }
+
+      if (result.data.duration === 0) {
+        throw new Error("Meeting not yet completed");
+      }
+
+      return result;
+    }, {
+      maxAttempts: 20, // More attempts for monitoring
+      baseDelay: 5000, // 5 second base delay
+      maxDelay: 30000, // Max 30 second delay
+      backoffMultiplier: 1.5
+    });
+
+    console.log("Meeting completed:", meetingData.data.duration);
+
+  } catch (error) {
+    console.error("Operation failed after all retries:", error);
+  }
 }
 ```
