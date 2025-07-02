@@ -1,6 +1,5 @@
 import { generateDocs } from './generate-docs.mjs';
 import { generateSDKUpdates } from './generate-sdk-updates.mjs';
-import { generateSDKReference } from './generate-sdk-reference.mjs';
 import { generateAPIUpdates } from './generate-api-updates.mjs';
 import { generateLlmConfig } from './generate-llm-config.mjs';
 import fs from 'fs';

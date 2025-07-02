@@ -3757,6 +3757,32 @@ TypeScript SDK - Automatically generated documentation based on Git activity.
 
 ---
 
+## June 7, 2025
+
+Changes from recent development in TypeScript SDK
+
+### Source: ./content/docs/updates/sdk-2025-07-02.mdx
+
+
+<Callout type="warning">
+  <Files>
+    <Folder name="content" defaultOpen>
+      <Folder name="docs">
+        <Folder name="updates">
+          <File name="typescript-sdk-2025-07-02.mdx" />
+        </Folder>
+      </Folder>
+    </Folder>
+  </Files>
+  The content in this document is automatically generated from service updates. It should be re-read by a human or at least an AI ;)
+</Callout>
+
+# Changed Files
+This update contains changes to the TypeScript SDK documentation and related files. 
+
+
+---
+
 ## March 2, 2025
 
 Speaking Bots - Automatically generated documentation based on Git activity.
@@ -4421,6 +4447,33 @@ Please update your client applications to accommodate these changes.
 We hope these updates to the speaking service will improve your experience and enable you to build even better applications. As always, if you have any questions or feedback, don't hesitate to reach out to our support team.
 
 Happy coding! 🐟
+
+---
+
+## June 4, 2025
+
+Changes from recent development in Speaking Bots
+
+### Source: ./content/docs/updates/speaking-bots-2025-06-04.mdx
+
+
+<Callout type="warning">
+  <Files>
+    <Folder name="content" defaultOpen>
+      <Folder name="docs">
+        <Folder name="updates">
+          <File name="speaking-bots-2025-06-04.mdx" />
+        </Folder>
+      </Folder>
+    </Folder>
+  </Files>
+  The content in this document is automatically generated from service updates. It should be re-read by a human or at least an AI ;)
+</Callout>
+
+# Changed Files
+
+This update contains changes to the Speaking Bots service documentation and related files. 
+
 
 ---
 

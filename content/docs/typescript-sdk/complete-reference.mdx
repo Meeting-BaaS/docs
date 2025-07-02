@@ -1,1532 +1,787 @@
 ---
-title: SDK Reference
-description: Complete reference of all methods and types in the Meeting BaaS TypeScript SDK
-icon: Code
+title: API Reference
+description: Complete reference of all methods in the Meeting BaaS TypeScript SDK
+icon: SquareFunction
 ---
 
-## Methods
+## Client Creation
 
+### `createBaasClient`
 
-### Bots
+Creates a new Meeting BaaS client instance.
 
-
-#### `botsWithMetadata`
-
-```typescript
-botsWithMetadata(requestParameters: import("@meeting-baas/sdk/api/default-api").DefaultApiBotsWithMetadataRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `deleteData`
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `api_key` | `string` | ✅ Yes | - | Your Meeting BaaS API key. Get yours at [settings.meetingbaas.com](https://settings.meetingbaas.com/credentials) |
+| `timeout` | `number` | ❌ No | `30000` | Request timeout in milliseconds. Some requests may take longer, so we recommend setting a longer timeout if you notice timeouts |
+| `base_url` | `string` | ❌ No | `"https://api.meetingbaas.com"` | Base URL for the API (internal parameter) |
 
 ```typescript
-deleteData(options: RawAxiosRequestConfig): Promise<any>
-```
+import { createBaasClient } from "@meeting-baas/sdk";
 
-
-
-
-
-
-#### `getMeetingData`
-
-```typescript
-getMeetingData(requestParameters: import("@meeting-baas/sdk/api/default-api").DefaultApiGetMeetingDataRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-<Callout type="info">
-  Example:
-  
-  ```typescript
-  // Get meeting data
-const meetingData = await client.getMeetingData(botId);
-console.log("Meeting data:", meetingData);
-  ```
-</Callout>
-
-
-
-#### `join`
-
-```typescript
-join(requestParameters: import("@meeting-baas/sdk/api/default-api").DefaultApiJoinRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `leave`
-
-```typescript
-leave(options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `retranscribeBot`
-
-```typescript
-retranscribeBot(requestParameters: import("@meeting-baas/sdk/api/default-api").DefaultApiRetranscribeBotRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-
-### Calendars
-
-
-#### `createCalendar`
-
-```typescript
-createCalendar(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiCreateCalendarRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-<Callout type="info">
-  Example:
-  
-  ```typescript
-  // Create a calendar integration
-const calendar = await client.createCalendar({
-  oauthClientId: "your-oauth-client-id",
-  oauthClientSecret: "your-oauth-client-secret",
-  oauthRefreshToken: "your-oauth-refresh-token",
-  platform: Provider.Google,
+const client = createBaasClient({
+  api_key: "your-api-key",
+  timeout: 30000 // optional, default: 30000
 });
-  ```
-</Callout>
-
-
-
-#### `deleteCalendar`
-
-```typescript
-deleteCalendar(options: RawAxiosRequestConfig): Promise<any>
 ```
 
+**Returns:**
+- `BaasClient` instance
 
+## Bot Management Methods
 
+### `joinMeeting`
 
+Have a bot join a meeting, now or in the future.
 
+**Parameters:**
+- `params`: [JoinRequest](/docs/api/reference/join#request-body) - Join meeting configuration
 
-#### `getCalendar`
-
-```typescript
-getCalendar(options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `getEvent`
-
-```typescript
-getEvent(options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `listCalendars`
+**Returns:**
+- `success`: Boolean (true if bot joined successfully, false in case of any errors)
+- `data`: [JoinResponse](/docs/api/reference/join) - bot_id of the bot joining the meeting
+- `error`: Error, if any
 
 ```typescript
-listCalendars(options: RawAxiosRequestConfig): Promise<any>
+// Type imports
+import type { JoinRequest, JoinResponse } from "@meeting-baas/sdk";
 ```
-
-
-
-
-
-
-#### `listEvents`
 
 ```typescript
-listEvents(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiListEventsRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-<Callout type="info">
-  Example:
-  
-  ```typescript
-  // List events from a calendar
-const events = await client.listEvents(calendar.uuid, {
-  startDateGte: "2024-01-01T00:00:00Z",
-  status: "upcoming"
+// Example
+const { success, data, error } = await client.joinMeeting({
+  bot_name: "Meeting Assistant",
+  meeting_url: "https://meet.google.com/abc-def-ghi",
+  reserved: true,
+  bot_image: "https://example.com/bot-image.jpg",
+  enter_message: "Hello from the bot!",
+  extra: { custom_id: "my-meeting" },
+  recording_mode: "speaker_view",
+  speech_to_text: { provider: "Gladia" },
+  webhook_url: "https://example.com/webhook",
+  noone_joined_timeout: 300,
+  waiting_room_timeout: 600
 });
-  ```
-</Callout>
 
-
-
-#### `listRawCalendars`
-
-```typescript
-listRawCalendars(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiListRawCalendarsRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `patchBot`
-
-```typescript
-patchBot(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiPatchBotRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `resyncAllCalendars`
-
-```typescript
-resyncAllCalendars(options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `scheduleRecordEvent`
-
-```typescript
-scheduleRecordEvent(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiScheduleRecordEventRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `unscheduleRecordEvent`
-
-```typescript
-unscheduleRecordEvent(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiUnscheduleRecordEventRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-#### `updateCalendar`
-
-```typescript
-updateCalendar(requestParameters: import("@meeting-baas/sdk/api/calendars-api").CalendarsApiUpdateCalendarRequest, options: RawAxiosRequestConfig): Promise<any>
-```
-
-
-
-
-
-
-
-
-
-## Types
-
-
-### Bots
-
-
-#### `DefaultApiBotsWithMetadataRequest`
-
-```typescript
-interface DefaultApiBotsWithMetadataRequest {
-  botName: string
-  createdAfter: string
-  createdBefore: string
-  cursor: string
-  filterByExtra: string
-  limit: number
-  meetingUrl: string
-  sortByExtra: string
-  speakerName: string
-}
-```
-
-
-
-
-#### `DefaultApiGetMeetingDataRequest`
-
-```typescript
-interface DefaultApiGetMeetingDataRequest {
-  botId: string
-}
-```
-
-
-
-
-#### `DefaultApiInterface`
-
-```typescript
-interface DefaultApiInterface {
-  
-}
-```
-
-
-
-
-#### `DefaultApiJoinRequest`
-
-```typescript
-interface DefaultApiJoinRequest {
-  joinRequest: import("@meeting-baas/sdk/models/join-request").JoinRequest
-}
-```
-
-
-
-
-#### `DefaultApiRetranscribeBotRequest`
-
-```typescript
-interface DefaultApiRetranscribeBotRequest {
-  retranscribeBody: import("@meeting-baas/sdk/models/retranscribe-body").RetranscribeBody
-}
-```
-
-
-
-
-
-### Calendars
-
-
-#### `CalendarsApiCreateCalendarRequest`
-
-```typescript
-interface CalendarsApiCreateCalendarRequest {
-  createCalendarParams: import("@meeting-baas/sdk/models/create-calendar-params").CreateCalendarParams
-}
-```
-
-
-
-
-#### `CalendarsApiInterface`
-
-```typescript
-interface CalendarsApiInterface {
-  
-}
-```
-
-
-
-
-#### `CalendarsApiListEventsRequest`
-
-```typescript
-interface CalendarsApiListEventsRequest {
-  calendarId: string
-  attendeeEmail: string
-  cursor: string
-  organizerEmail: string
-  startDateGte: string
-  startDateLte: string
-  status: string
-  updatedAtGte: string
-}
-```
-
-
-
-
-#### `CalendarsApiListRawCalendarsRequest`
-
-```typescript
-interface CalendarsApiListRawCalendarsRequest {
-  listRawCalendarsParams: import("@meeting-baas/sdk/models/list-raw-calendars-params").ListRawCalendarsParams
-}
-```
-
-
-
-
-#### `CalendarsApiPatchBotRequest`
-
-```typescript
-interface CalendarsApiPatchBotRequest {
-  botParam3: import("@meeting-baas/sdk/models/bot-param3").BotParam3
-  allOccurrences: boolean
-}
-```
-
-
-
-
-#### `CalendarsApiScheduleRecordEventRequest`
-
-```typescript
-interface CalendarsApiScheduleRecordEventRequest {
-  botParam2: import("@meeting-baas/sdk/models/bot-param2").BotParam2
-  allOccurrences: boolean
-}
-```
-
-
-
-
-#### `CalendarsApiUnscheduleRecordEventRequest`
-
-```typescript
-interface CalendarsApiUnscheduleRecordEventRequest {
-  allOccurrences: boolean
-}
-```
-
-
-
-
-#### `CalendarsApiUpdateCalendarRequest`
-
-```typescript
-interface CalendarsApiUpdateCalendarRequest {
-  updateCalendarParams: import("@meeting-baas/sdk/models/update-calendar-params").UpdateCalendarParams
-}
-```
-
-
-
-
-
-### Webhooks
-
-
-#### `GetWebhookUrlResponse`
-
-```typescript
-interface GetWebhookUrlResponse {
-  'webhook_url': string
-}
-```
-
-
-
-
-#### `PostWebhookUrlRequest`
-
-```typescript
-interface PostWebhookUrlRequest {
-  'webhookUrl': string
-}
-```
-
-
-
-
-#### `RetryWebhookQuery`
-
-```typescript
-interface RetryWebhookQuery {
-  'botUuid': string
-}
-```
-
-
-
-
-
-### Common
-
-
-#### `Account`
-
-```typescript
-interface Account {
-  'company_name': string
-  'createdAt': import("@meeting-baas/sdk/models/system-time").SystemTime
-  'email': string
-  'firstname': string
-  'id': number
-  'lastname': string
-  'phone': string
-  'status': number
-}
-```
-
-
-
-
-#### `AccountInfos`
-
-```typescript
-interface AccountInfos {
-  'account': import("@meeting-baas/sdk/models/account").Account
-}
-```
-
-
-
-
-#### `ApiKeyResponse`
-
-```typescript
-interface ApiKeyResponse {
-  'apiKey': string
-}
-```
-
-
-
-
-#### `Attendee`
-
-```typescript
-interface Attendee {
-  'email': string
-  'name': string
-}
-```
-
-
-
-
-#### `AutomaticLeaveRequest`
-
-```typescript
-interface AutomaticLeaveRequest {
-  'noone_joined_timeout': number
-  'waiting_room_timeout': number
-}
-```
-
-
-
-
-#### `BaasClientConfig`
-
-```typescript
-interface BaasClientConfig {
-  apiKey: string
-  baseUrl: string
-}
-```
-
-
-
-
-#### `Bot`
-
-```typescript
-interface Bot {
-  'bot': import("@meeting-baas/sdk/models/bot2").Bot2
-  'duration': number
-  'params': import("@meeting-baas/sdk/models/bot-param").BotParam
-}
-```
-
-
-
-
-#### `Bot2`
-
-```typescript
-interface Bot2 {
-  'accountId': number
-  'botParamId': number
-  'createdAt': string
-  'diarization_v2': boolean
-  'endedAt': string
-  'errors': string
-  'event_id': number
-  'id': number
-  'meetingUrl': string
-  'mp4_s3_path': string
-  'reserved': boolean
-  'scheduled_bot_id': number
-  'session_id': string
-  'uuid': string
-}
-```
-
-
-
-
-#### `BotData`
-
-```typescript
-interface BotData {
-  'bot': import("@meeting-baas/sdk/models/bot-with-params").BotWithParams
-  'transcripts': import("@meeting-baas/sdk/models/transcript").Transcript[]
-}
-```
-
-
-
-
-#### `BotPagined`
-
-```typescript
-interface BotPagined {
-  'bots': import("@meeting-baas/sdk/models/bot").Bot[]
-  'hasMore': boolean
-}
-```
-
-
-
-
-#### `BotParam`
-
-```typescript
-interface BotParam {
-  'bot_image': string
-  'botName': string
-  'deduplication_key': string
-  'enter_message': string
-  'extra': { [key: string]: any; }
-  'noone_joined_timeout': number
-  'recording_mode': string
-  'speech_to_text_api_key': string
-  'speech_to_text_provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
-  'streaming_audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'streaming_input': string
-  'streaming_output': string
-  'waiting_room_timeout': number
-  'webhookUrl': string
+if (success) {
+  console.log("Bot joined successfully:", data.bot_id);
+} else {
+  console.error("Error joining meeting:", error);
 }
 ```
 
+### `leaveMeeting`
 
+Have a bot leave a meeting.
 
+**Parameters:**
+- `params`: `{ uuid: string }` - Bot UUID to leave the meeting
 
-#### `BotParam2`
+**Returns:**
+- `success`: Boolean (true if bot left successfully, false in case of any errors)
+- `data`: [LeaveResponse](/docs/api/reference/leave) - Bot leave confirmation data
+- `error`: Error, if any
 
 ```typescript
-interface BotParam2 {
-  'bot_image': string
-  'botName': string
-  'deduplication_key': string
-  'enter_message': string
-  'extra': { [key: string]: any; }
-  'noone_joined_timeout': number
-  'recording_mode': string
-  'speech_to_text': import("@meeting-baas/sdk/models/speech-to-text").SpeechToText
-  'streaming_audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'streaming_input': string
-  'streaming_output': string
-  'waiting_room_timeout': number
-  'webhook_url': string
-}
+// Type imports
+import type { LeaveResponse } from "@meeting-baas/sdk";
 ```
-
-
-
 
-#### `BotParam3`
-
 ```typescript
-interface BotParam3 {
-  'bot_image': string
-  'bot_name': string
-  'deduplication_key': string
-  'enter_message': string
-  'extra': any
-  'noone_joined_timeout': number
-  'recording_mode': string
-  'speech_to_text': import("@meeting-baas/sdk/models/speech-to-text").SpeechToText
-  'streaming_audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'streaming_input': string
-  'streaming_output': string
-  'waiting_room_timeout': number
-  'webhook_url': string
-}
-```
-
+const { success, data, error } = await client.leaveMeeting({
+  uuid: "123e4567-e89b-12d3-a456-426614174000"
+});
 
-
-
-#### `BotWithParams`
-
-```typescript
-interface BotWithParams {
-  'accountId': number
-  'bot_image': string
-  'botName': string
-  'botParamId': number
-  'createdAt': string
-  'deduplication_key': string
-  'diarization_v2': boolean
-  'endedAt': string
-  'enter_message': string
-  'errors': string
-  'event_id': number
-  'extra': { [key: string]: any; }
-  'id': number
-  'meetingUrl': string
-  'mp4_s3_path': string
-  'noone_joined_timeout': number
-  'recording_mode': string
-  'reserved': boolean
-  'scheduled_bot_id': number
-  'session_id': string
-  'speech_to_text_api_key': string
-  'speech_to_text_provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
-  'streaming_audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'streaming_input': string
-  'streaming_output': string
-  'uuid': string
-  'waiting_room_timeout': number
-  'webhookUrl': string
+if (success) {
+  console.log("Bot left successfully:", data.bot_id);
+} else {
+  console.error("Error leaving meeting:", error);
 }
 ```
 
+### `getMeetingData`
 
+Get meeting recording and metadata.
 
+**Parameters:**
+- `params`: [GetMeetingDataParams](/docs/api/reference/get_meeting_data#query-parameters) - Parameters for retrieving meeting data
 
-#### `Calendar`
+**Returns:**
+- `success`: Boolean (true if meeting data retrieved successfully, false in case of any errors)
+- `data`: [Metadata](/docs/api/reference/get_meeting_data) - Meeting metadata and recording information
+- `error`: Error, if any
 
 ```typescript
-interface Calendar {
-  'email': string
-  'googleId': string
-  'name': string
-  'resource_id': string
-  'uuid': string
-}
+// Type imports
+import type { GetMeetingDataParams, Metadata } from "@meeting-baas/sdk";
 ```
-
 
-
-
-#### `CalendarListEntry`
-
 ```typescript
-interface CalendarListEntry {
-  'email': string
-  'id': string
-  'isPrimary': boolean
-}
-```
-
-
-
+const { success, data, error } = await client.getMeetingData({
+  bot_id: "123e4567-e89b-12d3-a456-426614174000",
+  include_transcripts: true
+});
 
-#### `CreateCalendarParams`
-
-```typescript
-interface CreateCalendarParams {
-  'oauthClientId': string
-  'oauthClientSecret': string
-  'oauthRefreshToken': string
-  'platform': import("@meeting-baas/sdk/models/provider").Provider
-  'raw_calendar_id': string
+if (success) {
+  console.log("Meeting duration:", data.duration);
+  console.log("MP4 URL:", data.mp4);
+  console.log("Transcript count:", data.bot_data.transcripts.length);
+} else {
+  console.error("Error getting meeting data:", error);
 }
 ```
 
+### `deleteBotData`
 
+Delete bot data permanently.
 
+**Parameters:**
+- `params`: `{ uuid: string }` - Bot UUID to delete
 
-#### `CreateCalendarResponse`
+**Returns:**
+- `success`: Boolean (true if bot data deleted successfully, false in case of any errors)
+- `data`: [DeleteResponse](/docs/api/reference/delete_data) - Deletion confirmation
+- `error`: Error, if any
 
 ```typescript
-interface CreateCalendarResponse {
-  'calendar': import("@meeting-baas/sdk/models/calendar").Calendar
-}
+// Type imports
+import type { DeleteResponse } from "@meeting-baas/sdk";
 ```
-
 
-
-
-#### `DailyTokenConsumption`
-
 ```typescript
-interface DailyTokenConsumption {
-  'consumptionByService': import("@meeting-baas/sdk/models/token-consumption-by-service").TokenConsumptionByService
-  'date': string
-}
-```
-
-
-
+const { success, data, error } = await client.deleteBotData({
+  uuid: "123e4567-e89b-12d3-a456-426614174000"
+});
 
-#### `DeleteResponse`
-
-```typescript
-interface DeleteResponse {
-  'ok': boolean
-  'status': string
+if (success) {
+  console.log("Bot data deleted successfully");
+} else {
+  console.error("Error deleting bot data:", error);
 }
 ```
 
+### `listBots`
 
+Retrieves a paginated list of the user's bots with essential metadata, including IDs, names, and meeting details.
 
+**Parameters:**
+- `params?`: [BotsWithMetadataParams](/docs/api/reference/bots_with_metadata#query-parameters) - Optional filtering and pagination parameters
 
-#### `EndMeetingQuery`
+**Returns:**
+- `success`: Boolean (true if bots retrieved successfully, false in case of any errors)
+- `data`: [ListRecentBotsResponse](/docs/api/reference/bots_with_metadata) - Paginated list of bots with metadata
+- `error`: Error, if any
 
 ```typescript
-interface EndMeetingQuery {
-  'botUuid': string
-}
+// Type imports
+import type { BotsWithMetadataParams, ListRecentBotsResponse } from "@meeting-baas/sdk";
 ```
-
 
-
-
-#### `EndMeetingTrampolineQuery`
-
 ```typescript
-interface EndMeetingTrampolineQuery {
-  'botUuid': string
-}
-```
-
-
-
+const { success, data, error } = await client.listBots({
+  limit: 10,
+  cursor: "base64-cursor-string",
+  bot_name: "Sales",
+  created_after: "2024-01-01T00:00:00Z",
+  filter_by_extra: "customer_id:12345"
+});
 
-#### `EndMeetingTrampolineRequest`
-
-```typescript
-interface EndMeetingTrampolineRequest {
-  'diarization_v2': boolean
+if (success) {
+  console.log("Bots found:", data.bots.length);
+  console.log("Has more:", data.has_more);
+} else {
+  console.error("Error listing bots:", error);
 }
 ```
 
+### `retranscribeBot`
 
+Transcribe or retranscribe a bot's audio using the Default or your provided Speech to Text Provider.
 
+**Parameters:**
+- `params`: [RetranscribeBody](/docs/api/reference/retranscribe_bot#request-body) - Retranscription configuration
 
-#### `Event`
+**Returns:**
+- `success`: Boolean (true if retranscription started successfully, false in case of any errors)
+- `error`: Error, if any
 
 ```typescript
-interface Event {
-  'attendees': import("@meeting-baas/sdk/models/attendee").Attendee[]
-  'bot_param': import("@meeting-baas/sdk/models/bot-param").BotParam
-  'calendarUuid': string
-  'deleted': boolean
-  'endTime': string
-  'googleId': string
-  'isOrganizer': boolean
-  'isRecurring': boolean
-  'lastUpdatedAt': string
-  'meetingUrl': string
-  'name': string
-  'raw': { [key: string]: any; }
-  'recurring_event_id': string
-  'startTime': string
-  'uuid': string
-}
+// Type imports
+import type { RetranscribeBody } from "@meeting-baas/sdk";
 ```
-
 
-
-
-#### `FailedRecordRequest`
-
 ```typescript
-interface FailedRecordRequest {
-  'meetingUrl': string
-  'message': string
-}
-```
-
-
-
+const { success, error } = await client.retranscribeBot({
+  bot_uuid: "123e4567-e89b-12d3-a456-426614174000",
+  speech_to_text: { provider: "Gladia" },
+  webhook_url: "https://example.com/webhook"
+});
 
-#### `GetAllBotsQuery`
-
-```typescript
-interface GetAllBotsQuery {
-  'bot_id': string
-  'end_date': string
-  'limit': number
-  'offset': number
-  'start_date': string
+if (success) {
+  console.log("Retranscription started successfully");
+} else {
+  console.error("Error starting retranscription:", error);
 }
 ```
 
+### `getScreenshots`
 
+Retrieves screenshots captured during the bot's session before it joins a meeting.
 
+**Parameters:**
+- `params`: `{ uuid: string }` - Bot UUID to retrieve screenshots for
 
-#### `GetMeetingDataQuery`
+**Returns:**
+- `success`: Boolean (true if screenshots retrieved successfully, false in case of any errors)
+- `data`: [ScreenshotsList](/docs/api/reference/get_screenshots) - Array of screenshot data
+- `error`: Error, if any
 
 ```typescript
-interface GetMeetingDataQuery {
-  'botId': string
-}
+// Type imports
+import type { ScreenshotsList } from "@meeting-baas/sdk";
 ```
-
 
-
-
-#### `GetStartedAccount`
-
 ```typescript
-interface GetStartedAccount {
-  'email': string
-  'firstname': string
-  'google_token_id': string
-  'lastname': string
-  'microsoft_token_id': string
-}
-```
-
-
-
+const { success, data, error } = await client.getScreenshots({
+  uuid: "123e4567-e89b-12d3-a456-426614174000"
+});
 
-#### `GetstartedQuery`
-
-```typescript
-interface GetstartedQuery {
-  'redirect_url': string
+if (success) {
+  console.log("Screenshots found:", data.length);
+  data.forEach(screenshot => {
+    console.log("Screenshot:", screenshot.url, "Date:", screenshot.date);
+  });
+} else {
+  console.error("Error getting screenshots:", error);
 }
 ```
-
-
 
-
-#### `JoinRequest`
-
-```typescript
-interface JoinRequest {
-  'automatic_leave': import("@meeting-baas/sdk/models/join-request-automatic-leave").JoinRequestAutomaticLeave
-  'bot_image': string
-  'botName': string
-  'deduplication_key': string
-  'entry_message': string
-  'extra': { [key: string]: any; }
-  'meetingUrl': string
-  'recording_mode': import("@meeting-baas/sdk/models/join-request-recording-mode").JoinRequestRecordingMode
-  'reserved': boolean
-  'speech_to_text': import("@meeting-baas/sdk/models/join-request-speech-to-text").JoinRequestSpeechToText
-  'start_time': number
-  'streaming': import("@meeting-baas/sdk/models/join-request-streaming").JoinRequestStreaming
-  'webhook_url': string
-}
-```
+## Calendar Management Methods
 
+### `createCalendar`
 
+Integrates a new calendar with the system using OAuth credentials. This endpoint establishes a connection with the calendar provider (Google, Microsoft), sets up webhook notifications for real-time updates, and performs an initial sync of all calendar events. It requires OAuth credentials (client ID, client secret, and refresh token) and the platform type. Once created, the calendar is assigned a unique UUID that should be used for all subsequent operations. Returns the newly created calendar object with all integration details.
 
+**Parameters:**
+- `params`: [CreateCalendarParams](/docs/api/reference/calendars/create_calendar#request-body) - Calendar integration parameters
 
-#### `JoinRequestAutomaticLeave`
+**Returns:**
+- `success`: Boolean (true if calendar created successfully, false in case of any errors)
+- `data`: [CreateCalendarResponse](/docs/api/reference/calendars/create_calendar) - Created calendar information
+- `error`: Error, if any
 
 ```typescript
-interface JoinRequestAutomaticLeave {
-  'noone_joined_timeout': number
-  'waiting_room_timeout': number
-}
+// Type imports
+import type { CreateCalendarParams, CreateCalendarResponse } from "@meeting-baas/sdk";
 ```
-
-
 
-
-#### `JoinRequestRecordingMode`
-
 ```typescript
-interface JoinRequestRecordingMode {
-  
-}
-```
+const { success, data, error } = await client.createCalendar({
+  oauth_client_id: "your-oauth-client-id",
+  oauth_client_secret: "your-oauth-client-secret",
+  oauth_refresh_token: "your-oauth-refresh-token",
+  platform: "Google",
+  raw_calendar_id: "optional-calendar-id"
+});
 
-
-
-
-#### `JoinRequestScheduled`
-
-```typescript
-interface JoinRequestScheduled {
-  'botParamId': number
-  'meetingUrl': string
-  'scheduleOrigin': import("@meeting-baas/sdk/models/schedule-origin").ScheduleOrigin
+if (success) {
+  console.log("Calendar created:", data.calendar.name);
+  console.log("Calendar UUID:", data.calendar.uuid);
+} else {
+  console.error("Error creating calendar:", error);
 }
 ```
 
+### `listCalendars`
 
+Retrieves all calendars that have been integrated with the system for the authenticated user. Returns a list of calendars with their names, email addresses, provider information, and sync status. This endpoint shows only calendars that have been formally connected through the create_calendar endpoint, not all available calendars from the provider.
 
+**Parameters:**
+- None
 
-#### `JoinRequestSpeechToText`
+**Returns:**
+- `success`: Boolean (true if calendars retrieved successfully, false in case of any errors)
+- `data`: [Calendar[]](/docs/api/reference/calendars/list_calendars) - Array of integrated calendars
+- `error`: Error, if any
 
 ```typescript
-interface JoinRequestSpeechToText {
-  'api_key': string
-  'provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
-}
+// Type imports
+import type { Calendar } from "@meeting-baas/sdk";
 ```
-
-
 
-
-#### `JoinRequestStreaming`
-
 ```typescript
-interface JoinRequestStreaming {
-  'audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'input': string
-  'output': string
-}
-```
-
-
-
-
-#### `JoinResponse`
+const { success, data, error } = await client.listCalendars();
 
-```typescript
-interface JoinResponse {
-  'botId': string
+if (success) {
+  console.log("Calendars found:", data.length);
+  data.forEach(calendar => {
+    console.log("Calendar:", calendar.name, "Email:", calendar.email);
+  });
+} else {
+  console.error("Error listing calendars:", error);
 }
 ```
 
+### `getCalendar`
 
+Retrieves detailed information about a specific calendar integration by its UUID. Returns comprehensive calendar data including the calendar name, email address, provider details (Google, Microsoft), sync status, and other metadata. This endpoint is useful for displaying calendar information to users or verifying the status of a calendar integration before performing operations on its events.
 
+**Parameters:**
+- `params`: `{ uuid: string }` - Calendar UUID to retrieve
 
-#### `JoinResponse2`
+**Returns:**
+- `success`: Boolean (true if calendar retrieved successfully, false in case of any errors)
+- `data`: [Calendar](/docs/api/reference/calendars/get_calendar) - Calendar details
+- `error`: Error, if any
 
 ```typescript
-interface JoinResponse2 {
-  'botId': string
-}
+// Type imports
+import type { Calendar } from "@meeting-baas/sdk";
 ```
-
-
 
-
-#### `LeaveResponse`
-
 ```typescript
-interface LeaveResponse {
-  'ok': boolean
-}
-```
+const { success, data, error } = await client.getCalendar({
+  uuid: "123e4567-e89b-12d3-a456-426614174000"
+});
 
-
-
-
-#### `ListEventResponse`
-
-```typescript
-interface ListEventResponse {
-  'data': import("@meeting-baas/sdk/models/event").Event[]
-  'next': string
+if (success) {
+  console.log("Calendar details:", data);
+} else {
+  console.error("Error getting calendar:", error);
 }
 ```
 
+### `updateCalendar`
 
+Updates a calendar integration with new credentials or platform while maintaining the same UUID. This operation is performed as an atomic transaction to ensure data integrity. The system automatically unschedules existing bots to prevent duplicates, updates the calendar credentials, and triggers a full resync of all events. Useful when OAuth tokens need to be refreshed or when migrating a calendar between providers. Returns the updated calendar object with its new configuration.
 
+**Parameters:**
+- `params`: `{ uuid: string; body: [UpdateCalendarParams](/docs/api/reference/calendars/update_calendar#request-body) }` - Calendar UUID and update parameters
 
-#### `ListRawCalendarsParams`
+**Returns:**
+- `success`: Boolean (true if calendar updated successfully, false in case of any errors)
+- `data`: [CreateCalendarResponse](/docs/api/reference/calendars/update_calendar) - Updated calendar information
+- `error`: Error, if any
 
 ```typescript
-interface ListRawCalendarsParams {
-  'oauthClientId': string
-  'oauthClientSecret': string
-  'oauthRefreshToken': string
-  'platform': import("@meeting-baas/sdk/models/provider").Provider
-}
+// Type imports
+import type { UpdateCalendarParams, CreateCalendarResponse } from "@meeting-baas/sdk";
 ```
-
-
 
-
-#### `ListRawCalendarsResponse`
-
 ```typescript
-interface ListRawCalendarsResponse {
-  'calendars': import("@meeting-baas/sdk/models/calendar-list-entry").CalendarListEntry[]
-}
-```
-
-
-
-
-#### `ListRecentBotsQuery`
+const { success, data, error } = await client.updateCalendar({
+  uuid: "123e4567-e89b-12d3-a456-426614174000",
+  body: {
+    oauth_client_id: "new-oauth-client-id",
+    oauth_client_secret: "new-oauth-client-secret",
+    oauth_refresh_token: "new-oauth-refresh-token",
+    platform: "Google"
+  }
+});
 
-```typescript
-interface ListRecentBotsQuery {
-  'bot_name': string
-  'created_after': string
-  'created_before': string
-  'cursor': string
-  'filter_by_extra': string
-  'limit': number
-  'meeting_url': string
-  'sort_by_extra': string
-  'speaker_name': string
+if (success) {
+  console.log("Calendar updated successfully");
+} else {
+  console.error("Error updating calendar:", error);
 }
 ```
 
+### `deleteCalendar`
 
+Permanently removes a calendar integration by its UUID, including all associated events and bot configurations. This operation cancels any active subscriptions with the calendar provider, stops all webhook notifications, and unschedules any pending recordings. All related resources are cleaned up in the database. This action cannot be undone, and subsequent requests to this calendar's UUID will return 404 Not Found errors.
 
+**Parameters:**
+- `params`: `{ uuid: string }` - Calendar UUID to delete
 
-#### `ListRecentBotsResponse`
+**Returns:**
+- `success`: Boolean (true if calendar deleted successfully, false in case of any errors)
+- `error`: Error, if any
 
 ```typescript
-interface ListRecentBotsResponse {
-  'lastUpdated': string
-  'next_cursor': string
-  'recentBots': import("@meeting-baas/sdk/models/recent-bot-entry").RecentBotEntry[]
-}
-```
-
+const { success, error } = await client.deleteCalendar({
+  uuid: "123e4567-e89b-12d3-a456-426614174000"
+});
 
-
-
-#### `LoginAccount`
-
-```typescript
-interface LoginAccount {
-  'app_signin_token': string
-  'google_chrome_token_id': string
-  'google_token_id': string
-  'microsoft_token_id': string
-  'password': string
-  'pseudo': string
+if (success) {
+  console.log("Calendar deleted successfully");
+} else {
+  console.error("Error deleting calendar:", error);
 }
 ```
 
+### `getCalendarEvent`
 
+Retrieves comprehensive details about a specific calendar event by its UUID. Returns complete event information including title, meeting link, start and end times, organizer status, recurrence information, and the full list of attendees with their names and email addresses. Also includes any associated bot parameters if recording is scheduled for this event. The raw calendar data from the provider is also included for advanced use cases.
 
+**Parameters:**
+- `params`: `{ uuid: string }` - Event UUID to retrieve
 
-#### `LoginQuery`
+**Returns:**
+- `success`: Boolean (true if event retrieved successfully, false in case of any errors)
+- `data`: [Event](/docs/api/reference/calendars/get_event) - Event details
+- `error`: Error, if any
 
 ```typescript
-interface LoginQuery {
-  'redirect_url': string
-}
+// Type imports
+import type { Event } from "@meeting-baas/sdk";
 ```
-
-
-
 
-#### `Metadata`
-
 ```typescript
-interface Metadata {
-  'botData': import("@meeting-baas/sdk/models/bot-data").BotData
-  'contentDeleted': boolean
-  'duration': number
-  'mp4': string
-}
-```
-
+const { success, data, error } = await client.getCalendarEvent({
+  uuid: "123e4567-e89b-12d3-a456-426614174000"
+});
 
-
-
-#### `QueryListEvent`
-
-```typescript
-interface QueryListEvent {
-  'attendee_email': string
-  'calendarId': string
-  'cursor': string
-  'organizer_email': string
-  'start_date_gte': string
-  'start_date_lte': string
-  'status': string
-  'updated_at_gte': string
+if (success) {
+  console.log("Event:", data.name);
+  console.log("Start time:", data.start_time);
+  console.log("Meeting URL:", data.meeting_url);
+  console.log("Attendees:", data.attendees.length);
+} else {
+  console.error("Error getting event:", error);
 }
 ```
 
+### `scheduleCalendarRecordEvent`
 
+Configures a bot to automatically join and record a specific calendar event at its scheduled time. The request body contains detailed bot configuration, including recording options, streaming settings, and webhook notification URLs. For recurring events, the 'all_occurrences' parameter can be set to true to schedule recording for all instances of the recurring series, or false (default) to schedule only the specific instance. Returns the updated event(s) with the bot parameters attached.
 
+**Parameters:**
+- `params`: `{` uuid: string; body: [BotParam2](/docs/api/reference/calendars/schedule_record_event#request-body); query?: [ScheduleRecordEventParams](/docs/api/reference/calendars/schedule_record_event#query-parameters) `}` - Event UUID, bot configuration, and optional query parameters
 
-#### `QueryPatchRecordEvent`
+**Returns:**
+- `success`: Boolean (true if recording scheduled successfully, false in case of any errors)
+- `data`: [Event[]](/docs/api/reference/calendars/schedule_record_event) - Array of scheduled events
+- `error`: Error, if any
 
 ```typescript
-interface QueryPatchRecordEvent {
-  'all_occurrences': boolean
-}
+// Type imports
+import type { BotParam2, ScheduleRecordEventParams, Event } from "@meeting-baas/sdk";
 ```
-
-
-
 
-#### `QueryScheduleRecordEvent`
-
 ```typescript
-interface QueryScheduleRecordEvent {
-  'all_occurrences': boolean
-}
-```
-
+const { success, data, error } = await client.scheduleCalendarRecordEvent({
+  uuid: "123e4567-e89b-12d3-a456-426614174000",
+  body: {
+    bot_name: "Event Recording Bot",
+    extra: { event_id: "my-event-123" },
+    recording_mode: "speaker_view",
+    speech_to_text: { provider: "Gladia" },
+    webhook_url: "https://example.com/webhook",
+    enter_message: "Hello! I'm here to record this meeting."
+  },
+  query: { all_occurrences: true }
+});
 
-
-
-#### `QueryUnScheduleRecordEvent`
-
-```typescript
-interface QueryUnScheduleRecordEvent {
-  'all_occurrences': boolean
+if (success) {
+  console.log("Recording scheduled successfully");
+} else {
+  console.error("Error scheduling recording:", error);
 }
 ```
 
+### `unscheduleCalendarRecordEvent`
 
+Cancels a previously scheduled recording for a calendar event and releases associated bot resources. For recurring events, the 'all_occurrences' parameter controls whether to unschedule from all instances of the recurring series or just the specific occurrence. This operation is idempotent and will not error if no bot was scheduled. Returns the updated event(s) with the bot parameters removed.
 
+**Parameters:**
+- `params`: `{` uuid: string; query?: [UnscheduleRecordEventParams](/docs/api/reference/calendars/unschedule_record_event#query-parameters) `}` - Event UUID and optional query parameters
 
-#### `ReceivedMessageQuery`
+**Returns:**
+- `success`: Boolean (true if recording unscheduled successfully, false in case of any errors)
+- `data`: [Event[]](/docs/api/reference/calendars/unschedule_record_event) - Array of unscheduled events
+- `error`: Error, if any
 
 ```typescript
-interface ReceivedMessageQuery {
-  'sessionId': string
-}
+// Type imports
+import type { UnscheduleRecordEventParams, Event } from "@meeting-baas/sdk";
 ```
-
-
-
 
-#### `RecentBotEntry`
-
 ```typescript
-interface RecentBotEntry {
-  'access_count': number
-  'contentDeleted': boolean
-  'createdAt': string
-  'duration': number
-  'ended_at': string
-  'extra': { [key: string]: any; }
-  'id': string
-  'last_accessed_at': string
-  'meetingUrl': string
-  'name': string
-  'session_id': string
-  'speakers': string[]
-}
-```
-
+const { success, data, error } = await client.unscheduleCalendarRecordEvent({
+  uuid: "123e4567-e89b-12d3-a456-426614174000",
+  query: { all_occurrences: true }
+});
 
-
-
-#### `RecognizerWord`
-
-```typescript
-interface RecognizerWord {
-  'endTime': number
-  'startTime': number
-  'text': string
-  'user_id': number
+if (success) {
+  console.log("Recording unscheduled successfully");
+} else {
+  console.error("Error unscheduling recording:", error);
 }
 ```
 
+### `patchBot`
 
+Updates the configuration of a bot already scheduled to record an event. Allows modification of recording settings, webhook URLs, and other bot parameters without canceling and recreating the scheduled recording. For recurring events, the 'all_occurrences' parameter determines whether changes apply to all instances or just the specific occurrence. Returns the updated event(s) with the modified bot parameters.
 
+**Parameters:**
+- `params`: `{` uuid: string; body: [BotParam3](/docs/api/reference/calendars/patch_bot#request-body); query?: [PatchBotParams](/docs/api/reference/calendars/patch_bot#query-parameters) `}` - Event UUID, bot configuration updates, and optional query parameters
 
-#### `ResyncAllCalendarsResponse`
+**Returns:**
+- `success`: Boolean (true if bot configuration updated successfully, false in case of any errors)
+- `data`: [Event[]](/docs/api/reference/calendars/patch_bot) - Array of updated events
+- `error`: Error, if any
 
 ```typescript
-interface ResyncAllCalendarsResponse {
-  'errors': any[][]
-  'syncedCalendars': string[]
-}
+// Type imports
+import type { BotParam3, PatchBotParams, Event } from "@meeting-baas/sdk";
 ```
-
-
-
 
-#### `ResyncAllResponse`
-
 ```typescript
-interface ResyncAllResponse {
-  'errors': any[][]
-  'syncedCalendars': string[]
-}
-```
-
+const { success, data, error } = await client.patchBot({
+  uuid: "123e4567-e89b-12d3-a456-426614174000",
+  body: {
+    bot_name: "Updated Bot Name",
+    enter_message: "Updated enter message",
+    webhook_url: "https://new-webhook.com/webhook"
+  },
+  query: { all_occurrences: false }
+});
 
-
-
-#### `RetranscribeBody`
-
-```typescript
-interface RetranscribeBody {
-  'botUuid': string
-  'speech_to_text': import("@meeting-baas/sdk/models/speech-to-text").SpeechToText
-  'webhook_url': string
+if (success) {
+  console.log("Bot configuration updated successfully");
+} else {
+  console.error("Error updating bot configuration:", error);
 }
 ```
 
+### `listCalendarEvents`
 
+Retrieves a paginated list of calendar events with comprehensive filtering options. Supports filtering by organizer email, attendee email, date ranges (start_date_gte, start_date_lte), and event status. Results can be limited to upcoming events (default), past events, or all events. Each event includes full details such as meeting links, participants, and recording status. The response includes a 'next' pagination cursor for retrieving additional results.
 
+**Parameters:**
+- `query`: [ListEventsParams](/docs/api/reference/calendars/list_events#query-parameters) - Filtering and pagination parameters
 
-#### `ScheduleOriginOneOf`
+**Returns:**
+- `success`: Boolean (true if events retrieved successfully, false in case of any errors)
+- `data`: [ListEventResponse](/docs/api/reference/calendars/list_events) - Paginated list of events
+- `error`: Error, if any
 
 ```typescript
-interface ScheduleOriginOneOf {
-  'Event': import("@meeting-baas/sdk/models/schedule-origin-one-of-event").ScheduleOriginOneOfEvent
-}
+// Type imports
+import type { ListEventsParams, ListEventResponse } from "@meeting-baas/sdk";
 ```
-
-
-
 
-#### `ScheduleOriginOneOf1`
-
 ```typescript
-interface ScheduleOriginOneOf1 {
-  'ScheduledBot': import("@meeting-baas/sdk/models/schedule-origin-one-of-event").ScheduleOriginOneOfEvent
-}
-```
-
+const { success, data, error } = await client.listCalendarEvents({
+  calendar_id: "123e4567-e89b-12d3-a456-426614174000",
+  start_date_gte: "2024-01-01T00:00:00Z",
+  start_date_lte: "2024-12-31T23:59:59Z",
+  status: "upcoming",
+  attendee_email: "user@example.com",
+  organizer_email: "organizer@example.com"
+});
 
-
-
-#### `ScheduleOriginOneOfEvent`
-
-```typescript
-interface ScheduleOriginOneOfEvent {
-  'id': number
+if (success) {
+  console.log("Events found:", data.events.length);
+  console.log("Next cursor:", data.next);
+} else {
+  console.error("Error listing events:", error);
 }
 ```
 
+### `resyncAllCalendars`
 
+Triggers a full resync of all calendar events for all integrated calendars. This operation is useful when you need to ensure that all calendar data is up-to-date in the system. It will re-fetch all events from the calendar providers and update the system's internal state. Returns a response indicating the status of the resync operation.
 
+**Parameters:**
+- None
 
-#### `SpeechToText`
+**Returns:**
+- `success`: Boolean (true if calendars resynced successfully, false in case of any errors)
+- `data`: [ResyncAllResponse](/docs/api/reference/calendars/resync_all) - Resync results and any errors
+- `error`: Error, if any
 
 ```typescript
-interface SpeechToText {
-  'api_key': string
-  'provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
-}
+// Type imports
+import type { ResyncAllResponse } from "@meeting-baas/sdk";
 ```
-
-
-
 
-#### `SpeechToTextApiParameter`
-
 ```typescript
-interface SpeechToTextApiParameter {
-  'api_key': string
-  'provider': import("@meeting-baas/sdk/models/speech-to-text-provider").SpeechToTextProvider
-}
-```
-
+const { success, data, error } = await client.resyncAllCalendars();
 
-
-
-#### `StartRecordFailedQuery`
-
-```typescript
-interface StartRecordFailedQuery {
-  'bot_uuid': string
+if (success) {
+  console.log("Calendars synced:", data.synced_calendars.length);
+  if (data.errors.length > 0) {
+    console.log("Sync errors:", data.errors);
+  }
+} else {
+  console.error("Error resyncing calendars:", error);
 }
 ```
 
+### `listRawCalendars`
 
+Retrieves unprocessed calendar data directly from the provider (Google, Microsoft) using provided OAuth credentials. This endpoint is typically used during the initial setup process to allow users to select which calendars to integrate. Returns a list of available calendars with their unique IDs, email addresses, and primary status. This data is not persisted until a calendar is formally created using the create_calendar endpoint.
 
+**Parameters:**
+- `params`: [ListRawCalendarsParams](/docs/api/reference/calendars/list_raw_calendars#request-body) - OAuth credentials and platform
 
-#### `StreamingApiParameter`
+**Returns:**
+- `success`: Boolean (true if raw calendars retrieved successfully, false in case of any errors)
+- `data`: [ListRawCalendarsResponse](/docs/api/reference/calendars/list_raw_calendars) - Raw calendar data from provider
+- `error`: Error, if any
 
 ```typescript
-interface StreamingApiParameter {
-  'audio_frequency': import("@meeting-baas/sdk/models/audio-frequency").AudioFrequency
-  'input': string
-  'output': string
-}
+// Type imports
+import type { ListRawCalendarsParams, ListRawCalendarsResponse } from "@meeting-baas/sdk";
 ```
-
-
-
 
-#### `SyncResponse`
-
 ```typescript
-interface SyncResponse {
-  'affected_event_uuids': string[]
-  'has_updates': string
-}
-```
-
+const { success, data, error } = await client.listRawCalendars({
+  oauth_client_id: "your-oauth-client-id",
+  oauth_client_secret: "your-oauth-client-secret",
+  oauth_refresh_token: "your-oauth-refresh-token",
+  platform: "Google"
+});
 
-
-
-#### `SystemTime`
-
-```typescript
-interface SystemTime {
-  'nanosSinceEpoch': number
-  'secsSinceEpoch': number
+if (success) {
+  console.log("Raw calendars found:", data.calendars.length);
+  data.calendars.forEach(calendar => {
+    console.log("Calendar:", calendar.email, "Primary:", calendar.is_primary);
+  });
+} else {
+  console.error("Error listing raw calendars:", error);
 }
 ```
-
-
-
-
-#### `TokenConsumptionByService`
 
-```typescript
-interface TokenConsumptionByService {
-  'duration': string
-  'recordingTokens': string
-  'streamingInputHour': string
-  'streamingInputTokens': string
-  'streamingOutputHour': string
-  'streamingOutputTokens': string
-  'transcriptionByokHour': string
-  'transcriptionByokTokens': string
-  'transcriptionHour': string
-  'transcriptionTokens': string
-}
-```
+## Webhook Methods
 
+### `getWebhookDocumentation`
 
+Retrieves the full documentation for the webhook events that Meeting BaaS sends to your webhook URL. This includes all event types, their payload structures, and any additional metadata. Useful for developers to understand and integrate webhook functionality into their applications.
 
+**Parameters:**
+- None
 
-#### `TokenConsumptionQuery`
+**Returns:**
+- `success`: Boolean (true if documentation retrieved successfully, false in case of any errors)
+- `data`: [Webhook documentation data](/docs/api/reference/webhooks/webhook_documentation#webhook-event-types)
+- `error`: Error, if any
 
 ```typescript
-interface TokenConsumptionQuery {
-  'endDate': string
-  'startDate': string
-}
-```
-
-
-
+const { success, data, error } = await client.getWebhookDocumentation();
 
-#### `Transcript`
-
-```typescript
-interface Transcript {
-  'botId': number
-  'end_time': number
-  'id': number
-  'lang': string
-  'speaker': string
-  'startTime': number
-  'user_id': number
-  'words': import("@meeting-baas/sdk/models/word").Word[]
+if (success) {
+  console.log("Webhook documentation:", data);
+} else {
+  console.error("Error getting webhook documentation:", error);
 }
 ```
 
+### `getBotWebhookDocumentation`
 
+Retrieves the full documentation for the webhook events that Meeting BaaS sends to your webhook URL for a specific bot. This includes all event types, their payload structures, and any additional metadata. Useful for developers to understand and integrate webhook functionality into their applications.
 
+**Parameters:**
+- None
 
-#### `Transcript2`
+**Returns:**
+- `success`: Boolean (true if documentation retrieved successfully, false in case of any errors)
+- `data`: [Bot webhook documentation data](/docs/api/reference/webhooks/bot_webhook_documentation#bot-webhook-event-types)
+- `error`: Error, if any
 
 ```typescript
-interface Transcript2 {
-  'botId': number
-  'end_time': number
-  'lang': string
-  'speaker': string
-  'startTime': number
-  'user_id': number
-}
-```
-
-
-
-
-#### `Transcript3`
+const { success, data, error } = await client.getBotWebhookDocumentation();
 
-```typescript
-interface Transcript3 {
-  'botId': number
-  'end_time': number
-  'id': number
-  'lang': string
-  'speaker': string
-  'startTime': number
-  'user_id': number
+if (success) {
+  console.log("Bot Webhook documentation:", data);
+} else {
+  console.error("Error getting bot webhook documentation:", error);
 }
 ```
 
+### `getCalendarWebhookDocumentation`
 
+Retrieves the full documentation for the webhook events that Meeting BaaS sends to your webhook URL for a specific calendar. This includes all event types, their payload structures, and any additional metadata. Useful for developers to understand and integrate webhook functionality into their applications.
 
+**Parameters:**
+- None
 
-#### `Transcript4`
+**Returns:**
+- `success`: Boolean (true if documentation retrieved successfully, false in case of any errors)
+- `data`: [Calendar webhook documentation data](/docs/api/reference/webhooks/calendar_webhook_documentation#calendar-webhook-event-types)
+- `error`: Error, if any
 
 ```typescript
-interface Transcript4 {
-  'bot_id': number
-  'end_time': number
-  'id': number
-  'lang': string
-  'speaker': string
-  'start_time': number
-  'user_id': number
+const { success, data, error } = await client.getCalendarWebhookDocumentation();
+
+if (success) {
+  console.log("Calendar Webhook documentation:", data);
+} else {
+  console.error("Error getting calendar webhook documentation:", error);
 }
 ```
-
-
 
+## Response Types
 
-#### `UpdateCalendarParams`
+All SDK methods return a discriminated union response:
 
 ```typescript
-interface UpdateCalendarParams {
-  'oauthClientId': string
-  'oauthClientSecret': string
-  'oauthRefreshToken': string
-  'platform': import("@meeting-baas/sdk/models/provider").Provider
-}
+type ApiResponse<T> = 
+  | { success: true; data: T; error?: never }
+  | { success: false; error: ZodError | Error; data?: never }
 ```
 
+### Success Response
+When `success` is `true`, the response contains:
+- `data`: The actual response data of type `T`
+- `error`: Never present
 
+### Error Response
+When `success` is `false`, the response contains:
+- `error`: Either a `ZodError` (validation error) or `Error` (API error)
+- `data`: Never present
 
+## Error Handling
 
-#### `UserTokensResponse`
+The SDK provides type-safe error handling:
 
 ```typescript
-interface UserTokensResponse {
-  'availableTokens': string
-  'last_purchase_date': string
-  'totalTokensPurchased': string
-}
-```
-
+import { ZodError } from "zod";
 
+const result = await client.joinMeeting({
+  meeting_url: "https://meet.google.com/abc-def-ghi",
+  bot_name: "My Bot"
+});
 
-
-#### `Version`
-
-```typescript
-interface Version {
-  'buildDate': string
-  'buildTimestamp': string
-  'location': string
+if (result.success) {
+  // TypeScript knows result.data is JoinResponse
+  console.log("Bot ID:", result.data.bot_id);
+} else {
+  // TypeScript knows result.error is ZodError | Error
+  if (result.error instanceof ZodError) {
+    console.error("Validation error:", result.error.errors);
+  } else {
+    console.error("API error:", result.error.message);
+  }
 }
 ```
-
 
+## TypeScript Support
 
+The SDK provides full TypeScript support with generated types from the OpenAPI specification:
 
-#### `Word`
-
 ```typescript
-interface Word {
-  'botId': number
-  'endTime': number
-  'id': number
-  'startTime': number
-  'text': string
-  'user_id': number
-}
-```
+import type { 
+  JoinRequest, 
+  JoinResponse, 
+  CreateCalendarParams,
+  BotParam2,
+  Metadata 
+} from "@meeting-baas/sdk";
 
-
+// All types are available for advanced usage
+const joinParams: JoinRequest = {
+  meeting_url: "https://meet.google.com/abc-def-ghi",
+  bot_name: "My Bot",
+  reserved: false
+};
+```
 
+## Related Documentation
 
+- **[Getting Started](/docs/typescript-sdk/getting-started)** - Quick setup guide
+- **[Quick Start](/docs/typescript-sdk/quick-start)** - Comprehensive usage examples
+- **[Integration Guide](/docs/typescript-sdk/integration)** - Advanced integration patterns
+- **[MCP Tools](/docs/typescript-sdk/mpc-tools)** - Using with Model Context Protocol
+- **[Advanced Examples](/docs/typescript-sdk/advanced-examples)** - Complex use cases
