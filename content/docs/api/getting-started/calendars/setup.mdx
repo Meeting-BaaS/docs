@@ -44,9 +44,9 @@ For **Google Workspace**:
 - `https://www.googleapis.com/auth/calendar.events.readonly` - To access event details
 
 <Callout type="warn">
-  **Important**: Ensure the Google Calendar API is enabled for your Google Cloud Platform (GCP) project. You can enable it in the Google Cloud Console under "APIs & Services" > "Library" > "Google Calendar API".
+  **Important**: Make sure the Google Calendar API is enabled for the Google Cloud project that owns your OAuth client. In Google Cloud Console, switch to the correct project, then go to "APIs & Services" > "Library" > "Google Calendar API" and click "Enable". You can also open the API page directly: [Google Calendar API](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com).
+  If you encounter a "500 Internal Server Error" when creating a calendar integration, verify that this API is enabled and retry.
 </Callout>
-
 For **Microsoft Outlook**:
 
 - `Calendars.Read` - To read calendar and event data
