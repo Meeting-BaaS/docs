@@ -378,7 +378,7 @@
                     "Webhooks"
                 ],
                 "summary": "Webhook Events Documentation",
-                "description": "Meeting BaaS sends webhook events to your configured webhook URL when specific events occur.\n\n## Webhook Event Types\n\n### 1. `complete`\nSent when a bot successfully completes recording a meeting. Contains full transcription data and a link to the recording.\n```json\n{\n  \\\"event\\\": \\\"complete\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"transcript\\\": [\n      {\n        \\\"speaker\\\": \\\"John Doe\\\",\n        \\\"offset\\\": 1.5,\n        \\\"words\\\": [\n          {\n            \\\"start\\\": 1.5,\n            \\\"end\\\": 1.9,\n            \\\"word\\\": \\\"Hello\\\"\n          },\n          {\n            \\\"start\\\": 2.0,\n            \\\"end\\\": 2.4,\n            \\\"word\\\": \\\"everyone\\\"\n          }\n        ]\n      }\n    ],\n    \\\"speakers\\\": [\n      \\\"John Doe\\\",\n      \\\"Jane Smith\\\"\n    ],\n    \\\"mp4\\\": \\\"https://storage.example.com/recordings/video123.mp4?token=abc\\\",\n    \\\"event\\\": \\\"complete\\\"\n  }\n}\n```\n\nThe `complete` event includes:\n- **bot_id**: Unique identifier for the bot that completed recording\n- **speakers**: A set of speaker names identified in the meeting\n- **transcript**: Full transcript data with speaker identification and word timing\n- **mp4**: URL to the recording file (valid for 24 hours by default)\n- **event**: Event type identifier (\"complete\")\n\n### 2. `failed`\nSent when a bot fails to join or record a meeting. Contains error details.\n```json\n{\n  \\\"event\\\": \\\"failed\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"error\\\": \\\"meeting_not_found\\\",\n    \\\"message\\\": \\\"Could not join meeting: The meeting ID was not found or has expired\\\"\n  }\n}\n```\n\nThe `failed` event includes:\n- **bot_id**: Unique identifier for the bot that failed\n- **error**: Error code identifying the type of failure\n- **message**: Detailed human-readable error message\n\nCommon error types include:\n- `meeting_not_found`: The meeting ID or link was invalid or expired\n- `access_denied`: The bot was denied access to the meeting\n- `authentication_error`: Failed to authenticate with the meeting platform\n- `network_error`: Network connectivity issues during recording\n- `internal_error`: Internal server error\n\n### 3. `calendar.sync_events`\nSent when calendar events are synced. Contains information about which events were updated.\n```json\n{\n  \\\"event\\\": \\\"calendar.sync_events\\\",\n  \\\"data\\\": {\n    \\\"calendar_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"last_updated_ts\\\": \\\"2023-05-01T12:00:00Z\\\",\n    \\\"affected_event_uuids\\\": [\n      \\\"123e4567-e89b-12d3-a456-426614174001\\\",\n      \\\"123e4567-e89b-12d3-a456-426614174002\\\"\n    ]\n  }\n}\n```\n\nThe `calendar.sync_events` event includes:\n- **calendar_id**: UUID of the calendar that was synced\n- **last_updated_ts**: ISO-8601 timestamp of when the sync occurred\n- **affected_event_uuids**: Array of UUIDs for calendar events that were added, updated, or deleted\n\nThis event is triggered when:\n- Calendar data is synced with the external provider (Google, Microsoft)\n- Multiple events may be created, updated, or deleted in a single sync operation\n- Use this event to update your local cache of calendar events\n\n### 4. `transcription_complete`\nSent when transcription is completed separately from recording (e.g., after retranscribing).\n```json\n{\n  \\\"event\\\": \\\"transcription_complete\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\"\n  }\n}\n```\n\nThe `transcription_complete` event includes:\n- **bot_id**: Unique identifier for the bot with the completed transcription\n\nThis event is sent when:\n- You request a retranscription via the `/bots/retranscribe` endpoint\n- An asynchronous transcription process completes after the recording has ended\n\n## Setting Up Webhooks\n\nYou can configure webhooks in two ways:\n1. **Account-level webhook URL**: Set a default webhook URL for all bots in your account using the `/accounts/webhook_url` endpoint\n2. **Bot-specific webhook URL**: Provide a `webhook_url` parameter when creating a bot with the `/bots` endpoint\n\nYour webhook endpoint must:\n- Accept POST requests with JSON payload\n- Return a 2xx status code to acknowledge receipt\n- Process requests within 10 seconds to avoid timeouts\n- Handle each event type appropriately based on the event type\n\nAll webhook requests include:\n- `x-meeting-baas-api-key` header with your API key for verification\n- `content-type: application/json` header\n- JSON body containing the event details\n\n## Webhook Reliability\n\nIf your endpoint fails to respond or returns an error, the system will attempt to retry the webhook delivery. For critical events, we recommend implementing:\n\n- Idempotency handling to prevent duplicate processing of the same event\n- Proper logging of webhook receipts for audit purposes\n- Asynchronous processing to quickly acknowledge receipt before handling the event data\n\nFor security, always validate the API key in the `x-meeting-baas-api-key` header matches your API key.",
+                "description": "Meeting BaaS sends webhook events to your configured webhook URL when specific events occur.\n\n## Webhook Event Types\n\n### 1. `complete`\nSent when a bot successfully completes recording a meeting. Contains full transcription data and a link to the recording.\n```json\n{\n  \\\"event\\\": \\\"complete\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"transcript\\\": [\n      {\n        \\\"speaker\\\": \\\"John Doe\\\",\n        \\\"offset\\\": 1.5,\n        \\\"words\\\": [\n          {\n            \\\"start\\\": 1.5,\n            \\\"end\\\": 1.9,\n            \\\"word\\\": \\\"Hello\\\"\n          },\n          {\n            \\\"start\\\": 2.0,\n            \\\"end\\\": 2.4,\n            \\\"word\\\": \\\"everyone\\\"\n          }\n        ]\n      }\n    ],\n    \\\"speakers\\\": [\n      \\\"Jane Smith\\\",\n      \\\"John Doe\\\"\n    ],\n    \\\"mp4\\\": \\\"https://storage.example.com/recordings/video123.mp4?token=abc\\\",\n    \\\"audio\\\": \\\"https://storage.example.com/recordings/audio123.wav?token=abc\\\",\n    \\\"event\\\": \\\"complete\\\"\n  }\n}\n```\n\nThe `complete` event includes:\n- **bot_id**: Unique identifier for the bot that completed recording\n- **speakers**: A set of speaker names identified in the meeting\n- **transcript**: Full transcript data with speaker identification and word timing\n- **mp4**: URL to the recording file (valid for 24 hours by default)\n- **event**: Event type identifier (\"complete\")\n\n### 2. `failed`\nSent when a bot fails to join or record a meeting. Contains error details.\n```json\n{\n  \\\"event\\\": \\\"failed\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"error\\\": \\\"meeting_not_found\\\",\n    \\\"message\\\": \\\"Could not join meeting: The meeting ID was not found or has expired\\\"\n  }\n}\n```\n\nThe `failed` event includes:\n- **bot_id**: Unique identifier for the bot that failed\n- **error**: Error code identifying the type of failure\n- **message**: Detailed human-readable error message\n\nCommon error types include:\n- `meeting_not_found`: The meeting ID or link was invalid or expired\n- `access_denied`: The bot was denied access to the meeting\n- `authentication_error`: Failed to authenticate with the meeting platform\n- `network_error`: Network connectivity issues during recording\n- `internal_error`: Internal server error\n\n### 3. `calendar.sync_events`\nSent when calendar events are synced. Contains information about which events were updated.\n```json\n{\n  \\\"event\\\": \\\"calendar.sync_events\\\",\n  \\\"data\\\": {\n    \\\"calendar_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"last_updated_ts\\\": \\\"2023-05-01T12:00:00Z\\\",\n    \\\"affected_event_uuids\\\": [\n      \\\"123e4567-e89b-12d3-a456-426614174001\\\",\n      \\\"123e4567-e89b-12d3-a456-426614174002\\\"\n    ]\n  }\n}\n```\n\nThe `calendar.sync_events` event includes:\n- **calendar_id**: UUID of the calendar that was synced\n- **last_updated_ts**: ISO-8601 timestamp of when the sync occurred\n- **affected_event_uuids**: Array of UUIDs for calendar events that were added, updated, or deleted\n\nThis event is triggered when:\n- Calendar data is synced with the external provider (Google, Microsoft)\n- Multiple events may be created, updated, or deleted in a single sync operation\n- Use this event to update your local cache of calendar events\n\n### 4. `transcription_complete`\nSent when transcription is completed separately from recording (e.g., after retranscribing).\n```json\n{\n  \\\"event\\\": \\\"transcription_complete\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\"\n  }\n}\n```\n\nThe `transcription_complete` event includes:\n- **bot_id**: Unique identifier for the bot with the completed transcription\n\nThis event is sent when:\n- You request a retranscription via the `/bots/retranscribe` endpoint\n- An asynchronous transcription process completes after the recording has ended\n\n## Setting Up Webhooks\n\nYou can configure webhooks in two ways:\n1. **Account-level webhook URL**: Set a default webhook URL for all bots in your account using the `/accounts/webhook_url` endpoint\n2. **Bot-specific webhook URL**: Provide a `webhook_url` parameter when creating a bot with the `/bots` endpoint\n\nYour webhook endpoint must:\n- Accept POST requests with JSON payload\n- Return a 2xx status code to acknowledge receipt\n- Process requests within 10 seconds to avoid timeouts\n- Handle each event type appropriately based on the event type\n\nAll webhook requests include:\n- `x-meeting-baas-api-key` header with your API key for verification\n- `content-type: application/json` header\n- JSON body containing the event details\n\n## Webhook Reliability\n\nIf your endpoint fails to respond or returns an error, the system will attempt to retry the webhook delivery. For critical events, we recommend implementing:\n\n- Idempotency handling to prevent duplicate processing of the same event\n- Proper logging of webhook receipts for audit purposes\n- Asynchronous processing to quickly acknowledge receipt before handling the event data\n\nFor security, always validate the API key in the `x-meeting-baas-api-key` header matches your API key.",
                 "operationId": "webhook_documentation",
                 "responses": {
                     "200": {
@@ -398,7 +398,7 @@
                     "Webhooks"
                 ],
                 "summary": "Bot Webhook Events Documentation",
-                "description": "Meeting BaaS sends the following webhook events related to bot recordings.\n\n## Bot Webhook Event Types\n\n### 1. `complete`\nSent when a bot successfully completes recording a meeting.\n\n**Payload Structure:**\n```json\n{\n  \\\"event\\\": \\\"complete\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"transcript\\\": [\n      {\n        \\\"speaker\\\": \\\"John Doe\\\",\n        \\\"offset\\\": 1.5,\n        \\\"words\\\": [\n          {\n            \\\"start\\\": 1.5,\n            \\\"end\\\": 1.9,\n            \\\"word\\\": \\\"Hello\\\"\n          },\n          {\n            \\\"start\\\": 2.0,\n            \\\"end\\\": 2.4,\n            \\\"word\\\": \\\"everyone\\\"\n          }\n        ]\n      }\n    ],\n    \\\"speakers\\\": [\n      \\\"Jane Smith\\\",\n      \\\"John Doe\\\"\n    ],\n    \\\"mp4\\\": \\\"https://storage.example.com/recordings/video123.mp4?token=abc\\\",\n    \\\"event\\\": \\\"complete\\\"\n  }\n}\n```\n\n**When it's triggered:**\n- After a bot successfully records and processes a meeting\n- After the recording is uploaded and made available\n- When all processing of the meeting recording is complete\n\n**What to do with it:**\n- Download the MP4 recording for storage in your system\n- Store the transcript data in your database\n- Update meeting status in your application\n- Notify users that the recording is available\n\n### 2. `failed`\nSent when a bot fails to join or record a meeting.\n\n**Payload Structure:**\n```json\n{\n  \\\"event\\\": \\\"failed\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"error\\\": \\\"meeting_not_found\\\",\n    \\\"message\\\": \\\"Could not join meeting: The meeting ID was not found or has expired\\\"\n  }\n}\n```\n\n**Common error types:**\n- `meeting_not_found`: The meeting ID or link was invalid or expired\n- `access_denied`: The bot was denied access to the meeting\n- `authentication_error`: Failed to authenticate with the meeting platform\n- `network_error`: Network connectivity issues during recording\n- `internal_error`: Internal server error\n\n**What to do with it:**\n- Log the failure for troubleshooting\n- Notify administrators or users about the failed recording\n- Attempt to reschedule if appropriate\n- Update meeting status in your system\n\n### 3. `transcription_complete`\nSent when transcription is completed separately from recording.\n\n**Payload Structure:**\n```json\n{\n  \\\"event\\\": \\\"transcription_complete\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\"\n  }\n}\n```\n\n**When it's triggered:**\n- After requesting retranscription via the API\n- When an asynchronous transcription job completes\n- When a higher quality or different language transcription becomes available\n\n**What to do with it:**\n- Update the transcript data in your system\n- Notify users that improved transcription is available\n- Run any post-processing on the new transcript data\n\n## Webhook Usage Tips\n\n- Each event includes the `bot_id` so you can correlate with your internal data\n- The complete event includes speaker identification and full transcript data\n- For downloading recordings, the mp4 URL is valid for 24 hours\n- Handle the webhook asynchronously and return 200 OK quickly to prevent timeouts\n\nFor security, always validate the API key in the `x-meeting-baas-api-key` header matches your API key.",
+                "description": "Meeting BaaS sends the following webhook events related to bot recordings.\n\n## Bot Webhook Event Types\n\n### 1. `complete`\nSent when a bot successfully completes recording a meeting.\n\n**Payload Structure:**\n```json\n{\n  \\\"event\\\": \\\"complete\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"transcript\\\": [\n      {\n        \\\"speaker\\\": \\\"John Doe\\\",\n        \\\"offset\\\": 1.5,\n        \\\"words\\\": [\n          {\n            \\\"start\\\": 1.5,\n            \\\"end\\\": 1.9,\n            \\\"word\\\": \\\"Hello\\\"\n          },\n          {\n            \\\"start\\\": 2.0,\n            \\\"end\\\": 2.4,\n            \\\"word\\\": \\\"everyone\\\"\n          }\n        ]\n      }\n    ],\n    \\\"speakers\\\": [\n      \\\"John Doe\\\",\n      \\\"Jane Smith\\\"\n    ],\n    \\\"mp4\\\": \\\"https://storage.example.com/recordings/video123.mp4?token=abc\\\",\n    \\\"audio\\\": \\\"https://storage.example.com/recordings/audio123.wav?token=abc\\\",\n    \\\"event\\\": \\\"complete\\\"\n  }\n}\n```\n\n**When it's triggered:**\n- After a bot successfully records and processes a meeting\n- After the recording is uploaded and made available\n- When all processing of the meeting recording is complete\n\n**What to do with it:**\n- Download the MP4 recording for storage in your system\n- Store the transcript data in your database\n- Update meeting status in your application\n- Notify users that the recording is available\n\n### 2. `failed`\nSent when a bot fails to join or record a meeting.\n\n**Payload Structure:**\n```json\n{\n  \\\"event\\\": \\\"failed\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"error\\\": \\\"meeting_not_found\\\",\n    \\\"message\\\": \\\"Could not join meeting: The meeting ID was not found or has expired\\\"\n  }\n}\n```\n\n**Common error types:**\n- `meeting_not_found`: The meeting ID or link was invalid or expired\n- `access_denied`: The bot was denied access to the meeting\n- `authentication_error`: Failed to authenticate with the meeting platform\n- `network_error`: Network connectivity issues during recording\n- `internal_error`: Internal server error\n\n**What to do with it:**\n- Log the failure for troubleshooting\n- Notify administrators or users about the failed recording\n- Attempt to reschedule if appropriate\n- Update meeting status in your system\n\n### 3. `transcription_complete`\nSent when transcription is completed separately from recording.\n\n**Payload Structure:**\n```json\n{\n  \\\"event\\\": \\\"transcription_complete\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\"\n  }\n}\n```\n\n**When it's triggered:**\n- After requesting retranscription via the API\n- When an asynchronous transcription job completes\n- When a higher quality or different language transcription becomes available\n\n**What to do with it:**\n- Update the transcript data in your system\n- Notify users that improved transcription is available\n- Run any post-processing on the new transcript data\n\n## Webhook Usage Tips\n\n- Each event includes the `bot_id` so you can correlate with your internal data\n- The complete event includes speaker identification and full transcript data\n- For downloading recordings, the mp4 URL is valid for 24 hours\n- Handle the webhook asynchronously and return 200 OK quickly to prevent timeouts\n\nFor security, always validate the API key in the `x-meeting-baas-api-key` header matches your API key.",
                 "operationId": "bot_webhook_documentation",
                 "responses": {
                     "200": {
@@ -1082,6 +1082,25 @@
                     }
                 }
             },
+            "AudioFile": {
+                "type": "object",
+                "required": [
+                    "file_extension",
+                    "file_type",
+                    "filename"
+                ],
+                "properties": {
+                    "file_extension": {
+                        "type": "string"
+                    },
+                    "file_type": {
+                        "type": "string"
+                    },
+                    "filename": {
+                        "type": "string"
+                    }
+                }
+            },
             "AudioFrequency": {
                 "type": "string",
                 "enum": [
@@ -1383,8 +1402,7 @@
                 "type": "object",
                 "required": [
                     "bot_name",
-                    "extra",
-                    "transcription_custom_parameters"
+                    "extra"
                 ],
                 "properties": {
                     "bot_image": {
@@ -1461,6 +1479,7 @@
                         ]
                     },
                     "transcription_custom_parameters": {
+                        "default": null,
                         "$ref": "#/components/schemas/Extra"
                     },
                     "waiting_room_timeout": {
@@ -2211,6 +2230,16 @@
                     "diarization_v2": {
                         "type": "boolean"
                     },
+                    "files_generated": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/FilesGenerated"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
                     "transcription_fail_count": {
                         "type": [
                             "integer",
@@ -2327,10 +2356,46 @@
                     "message"
                 ],
                 "properties": {
+                    "error_code": {
+                        "default": null,
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
                     "meeting_url": {
                         "type": "string"
                     },
                     "message": {
+                        "type": "string"
+                    }
+                }
+            },
+            "FilesGenerated": {
+                "type": "object",
+                "required": [
+                    "file_extension",
+                    "file_type",
+                    "filename"
+                ],
+                "properties": {
+                    "audio_file": {
+                        "anyOf": [
+                            {
+                                "$ref": "#/components/schemas/AudioFile"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ]
+                    },
+                    "file_extension": {
+                        "type": "string"
+                    },
+                    "file_type": {
+                        "type": "string"
+                    },
+                    "filename": {
                         "type": "string"
                     }
                 }
@@ -2494,6 +2559,17 @@
                     },
                     "status_type": {
                         "description": "Filter by status type (comma-separated for multiple values)\n\nExample: \"success,error,warning,pending\" will match bots with any of these status types\n\nStatus types are: - success: Bot completed successfully or is in progress - error: Bot encountered a system error - warning: Bot has a non-critical issue - pending: Bot is waiting to start",
+                        "default": null,
+                        "type": [
+                            "array",
+                            "null"
+                        ],
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "user_email": {
+                        "description": "Filter by user email (comma-separated for multiple values)\n\nExample: \"user1@example.com,user2@example.com\" will match bots from accounts with these emails",
                         "default": null,
                         "type": [
                             "array",
@@ -2697,7 +2773,8 @@
                         ]
                     },
                     "transcription_custom_parameters": {
-                        "description": "For your own transcription parameters"
+                        "description": "For your own transcription parameters",
+                        "default": null
                     },
                     "webhook_url": {
                         "description": "A webhook URL to send events to, overrides the webhook URL set in your account settings.",
@@ -2929,7 +3006,7 @@
                     },
                     "last_updated": {
                         "description": "Timestamp of when this data was generated (in ISO-8601 format)\n\nThis field is maintained for backwards compatibility. It is automatically set to the current time when the response is created.",
-                        "default": "2025-06-01T20:11:06.500382764+00:00",
+                        "default": "2025-09-01T06:24:34.574040+00:00",
                         "type": "string",
                         "format": "date-time"
                     },
@@ -2995,11 +3072,16 @@
             "Metadata": {
                 "type": "object",
                 "required": [
+                    "audio",
                     "bot_data",
                     "duration",
                     "mp4"
                 ],
                 "properties": {
+                    "audio": {
+                        "description": "URL to access the recording WAV audio file. Will be an empty string if the file doesn't exist in S3.",
+                        "type": "string"
+                    },
                     "bot_data": {
                         "$ref": "#/components/schemas/BotData"
                     },
@@ -3039,6 +3121,43 @@
                     "Google",
                     "Microsoft"
                 ]
+            },
+            "PublicBotAnalytics": {
+                "description": "Watered-down bot info for public analytics",
+                "type": "object",
+                "required": [
+                    "created_at",
+                    "duration",
+                    "meeting_platform",
+                    "status"
+                ],
+                "properties": {
+                    "created_at": {
+                        "$ref": "#/components/schemas/DateTime"
+                    },
+                    "duration": {
+                        "type": "integer",
+                        "format": "int64"
+                    },
+                    "meeting_platform": {
+                        "type": "string"
+                    },
+                    "status": {
+                        "$ref": "#/components/schemas/BotStatusResponse"
+                    },
+                    "user_reported_error_message": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "user_reported_error_status": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    }
+                }
             },
             "QueryListEvent": {
                 "type": "object",
@@ -3888,7 +4007,7 @@
                 }
             },
             "UserReportedErrorStatus": {
-                "description": "Example usage for frontend developers\n\n```ignore // How to use in your API handler: let status = calculate_bot_status(bot.errors, bot.ended_at, bot.duration, Some(bot.created_at)); let status_response = status_to_response(status);\n\n// How to sort by priority: bots.sort_by_key(|bot| bot.status.sort_priority);\n\n// How to filter by type: let errors = bots.filter(|bot| bot.status.r#type == \"error\");\n\n// How to filter by category: let connection_errors = bots.filter(|bot| bot.status.category == \"connection_error\"); ```",
+                "description": "Example usage for frontend developers\n\n```ignore // How to use in your API handler: let status = calculate_bot_status(bot.errors, bot.ended_at, bot.duration, bot.created_at); let status_response = status_to_response(status);\n\n// How to sort by priority: bots.sort_by_key(|bot| bot.status.sort_priority);\n\n// How to filter by type: let errors = bots.filter(|bot| bot.status.r#type == \"error\");\n\n// How to filter by category: let connection_errors = bots.filter(|bot| bot.status.category == \"connection_error\"); ```",
                 "type": "string",
                 "enum": [
                     "open",
