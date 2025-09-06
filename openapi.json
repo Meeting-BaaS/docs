@@ -1121,7 +1121,7 @@
                         "minimum": 0.0
                     },
                     "waiting_room_timeout": {
-                        "description": "The timeout in seconds for the bot to wait in the waiting room before leaving the meeting, defaults to 600 seconds",
+                        "description": "The timeout in seconds for the bot to wait in the waiting room before leaving the meeting, defaults to 600 seconds. Note: Google Meet also has it's own waiting room timeout (about ~10 minutes). Setting a higher value for such meetings would have no effect because Google Meet will deny entry to the bot after its own timeout.",
                         "type": [
                             "integer",
                             "null"
@@ -3006,7 +3006,7 @@
                     },
                     "last_updated": {
                         "description": "Timestamp of when this data was generated (in ISO-8601 format)\n\nThis field is maintained for backwards compatibility. It is automatically set to the current time when the response is created.",
-                        "default": "2025-09-01T06:24:34.574040+00:00",
+                        "default": "2025-09-05T18:24:10.381380762+00:00",
                         "type": "string",
                         "format": "date-time"
                     },
@@ -3075,7 +3075,8 @@
                     "audio",
                     "bot_data",
                     "duration",
-                    "mp4"
+                    "mp4",
+                    "speaker_diarization_file"
                 ],
                 "properties": {
                     "audio": {
@@ -3092,6 +3093,10 @@
                     },
                     "mp4": {
                         "description": "URL to access the recording MP4 file. Will be an empty string if the file doesn't exist in S3.",
+                        "type": "string"
+                    },
+                    "speaker_diarization_file": {
+                        "description": "URL to access the speaker diarization metadata file. Contains real-time speaker activity data with timestamps indicating when each speaker is talking. The file contains JSON arrays with speaker information including name, ID, timestamp, and speaking status. Will be an empty string if the file doesn't exist in S3.",
                         "type": "string"
                     }
                 }
