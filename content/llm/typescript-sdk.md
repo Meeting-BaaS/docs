@@ -560,7 +560,7 @@ Creates a new Meeting BaaS client instance.
 | Option | Type | Required | Default | Description |
 |--------|------|----------|---------|-------------|
 | `api_key` | `string` | ✅ Yes | - | Your Meeting BaaS API key. Get yours at [settings.meetingbaas.com](https://settings.meetingbaas.com/credentials) |
-| `timeout` | `number` | ❌ No | `30000` | Request timeout in milliseconds. Some requests may take longer, so we recommend setting a longer timeout if you notice timeouts |
+| `timeout` | `number` | ❌ No | `30000` | Request timeout in seconds. Some requests may take longer, so we recommend setting a longer timeout if you notice timeouts |
 | `base_url` | `string` | ❌ No | `"https://api.meetingbaas.com"` | Base URL for the API (internal parameter) |
 
 ```typescript

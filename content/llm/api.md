@@ -1198,7 +1198,7 @@ Send a POST request to [https://api.meetingbaas.com/bots](https://api.meetingbaa
   - `input`: WebSocket endpoint to receive raw audio bytes and speaker diarization as JSON strings from the meeting
   - `output`: WebSocket endpoint to stream raw audio bytes back into the meeting, enabling bot speech
 - `extra`: Additional custom data
-- `start_time`: Unix timestamp (in milliseconds) for when the bot should join the meeting. The bot joins 4 minutes before this timestamp. For example, if you want the bot to join at exactly 2:00 PM, set this to the millisecond timestamp of 2:00 PM.
+- `start_time`: Unix timestamp (in seconds) for when the bot should join the meeting. The bot joins 4 minutes before this timestamp. For example, if you want the bot to join at exactly 2:00 PM, set this to the millisecond timestamp of 2:00 PM.
 
 ## Response
 
