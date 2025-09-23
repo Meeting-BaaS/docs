@@ -3757,7 +3757,7 @@ TypeScript SDK - Automatically generated documentation based on Git activity.
 
 ---
 
-## June 7, 2025
+## July 2, 2025
 
 Changes from recent development in TypeScript SDK
 
@@ -3769,7 +3769,7 @@ Changes from recent development in TypeScript SDK
     <Folder name="content" defaultOpen>
       <Folder name="docs">
         <Folder name="updates">
-          <File name="typescript-sdk-2025-07-02.mdx" />
+          <File name="sdk-2025-07-02.mdx" />
         </Folder>
       </Folder>
     </Folder>
@@ -3778,6 +3778,7 @@ Changes from recent development in TypeScript SDK
 </Callout>
 
 # Changed Files
+
 This update contains changes to the TypeScript SDK documentation and related files. 
 
 

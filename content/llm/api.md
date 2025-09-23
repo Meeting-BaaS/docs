@@ -408,6 +408,10 @@ For **Google Workspace**:
 - `https://www.googleapis.com/auth/calendar.readonly` - To read calendar and event data
 - `https://www.googleapis.com/auth/calendar.events.readonly` - To access event details
 
+<Callout type="warn">
+  **Important**: Make sure the Google Calendar API is enabled for the Google Cloud project that owns your OAuth client. In Google Cloud Console, switch to the correct project, then go to "APIs & Services" > "Library" > "Google Calendar API" and click "Enable". You can also open the API page directly: [Google Calendar API](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com).
+  If you encounter a "500 Internal Server Error" when creating a calendar integration, verify that this API is enabled and retry.
+</Callout>
 For **Microsoft Outlook**:
 
 - `Calendars.Read` - To read calendar and event data
@@ -1223,6 +1227,162 @@ Use this `bot_id` to:
 
 ---
 
+## Streaming Meeting Data
+
+Learn how to stream real-time audio and speaker metadata from meetings using WebSocket connections
+
+### Source: ./content/docs/api/getting-started/streaming-meeting-data.mdx
+
+
+# Streaming Meeting Data
+
+MeetingBaas provides real-time audio streaming through WebSocket connections. This enables you to process meeting audio as it happens, build live transcription systems, or create interactive meeting experiences.
+
+## Overview
+
+When configuring a bot with streaming enabled, MeetingBaas will connect to your WebSocket endpoint and send two types of messages:
+
+1. **Speaker Metadata** (JSON) - Information about who is speaking
+2. **Audio Data** (Binary) - Raw PCM audio chunks
+
+## Setting Up Streaming
+
+To enable streaming, include the `streaming` configuration when [sending a bot](/docs/api/getting-started/sending-a-bot):
+
+<Tabs items={['Bash', 'Python', 'JavaScript']}>
+  <Tab value="Bash">
+    ```bash title="join_meeting_with_streaming.sh"
+    curl -X POST "https://api.meetingbaas.com/bots" \
+         -H "Content-Type: application/json" \
+         -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+         -d '{
+               "meeting_url": "YOUR-MEETING-URL",
+               "bot_name": "Transcription Bot",
+               "reserved": false,
+               "streaming": {
+                 "output": "ws://your-websocket-server:8080",
+                 "audio_frequency": "24khz"
+               }
+             }'
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python title="join_meeting_with_streaming.py"
+    import requests
+
+    url = "https://api.meetingbaas.com/bots"
+    headers = {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+    }
+    config = {
+        "meeting_url": "YOUR-MEETING-URL",
+        "bot_name": "Transcription Bot",
+        "reserved": False,
+        "streaming": {
+            "output": "ws://your-websocket-server:8080",
+            "audio_frequency": "24khz"  # or "16khz"
+        }
+    }
+    response = requests.post(url, json=config, headers=headers)
+    print(response.json())
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript title="join_meeting_with_streaming.js"
+    fetch("https://api.meetingbaas.com/bots", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+      },
+      body: JSON.stringify({
+        meeting_url: "YOUR-MEETING-URL",
+        bot_name: "Transcription Bot",
+        reserved: false,
+        streaming: {
+          output: "ws://your-websocket-server:8080",
+          audio_frequency: "24khz",
+        },
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log(data.bot_id))
+      .catch((error) => console.error("Error:", error));
+    ```
+  </Tab>
+</Tabs>
+
+## Streaming Configuration
+
+### Required Parameters
+
+- `streaming.output`: Your WebSocket server endpoint URL where MeetingBaas will connect
+- `streaming.audio_frequency`: Audio sample rate - either `"16khz"` or `"24khz"` (defaults to `"24khz"`)
+
+### Optional Parameters
+
+- `streaming.input`: WebSocket endpoint to send audio back into the meeting (enables bot speech)
+
+## Message Types
+
+### 1. Speaker Metadata (JSON)
+
+Speaker information is sent as JSON messages when speakers change or their speaking status changes.
+
+**Message Format:**
+```json
+[
+  {
+    "name": "John Doe",
+    "id": 123,
+    "timestamp": 1640995200000,
+    "isSpeaking": true
+  }
+]
+```
+
+**Fields:**
+- `name`: Speaker's display name
+- `id`: Unique speaker identifier  
+- `timestamp`: Unix timestamp in seconds
+- `isSpeaking`: Boolean indicating if the speaker is currently talking
+
+### 2. Audio Data (Binary)
+
+Raw audio chunks are sent as binary buffers containing PCM audio data.
+
+**Characteristics:**
+- Format: PCM audio
+- Sample Rate: 16kHz or 24kHz (as configured)
+- Channels: Mono
+- Bit Depth: 16-bit
+
+## Message Processing
+
+To differentiate between speaker metadata and audio data:
+
+1. **Speaker Metadata**: JSON messages that can be parsed and contain speaker information
+2. **Audio Data**: Binary data that cannot be parsed as JSON
+
+The key is to attempt JSON parsing on incoming messages. If parsing succeeds and the message contains speaker fields (`name`, `id`, `timestamp`, `isSpeaking`), it's speaker metadata. If parsing fails, it's audio data.
+
+## Common Use Cases
+
+- **Live Transcription**: Process audio chunks in real-time for immediate transcription
+- **Speaker Identification**: Track who is speaking and when
+- **Audio Analysis**: Perform real-time analysis on meeting audio
+- **Interactive Bots**: Send audio back to meetings using the `input` endpoint
+
+## Next Steps
+
+- [Learn about webhook events](/docs/api/getting-started/getting-the-data) for meeting status updates
+- [Remove bots from meetings](/docs/api/getting-started/removing-a-bot) when streaming is complete
+- Explore [calendar integration](/docs/api/getting-started/calendars) for scheduled meetings
+
+
+---
+
 ## Syncing Calendars
 
 Learn how to sync calendars with the API, and automatically send meeting bots to the right place at the right time
@@ -1290,7 +1450,7 @@ Get started with the Meeting BaaS API
 
 
 <Callout type="info">
-  WWe provide optimized documentation for both LLMs and recent MCP server updates. For more on our LLM integration, 
+  We provide optimized documentation for both LLMs and recent MCP server updates. For more on our LLM integration, 
   see [LLMs](/llms/api) and for MCP access, visit [auth.meetingbaas.com](https://auth.meetingbaas.com/home).
 </Callout>
 
@@ -1592,6 +1752,8 @@ Sent when a bot successfully completes recording a meeting.
       {
         \"speaker\": \"John Doe\",
         \"offset\": 1.5,
+        \"start_time\": 1.5,
+        \"end_time\": 2.4,
         \"words\": [
           {
             \"start\": 1.5,
@@ -1611,6 +1773,7 @@ Sent when a bot successfully completes recording a meeting.
       \"John Doe\"
     ],
     \"mp4\": \"https://storage.example.com/recordings/video123.mp4?token=abc\",
+    \"audio\": \"https://storage.example.com/recordings/audio123.wav?token=abc\",
     \"event\": \"complete\"
   }
 }
@@ -1781,6 +1944,8 @@ Sent when a bot successfully completes recording a meeting. Contains full transc
       {
         \"speaker\": \"John Doe\",
         \"offset\": 1.5,
+        \"start_time\": 1.5,
+        \"end_time\": 2.4,
         \"words\": [
           {
             \"start\": 1.5,
@@ -1796,10 +1961,11 @@ Sent when a bot successfully completes recording a meeting. Contains full transc
       }
     ],
     \"speakers\": [
-      \"John Doe\",
-      \"Jane Smith\"
+      \"Jane Smith\",
+      \"John Doe\"
     ],
     \"mp4\": \"https://storage.example.com/recordings/video123.mp4?token=abc\",
+    \"audio\": \"https://storage.example.com/recordings/audio123.wav?token=abc\",
     \"event\": \"complete\"
   }
 }
