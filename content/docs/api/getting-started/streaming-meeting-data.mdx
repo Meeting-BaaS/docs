@@ -28,7 +28,6 @@ To enable streaming, include the `streaming` configuration when [sending a bot](
          -d '{
                "meeting_url": "YOUR-MEETING-URL",
                "bot_name": "Transcription Bot",
-               "reserved": false,
                "streaming": {
                  "output": "ws://your-websocket-server:8080",
                  "audio_frequency": "24khz"
@@ -48,7 +47,6 @@ To enable streaming, include the `streaming` configuration when [sending a bot](
     config = {
         "meeting_url": "YOUR-MEETING-URL",
         "bot_name": "Transcription Bot",
-        "reserved": False,
         "streaming": {
             "output": "ws://your-websocket-server:8080",
             "audio_frequency": "24khz"  # or "16khz"
@@ -69,7 +67,6 @@ To enable streaming, include the `streaming` configuration when [sending a bot](
       body: JSON.stringify({
         meeting_url: "YOUR-MEETING-URL",
         bot_name: "Transcription Bot",
-        reserved: false,
         streaming: {
           output: "ws://your-websocket-server:8080",
           audio_frequency: "24khz",
