@@ -1069,10 +1069,7 @@ Learn how to send AI bots to meetings through the Meeting BaaS API, with options
 
 # Sending a Bot to a Meeting
 
-You can summon a bot in two ways:
-
-1. **Immediately to a meeting**, provided your bot pool is sufficient.
-2. **Reserved join in 4 minutes**, ideal for scheduled meetings.
+You can summon a bot in two ways with a simple curl request, using one our code examples, our more simply if you use Typescript, our [SDK](https://www.npmjs.com/package/@meeting-baas/sdk).
 
 ## API Request
 
@@ -1090,7 +1087,6 @@ Send a POST request to [https://api.meetingbaas.com/bots](https://api.meetingbaa
                "recording_mode": "speaker_view",
                "bot_image": "https://example.com/bot.jpg",
                "entry_message": "I am a good meeting bot :)",
-               "reserved": false,
                "speech_to_text": {
                  "provider": "Default"
                },
@@ -1114,7 +1110,6 @@ Send a POST request to [https://api.meetingbaas.com/bots](https://api.meetingbaa
         "recording_mode": "speaker_view",
         "bot_image": "https://example.com/bot.jpg",
         "entry_message": "I am a good meeting bot :)",
-        "reserved": False,
         "speech_to_text": {
             "provider": "Default"
         },
@@ -1137,7 +1132,6 @@ Send a POST request to [https://api.meetingbaas.com/bots](https://api.meetingbaa
       body: JSON.stringify({
         meeting_url: "YOUR-MEETING-URL",
         bot_name: "AI Notetaker",
-        reserved: false,
         recording_mode: "speaker_view",
         bot_image: "https://example.com/bot.jpg",
         entry_message: "I am a good meeting bot :)",
@@ -1162,9 +1156,6 @@ Send a POST request to [https://api.meetingbaas.com/bots](https://api.meetingbaa
 
 - `meeting_url`: The meeting URL to join. Accepts Google Meet, Microsoft Teams or Zoom URLs.
 - `bot_name`: The display name of the bot.
-- `reserved`: Controls how the bot joins the meeting
-  - `false`: Sends a bot from our pool of _always ready_ meeting bots, immediately. Beware that **demand might temporarily be higher than the number of currently available bots**, which could imply a delay in the bot joining. When possible, prefer the true option which reserves an instance of an AI meeting bot.
-  - `true`: Reserves in advance a meeting bot for an upcoming meeting, ensuring the presence of the bot at the start of the meeting, typically for planned calendar events. You need to **call this route exactly 4 minutes before the start of the meeting**.
 
 ### Recording Options
 
@@ -1258,7 +1249,6 @@ To enable streaming, include the `streaming` configuration when [sending a bot](
          -d '{
                "meeting_url": "YOUR-MEETING-URL",
                "bot_name": "Transcription Bot",
-               "reserved": false,
                "streaming": {
                  "output": "ws://your-websocket-server:8080",
                  "audio_frequency": "24khz"
@@ -1278,7 +1268,6 @@ To enable streaming, include the `streaming` configuration when [sending a bot](
     config = {
         "meeting_url": "YOUR-MEETING-URL",
         "bot_name": "Transcription Bot",
-        "reserved": False,
         "streaming": {
             "output": "ws://your-websocket-server:8080",
             "audio_frequency": "24khz"  # or "16khz"
@@ -1299,7 +1288,6 @@ To enable streaming, include the `streaming` configuration when [sending a bot](
       body: JSON.stringify({
         meeting_url: "YOUR-MEETING-URL",
         bot_name: "Transcription Bot",
-        reserved: false,
         streaming: {
           output: "ws://your-websocket-server:8080",
           audio_frequency: "24khz",

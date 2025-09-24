@@ -2703,8 +2703,7 @@
         "type": "object",
         "required": [
           "bot_name",
-          "meeting_url",
-          "reserved"
+          "meeting_url"
         ],
         "properties": {
           "automatic_leave": {
@@ -2763,7 +2762,8 @@
             ]
           },
           "reserved": {
-            "description": "Whether or not the bot should come from the available pool of bots or be a dedicated bot. Reserved bots come in exactly 4 minutes after the request.",
+            "description": "Deprecated, do not use.",
+            "default": false,
             "type": "boolean"
           },
           "speech_to_text": {
@@ -3038,7 +3038,7 @@
           },
           "last_updated": {
             "description": "Timestamp of when this data was generated (in ISO-8601 format)\n\nThis field is maintained for backwards compatibility. It is automatically set to the current time when the response is created.",
-            "default": "2025-09-23T15:54:33.148034981+00:00",
+            "default": "2025-09-24T15:59:33.488774309+00:00",
             "type": "string",
             "format": "date-time"
           },
