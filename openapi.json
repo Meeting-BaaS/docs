@@ -398,7 +398,7 @@
           "Webhooks"
         ],
         "summary": "Bot Webhook Events Documentation",
-        "description": "Meeting BaaS sends the following webhook events related to bot recordings.\n\n## Bot Webhook Event Types\n\n### 1. `complete`\nSent when a bot successfully completes recording a meeting.\n\n**Payload Structure:**\n```json\n{\n  \\\"event\\\": \\\"complete\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"transcript\\\": [\n      {\n        \\\"speaker\\\": \\\"John Doe\\\",\n        \\\"offset\\\": 1.5,\n        \\\"start_time\\\": 1.5,\n        \\\"end_time\\\": 2.4,\n        \\\"words\\\": [\n          {\n            \\\"start\\\": 1.5,\n            \\\"end\\\": 1.9,\n            \\\"word\\\": \\\"Hello\\\"\n          },\n          {\n            \\\"start\\\": 2.0,\n            \\\"end\\\": 2.4,\n            \\\"word\\\": \\\"everyone\\\"\n          }\n        ]\n      }\n    ],\n    \\\"speakers\\\": [\n      \\\"Jane Smith\\\",\n      \\\"John Doe\\\"\n    ],\n    \\\"mp4\\\": \\\"https://storage.example.com/recordings/video123.mp4?token=abc\\\",\n    \\\"audio\\\": \\\"https://storage.example.com/recordings/audio123.wav?token=abc\\\",\n    \\\"event\\\": \\\"complete\\\"\n  }\n}\n```\n\n**When it's triggered:**\n- After a bot successfully records and processes a meeting\n- After the recording is uploaded and made available\n- When all processing of the meeting recording is complete\n\n**What to do with it:**\n- Download the MP4 recording for storage in your system\n- Store the transcript data in your database\n- Update meeting status in your application\n- Notify users that the recording is available\n\n### 2. `failed`\nSent when a bot fails to join or record a meeting.\n\n**Payload Structure:**\n```json\n{\n  \\\"event\\\": \\\"failed\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"error\\\": \\\"meeting_not_found\\\",\n    \\\"message\\\": \\\"Could not join meeting: The meeting ID was not found or has expired\\\"\n  }\n}\n```\n\n**Common error types:**\n- `meeting_not_found`: The meeting ID or link was invalid or expired\n- `access_denied`: The bot was denied access to the meeting\n- `authentication_error`: Failed to authenticate with the meeting platform\n- `network_error`: Network connectivity issues during recording\n- `internal_error`: Internal server error\n\n**What to do with it:**\n- Log the failure for troubleshooting\n- Notify administrators or users about the failed recording\n- Attempt to reschedule if appropriate\n- Update meeting status in your system\n\n### 3. `transcription_complete`\nSent when transcription is completed separately from recording.\n\n**Payload Structure:**\n```json\n{\n  \\\"event\\\": \\\"transcription_complete\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\"\n  }\n}\n```\n\n**When it's triggered:**\n- After requesting retranscription via the API\n- When an asynchronous transcription job completes\n- When a higher quality or different language transcription becomes available\n\n**What to do with it:**\n- Update the transcript data in your system\n- Notify users that improved transcription is available\n- Run any post-processing on the new transcript data\n\n## Webhook Usage Tips\n\n- Each event includes the `bot_id` so you can correlate with your internal data\n- The complete event includes speaker identification and full transcript data\n- For downloading recordings, the mp4 URL is valid for 24 hours\n- Handle the webhook asynchronously and return 200 OK quickly to prevent timeouts\n\nFor security, always validate the API key in the `x-meeting-baas-api-key` header matches your API key.",
+        "description": "Meeting BaaS sends the following webhook events related to bot recordings.\n\n## Bot Webhook Event Types\n\n### 1. `complete`\nSent when a bot successfully completes recording a meeting.\n\n**Payload Structure:**\n```json\n{\n  \\\"event\\\": \\\"complete\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"transcript\\\": [\n      {\n        \\\"speaker\\\": \\\"John Doe\\\",\n        \\\"offset\\\": 1.5,\n        \\\"start_time\\\": 1.5,\n        \\\"end_time\\\": 2.4,\n        \\\"words\\\": [\n          {\n            \\\"start\\\": 1.5,\n            \\\"end\\\": 1.9,\n            \\\"word\\\": \\\"Hello\\\"\n          },\n          {\n            \\\"start\\\": 2.0,\n            \\\"end\\\": 2.4,\n            \\\"word\\\": \\\"everyone\\\"\n          }\n        ]\n      }\n    ],\n    \\\"speakers\\\": [\n      \\\"John Doe\\\",\n      \\\"Jane Smith\\\"\n    ],\n    \\\"mp4\\\": \\\"https://storage.example.com/recordings/video123.mp4?token=abc\\\",\n    \\\"audio\\\": \\\"https://storage.example.com/recordings/audio123.wav?token=abc\\\",\n    \\\"event\\\": \\\"complete\\\"\n  }\n}\n```\n\n**When it's triggered:**\n- After a bot successfully records and processes a meeting\n- After the recording is uploaded and made available\n- When all processing of the meeting recording is complete\n\n**What to do with it:**\n- Download the MP4 recording for storage in your system\n- Store the transcript data in your database\n- Update meeting status in your application\n- Notify users that the recording is available\n\n### 2. `failed`\nSent when a bot fails to join or record a meeting.\n\n**Payload Structure:**\n```json\n{\n  \\\"event\\\": \\\"failed\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\",\n    \\\"error\\\": \\\"meeting_not_found\\\",\n    \\\"message\\\": \\\"Could not join meeting: The meeting ID was not found or has expired\\\"\n  }\n}\n```\n\n**Common error types:**\n- `meeting_not_found`: The meeting ID or link was invalid or expired\n- `access_denied`: The bot was denied access to the meeting\n- `authentication_error`: Failed to authenticate with the meeting platform\n- `network_error`: Network connectivity issues during recording\n- `internal_error`: Internal server error\n\n**What to do with it:**\n- Log the failure for troubleshooting\n- Notify administrators or users about the failed recording\n- Attempt to reschedule if appropriate\n- Update meeting status in your system\n\n### 3. `transcription_complete`\nSent when transcription is completed separately from recording.\n\n**Payload Structure:**\n```json\n{\n  \\\"event\\\": \\\"transcription_complete\\\",\n  \\\"data\\\": {\n    \\\"bot_id\\\": \\\"123e4567-e89b-12d3-a456-426614174000\\\"\n  }\n}\n```\n\n**When it's triggered:**\n- After requesting retranscription via the API\n- When an asynchronous transcription job completes\n- When a higher quality or different language transcription becomes available\n\n**What to do with it:**\n- Update the transcript data in your system\n- Notify users that improved transcription is available\n- Run any post-processing on the new transcript data\n\n## Webhook Usage Tips\n\n- Each event includes the `bot_id` so you can correlate with your internal data\n- The complete event includes speaker identification and full transcript data\n- For downloading recordings, the mp4 URL is valid for 24 hours\n- Handle the webhook asynchronously and return 200 OK quickly to prevent timeouts\n\nFor security, always validate the API key in the `x-meeting-baas-api-key` header matches your API key.",
         "operationId": "bot_webhook_documentation",
         "responses": {
           "200": {
@@ -426,28 +426,6 @@
             "content": {
               "application/json": {
                 "schema": {}
-              }
-            }
-          }
-        }
-      }
-    },
-    "/internal/calendar/resync_all": {
-      "post": {
-        "tags": [
-          "Calendars"
-        ],
-        "summary": "Resync All Calendars",
-        "description": "Forces a sync of all your connected calendars with their providers (Google, Microsoft).\n\nProcesses each calendar individually and returns:\n- `synced_calendars`: UUIDs of successfully synced calendars\n- `errors`: Details of any failures\n\nSends webhook notifications for calendars with updates.",
-        "operationId": "resync_all",
-        "responses": {
-          "200": {
-            "description": "",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/ResyncAllResponse"
-                }
               }
             }
           }
@@ -534,6 +512,44 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/CreateCalendarResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/calendars/resync_all": {
+      "post": {
+        "tags": [
+          "Calendars"
+        ],
+        "summary": "Resync All Calendars",
+        "description": "Forces a sync of all your connected calendars with their providers (Google, Microsoft).\n\nProcesses each calendar individually and returns:\n- `synced_calendars`: UUIDs of successfully synced calendars\n- `errors`: Details of any failures\n\nSends webhook notifications for calendars with updates.",
+        "operationId": "resync_all_calendars",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "description": "Number of days to sync forward (default: 30 for rolling window)",
+            "schema": {
+              "description": "Number of days to sync forward (default: 30 for rolling window)",
+              "type": [
+                "integer",
+                "null"
+              ],
+              "format": "int32"
+            },
+            "style": "form"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ResyncAllCalendarsResponse"
                 }
               }
             }
@@ -686,7 +702,7 @@
           "Calendars"
         ],
         "summary": "Schedule Record Event",
-        "description": "Configures a bot to automatically join and record a specific calendar event at its scheduled time. The request body contains detailed bot configuration, including recording options, streaming settings, and webhook notification URLs. For recurring events, the 'all_occurrences' parameter can be set to true to schedule recording for all instances of the recurring series, or false (default) to schedule only the specific instance. Returns the updated event(s) with the bot parameters attached.",
+        "description": "Configures a bot to automatically join and record a specific calendar event at its scheduled time. The UUID in the request path is the event UUID. The request body contains detailed bot configuration, including recording options, streaming settings, and webhook notification URLs. For recurring events, the 'all_occurrences' parameter can be set to true to schedule recording for all instances of the recurring series, or false (default) to schedule only the specific instance. Returns the updated event(s) with the bot parameters attached.",
         "operationId": "schedule_record_event",
         "parameters": [
           {
@@ -2789,7 +2805,7 @@
             "type": "string"
           },
           "recording_mode": {
-            "description": "The recording mode for the bot, defaults to 'speaker_view'.",
+            "description": "The recording mode for the bot, defaults to 'speaker_view'. Supported values are 'speaker_view' and 'audio_only'. 'gallery_view' is currently under development.",
             "anyOf": [
               {
                 "$ref": "#/components/schemas/RecordingMode"
@@ -3076,7 +3092,7 @@
           },
           "last_updated": {
             "description": "Timestamp of when this data was generated (in ISO-8601 format)\n\nThis field is maintained for backwards compatibility. It is automatically set to the current time when the response is created.",
-            "default": "2025-10-08T23:16:14.722850277+00:00",
+            "default": "2025-10-12T23:24:42.707717769+00:00",
             "type": "string",
             "format": "date-time"
           },
@@ -3517,6 +3533,20 @@
           }
         ]
       },
+      "ResyncAllCalendarsQuery": {
+        "description": "Resync all calendars for the user\n\nThis will fetch all events from the calendar again, regardless of whether they have been synced before. It is useful when the calendar data becomes out of sync.",
+        "type": "object",
+        "properties": {
+          "days": {
+            "description": "Number of days to sync forward (default: 30 for rolling window)",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
+          }
+        }
+      },
       "ResyncAllCalendarsResponse": {
         "type": "object",
         "required": [
@@ -3549,6 +3579,20 @@
               "type": "string",
               "format": "uuid"
             }
+          }
+        }
+      },
+      "ResyncAllQuery": {
+        "description": "Resync all calendars for the user\n\nThis will fetch all events from the calendar again, regardless of whether they have been fetched before. It is useful when the calendar data becomes out of sync.",
+        "type": "object",
+        "properties": {
+          "days": {
+            "description": "Number of days to sync forward (default: 30 for rolling window)",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
           }
         }
       },
