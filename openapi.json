@@ -1134,7 +1134,7 @@
               "null"
             ],
             "format": "uint32",
-            "minimum": 0
+            "minimum": 0.0
           },
           "waiting_room_timeout": {
             "description": "The timeout in seconds for the bot to wait in the waiting room before leaving the meeting, defaults to 600 seconds. Note: Google Meet also has it's own waiting room timeout (about ~10 minutes). Setting a higher value for such meetings would have no effect because Google Meet will deny entry to the bot after its own timeout.",
@@ -1143,7 +1143,7 @@
               "null"
             ],
             "format": "uint32",
-            "minimum": 0
+            "minimum": 0.0
           }
         }
       },
@@ -2301,12 +2301,12 @@
           "bot_exited_at": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0
+            "minimum": 0.0
           },
           "bot_joined_at": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0
+            "minimum": 0.0
           },
           "diarization_fail_count": {
             "type": [
@@ -2314,7 +2314,7 @@
               "null"
             ],
             "format": "uint",
-            "minimum": 0
+            "minimum": 0.0
           },
           "diarization_v2": {
             "type": "boolean"
@@ -2335,7 +2335,7 @@
               "null"
             ],
             "format": "uint",
-            "minimum": 0
+            "minimum": 0.0
           }
         }
       },
@@ -2848,7 +2848,7 @@
               "null"
             ],
             "format": "uint64",
-            "minimum": 0
+            "minimum": 0.0
           },
           "streaming": {
             "description": "WebSocket streams for 16 kHz audio. Input stream receives audio sent to the bot. Output stream receives audio from the bot.",
@@ -3102,7 +3102,7 @@
           },
           "last_updated": {
             "description": "Timestamp of when this data was generated (in ISO-8601 format)\n\nThis field is maintained for backwards compatibility. It is automatically set to the current time when the response is created.",
-            "default": "2025-10-15T13:20:06.386876284+00:00",
+            "default": "2025-10-30T03:52:14.951217808+00:00",
             "type": "string",
             "format": "date-time"
           },
@@ -3861,12 +3861,12 @@
           "nanos_since_epoch": {
             "type": "integer",
             "format": "uint32",
-            "minimum": 0
+            "minimum": 0.0
           },
           "secs_since_epoch": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0
+            "minimum": 0.0
           }
         }
       },
