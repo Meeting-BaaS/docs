@@ -6,7 +6,7 @@
   "scripts": {
     "build": "pnpm transpile && pnpm build:pre && next build && pnpm build:post",
     "transpile": "node scripts/transpile-scripts.js",
-    "build:pre": "node scripts-dist/pre-build.mjs",
+    "build:pre": "tsx scripts/pre-build.mts",
     "build:post": "node scripts-dist/post-build.mjs",
     "clean": "rimraf .next scripts-dist",
     "clean:updates": "node scripts/cleanup.js",
