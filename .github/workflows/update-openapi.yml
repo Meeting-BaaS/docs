@@ -49,7 +49,7 @@ jobs:
           if [ -f "openapi.json" ]; then
             # Format the existing file consistently for comparison
             cat openapi.json | jq -S . > tmp/existing-openapi.json
-            
+
             # Compare the formatted files (jq -S sorts the keys for consistent comparison)
             if cmp -s "tmp/existing-openapi.json" "tmp/openapi.json"; then
               echo "No changes detected in the OpenAPI spec"
@@ -57,10 +57,10 @@ jobs:
             else
               echo "Changes detected in the OpenAPI spec"
               echo "has_changes=true" >> $GITHUB_OUTPUT
-              
+
               # Save the nicely formatted version for commit
               cat tmp/raw-openapi.json | jq . > tmp/formatted-openapi.json
-              
+
               # Generate a checksum of the content for PR comparison
               CHECKSUM=$(cat tmp/openapi.json | sha256sum | cut -d' ' -f1)
               echo "checksum=$CHECKSUM" >> $GITHUB_OUTPUT
@@ -68,10 +68,10 @@ jobs:
           else
             echo "OpenAPI spec file doesn't exist yet, will create it"
             echo "has_changes=true" >> $GITHUB_OUTPUT
-            
+
             # Format nicely for the first commit
             cat tmp/raw-openapi.json | jq . > tmp/formatted-openapi.json
-            
+
             # Generate a checksum of the content for PR comparison
             CHECKSUM=$(cat tmp/openapi.json | sha256sum | cut -d' ' -f1)
             echo "checksum=$CHECKSUM" >> $GITHUB_OUTPUT
@@ -126,6 +126,9 @@ jobs:
           # Create empty .env file
           touch .env
 
+          # Transpile TypeScript scripts first
+          pnpm transpile
+
           # Run the pre-build script to generate API docs
           pnpm build:pre
 
@@ -166,8 +169,10 @@ jobs:
           pnpm install
           # Create empty .env file
           touch .env
-          # Build commands
-          pnpm next build
+          # Ensure fumadocs types are generated
+          pnpm fumadocs-mdx
+          # Build commands (use full build script)
+          pnpm build
         env:
           NEXT_PUBLIC_ORAMA_AI_API_KEY: ${{ secrets.NEXT_PUBLIC_ORAMA_AI_API_KEY }}
           NEXT_PUBLIC_ORAMA_AI_ENDPOINT: ${{ secrets.NEXT_PUBLIC_ORAMA_AI_ENDPOINT }}
