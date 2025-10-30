@@ -45,7 +45,7 @@ export default async function Page(props: {
   if (!page) notFound();
 
   const path = `content/docs/${page.file.path}`;
-  const { body: Mdx, toc, lastModified } = await page.data.load();
+  const { body: Mdx, toc, lastModified } = await (page.data as any).load();
 
   // Service property should now be directly accessible from the schema
   const serviceKey = page.data.service;
