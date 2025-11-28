@@ -1128,7 +1128,16 @@
         "type": "object",
         "properties": {
           "noone_joined_timeout": {
-            "description": "The timeout in seconds for the bot to wait for participants to join before leaving the meeting, defaults to 600 seconds",
+            "description": "The timeout in seconds for the bot to wait for participants to join before leaving the meeting, defaults to 600 seconds (10 minutes). Minimum: 120 seconds (2 minutes). Maximum: 1800 seconds (30 minutes). When a bot first joins a meeting, it uses this timeout to determine if any participants have joined. If no participants are detected within this period, the bot will leave the meeting. Once participants are detected, the silence_timeout takes over. Applies to Google Meet and Microsoft Teams only.",
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "uint32",
+            "minimum": 0
+          },
+          "silence_timeout": {
+            "description": "The timeout in seconds for the bot to leave the meeting if no speaker activity is detected, defaults to 600 seconds (10 minutes). Minimum: 300 seconds (5 minutes). Maximum: 1800 seconds (30 minutes). This timeout becomes active after participants are detected. The bot monitors for audio activity, and if no sound is detected for the duration of this timeout, it will automatically leave the meeting. Important: Configure these timeouts carefully to ensure the bot doesn't leave too early - the noone_joined_timeout should be long enough to wait for late joiners, and the silence_timeout should account for intentional pauses. Applies to Google Meet and Microsoft Teams only.",
             "type": [
               "integer",
               "null"
@@ -1137,7 +1146,7 @@
             "minimum": 0
           },
           "waiting_room_timeout": {
-            "description": "The timeout in seconds for the bot to wait in the waiting room before leaving the meeting, defaults to 600 seconds. Note: Google Meet also has it's own waiting room timeout (about ~10 minutes). Setting a higher value for such meetings would have no effect because Google Meet will deny entry to the bot after its own timeout.",
+            "description": "The timeout in seconds for the bot to wait in the waiting room before leaving the meeting, defaults to 600 seconds (10 minutes). Minimum: 120 seconds (2 minutes). Maximum: 1800 seconds (30 minutes). Note: Google Meet also has it's own waiting room timeout (about ~10 minutes). Setting a higher value for such meetings would have no effect because Google Meet will deny entry to the bot after its own timeout.",
             "type": [
               "integer",
               "null"
@@ -1483,6 +1492,13 @@
                 "type": "null"
               }
             ]
+          },
+          "silence_timeout": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
           },
           "speech_to_text": {
             "anyOf": [
@@ -1869,6 +1885,13 @@
               "string",
               "null"
             ]
+          },
+          "silence_timeout": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "int32"
           },
           "speech_to_text_api_key": {
             "type": [
@@ -2771,7 +2794,7 @@
         ],
         "properties": {
           "automatic_leave": {
-            "description": "The bot will leave the meeting automatically after the timeout, defaults to 600 seconds.",
+            "description": "Configuration for automatic meeting exit behavior. The bot uses waiting_room_timeout to wait in the waiting room, then noone_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Applies to Google Meet and Microsoft Teams only.",
             "anyOf": [
               {
                 "$ref": "#/components/schemas/AutomaticLeaveRequest"
@@ -3102,7 +3125,7 @@
           },
           "last_updated": {
             "description": "Timestamp of when this data was generated (in ISO-8601 format)\n\nThis field is maintained for backwards compatibility. It is automatically set to the current time when the response is created.",
-            "default": "2025-11-17T03:58:50.652497028+00:00",
+            "default": "2025-11-28T02:53:00.148058416+00:00",
             "type": "string",
             "format": "date-time"
           },
@@ -3171,8 +3194,10 @@
           "audio",
           "bot_data",
           "duration",
+          "meeting_participants_file",
           "mp4",
-          "speaker_diarization_file"
+          "speaker_diarization_file",
+          "speaker_diarization_file_network"
         ],
         "properties": {
           "audio": {
@@ -3187,12 +3212,20 @@
             "type": "integer",
             "format": "int64"
           },
+          "meeting_participants_file": {
+            "description": "URL to access the meeting participants log file. Contains information about meeting participants. Will be an empty string if the file doesn't exist in S3.",
+            "type": "string"
+          },
           "mp4": {
             "description": "URL to access the recording MP4 file. Will be an empty string if the file doesn't exist in S3.",
             "type": "string"
           },
           "speaker_diarization_file": {
             "description": "URL to access the speaker diarization metadata file. Contains real-time speaker activity data with timestamps indicating when each speaker is talking. The file contains JSON arrays with speaker information including name, ID, timestamp, and speaking status. Will be an empty string if the file doesn't exist in S3.",
+            "type": "string"
+          },
+          "speaker_diarization_file_network": {
+            "description": "URL to access the network speaker detection log file. Contains speaker observation observed through network (not UI changes). Will be an empty string if the file doesn't exist in S3.",
             "type": "string"
           }
         }

@@ -1758,12 +1758,15 @@ Sent when a bot successfully completes recording a meeting.
       }
     ],
     \"speakers\": [
-      \"John Doe\",
-      \"Jane Smith\"
+      \"Jane Smith\",
+      \"John Doe\"
     ],
     \"mp4\": \"https://storage.example.com/recordings/video123.mp4?token=abc\",
     \"audio\": \"https://storage.example.com/recordings/audio123.wav?token=abc\",
-    \"event\": \"complete\"
+    \"event\": \"complete\",
+    \"extra\": {
+      \"foo\": \"bar\"
+    }
   }
 }
 ```
@@ -1791,7 +1794,10 @@ Sent when a bot fails to join or record a meeting.
     \"bot_id\": \"123e4567-e89b-12d3-a456-426614174000\",
     \"event_uuid\": \"123e4567-e89b-12d3-a456-426614174001\",
     \"error\": \"meeting_not_found\",
-    \"message\": \"Could not join meeting: The meeting ID was not found or has expired\"
+    \"message\": \"Could not join meeting: The meeting ID was not found or has expired\",
+    \"extra\": {
+      \"foo\": \"bar\"
+    }
   }
 }
 ```
@@ -1955,12 +1961,15 @@ Sent when a bot successfully completes recording a meeting. Contains full transc
       }
     ],
     \"speakers\": [
-      \"Jane Smith\",
-      \"John Doe\"
+      \"John Doe\",
+      \"Jane Smith\"
     ],
     \"mp4\": \"https://storage.example.com/recordings/video123.mp4?token=abc\",
     \"audio\": \"https://storage.example.com/recordings/audio123.wav?token=abc\",
-    \"event\": \"complete\"
+    \"event\": \"complete\",
+    \"extra\": {
+      \"foo\": \"bar\"
+    }
   }
 }
 ```
@@ -1982,7 +1991,10 @@ Sent when a bot fails to join or record a meeting. Contains error details.
     \"bot_id\": \"123e4567-e89b-12d3-a456-426614174000\",
     \"event_uuid\": \"123e4567-e89b-12d3-a456-426614174001\",
     \"error\": \"meeting_not_found\",
-    \"message\": \"Could not join meeting: The meeting ID was not found or has expired\"
+    \"message\": \"Could not join meeting: The meeting ID was not found or has expired\",
+    \"extra\": {
+      \"foo\": \"bar\"
+    }
   }
 }
 ```
