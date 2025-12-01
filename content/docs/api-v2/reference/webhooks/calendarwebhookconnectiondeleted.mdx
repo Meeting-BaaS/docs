@@ -10,10 +10,13 @@ icon: Webhook
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `data` | object | Yes |  |
 | `event` | string | Yes | The webhook event type |
+| `data` | object | Yes |  |
 
 ## Field Details
+
+- **`event`** (string) **Required**
+  The webhook event type
 
 - **`data`** (object) **Required**
 
@@ -28,19 +31,16 @@ icon: Webhook
       ISO 8601 timestamp when the calendar connection was deleted
 
 
-- **`event`** (string) **Required**
-  The webhook event type
-
 
 ## Example
 
 ```json
 {
+  "event": "exampleevent",
   "data": {
     "calendar_id": "examplecalendar_id",
     "calendar_platform": "examplecalendar_platform",
     "deleted_at": "exampledeleted_at"
-  },
-  "event": "exampleevent"
+  }
 }
 ```

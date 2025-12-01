@@ -10,10 +10,13 @@ icon: Webhook
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `data` | object | Yes |  |
 | `event` | string | Yes | The webhook event type |
+| `data` | object | Yes |  |
 
 ## Field Details
+
+- **`event`** (string) **Required**
+  The webhook event type
 
 - **`data`** (object) **Required**
 
@@ -21,30 +24,27 @@ icon: Webhook
     - **`calendar_id`** (string (uuid)) **Required**
       The UUID of the calendar connection where the event was cancelled
 
-    - **`cancelled_instances`** (object[]) **Required**
-      Array of event instances that were cancelled. For one-off events, this contains a single instance. For recurring events, this contains all instances that were cancelled
-
     - **`event_type`** ("one_off" | "recurring") **Required**
       The type of event. 'one_off' for single events, 'recurring' for events that are part of a recurring series
 
     - **`series_id`** (string (uuid) | null) **Required**
       The UUID of the event series. Null only in rare cases where the series relationship could not be established
 
+    - **`cancelled_instances`** (object[]) **Required**
+      Array of event instances that were cancelled. For one-off events, this contains a single instance. For recurring events, this contains all instances that were cancelled
 
-- **`event`** (string) **Required**
-  The webhook event type
 
 
 ## Example
 
 ```json
 {
+  "event": "exampleevent",
   "data": {
     "calendar_id": "examplecalendar_id",
-    "cancelled_instances": [],
     "event_type": "exampleevent_type",
-    "series_id": null
-  },
-  "event": "exampleevent"
+    "series_id": null,
+    "cancelled_instances": []
+  }
 }
 ```

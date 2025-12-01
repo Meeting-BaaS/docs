@@ -3,8 +3,8 @@
     "icon": "Webhook",
     "pages": [
         "bots",
-        "scheduled-bots",
         "calendars",
-        "webhooks"
+        "webhooks",
+        "callbacks"
     ]
 }

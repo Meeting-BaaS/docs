@@ -223,9 +223,10 @@ function generateExample(schema: OpenAPISchema, spec: OpenAPISpec, depth = 0): s
  */
 export async function generateWebhookDocs() {
   const openApiPath = './openapi-v2.json';
-  const outputDir = './content/docs/api-v2/reference/webhooks';
+  const webhooksOutputDir = './content/docs/api-v2/reference/webhooks';
+  const callbacksOutputDir = './content/docs/api-v2/reference/callbacks';
   
-  console.log('Generating webhook documentation...');
+  console.log('Generating webhook and callback documentation...');
   console.log(`Reading OpenAPI spec from: ${openApiPath}`);
   
   // Read OpenAPI spec
@@ -243,10 +244,6 @@ export async function generateWebhookDocs() {
   
   console.log(`Found ${webhookSchemas.length} webhook/callback schemas:`, webhookSchemas.map(([name]) => name));
   
-  // Clean up output directory
-  await rimraf(outputDir);
-  await fs.mkdir(outputDir, { recursive: true });
-  
   // Group by type
   const botWebhooks = webhookSchemas.filter(([name]) => name.startsWith('Bot'));
   const calendarWebhooks = webhookSchemas.filter(([name]) => name.startsWith('Calendar'));
@@ -262,23 +259,26 @@ export async function generateWebhookDocs() {
     return name.replace(/([A-Z])/g, ' $1').trim();
   };
 
-  // Generate docs for each schema
-  for (const [name, schema] of webhookSchemas) {
+  // Generate webhook docs
+  await rimraf(webhooksOutputDir);
+  await fs.mkdir(webhooksOutputDir, { recursive: true });
+  
+  for (const [name, schema] of [...botWebhooks, ...calendarWebhooks]) {
     const fileName = toFileName(name) + '.mdx';
-    const filePath = path.join(outputDir, fileName);
+    const filePath = path.join(webhooksOutputDir, fileName);
     const content = generateWebhookDoc(name, schema, spec);
     
     await fs.writeFile(filePath, content, 'utf-8');
   }
   
-  // Create index file
-  const indexContent = `---
-title: Webhook & Callback Payloads
-description: Reference documentation for all webhook and callback payload structures
+  // Create webhooks index file
+  const webhooksIndexContent = `---
+title: Webhook Payloads
+description: Reference documentation for all webhook payload structures
 icon: Webhook
 ---
 
-This section contains reference documentation for all webhook and callback payload structures sent by Meeting BaaS v2.
+This section contains reference documentation for all webhook payload structures sent by Meeting BaaS v2.
 
 ## Bot Webhooks
 
@@ -295,31 +295,67 @@ ${calendarWebhooks.map(([name]) => {
   const title = toTitle(name);
   return `- [${title}](/docs/api-v2/reference/webhooks/${fileName})`;
 }).join('\n')}
+`;
+
+  await fs.writeFile(path.join(webhooksOutputDir, 'index.mdx'), webhooksIndexContent, 'utf-8');
+  
+  // Create webhooks meta.json (without 'index' as it's automatically included)
+  const webhooksMetaContent = {
+    title: 'Webhooks',
+    pages: [...botWebhooks, ...calendarWebhooks].map(([name]) => toFileName(name))
+  };
+  
+  await fs.writeFile(
+    path.join(webhooksOutputDir, 'meta.json'),
+    JSON.stringify(webhooksMetaContent, null, 2),
+    'utf-8'
+  );
+
+  // Generate callback docs
+  await rimraf(callbacksOutputDir);
+  await fs.mkdir(callbacksOutputDir, { recursive: true });
+  
+  for (const [name, schema] of callbacks) {
+    const fileName = toFileName(name) + '.mdx';
+    const filePath = path.join(callbacksOutputDir, fileName);
+    const content = generateWebhookDoc(name, schema, spec);
+    
+    await fs.writeFile(filePath, content, 'utf-8');
+  }
+  
+  // Create callbacks index file
+  const callbacksIndexContent = `---
+title: Callback Payloads
+description: Reference documentation for all callback payload structures
+icon: Webhook
+---
+
+This section contains reference documentation for all callback payload structures sent by Meeting BaaS v2.
 
 ## Callbacks
 
 ${callbacks.map(([name]) => {
   const fileName = toFileName(name);
   const title = toTitle(name);
-  return `- [${title}](/docs/api-v2/reference/webhooks/${fileName})`;
+  return `- [${title}](/docs/api-v2/reference/callbacks/${fileName})`;
 }).join('\n')}
 `;
 
-  await fs.writeFile(path.join(outputDir, 'index.mdx'), indexContent, 'utf-8');
+  await fs.writeFile(path.join(callbacksOutputDir, 'index.mdx'), callbacksIndexContent, 'utf-8');
   
-  // Create meta.json (without 'index' as it's automatically included)
-  const metaContent = {
-    title: 'Webhooks & Callbacks',
-    pages: webhookSchemas.map(([name]) => toFileName(name))
+  // Create callbacks meta.json (without 'index' as it's automatically included)
+  const callbacksMetaContent = {
+    title: 'Callbacks',
+    pages: callbacks.map(([name]) => toFileName(name))
   };
   
   await fs.writeFile(
-    path.join(outputDir, 'meta.json'),
-    JSON.stringify(metaContent, null, 2),
+    path.join(callbacksOutputDir, 'meta.json'),
+    JSON.stringify(callbacksMetaContent, null, 2),
     'utf-8'
   );
   
-  console.log(`Generated ${webhookSchemas.length} webhook/callback documentation files`);
+  console.log(`Generated ${botWebhooks.length + calendarWebhooks.length} webhook and ${callbacks.length} callback documentation files`);
 }
 
 

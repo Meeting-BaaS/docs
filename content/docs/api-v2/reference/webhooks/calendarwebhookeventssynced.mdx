@@ -10,10 +10,13 @@ icon: Webhook
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `data` | object | Yes |  |
 | `event` | string | Yes | The webhook event type |
+| `data` | object | Yes |  |
 
 ## Field Details
+
+- **`event`** (string) **Required**
+  The webhook event type
 
 - **`data`** (object) **Required**
 
@@ -25,18 +28,15 @@ icon: Webhook
       Array of event series that were synced. Each series contains its event instances
 
 
-- **`event`** (string) **Required**
-  The webhook event type
-
 
 ## Example
 
 ```json
 {
+  "event": "exampleevent",
   "data": {
     "calendar_id": "examplecalendar_id",
     "events": []
-  },
-  "event": "exampleevent"
+  }
 }
 ```

@@ -1,17 +1,15 @@
 {
-  "title": "Webhooks & Callbacks",
+  "title": "Webhooks",
   "pages": [
+    "botwebhookstatuschange",
     "botwebhookcompleted",
     "botwebhookfailed",
-    "botwebhookstatuschange",
     "calendarwebhookconnectioncreated",
-    "calendarwebhookconnectiondeleted",
     "calendarwebhookconnectionupdated",
-    "calendarwebhookeventcancelled",
+    "calendarwebhookconnectiondeleted",
+    "calendarwebhookeventssynced",
     "calendarwebhookeventcreated",
     "calendarwebhookeventupdated",
-    "calendarwebhookeventssynced",
-    "callbackcompleted",
-    "callbackfailed"
+    "calendarwebhookeventcancelled"
   ]
 }

@@ -1,8 +1,13 @@
----
-title: Bot Completed
-description: Bot Completed payload structure
-icon: Webhook
----
+# callbacks api-v2 Reference
+
+Reference documentation for callbacks in api-v2.
+
+## Completed
+
+Completed payload structure
+
+### Source: ./content/docs/api-v2/reference/callbacks/callbackcompleted.mdx
+
 
 
 
@@ -100,3 +105,88 @@ icon: Webhook
   "extra": null
 }
 ```
+
+
+---
+
+## Failed
+
+Failed payload structure
+
+### Source: ./content/docs/api-v2/reference/callbacks/callbackfailed.mdx
+
+
+
+
+## Payload Structure
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `event` | string | Yes | The webhook event type |
+| `data` | object | Yes |  |
+| `extra` | object | null | Yes | Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking |
+
+## Field Details
+
+- **`event`** (string) **Required**
+  The webhook event type
+
+- **`data`** (object) **Required**
+
+  Properties:
+    - **`bot_id`** (string (uuid)) **Required**
+      The UUID of the bot that failed
+
+    - **`event_id`** (string (uuid) | null) **Required**
+      The UUID of the calendar event associated with this bot. Null for non-calendar bots
+
+    - **`error_message`** (string) **Required**
+      Human-readable error message describing why the bot failed
+
+    - **`error_code`** (string) **Required**
+      Machine-readable error code for programmatic handling. Common codes include 'MEETING_NOT_FOUND', 'MEETING_ENDED', 'BOT_CRASHED', etc.
+
+    - **`sent_at`** (string (date-time)) **Required**
+      ISO 8601 timestamp when this webhook was sent
+
+
+- **`extra`** (object | null) **Required**
+  Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking
+
+
+## Example
+
+```json
+{
+  "event": "exampleevent",
+  "data": {
+    "bot_id": "examplebot_id",
+    "event_id": null,
+    "error_message": "exampleerror_message",
+    "error_code": "exampleerror_code",
+    "sent_at": "examplesent_at"
+  },
+  "extra": null
+}
+```
+
+
+---
+
+## Callback Payloads
+
+Reference documentation for all callback payload structures
+
+### Source: ./content/docs/api-v2/reference/callbacks/index.mdx
+
+
+This section contains reference documentation for all callback payload structures sent by Meeting BaaS v2.
+
+## Callbacks
+
+- [Callback Completed](/docs/api-v2/reference/callbacks/callbackcompleted)
+- [Callback Failed](/docs/api-v2/reference/callbacks/callbackfailed)
+
+
+---
+

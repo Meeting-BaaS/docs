@@ -10,49 +10,49 @@ icon: Webhook
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `data` | object | Yes |  |
 | `event` | string | Yes | The webhook event type |
+| `data` | object | Yes |  |
 
 ## Field Details
+
+- **`event`** (string) **Required**
+  The webhook event type
 
 - **`data`** (object) **Required**
 
   Properties:
-    - **`affected_instances`** (object[]) **Required**
-      Array of event instances that were affected by the update. This includes the instance that was directly updated and any related instances
-
     - **`calendar_id`** (string (uuid)) **Required**
       The UUID of the calendar connection where the event was updated
 
     - **`event_type`** ("one_off" | "recurring") **Required**
       The type of event. 'one_off' for single events, 'recurring' for events that are part of a recurring series
 
-    - **`is_exception`** (boolean) **Required**
-      Whether the updated instance is an exception to a recurring series. True if this instance has been modified differently from the recurring pattern
+    - **`series_id`** (string (uuid) | null) **Required**
+      The UUID of the event series. Null only in rare cases where the series relationship could not be established
 
     - **`series_bot_scheduled`** (boolean) **Required**
       Whether a bot has been scheduled for all occurrences of this series. True if a calendar bot schedule exists for the entire series
 
-    - **`series_id`** (string (uuid) | null) **Required**
-      The UUID of the event series. Null only in rare cases where the series relationship could not be established
+    - **`is_exception`** (boolean) **Required**
+      Whether the updated instance is an exception to a recurring series. True if this instance has been modified differently from the recurring pattern
 
+    - **`affected_instances`** (object[]) **Required**
+      Array of event instances that were affected by the update. This includes the instance that was directly updated and any related instances
 
-- **`event`** (string) **Required**
-  The webhook event type
 
 
 ## Example
 
 ```json
 {
+  "event": "exampleevent",
   "data": {
-    "affected_instances": [],
     "calendar_id": "examplecalendar_id",
     "event_type": "exampleevent_type",
-    "is_exception": true,
+    "series_id": null,
     "series_bot_scheduled": true,
-    "series_id": null
-  },
-  "event": "exampleevent"
+    "is_exception": true,
+    "affected_instances": []
+  }
 }
 ```

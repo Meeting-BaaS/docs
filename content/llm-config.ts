@@ -91,11 +91,11 @@ export const categoryConfig: CategoryConfigMap = {
       "./content/docs/api-v2/reference/calendars/**/*.mdx"
     ]
   },
-  "api-v2/scheduled-bots": {
-    "title": "scheduled-bots api-v2 Reference",
-    "description": "Reference documentation for scheduled-bots in api-v2.",
+  "api-v2/callbacks": {
+    "title": "callbacks api-v2 Reference",
+    "description": "Reference documentation for callbacks in api-v2.",
     "patterns": [
-      "./content/docs/api-v2/reference/scheduled-bots/**/*.mdx"
+      "./content/docs/api-v2/reference/callbacks/**/*.mdx"
     ]
   },
   "api-v2/webhooks": {
@@ -229,7 +229,7 @@ export const knownTxtPaths: string[][] = [
   [
     "llms",
     "api-v2",
-    "scheduled-bots"
+    "callbacks"
   ],
   [
     "llms",
