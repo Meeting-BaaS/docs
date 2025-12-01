@@ -8,6 +8,7 @@ OUTPUT_FILE="openapi-v2.json"
 while [[ "$#" -gt 0 ]]; do
   case $1 in
     --local) API_URL="http://localhost:3001/v2/openapi.json" ;;
+    --pre-prod) API_URL="https://api.pre-prod-meetingbaas.com/v2/openapi.json" ;;
     *) echo "Unknown parameter: $1"; exit 1 ;;
   esac
   shift

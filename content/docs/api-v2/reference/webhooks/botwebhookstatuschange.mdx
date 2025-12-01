@@ -1,0 +1,56 @@
+---
+title: Bot Status Change
+description: Bot Status Change payload structure
+icon: Webhook
+---
+
+
+
+## Payload Structure
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
+| `extra` | object | null | Yes | Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking |
+
+## Field Details
+
+- **`data`** (object) **Required**
+
+  Properties:
+    - **`bot_id`** (string (uuid)) **Required**
+      The UUID of the bot that changed status
+
+    - **`event_id`** (string (uuid) | null) **Required**
+      The UUID of the calendar event associated with this bot. Null for non-calendar bots
+
+    - **`status`** (object) **Required**
+      Status information with code, timestamp, and optional status-specific fields
+
+
+- **`event`** (string) **Required**
+  The webhook event type
+
+- **`extra`** (object | null) **Required**
+  Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking
+
+
+## Example
+
+```json
+{
+  "data": {
+    "bot_id": "examplebot_id",
+    "event_id": null,
+    "status": {
+      "code": "examplecode",
+      "created_at": "examplecreated_at",
+      "error_message": "exampleerror_message",
+      "start_time": 0
+    }
+  },
+  "event": "exampleevent",
+  "extra": null
+}
+```

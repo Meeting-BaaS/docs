@@ -1,0 +1,58 @@
+---
+title: Calendar Connection Updated
+description: Calendar Connection Updated payload structure
+icon: Webhook
+---
+
+
+
+## Payload Structure
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
+
+## Field Details
+
+- **`data`** (object) **Required**
+
+  Properties:
+    - **`account_email`** (string) **Required**
+      The email address associated with the calendar account
+
+    - **`calendar_id`** (string (uuid)) **Required**
+      The UUID of the updated calendar connection
+
+    - **`calendar_platform`** ("google" | "microsoft") **Required**
+      The calendar platform. Either 'google' for Google Calendar or 'microsoft' for Microsoft Outlook/365
+
+    - **`created_at`** (string (date-time)) **Required**
+      ISO 8601 timestamp when the calendar connection was originally created
+
+    - **`status`** ("active" | "error" | "revoked" | "permission_denied") **Required**
+      The current status of the calendar connection after the update. Possible values: 'active' (connection is working), 'error' (connection has errors), 'revoked' (OAuth access was revoked), 'permission_denied' (insufficient permissions)
+
+    - **`updated_at`** (string (date-time)) **Required**
+      ISO 8601 timestamp when the calendar connection was updated
+
+
+- **`event`** (string) **Required**
+  The webhook event type
+
+
+## Example
+
+```json
+{
+  "data": {
+    "account_email": "exampleaccount_email",
+    "calendar_id": "examplecalendar_id",
+    "calendar_platform": "examplecalendar_platform",
+    "created_at": "examplecreated_at",
+    "status": "examplestatus",
+    "updated_at": "exampleupdated_at"
+  },
+  "event": "exampleevent"
+}
+```

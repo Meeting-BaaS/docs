@@ -1,0 +1,18 @@
+{
+  "title": "Webhooks & Callbacks",
+  "pages": [
+    "index",
+    "botwebhookcompleted",
+    "botwebhookfailed",
+    "botwebhookstatuschange",
+    "calendarwebhookconnectioncreated",
+    "calendarwebhookconnectiondeleted",
+    "calendarwebhookconnectionupdated",
+    "calendarwebhookeventcancelled",
+    "calendarwebhookeventcreated",
+    "calendarwebhookeventupdated",
+    "calendarwebhookeventssynced",
+    "callbackcompleted",
+    "callbackfailed"
+  ]
+}

@@ -1,6 +1,6 @@
-# Webhooks API, for event notifications and integrations
+# webhooks api-v2 Reference
 
-Documentation for webhook integration endpoints and functionality.
+Reference documentation for webhooks in api-v2.
 
 ## Bot Completed
 

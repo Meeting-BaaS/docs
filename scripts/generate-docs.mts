@@ -1,5 +1,6 @@
 import * as OpenAPI from 'fumadocs-openapi';
 import { rimraf } from 'rimraf';
+import { generateWebhookDocs } from './generate-webhook-docs.mts';
 
 export async function generateDocs() {
   // Clean up Meeting BaaS API reference directory
@@ -41,6 +42,9 @@ export async function generateDocs() {
       includeDescription: true,
       groupBy: 'tag',
     }),
+    
+    // Generate webhook and callback payload docs
+    generateWebhookDocs(),
 
     // Generate Speaking Bots API docs
     OpenAPI.generateFiles({

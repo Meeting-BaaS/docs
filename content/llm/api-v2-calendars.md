@@ -1,6 +1,6 @@
-# Calendars API, for managing calendar integrations and events
+# calendars api-v2 Reference
 
-Documentation for calendar integration endpoints and functionality.
+Reference documentation for calendars in api-v2.
 
 ## Schedule bot for calendar event
 

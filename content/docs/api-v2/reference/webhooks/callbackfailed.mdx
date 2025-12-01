@@ -1,0 +1,59 @@
+---
+title: Failed
+description: Failed payload structure
+icon: Webhook
+---
+
+
+
+## Payload Structure
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
+| `extra` | object | null | Yes | Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking |
+
+## Field Details
+
+- **`data`** (object) **Required**
+
+  Properties:
+    - **`bot_id`** (string (uuid)) **Required**
+      The UUID of the bot that failed
+
+    - **`error_code`** (string) **Required**
+      Machine-readable error code for programmatic handling. Common codes include 'MEETING_NOT_FOUND', 'MEETING_ENDED', 'BOT_CRASHED', etc.
+
+    - **`error_message`** (string) **Required**
+      Human-readable error message describing why the bot failed
+
+    - **`event_id`** (string (uuid) | null) **Required**
+      The UUID of the calendar event associated with this bot. Null for non-calendar bots
+
+    - **`sent_at`** (string (date-time)) **Required**
+      ISO 8601 timestamp when this webhook was sent
+
+
+- **`event`** (string) **Required**
+  The webhook event type
+
+- **`extra`** (object | null) **Required**
+  Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking
+
+
+## Example
+
+```json
+{
+  "data": {
+    "bot_id": "examplebot_id",
+    "error_code": "exampleerror_code",
+    "error_message": "exampleerror_message",
+    "event_id": null,
+    "sent_at": "examplesent_at"
+  },
+  "event": "exampleevent",
+  "extra": null
+}
+```
