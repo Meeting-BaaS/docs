@@ -4,8 +4,6 @@ description: Complete guide to migrating from Meeting BaaS API v1 to v2
 icon: ArrowRight
 ---
 
-# Migration Guide: v1 to v2
-
 This guide helps you migrate your integration from Meeting BaaS API v1 to v2. Both APIs will run in parallel, but v2 offers improved architecture, better error handling, and enhanced features.
 
 <Callout type="warn">
@@ -17,10 +15,8 @@ This guide helps you migrate your integration from Meeting BaaS API v1 to v2. Bo
 ### Key Architectural Changes
 
 - **API Versioning**: v2 uses `/v2/*` prefix for all endpoints
-- **Authentication**: Simplified to API key authentication only (no JWT)
 - **Response Format**: Standardized `{success, data, error}` structure
 - **Error Handling**: Consistent error codes with `FST_ERR_` prefix
-- **Naming Convention**: Public API uses `snake_case` for all fields
 
 ### What's New in v2
 
@@ -125,7 +121,7 @@ v2 uses the same API key authentication:
 
 ### Field Naming
 
-Both v1 and v2 use `snake_case` for all public API fields:
+Field naming conventions remain the same between v1 and v2:
 
 - `bot_id`
 - `created_at`
@@ -456,12 +452,12 @@ webhookHandler(event) {
 
 ### OAuth Model
 
-**v1**: Meeting BaaS managed OAuth applications
+Both v1 and v2 use a **bring-your-own-credentials** model where you create and manage your own OAuth applications.
 
-**v2**: **Bring-your-own-credentials** model:
-- You create and manage your own OAuth applications
-- You provide OAuth credentials (`client_id`, `client_secret`, `refresh_token`) when creating calendar connections
-- More control and flexibility
+**Key Difference in v2**:
+- v2 requires you to provide OAuth credentials (`oauth_client_id`, `oauth_client_secret`, `oauth_refresh_token`) when creating calendar connections
+- v1 only required the `refresh_token` (client credentials were managed separately)
+- v2 gives you more control by requiring explicit credential management
 
 ### Calendar Connection Creation
 
@@ -568,7 +564,6 @@ v2 allows you to import your remaining tokens from v1, ensuring a smooth transit
 - [ ] Update authentication to use only `x-meeting-baas-api-key` header
 - [ ] Update request/response parsing for standardized format
 - [ ] Update error handling for new error codes
-- [ ] Update field names to `snake_case`
 - [ ] Separate immediate and scheduled bot creation logic
 - [ ] Update webhook handlers for new event structure
 - [ ] Implement calendar OAuth flow (if using calendars)
@@ -609,7 +604,7 @@ v2 allows you to import your remaining tokens from v1, ensuring a smooth transit
 
 ### Issue: "Field not found" errors
 
-**Solution**: Update all field names to `snake_case` (e.g., `botId` → `bot_id`).
+**Solution**: Verify that you're using the correct field names from the API response. Field naming conventions are consistent between v1 and v2.
 
 ### Issue: Webhooks not received
 

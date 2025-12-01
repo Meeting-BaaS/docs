@@ -108,8 +108,6 @@ Learn how to create multiple bots in a single request
 ### Source: ./content/docs/api-v2/batch-operations.mdx
 
 
-# Batch Operations
-
 Batch operations allow you to create multiple bots in a single API request. This is useful for bulk operations and reduces the number of API calls needed.
 
 ## Creating Multiple Bots
@@ -246,8 +244,6 @@ Get help and connect with the Meeting BaaS community
 ### Source: ./content/docs/api-v2/community-and-support.mdx
 
 
-# Community & Support
-
 Need help? We're here for you!
 
 ## Support Channels
@@ -286,8 +282,6 @@ Learn about duplicate bot prevention and rate limiting in Meeting BaaS v2
 
 ### Source: ./content/docs/api-v2/deduplication-rate-limiting.mdx
 
-
-# Deduplication & Rate Limiting
 
 Meeting BaaS v2 includes built-in protection against duplicate bots and rate limiting to ensure fair usage.
 
@@ -434,8 +428,6 @@ Complete reference for bot process error codes in Meeting BaaS v2
 
 ### Source: ./content/docs/api-v2/error-codes.mdx
 
-
-# Bot Process Error Codes
 
 When a bot fails, the error information is included in the `bot.failed` webhook event and in the bot details response. This page documents all possible error codes and their meanings.
 
@@ -651,8 +643,6 @@ Learn how to integrate calendars and schedule bots automatically
 ### Source: ./content/docs/api-v2/getting-started/calendars.mdx
 
 
-# Calendar Integration
-
 Meeting BaaS v2 allows you to connect calendars (Google Calendar, Microsoft Outlook) and automatically schedule bots for calendar events. This guide walks you through setting up calendar integration in your application.
 
 ## Overview
@@ -690,7 +680,7 @@ You'll need to create a Google OAuth application that users can authorize to acc
 
 ### Steps
 
-1. **Create a Google Cloud Project**: Follow the directions [here](https://support.google.com/googleapi/answer/6158849?hl=en) to create a new Google Cloud project that uses OAuth.
+1. **Create a Google Cloud Project**: Follow the directions [here](https://support.google.com/cloud/answer/15549257) to create a new Google Cloud project that uses OAuth.
 
 2. **Enable Google Calendar API**: In your Google Cloud project, go to "APIs & Services" > "Library" and enable the [Google Calendar API](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com).
 
@@ -814,8 +804,6 @@ Learn how to retrieve meeting recordings, transcriptions, and other data from bo
 ### Source: ./content/docs/api-v2/getting-started/getting-the-data.mdx
 
 
-# Getting Meeting Data
-
 Once a bot completes recording a meeting, you can retrieve the meeting data including recordings, transcriptions, and metadata.
 
 ## Getting Bot Details
@@ -905,8 +893,6 @@ Learn how to remove or delete bots from meetings
 
 ### Source: ./content/docs/api-v2/getting-started/removing-a-bot.mdx
 
-
-# Removing a Bot
 
 You can remove a bot from a meeting or delete bot data using the v2 API. There are two operations:
 
@@ -1062,8 +1048,6 @@ Learn how to send bots to meetings using the Meeting BaaS v2 API
 
 ### Source: ./content/docs/api-v2/getting-started/sending-a-bot.mdx
 
-
-# Sending a Bot to a Meeting
 
 You can send a bot to a meeting in two ways:
 
@@ -1282,8 +1266,6 @@ Learn how to configure webhooks to receive real-time notifications
 ### Source: ./content/docs/api-v2/getting-started/webhooks.mdx
 
 
-# Setting Up Webhooks
-
 Webhooks allow you to receive real-time notifications about bot and calendar events without polling the API.
 
 ## Overview
@@ -1383,12 +1365,12 @@ Once inside, they record the meeting until it ends, and provide you with the dat
 
 ## Getting Started
 
-Ready to start? Check out our [Getting Started Guide](/docs/api-v2/getting-started) to learn how to:
+Ready to start? Check out our getting started guides to learn how to:
 
-- Send your first bot to a meeting
-- Retrieve meeting data
-- Set up webhooks
-- Integrate calendars
+- [Send your first bot to a meeting](/docs/api-v2/getting-started/sending-a-bot)
+- [Retrieve meeting data](/docs/api-v2/getting-started/getting-the-data)
+- [Set up webhooks](/docs/api-v2/getting-started/webhooks)
+- [Integrate calendars](/docs/api-v2/getting-started/calendars)
 
 ## API Reference
 
@@ -1405,8 +1387,6 @@ Complete guide to migrating from Meeting BaaS API v1 to v2
 ### Source: ./content/docs/api-v2/migration-guide.mdx
 
 
-# Migration Guide: v1 to v2
-
 This guide helps you migrate your integration from Meeting BaaS API v1 to v2. Both APIs will run in parallel, but v2 offers improved architecture, better error handling, and enhanced features.
 
 <Callout type="warn">
@@ -1418,10 +1398,8 @@ This guide helps you migrate your integration from Meeting BaaS API v1 to v2. Bo
 ### Key Architectural Changes
 
 - **API Versioning**: v2 uses `/v2/*` prefix for all endpoints
-- **Authentication**: Simplified to API key authentication only (no JWT)
 - **Response Format**: Standardized `{success, data, error}` structure
 - **Error Handling**: Consistent error codes with `FST_ERR_` prefix
-- **Naming Convention**: Public API uses `snake_case` for all fields
 
 ### What's New in v2
 
@@ -1526,7 +1504,7 @@ v2 uses the same API key authentication:
 
 ### Field Naming
 
-Both v1 and v2 use `snake_case` for all public API fields:
+Field naming conventions remain the same between v1 and v2:
 
 - `bot_id`
 - `created_at`
@@ -1857,12 +1835,12 @@ webhookHandler(event) {
 
 ### OAuth Model
 
-**v1**: Meeting BaaS managed OAuth applications
+Both v1 and v2 use a **bring-your-own-credentials** model where you create and manage your own OAuth applications.
 
-**v2**: **Bring-your-own-credentials** model:
-- You create and manage your own OAuth applications
-- You provide OAuth credentials (`client_id`, `client_secret`, `refresh_token`) when creating calendar connections
-- More control and flexibility
+**Key Difference in v2**:
+- v2 requires you to provide OAuth credentials (`oauth_client_id`, `oauth_client_secret`, `oauth_refresh_token`) when creating calendar connections
+- v1 only required the `refresh_token` (client credentials were managed separately)
+- v2 gives you more control by requiring explicit credential management
 
 ### Calendar Connection Creation
 
@@ -1969,7 +1947,6 @@ v2 allows you to import your remaining tokens from v1, ensuring a smooth transit
 - [ ] Update authentication to use only `x-meeting-baas-api-key` header
 - [ ] Update request/response parsing for standardized format
 - [ ] Update error handling for new error codes
-- [ ] Update field names to `snake_case`
 - [ ] Separate immediate and scheduled bot creation logic
 - [ ] Update webhook handlers for new event structure
 - [ ] Implement calendar OAuth flow (if using calendars)
@@ -2010,7 +1987,7 @@ v2 allows you to import your remaining tokens from v1, ensuring a smooth transit
 
 ### Issue: "Field not found" errors
 
-**Solution**: Update all field names to `snake_case` (e.g., `botId` → `bot_id`).
+**Solution**: Verify that you're using the correct field names from the API response. Field naming conventions are consistent between v1 and v2.
 
 ### Issue: Webhooks not received
 
@@ -2066,8 +2043,6 @@ Discover all the enhancements and improvements in Meeting BaaS API v2
 
 ### Source: ./content/docs/api-v2/new-features.mdx
 
-
-# New Features in v2
 
 Meeting BaaS v2 introduces significant improvements across security, transparency, developer experience, and feature availability. This document highlights the key enhancements that make v2 a compelling upgrade from v1.
 
@@ -3321,12 +3296,6 @@ Complete API reference for Meeting BaaS v2
 
 The API reference is automatically generated from the OpenAPI specification. All endpoints are organized by tag (Bots, Calendars, etc.).
 
-<Note>
-  The API reference pages are generated automatically. If you don't see any endpoints listed, make sure to:
-  1. Fetch the v2 OpenAPI spec: `./scripts/update-openapi-v2.sh`
-  2. Generate the docs: `pnpm build:pre`
-</Note>
-
 ## Webhook & Callback Payloads
 
 Reference documentation for all webhook and callback payload structures is available in the [Webhooks & Callbacks](./webhooks) section.
@@ -4174,8 +4143,6 @@ Complete guide to transcription features, custom parameters, and BYOK
 
 ### Source: ./content/docs/api-v2/transcription.mdx
 
-
-# Transcription Guide
 
 Meeting BaaS v2 provides powerful transcription capabilities with support for custom parameters, multiple providers, and Bring Your Own Key (BYOK) options.
 
