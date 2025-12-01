@@ -1,0 +1,15 @@
+{
+    "title": "Bots",
+    "pages": [
+        "batch-create-bots",
+        "create-bot",
+        "delete-bot-data",
+        "get-bot-details",
+        "get-bot-screenshots",
+        "get-bot-status",
+        "leave-bot",
+        "list-bots",
+        "resend-final-webhook",
+        "retry-callback"
+    ]
+}

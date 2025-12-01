@@ -1,7 +1,6 @@
 {
   "title": "Webhooks & Callbacks",
   "pages": [
-    "index",
     "botwebhookcompleted",
     "botwebhookfailed",
     "botwebhookstatuschange",

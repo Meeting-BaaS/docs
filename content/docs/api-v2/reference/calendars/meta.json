@@ -1,0 +1,19 @@
+{
+    "title": "Calendars",
+    "pages": [
+        "create-calendar-bot",
+        "create-calendar-connection",
+        "delete-calendar-bot",
+        "delete-calendar-connection",
+        "get-calendar-details",
+        "get-event-details",
+        "list-calendars",
+        "list-event-series",
+        "list-events",
+        "list-raw-calendars",
+        "resubscribe-calendar",
+        "sync-calendar",
+        "update-calendar-bot",
+        "update-calendar-connection"
+    ]
+}

@@ -252,9 +252,19 @@ export async function generateWebhookDocs() {
   const calendarWebhooks = webhookSchemas.filter(([name]) => name.startsWith('Calendar'));
   const callbacks = webhookSchemas.filter(([name]) => name.startsWith('Callback'));
   
+  // Helper function to convert schema name to file name (all lowercase, no dashes)
+  const toFileName = (name: string): string => {
+    return name.toLowerCase();
+  };
+
+  // Helper function to convert schema name to display title
+  const toTitle = (name: string): string => {
+    return name.replace(/([A-Z])/g, ' $1').trim();
+  };
+
   // Generate docs for each schema
   for (const [name, schema] of webhookSchemas) {
-    const fileName = name.toLowerCase().replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '') + '.mdx';
+    const fileName = toFileName(name) + '.mdx';
     const filePath = path.join(outputDir, fileName);
     const content = generateWebhookDoc(name, schema, spec);
     
@@ -273,39 +283,34 @@ This section contains reference documentation for all webhook and callback paylo
 ## Bot Webhooks
 
 ${botWebhooks.map(([name]) => {
-  const fileName = name.toLowerCase().replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '') + '.mdx';
-  const title = name.replace(/([A-Z])/g, ' $1').trim();
-  return `- [${title}](./${fileName.replace('.mdx', '')})`;
+  const fileName = toFileName(name);
+  const title = toTitle(name);
+  return `- [${title}](/docs/api-v2/reference/webhooks/${fileName})`;
 }).join('\n')}
 
 ## Calendar Webhooks
 
 ${calendarWebhooks.map(([name]) => {
-  const fileName = name.toLowerCase().replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '') + '.mdx';
-  const title = name.replace(/([A-Z])/g, ' $1').trim();
-  return `- [${title}](./${fileName.replace('.mdx', '')})`;
+  const fileName = toFileName(name);
+  const title = toTitle(name);
+  return `- [${title}](/docs/api-v2/reference/webhooks/${fileName})`;
 }).join('\n')}
 
 ## Callbacks
 
 ${callbacks.map(([name]) => {
-  const fileName = name.toLowerCase().replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '') + '.mdx';
-  const title = name.replace(/([A-Z])/g, ' $1').trim();
-  return `- [${title}](./${fileName.replace('.mdx', '')})`;
+  const fileName = toFileName(name);
+  const title = toTitle(name);
+  return `- [${title}](/docs/api-v2/reference/webhooks/${fileName})`;
 }).join('\n')}
 `;
 
   await fs.writeFile(path.join(outputDir, 'index.mdx'), indexContent, 'utf-8');
   
-  // Create meta.json
+  // Create meta.json (without 'index' as it's automatically included)
   const metaContent = {
     title: 'Webhooks & Callbacks',
-    pages: [
-      'index',
-      ...webhookSchemas.map(([name]) => 
-        name.toLowerCase().replace(/([A-Z])/g, '-$1').toLowerCase().replace(/^-/, '')
-      )
-    ]
+    pages: webhookSchemas.map(([name]) => toFileName(name))
   };
   
   await fs.writeFile(

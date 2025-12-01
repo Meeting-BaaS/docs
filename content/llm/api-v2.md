@@ -4115,24 +4115,24 @@ This section contains reference documentation for all webhook and callback paylo
 
 ## Bot Webhooks
 
-- [Bot Webhook Completed](./botwebhookcompleted)
-- [Bot Webhook Failed](./botwebhookfailed)
-- [Bot Webhook Status Change](./botwebhookstatuschange)
+- [Bot Webhook Completed](/docs/api-v2/reference/webhooks/botwebhookcompleted)
+- [Bot Webhook Failed](/docs/api-v2/reference/webhooks/botwebhookfailed)
+- [Bot Webhook Status Change](/docs/api-v2/reference/webhooks/botwebhookstatuschange)
 
 ## Calendar Webhooks
 
-- [Calendar Webhook Connection Created](./calendarwebhookconnectioncreated)
-- [Calendar Webhook Connection Deleted](./calendarwebhookconnectiondeleted)
-- [Calendar Webhook Connection Updated](./calendarwebhookconnectionupdated)
-- [Calendar Webhook Event Cancelled](./calendarwebhookeventcancelled)
-- [Calendar Webhook Event Created](./calendarwebhookeventcreated)
-- [Calendar Webhook Event Updated](./calendarwebhookeventupdated)
-- [Calendar Webhook Events Synced](./calendarwebhookeventssynced)
+- [Calendar Webhook Connection Created](/docs/api-v2/reference/webhooks/calendarwebhookconnectioncreated)
+- [Calendar Webhook Connection Deleted](/docs/api-v2/reference/webhooks/calendarwebhookconnectiondeleted)
+- [Calendar Webhook Connection Updated](/docs/api-v2/reference/webhooks/calendarwebhookconnectionupdated)
+- [Calendar Webhook Event Cancelled](/docs/api-v2/reference/webhooks/calendarwebhookeventcancelled)
+- [Calendar Webhook Event Created](/docs/api-v2/reference/webhooks/calendarwebhookeventcreated)
+- [Calendar Webhook Event Updated](/docs/api-v2/reference/webhooks/calendarwebhookeventupdated)
+- [Calendar Webhook Events Synced](/docs/api-v2/reference/webhooks/calendarwebhookeventssynced)
 
 ## Callbacks
 
-- [Callback Completed](./callbackcompleted)
-- [Callback Failed](./callbackfailed)
+- [Callback Completed](/docs/api-v2/reference/webhooks/callbackcompleted)
+- [Callback Failed](/docs/api-v2/reference/webhooks/callbackfailed)
 
 
 ---

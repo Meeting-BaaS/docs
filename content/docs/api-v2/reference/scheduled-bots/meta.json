@@ -1,0 +1,11 @@
+{
+    "title": "Scheduled Bots",
+    "pages": [
+        "batch-create-scheduled-bots",
+        "create-scheduled-bot",
+        "delete-scheduled-bot",
+        "get-scheduled-bot-details",
+        "list-scheduled-bots",
+        "update-scheduled-bot"
+    ]
+}
