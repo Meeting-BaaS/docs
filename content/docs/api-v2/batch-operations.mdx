@@ -1,0 +1,133 @@
+---
+title: Batch Operations
+description: Learn how to create multiple bots in a single request
+icon: Layers
+---
+
+# Batch Operations
+
+Batch operations allow you to create multiple bots in a single API request. This is useful for bulk operations and reduces the number of API calls needed.
+
+## Creating Multiple Bots
+
+To create multiple bots at once, use the batch endpoint:
+
+```bash
+curl -X POST "https://api.meetingbaas.com/v2/bots/batch" \
+     -H "Content-Type: application/json" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+     -d '[
+           {
+             "meeting_url": "https://meet.google.com/abc-defg-hij",
+             "bot_name": "Bot 1",
+             "recording_mode": "speaker_view"
+           },
+           {
+             "meeting_url": "https://zoom.us/j/123456789",
+             "bot_name": "Bot 2",
+             "recording_mode": "gallery_view"
+           }
+         ]'
+```
+
+## Response Format
+
+The batch endpoint returns a response with both successful and failed items:
+
+```json
+{
+  "success": true,
+  "data": {
+    "success": [
+      {
+        "index": 0,
+        "bot_id": "123e4567-e89b-12d3-a456-426614174000",
+        "extra": null
+      }
+    ],
+    "errors": [
+      {
+        "index": 1,
+        "code": "INSUFFICIENT_TOKENS",
+        "message": "Insufficient tokens. Available: 0, Required: 0.5",
+        "details": null,
+        "extra": null
+      }
+    ]
+  }
+}
+```
+
+## Partial Success
+
+Batch operations support **partial success**. This means:
+
+- Some bots may be created successfully while others fail
+- Each item is processed independently
+- Errors for one item don't prevent other items from being processed
+- The response includes both successful and failed items with their original indices
+
+## Error Handling
+
+Each item in the batch is validated and processed individually. Common errors include:
+
+- `INSUFFICIENT_TOKENS`: Not enough tokens to create the bot
+- `DAILY_BOT_CAP_REACHED`: Daily bot creation limit reached
+- `BOT_ALREADY_EXISTS`: A bot already exists for this meeting URL (if `allow_multiple_bots` is `false`)
+- `INVALID_MEETING_PLATFORM`: Could not determine meeting platform from URL
+- `VALIDATION_ERROR`: Request validation failed
+
+## Use Cases
+
+Batch operations are ideal for:
+
+- Bulk bot creation for multiple meetings
+- Scheduled bot creation for recurring events
+- Migrating bots from another system
+- Creating test bots in bulk
+
+## Batch Size Limits
+
+- **Minimum**: 1 bot per batch
+- **Maximum**: 100 bots per batch
+
+If you exceed 100 items, the request will fail with a validation error.
+
+## Best Practices
+
+1. **Validate data before batching**: Ensure all meeting URLs and configurations are valid
+2. **Handle partial success**: Always check both `success` and `errors` arrays in the response
+3. **Use appropriate batch sizes**: Consider processing in batches of 10-50 items for better error handling and easier debugging
+4. **Monitor token balance**: Ensure you have sufficient tokens for all bots in the batch
+5. **Check daily bot cap**: Make sure you won't exceed your daily bot creation limit
+
+## Scheduled Bot Batch
+
+You can also create multiple scheduled bots in a single request:
+
+```bash
+curl -X POST "https://api.meetingbaas.com/v2/bots/scheduled/batch" \
+     -H "Content-Type: application/json" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+     -d '[
+           {
+             "meeting_url": "https://meet.google.com/abc-defg-hij",
+             "bot_name": "Scheduled Bot 1",
+             "join_at": "2025-01-20T14:00:00Z"
+           },
+           {
+             "meeting_url": "https://zoom.us/j/123456789",
+             "bot_name": "Scheduled Bot 2",
+             "join_at": "2025-01-20T15:00:00Z"
+           }
+         ]'
+```
+
+## Token Reservation
+
+Tokens are reserved individually for each bot in the batch. If one bot fails due to insufficient tokens, other bots in the batch may still succeed if tokens are available.
+
+## Daily Bot Cap
+
+The daily bot cap is checked for each bot individually. If you're creating 100 bots but your daily cap is 75, the first 75 will succeed and the remaining 25 will fail with `DAILY_BOT_CAP_REACHED`.
+

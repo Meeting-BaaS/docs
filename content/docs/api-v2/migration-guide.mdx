@@ -1,0 +1,657 @@
+---
+title: Migration Guide
+description: Complete guide to migrating from Meeting BaaS API v1 to v2
+icon: ArrowRight
+---
+
+# Migration Guide: v1 to v2
+
+This guide helps you migrate your integration from Meeting BaaS API v1 to v2. Both APIs will run in parallel, but v2 offers improved architecture, better error handling, and enhanced features.
+
+<Callout type="warn">
+  **Important**: Meeting BaaS v2 does **not** support automatic data migration. Bot data, calendar connections, and scheduled bots from v1 will not be automatically migrated to v2. You'll need to recreate calendar connections and any scheduled bots in v2.
+</Callout>
+
+## Overview of Changes
+
+### Key Architectural Changes
+
+- **API Versioning**: v2 uses `/v2/*` prefix for all endpoints
+- **Authentication**: Simplified to API key authentication only (no JWT)
+- **Response Format**: Standardized `{success, data, error}` structure
+- **Error Handling**: Consistent error codes with `FST_ERR_` prefix
+- **Naming Convention**: Public API uses `snake_case` for all fields
+
+### What's New in v2
+
+- **Batch Operations**: Create multiple bots in a single request
+- **Scheduled Bots**: Separate endpoints for scheduled bots with update/delete support
+- **Enhanced Webhooks**: More detailed webhook events and callbacks
+- **Better Error Codes**: Standardized error codes for programmatic handling
+- **Rate Limiting**: Per-team rate limits with clear error messages
+- **Deduplication**: Built-in protection against duplicate bot creation
+- **Calendar Integration**: Improved calendar sync and bot scheduling
+
+## Authentication Changes
+
+### v1 Authentication
+
+v1 public API routes used API key authentication:
+
+- **Header**: `x-meeting-baas-api-key` or `x-spoke-api-key` (legacy)
+- **Required**: All public `/bots/*` and `/calendars/*` endpoints required this header
+
+### v2 Authentication
+
+v2 uses the same API key authentication:
+
+- **Header**: `x-meeting-baas-api-key`
+- **Required**: All `/v2/*` endpoints require this header
+- **Legacy Header**: `x-spoke-api-key` is no longer supported
+
+**Migration Step**: 
+- Ensure you're using `x-meeting-baas-api-key` header (not the legacy `x-spoke-api-key`)
+- No other authentication changes needed - API key authentication works the same way
+
+## Endpoint Mapping
+
+### Bot Endpoints
+
+| v1 Endpoint | v2 Endpoint | Changes |
+|------------|-------------|---------|
+| `POST /bots` | `POST /v2/bots` | Response format changed |
+| `GET /bots/bots_with_metadata` | `GET /v2/bots` | New filtering options |
+| `GET /bots/meeting_data` | `GET /v2/bots/:bot_id` | Different response structure |
+| `DELETE /bots/:uuid` | `POST /v2/bots/:bot_id/leave` | Method changed, new status requirements |
+| `POST /bots/:uuid/delete_data` | `DELETE /v2/bots/:bot_id/delete-data` | Method changed, path updated |
+| `GET /bots/:uuid/screenshots` | `GET /v2/bots/:bot_id/screenshots` | Path parameter name changed |
+| - | `GET /v2/bots/:bot_id/status` | New endpoint for lightweight status checks |
+| - | `POST /v2/bots/batch` | New batch creation endpoint |
+| - | `POST /v2/bots/scheduled` | New scheduled bot creation |
+| - | `GET /v2/bots/scheduled` | New scheduled bot listing |
+| - | `GET /v2/bots/scheduled/:bot_id` | New scheduled bot details |
+| - | `PATCH /v2/bots/scheduled/:bot_id` | New scheduled bot update |
+| - | `DELETE /v2/bots/scheduled/:bot_id` | New scheduled bot deletion |
+
+### Calendar Endpoints
+
+| v1 Endpoint | v2 Endpoint | Changes |
+|------------|-------------|---------|
+| `POST /calendars` | `POST /v2/calendars` | OAuth credentials required in request |
+| `GET /calendars` | `GET /v2/calendars` | Response format changed |
+| `GET /calendar_events` | `GET /v2/calendars/:calendar_id/events` | Path structure changed |
+| - | `POST /v2/calendars/list-raw` | New endpoint to preview calendars |
+| - | `GET /v2/calendars/:calendar_id` | New endpoint for calendar details |
+| - | `PATCH /v2/calendars/:calendar_id` | New endpoint to update credentials |
+| - | `DELETE /v2/calendars/:calendar_id` | New endpoint to delete connection |
+| - | `POST /v2/calendars/:calendar_id/sync` | New endpoint to force sync |
+| - | `POST /v2/calendars/:calendar_id/bots` | New endpoint to schedule bots for events |
+
+## Request/Response Format Changes
+
+### Response Structure
+
+**v1 Response** (varied by endpoint):
+```json
+{
+  "bot_id": "uuid",
+  "status": "in_call_recording",
+  ...
+}
+```
+
+**v2 Response** (standardized):
+```json
+{
+  "success": true,
+  "data": {
+    "bot_id": "uuid",
+    "status": "in_call_recording",
+    ...
+  }
+}
+```
+
+**Error Response** (v2):
+```json
+{
+  "success": false,
+  "error": "Human-readable error message",
+  "code": "FST_ERR_BOT_NOT_FOUND_BY_ID",
+  "statusCode": 404,
+  "details": null
+}
+```
+
+### Field Naming
+
+Both v1 and v2 use `snake_case` for all public API fields:
+
+- `bot_id`
+- `created_at`
+- `meeting_url`
+- `bot_name`
+
+**No changes needed** - field naming remains consistent between v1 and v2.
+
+### Bot Creation Request
+
+**v1**:
+```json
+{
+  "meeting_url": "https://meet.google.com/...",
+  "bot_name": "AI Notetaker",
+  "recording_mode": "speaker_view",
+  "start_time": "2025-01-20T14:00:00Z"  // Optional, for scheduling
+}
+```
+
+**v2** (Immediate):
+```json
+{
+  "meeting_url": "https://meet.google.com/...",
+  "bot_name": "AI Notetaker",
+  "recording_mode": "speaker_view",
+  "transcription_enabled": true,
+  "transcription_config": {
+    "provider": "gladia"
+  }
+}
+```
+
+**v2** (Scheduled - separate endpoint):
+```json
+{
+  "meeting_url": "https://meet.google.com/...",
+  "bot_name": "AI Notetaker",
+  "recording_mode": "speaker_view",
+  "join_at": "2025-01-20T14:00:00Z"  // Required for scheduled bots
+}
+```
+
+**Key Changes**:
+- Scheduled bots use separate endpoint (`POST /v2/bots/scheduled`)
+- `start_time` renamed to `join_at` for scheduled bots
+- `transcription_enabled` and `transcription_config` are explicit in v2
+
+## Error Handling Changes
+
+### Error Codes
+
+v2 uses standardized error codes with `FST_ERR_` prefix:
+
+| v1 Error | v2 Error Code | Description |
+|----------|---------------|-------------|
+| `InvalidApiKey` | `FST_ERR_FORBIDDEN` | Invalid or missing API key |
+| `BotNotFound` | `FST_ERR_BOT_NOT_FOUND_BY_ID` | Bot not found |
+| `InsufficientTokens` | `FST_ERR_INSUFFICIENT_TOKENS` | Not enough tokens |
+| `TooManyRequests` | `FST_ERR_TOO_MANY_REQUESTS` | Rate limit exceeded |
+| - | `FST_ERR_BOT_ALREADY_EXISTS` | Duplicate bot detected |
+| - | `FST_ERR_DAILY_BOT_CAP_REACHED` | Daily bot limit reached |
+| - | `FST_ERR_BOT_STATUS` | Invalid bot status for operation |
+
+### Error Response Format
+
+**v1** (varied):
+```json
+{
+  "error": "Bot not found"
+}
+```
+
+**v2** (standardized):
+```json
+{
+  "success": false,
+  "error": "Bot with ID 'uuid' not found",
+  "code": "FST_ERR_BOT_NOT_FOUND_BY_ID",
+  "statusCode": 404,
+  "details": null
+}
+```
+
+**Migration Step**: Update error handling code to check `success: false` and use `code` field for programmatic error handling.
+
+## Webhook Changes
+
+### Webhook Events
+
+v2 introduces new webhook event types and improved payloads:
+
+**New Events in v2**:
+- `bot.status_change` - Bot status transitions
+- `calendar.connection_created` - Calendar connection established
+- `calendar.connection_updated` - Calendar credentials updated
+- `calendar.connection_deleted` - Calendar connection removed
+- `calendar.connection_error` - Calendar sync errors
+- `calendar.events_synced` - Calendar events synced
+- `calendar.event_created` - New calendar event detected
+- `calendar.event_updated` - Calendar event modified
+- `calendar.event_cancelled` - Calendar event cancelled
+
+**Enhanced Events**:
+- `bot.completed` - More detailed payload with error information
+- `bot.failed` - Standardized error codes and messages
+
+### Webhook Payload Structure
+
+**v1** (varied by event):
+```json
+{
+  "event": "bot.completed",
+  "bot_id": "uuid",
+  "status": "completed",
+  ...
+}
+```
+
+**v2** (standardized):
+```json
+{
+  "event": "bot.completed",
+  "data": {
+    "bot_id": "uuid",
+    "status": "completed",
+    "error_code": null,
+    "error_message": null,
+    ...
+  },
+  "sent_at": "2025-01-20T14:00:00Z"
+}
+```
+
+### Callbacks
+
+v2 introduces **callbacks** - bot-specific HTTP POST/PUT requests separate from account-level webhooks:
+
+- Configured per bot via `callback_config`
+- Only sent for `bot.completed` and `bot.failed` events
+- Uses the same payload structure as webhooks
+
+**Migration Step**: Update webhook handlers to:
+1. Check `event` field (same as v1, but new event types added)
+2. Access data via `data` object
+3. Handle new calendar webhook events
+4. Consider implementing callbacks for bot-specific notifications
+
+## Transcription Changes
+
+v2 introduces significant improvements to transcription handling, providing better security, flexibility, and access to raw transcription data.
+
+### Storage and Access Model
+
+**v1 Transcription**:
+- Transcription data embedded in webhook payloads
+- No access to raw provider responses
+- No transcription ID tracking
+
+**v2 Transcription**:
+- **S3-based storage**: All transcriptions stored as JSON files in S3
+- **Presigned URLs**: Access transcriptions via secure, time-limited presigned URLs
+- **Raw transcription access**: Full provider response preserved (includes LLM summaries if configured)
+- **Transcription ID tracking**: Each transcription has a unique `provider_id` (useful for BYOK users)
+- **Standardized output**: Consistent `output_transcription.json` format regardless of provider
+
+### Transcription Files
+
+v2 creates multiple transcription artifacts:
+
+1. **Raw Transcription** (`raw_transcription.json`):
+   - Contains the complete, unmodified response from the transcription provider
+   - Includes all custom parameters you configured (e.g., LLM summaries, language detection)
+   - Preserves provider-specific metadata
+   - Multiple transcription chunks are combined into a single file
+   - Accessible via presigned URL in bot artifacts
+   - **Note**: Raw transcriptions are presented as an array without time duration offsets or speaker diarization. They're best used alongside the final `output_transcription.json` which includes proper timestamp adjustments and speaker mappings.
+
+2. **Output Transcription** (`output_transcription.json`):
+   - Standardized format across all providers
+   - Diarized with speaker names mapped from meeting participants
+   - Timestamps adjusted for multi-chunk transcriptions
+   - Accessible via presigned URL in bot artifacts
+
+### Accessing Transcriptions
+
+**v1** (embedded in webhook):
+```json
+{
+  "event": "complete",
+  "bot_id": "uuid",
+  "transcript": [
+    {
+      "speaker": "John Doe",
+      "text": "Hello everyone",
+      "start_time": 0.5,
+      "end_time": 2.1
+    }
+  ]
+}
+```
+
+**v2** (via presigned URLs):
+```json
+{
+  "event": "bot.completed",
+  "data": {
+    "bot_id": "uuid",
+    "raw_transcription": "https://s3.amazonaws.com/...",
+    "transcription": "https://s3.amazonaws.com/...",
+    "transcription_ids": ["gladia-job-12345"],
+    "transcription_provider": "gladia"
+  }
+}
+```
+
+### Transcription IDs for BYOK Users
+
+v2 provides `transcription_ids` as an array of provider job IDs in bot details and webhook payloads:
+
+- **Useful for BYOK (Bring Your Own Key)**: Track your own transcription jobs with the provider
+- **Error correlation**: Match transcription errors to specific provider job IDs
+- **Multi-chunk support**: Each audio chunk gets its own provider ID
+
+**Example** (from bot details or webhook):
+```json
+{
+  "transcription_ids": ["gladia-job-12345", "gladia-job-12346"],
+  "transcription_provider": "gladia"
+}
+```
+
+### Custom Parameters and LLM Summaries
+
+v2 preserves all custom parameters you pass to the transcription provider:
+
+**Request**:
+```json
+{
+  "transcription_config": {
+    "provider": "gladia",
+    "custom_parameters": {
+      "llm_summary": true,
+      "summary_prompt": "Summarize this meeting",
+      "language_detection": true
+    }
+  }
+}
+```
+
+**Raw Transcription Response** (in `raw_transcription.json`):
+```json
+{
+  "bot_id": "uuid",
+  "transcriptions": [
+    {
+      "transcription": {
+        "utterances": [...],
+        "summary": "Meeting discussed Q4 goals...",  // LLM summary if configured
+        "languages": ["en", "es"],
+        "metadata": {...}
+      }
+    }
+  ]
+}
+```
+
+### Security Improvements
+
+**v1**: Transcription data sent directly in webhook payloads (potential size limits, security concerns)
+
+**v2**: 
+- Transcriptions stored securely in S3
+- Access via presigned URLs with expiration
+- No sensitive data in webhook payloads
+- Better handling of large transcriptions
+- Supports multi-chunk recordings without payload size issues
+
+### Migration Steps
+
+1. **Update Webhook Handlers**:
+   - Instead of reading transcript from webhook payload, fetch from presigned URL
+   - Handle both `raw_transcription` and `transcription` artifacts
+   - Download and parse JSON files from S3
+
+2. **Handle Presigned URLs**:
+   - Presigned URLs expire after a set time (typically 24 hours)
+   - Download transcriptions promptly after receiving webhook
+   - Store transcriptions in your own storage if needed long-term
+
+3. **Use Transcription IDs** (if BYOK):
+   - Access `transcription_ids` array from bot details or webhook payload
+   - Correlate with your own provider job tracking
+   - Use for error handling and debugging
+
+4. **Leverage Raw Transcription**:
+   - Access LLM summaries and custom provider features
+   - Use raw data for custom processing
+   - Preserve provider-specific metadata
+
+**Example Migration**:
+
+**v1 Code**:
+```javascript
+webhookHandler(event) {
+  const transcript = event.transcript; // Direct access
+  processTranscript(transcript);
+}
+```
+
+**v2 Code**:
+```javascript
+webhookHandler(event) {
+  // Get transcription URL from webhook payload
+  const transcriptionUrl = event.data.transcription;
+  
+  if (transcriptionUrl) {
+    // Download from presigned URL
+    const response = await fetch(transcriptionUrl);
+    const transcription = await response.json();
+    
+    processTranscript(transcription.result.utterances);
+  }
+}
+```
+
+## Calendar Integration Changes
+
+### OAuth Model
+
+**v1**: Meeting BaaS managed OAuth applications
+
+**v2**: **Bring-your-own-credentials** model:
+- You create and manage your own OAuth applications
+- You provide OAuth credentials (`client_id`, `client_secret`, `refresh_token`) when creating calendar connections
+- More control and flexibility
+
+### Calendar Connection Creation
+
+**v1**:
+```json
+POST /calendars
+{
+  "platform": "google",
+  "refresh_token": "user_refresh_token"
+}
+```
+
+**v2**:
+```json
+POST /v2/calendars
+{
+  "calendar_platform": "google",
+  "oauth_client_id": "your_client_id",
+  "oauth_client_secret": "your_client_secret",
+  "oauth_refresh_token": "user_refresh_token",
+  "raw_calendar_id": "primary"
+}
+```
+
+**Key Changes**:
+- Must provide your own OAuth `client_id` and `client_secret`
+- Must specify `raw_calendar_id` (use `POST /v2/calendars/list-raw` to get available calendars)
+- Microsoft requires `oauth_tenant_id` (defaults to `"common"`)
+
+**Migration Step**: 
+1. Create OAuth applications with Google/Microsoft (see [Calendar Integration Guide](/docs/api-v2/getting-started/calendars))
+2. Implement OAuth flow to get user refresh tokens
+3. Recreate all calendar connections in v2 with new credentials
+
+## Token Import from v1
+
+v2 allows you to import your remaining tokens from v1, ensuring a smooth transition without losing your token balance.
+
+### How to Import Tokens
+
+1. **Access Token Settings**: Navigate to Settings > Usage in the v2 dashboard
+2. **Click "Import from v1"**: This opens the import dialog
+3. **Check Available Tokens**: The dialog shows your available v1 token balance
+4. **Enter Amount**: Specify how many tokens to import (can import all or a portion)
+5. **Confirm Import**: Tokens are immediately added to your v2 team's balance
+
+### Important Notes
+
+- **UI Only**: Token import is only available via the dashboard UI, not through the API
+- **One-Time Import**: You can import tokens multiple times, but it's recommended to import all at once
+- **Team-Based**: Imported tokens go to your current team's balance
+- **Irreversible**: Once imported, tokens cannot be transferred back to v1
+- **No Expiration**: Imported tokens don't expire and work the same as purchased tokens
+
+## Data Migration
+
+<Callout type="warn">
+  **No Automatic Data Migration**: Meeting BaaS v2 does **not** automatically migrate data from v1. You'll need to:
+</Callout>
+
+### What's NOT Migrated
+
+- **Bot Data**: Historical bot recordings, transcriptions, and metadata
+- **Calendar Connections**: All calendar connections must be recreated
+- **Scheduled Bots**: All scheduled bots must be recreated
+- **Webhook Configurations**: Webhook endpoints must be reconfigured
+
+### What You Need to Do
+
+1. **Import Tokens** (if applicable):
+   - Import remaining tokens from v1 (see [Token Import](#token-import-from-v1) above)
+   - This ensures you don't lose your token balance
+
+2. **Export Important Data** (if needed):
+   - Download any bot recordings or transcriptions you need to keep
+   - Note any scheduled bot configurations
+   - Document calendar connection mappings
+
+3. **Recreate Calendar Connections**:
+   - Set up OAuth applications (see [Calendar Integration Guide](/docs/api-v2/getting-started/calendars))
+   - Reconnect all user calendars via v2 API
+   - Reschedule any calendar-based bots
+
+4. **Recreate Scheduled Bots**:
+   - List all active scheduled bots in v1
+   - Recreate them in v2 using `POST /v2/bots/scheduled`
+
+5. **Update Webhook Endpoints**:
+   - Configure webhook endpoints in v2
+   - Update webhook handlers to support new event types
+
+## Step-by-Step Migration Checklist
+
+### Phase 1: Preparation
+
+- [ ] Review v2 API documentation
+- [ ] Set up OAuth applications for calendar integration (if using calendars)
+- [ ] Export any critical data from v1
+- [ ] Test v2 API with a new API key in a development environment
+
+### Phase 2: Code Updates
+
+- [ ] Update base URL from `/bots` to `/v2/bots`
+- [ ] Update authentication to use only `x-meeting-baas-api-key` header
+- [ ] Update request/response parsing for standardized format
+- [ ] Update error handling for new error codes
+- [ ] Update field names to `snake_case`
+- [ ] Separate immediate and scheduled bot creation logic
+- [ ] Update webhook handlers for new event structure
+- [ ] Implement calendar OAuth flow (if using calendars)
+
+### Phase 3: Testing
+
+- [ ] Test bot creation (immediate)
+- [ ] Test bot creation (scheduled)
+- [ ] Test bot listing and filtering
+- [ ] Test bot status checks
+- [ ] Test bot leave operation
+- [ ] Test bot data deletion
+- [ ] Test webhook delivery
+- [ ] Test calendar integration (if using)
+- [ ] Test error scenarios
+
+### Phase 4: Deployment
+
+- [ ] Deploy updated code to staging
+- [ ] Monitor webhook delivery
+- [ ] Verify calendar sync (if using)
+- [ ] Deploy to production
+- [ ] Monitor for issues
+
+### Phase 5: Data Migration
+
+- [ ] Recreate calendar connections in v2
+- [ ] Reschedule any calendar-based bots
+- [ ] Recreate scheduled bots in v2
+- [ ] Configure webhook endpoints in v2
+- [ ] Verify all integrations are working
+
+## Common Migration Issues
+
+### Issue: "Invalid API Key"
+
+**Solution**: Ensure you're using the `x-meeting-baas-api-key` header (not JWT or legacy header).
+
+### Issue: "Field not found" errors
+
+**Solution**: Update all field names to `snake_case` (e.g., `botId` → `bot_id`).
+
+### Issue: Webhooks not received
+
+**Solution**: 
+1. Verify webhook endpoint is configured in v2
+2. Check webhook payload structure matches v2 format
+3. Ensure your endpoint can handle new event types
+
+### Issue: Calendar connection fails
+
+**Solution**:
+1. Verify OAuth credentials are correct
+2. Ensure refresh token includes `offline_access` scope (Microsoft) or `access_type=offline` (Google)
+3. Check that Google Calendar API is enabled in your Google Cloud project
+
+### Issue: Scheduled bots not executing
+
+**Solution**:
+1. Verify `join_at` is in the future
+2. Check bot status via `GET /v2/bots/scheduled/:bot_id`
+3. Ensure sufficient tokens are available at execution time
+
+## Getting Help
+
+If you encounter issues during migration:
+
+1. **Documentation**: Check the [v2 API Reference](/docs/api-v2/reference)
+2. **Error Codes**: See [Error Codes Guide](/docs/api-v2/error-codes)
+3. **Support**: Visit [Support Center](https://dashboard.meetingbaas.com/support-center)
+4. **Community**: Join our Discord server
+
+## Next Steps
+
+After completing migration:
+
+1. **Monitor**: Keep an eye on webhook delivery and error rates
+2. **Optimize**: Take advantage of v2 features like batch operations
+3. **Update**: Keep your integration updated with new v2 features
+
+---
+
+<Callout type="info">
+  Both v1 and v2 APIs will continue to run in parallel. You can migrate at your own pace, but we recommend migrating to v2 to take advantage of improved features and better error handling.
+</Callout>
+

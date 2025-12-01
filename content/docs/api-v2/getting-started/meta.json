@@ -1,0 +1,11 @@
+{
+    "title": "Getting Started",
+    "icon": "Play",
+    "pages": [
+        "sending-a-bot",
+        "getting-the-data",
+        "removing-a-bot",
+        "calendars",
+        "webhooks"
+    ]
+}

@@ -1,0 +1,152 @@
+---
+title: Removing a bot
+description: Learn how to remove or delete bots from meetings
+icon: Trash
+---
+
+# Removing a Bot
+
+You can remove a bot from a meeting or delete bot data using the v2 API. There are two operations:
+
+1. **Leave meeting**: Instruct a bot to leave the meeting immediately (while it's active)
+2. **Delete data**: Permanently delete a bot and all its data (after it's completed or failed)
+
+## Leave Meeting
+
+To instruct a bot to leave the meeting immediately:
+
+```bash
+curl -X POST "https://api.meetingbaas.com/v2/bots/BOT-ID/leave" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY"
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "message": "Bot leave request sent successfully."
+  }
+}
+```
+
+### When Can You Leave a Bot?
+
+The leave endpoint can only be called when the bot is in one of these statuses:
+
+- `joining_call`: Bot is attempting to join the meeting
+- `in_waiting_room`: Bot is waiting in the meeting's waiting room
+- `in_call_not_recording`: Bot is in the meeting but not recording
+- `in_call_recording`: Bot is actively recording
+- `recording_paused`: Bot recording is paused
+- `recording_resumed`: Bot recording has resumed
+
+### Error Responses
+
+**404 Not Found:**
+```json
+{
+  "success": false,
+  "error": "Bot with ID 'BOT-ID' not found",
+  "code": "FST_ERR_BOT_NOT_FOUND_BY_ID",
+  "statusCode": 404
+}
+```
+
+**409 Conflict (Bot status doesn't allow leaving):**
+```json
+{
+  "success": false,
+  "error": "Status of bot 'BOT-ID' is: completed. Operation not permitted in this state.",
+  "code": "FST_ERR_BOT_STATUS",
+  "statusCode": 409
+}
+```
+
+This error occurs when the bot is in a status that doesn't allow leaving, such as:
+- `queued`: Bot hasn't started joining yet
+- `transcribing`: Bot has left and is processing transcription
+- `completed`: Bot has already completed
+- `failed`: Bot has already failed
+
+### How It Works
+
+When you call the leave endpoint:
+1. The system sends a stop recording command to the bot process
+2. The bot stops recording and exits the meeting (usually within a few seconds)
+3. The bot will transition to `transcribing` status (if transcription is enabled) or `completed` status
+4. A final webhook event (`bot.completed` or `bot.failed`) will be sent when the bot finishes processing
+
+**Note:** The leave command is sent immediately, but the bot may take a few seconds to actually exit the meeting and update its status.
+
+## Delete Bot Data
+
+To permanently delete a bot and all its associated data (recordings, transcriptions, etc.):
+
+```bash
+curl -X DELETE "https://api.meetingbaas.com/v2/bots/BOT-ID/delete-data" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY"
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "bot_id": "123e4567-e89b-12d3-a456-426614174000",
+    "deleted": true
+  }
+}
+```
+
+### When Can You Delete Bot Data?
+
+The delete endpoint can only be called when the bot is in one of these statuses:
+
+- `completed`: Bot has successfully completed recording and processing
+- `failed`: Bot has failed
+
+### Error Responses
+
+**404 Not Found:**
+```json
+{
+  "success": false,
+  "error": "Bot with ID 'BOT-ID' not found",
+  "code": "FST_ERR_BOT_NOT_FOUND_BY_ID",
+  "statusCode": 404
+}
+```
+
+**409 Conflict (Bot status doesn't allow deletion):**
+```json
+{
+  "success": false,
+  "error": "Status of bot 'BOT-ID' is: in_call_recording. Operation not permitted in this state.",
+  "code": "FST_ERR_BOT_STATUS",
+  "statusCode": 409
+}
+```
+
+This error occurs when the bot is still active (e.g., `in_call_recording`, `transcribing`, etc.). You must wait for the bot to complete or fail, or use the leave endpoint first.
+
+**Note:** This permanently deletes the bot and all its data. This action cannot be undone.
+
+## Cancel Scheduled Bot
+
+To cancel a scheduled bot before it joins the meeting:
+
+```bash
+curl -X DELETE "https://api.meetingbaas.com/v2/bots/scheduled/SCHEDULED-BOT-ID" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY"
+```
+
+**Note:** You can only cancel scheduled bots that haven't started yet. Once a bot has joined the meeting, you must use the regular delete endpoint.
+
+## Important Notes
+
+- Deleting a bot removes all associated data including recordings, transcriptions, and screenshots
+- Deleted bots cannot be recovered
+- If a bot is currently recording, deletion will stop the recording and remove all data
+- Scheduled bots can be cancelled before they join, but once they've joined, they must be deleted like regular bots
+

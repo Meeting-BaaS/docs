@@ -1,0 +1,399 @@
+---
+title: New Features
+description: Discover all the enhancements and improvements in Meeting BaaS API v2
+icon: Sparkles
+---
+
+# New Features in v2
+
+Meeting BaaS v2 introduces significant improvements across security, transparency, developer experience, and feature availability. This document highlights the key enhancements that make v2 a compelling upgrade from v1.
+
+## Enhanced Webhook Management
+
+v2 provides enterprise-grade webhook management with multiple endpoints, signing, and rotation capabilities.
+
+### Multiple Webhook Endpoints
+
+**v1**: Single webhook URL per account
+
+**v2**: 
+- Create multiple webhook endpoints per team
+- Each endpoint can subscribe to different event types
+- Name and organize endpoints for better management
+- Enable/disable endpoints without deletion
+- Perfect for routing different events to different systems
+
+### Webhook Security
+
+**v1**: Basic webhook delivery
+
+**v2**:
+- **Webhook Signing**: All webhooks are cryptographically signed using SVIX
+- **Secret Rotation**: Rotate webhook secrets without downtime
+- **Message History**: View and resend failed webhook deliveries
+- **Delivery Tracking**: Monitor webhook delivery status and retry failed messages
+
+### Benefits
+
+- Route different events to different systems (e.g., `bot.completed` to analytics, `calendar.event_created` to scheduling system)
+- Rotate secrets for security compliance
+- Debug webhook issues with message history
+- Ensure reliable delivery with automatic retries
+
+## Multiple API Keys
+
+v2 enables better API key management for teams and applications.
+
+### Key Features
+
+**v1**: Single API key per account
+
+**v2**:
+- **Multiple API Keys**: Create multiple named API keys
+- **Permission Types**: 
+  - **Full Access**: Read, write, and delete operations
+  - **Sending Access**: Write-only for bot creation endpoints (perfect for webhook-only integrations)
+
+### Use Cases
+
+- Separate keys for production and staging environments
+- Create read-only keys for monitoring dashboards
+- Use "Sending Access" keys for webhook-only integrations
+
+## Teams-First Design
+
+v2 is built around teams, enabling better collaboration and organization.
+
+### Team Features
+
+**v1**: Account-based (single user focus)
+
+**v2**:
+- **Team Organization**: All resources (bots, calendars, API keys) belong to teams
+- **Team Members**: Invite team members with different roles (owner, admin, member)
+- **Team Switching**: Switch between multiple teams in the dashboard
+- **Team-Level Limits**: Daily bot caps, calendar limits, and rate limits are per-team
+- **Team-Level Features**: Plans and features are configured per team
+
+### Benefits
+
+- Organize resources by project or department
+- Collaborate with team members
+- Manage multiple projects with separate teams
+- Better access control and permissions
+
+## Advanced Token Management
+
+v2 provides comprehensive token management with transparency and automation.
+
+### Automatic Token Refilling
+
+**v1**: Manual token purchases
+
+**v2**:
+- **Auto-Refill**: Automatically purchase tokens when balance drops below threshold
+- **Configurable Threshold**: Set your preferred minimum token balance
+- **Token Pack Selection**: Choose which token pack to auto-purchase
+- **Zero Downtime**: Never run out of tokens with automatic refilling
+
+### Token Reminders
+
+**v1**: No reminder system
+
+**v2**:
+- **Email Reminders**: Get notified when token balance is low
+- **Configurable Threshold**: Set reminder threshold
+- **Custom Email**: Configure reminder email address
+- **Proactive Management**: Stay ahead of token depletion
+
+### Token Consumption Transparency
+
+**v1**: Limited visibility into token usage
+
+**v2**:
+- **Bot-Level Tracking**: See exact token consumption per bot
+- **Breakdown by Type**: 
+  - Recording tokens
+  - Transcription tokens (or BYOK transcription tokens)
+  - Streaming input/output tokens
+- **Reserved Tokens**: See tokens reserved by active bots
+- **Usage Dashboard**: Track total tokens consumed, available, and reserved
+
+### Token Import from v1
+
+**v1**: Tokens locked in v1 account
+
+**v2**:
+- **One-Time Import**: Transfer remaining tokens from v1 to v2
+- **Team-Based**: Imported tokens go to your team's balance
+- **Flexible Amount**: Import all or a portion of your v1 tokens
+- **Seamless Migration**: Continue using tokens without interruption
+
+## Improved Transcription
+
+v2 offers enhanced transcription capabilities with better models and more flexibility.
+
+### Transcription Provider
+
+**v1**: Basic transcription with limited options
+
+**v2**:
+- **Gladia Integration**: Enhanced transcription model with better accuracy
+- **Custom Parameters**: Configure advanced transcription features:
+  - **LLM Summaries**: Get AI-generated meeting summaries
+  - **Language Detection**: Automatic language identification
+  - **Translation**: Translate transcriptions to multiple languages
+  - **Custom Vocabulary**: Improve accuracy for domain-specific terms
+  - **Subtitles**: Generate subtitles in multiple formats
+- **BYOK Support**: Use your own transcription provider API keys (saves tokens)
+
+### Transcription Access
+
+**v1**: Transcription embedded in webhook payloads
+
+**v2**:
+- **Raw Transcription**: Access complete provider response (includes LLM summaries, metadata)
+- **Standardized Output**: Consistent transcription format across all providers
+- **S3 Storage**: Secure storage with presigned URLs
+- **Transcription IDs**: Track transcription jobs for BYOK users
+
+## Standardized Request/Response Handling
+
+v2 provides consistent, predictable API responses.
+
+### Response Format
+
+**v1**: Varied response structures across endpoints
+
+**v2**:
+- **Standardized Structure**: All responses follow `{success, data, error}` format
+- **Consistent Error Format**: Uniform error responses with codes and messages
+- **Better Error Codes**: Programmatic error codes (e.g., `FST_ERR_BOT_NOT_FOUND_BY_ID`)
+- **Type Safety**: OpenAPI schemas for all endpoints
+
+### Benefits
+
+- Easier error handling in your code
+- Better API documentation
+- Consistent developer experience
+- Type-safe integrations
+
+## Integrated Support System
+
+v2 includes a built-in support system for better customer service.
+
+### Support Tickets
+
+**v1**: External support channels
+
+**v2**:
+- **In-App Support**: Create support tickets directly from the dashboard
+- **Bot-Specific Tickets**: Link tickets to specific bots for context
+- **Screenshot Attachments**: Attach screenshots and files to tickets
+- **Ticket Types**: 
+  - Bug reports
+  - Feature requests
+  - General support
+  - Billing inquiries
+- **Status Tracking**: Track ticket status (open, in progress, resolved, closed)
+- **Message Threads**: Maintain conversation history in tickets
+
+### Benefits
+
+- Faster support response times
+- Better context with bot-specific tickets
+- Feature request feedback loop
+- Integrated support experience
+
+## Invoice Management
+
+v2 provides direct access to billing information.
+
+### Invoice Features
+
+**v1**: Invoices via email only
+
+**v2**:
+- **Dashboard Access**: View all invoices directly in the dashboard
+- **Download PDFs**: Download invoice PDFs
+- **Hosted Invoices**: Access Stripe-hosted invoice pages
+- **Payment History**: Track payment status and history
+- **Billing Information**: Manage billing details and payment methods
+
+### Benefits
+
+- Easy access to billing records
+- Better expense tracking
+- Simplified accounting
+- Self-service billing management
+
+## Automatic Data Deletion
+
+v2 includes automatic data retention and deletion for compliance and cost management.
+
+### Data Retention
+
+**v1**: Manual data management
+
+**v2**:
+- **Automatic Deletion**: Data automatically deleted after retention period
+- **Plan-Based Retention**: 
+  - Pay-as-you-go: 3 days
+  - Pro: 7 days
+  - Scale: 14 days
+  - Enterprise: 30 days
+- **Bot Data Protection**: Bots with open support tickets are protected from deletion
+- **Manual Deletion**: Delete data early via API if needed
+
+### Benefits
+
+- Compliance with data retention policies
+- Automatic cleanup
+- Protection for active support cases
+
+## Calendar Integration for All Plans
+
+v2 makes calendar integration available to all users, not just enterprise.
+
+### Calendar Availability
+
+**v1**: Calendar integration was enterprise-only
+
+**v2**:
+- **Pay-as-You-Go**: 2 calendar integrations included
+- **Pro**: 10 calendar integrations
+- **Scale**: 100 calendar integrations
+- **Enterprise**: 1,000+ calendar integrations
+
+### Enhanced Calendar Features
+
+- **Bring-Your-Own-Credentials**: Use your own OAuth applications
+- **Multiple Connections**: Connect multiple calendars per team
+- **Better Sync**: Improved calendar event synchronization
+- **Webhook Events**: Rich calendar webhook events for real-time updates
+
+## Scheduled Bots Management
+
+v2 provides full lifecycle management for scheduled bots.
+
+### Scheduled Bot Features
+
+**v1**: Basic scheduling with `start_time` parameter
+
+**v2**:
+- **Dedicated Endpoints**: Separate endpoints for scheduled bots
+- **Update Support**: Modify scheduled bot configuration before execution
+- **Delete Support**: Cancel scheduled bots before they execute
+- **Status Tracking**: Track scheduled bot status (scheduled, active, completed, cancelled, failed)
+- **Batch Operations**: Create multiple scheduled bots in one request
+
+### Benefits
+
+- Better control over scheduled meetings
+- Update meetings that change
+- Cancel unnecessary scheduled bots
+- Manage recurring meetings efficiently
+
+## Batch Operations
+
+v2 enables efficient bulk operations.
+
+### Batch Features
+
+**v1**: One bot per request
+
+**v2**:
+- **Batch Bot Creation**: Create up to 100 bots in a single request
+- **Batch Scheduled Bots**: Create multiple scheduled bots at once
+- **Partial Success**: Get detailed results for each bot in the batch
+- **Error Mapping**: Map errors to specific items in the batch
+
+### Benefits
+
+- Faster bulk operations
+- Reduced API calls
+- Better error handling
+- Efficient onboarding workflows
+
+## Enhanced Error Handling
+
+v2 provides detailed, actionable error information.
+
+### Error Improvements
+
+**v1**: Generic error messages
+
+**v2**:
+- **Standardized Error Codes**: Consistent error codes (e.g., `FST_ERR_INSUFFICIENT_TOKENS`)
+- **Detailed Messages**: Human-readable error messages
+- **Error Context**: Additional error details when available
+- **HTTP Status Codes**: Proper HTTP status codes for each error type
+
+### Bot Process Errors
+
+v2 includes comprehensive bot process error documentation:
+- Normal end reasons (e.g., `BOT_REMOVED`, `NO_ATTENDEES`)
+- Error end reasons (e.g., `BOT_NOT_ACCEPTED`, `TIMEOUT_WAITING_TO_START`)
+- Transcription errors (e.g., `TRANSCRIPTION_FAILED`)
+- Platform-specific errors (Zoom, Meet, Teams)
+
+## Improved Deduplication
+
+v2 provides better protection against duplicate bots.
+
+### Deduplication Features
+
+**v1**: Basic deduplication
+
+**v2**:
+- **Configurable**: Control deduplication per bot with `allow_multiple_bots` flag
+- **Lock Window**: 4-minute lock window prevents race conditions
+- **Clear Errors**: `BOT_ALREADY_EXISTS` error with helpful message
+- **Fail-Open**: System continues to work even if deduplication check fails
+
+## Rate Limiting Transparency
+
+v2 provides clear rate limiting with per-team configuration.
+
+### Rate Limiting Features
+
+**v1**: Limited rate limiting visibility
+
+**v2**:
+- **Per-Team Limits**: Rate limits configured per team/plan
+- **Per-Second Limits**: Clear per-second rate limit configuration
+- **GET Request Exclusion**: GET requests don't count toward rate limits
+- **Clear Error Messages**: `FST_ERR_TOO_MANY_REQUESTS` with retry information
+- **Dashboard Display**: See rate limits in the dashboard
+
+## Better Developer Experience
+
+v2 focuses on making integration easier and more reliable.
+
+### API Improvements
+
+- **Better Documentation**: Comprehensive guides and examples
+- **Error Codes**: Programmatic error handling
+- **Webhook Reliability**: Message history and resend capabilities
+
+### Dashboard Features
+
+- **Bot Details**: Comprehensive bot information with token breakdown
+- **Status History**: Track bot status changes over time
+- **Artifact Management**: Easy access to recordings, transcriptions, and screenshots
+- **Support Integration**: Create support tickets directly from bot details
+- **Team Management**: Easy team switching and member management
+
+## Summary
+
+v2 represents a significant upgrade in:
+
+- **Security**: Webhook signing, secret rotation, multiple API keys
+- **Transparency**: Bot-level token tracking, detailed error codes, status history
+- **Automation**: Auto-refill, token reminders, automatic data deletion
+- **Flexibility**: Multiple webhooks, multiple API keys, team organization
+- **Accessibility**: Calendar integration on all plans, better support system
+- **Developer Experience**: Standardized responses, better errors, comprehensive documentation
+
+These improvements make v2 the clear choice for new integrations and provide compelling reasons to migrate from v1.
+

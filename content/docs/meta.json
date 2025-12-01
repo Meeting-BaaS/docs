@@ -1,6 +1,7 @@
 {
   "pages": [
     "api",
+    "api-v2",
     "updates",
     "typescript-sdk",
     "mcp-servers",

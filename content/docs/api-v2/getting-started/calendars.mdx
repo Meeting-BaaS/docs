@@ -1,0 +1,158 @@
+---
+title: Calendar integration
+description: Learn how to integrate calendars and schedule bots automatically
+icon: Calendar
+---
+
+# Calendar Integration
+
+Meeting BaaS v2 allows you to connect calendars (Google Calendar, Microsoft Outlook) and automatically schedule bots for calendar events. This guide walks you through setting up calendar integration in your application.
+
+## Overview
+
+Calendar integration enables:
+
+- Automatic bot scheduling for calendar events
+- Real-time sync of calendar events via push subscriptions
+- Webhook notifications for calendar changes
+- Support for recurring events
+- Automatic handling of event reschedules and cancellations
+
+## Prerequisites
+
+Before you can integrate calendars, you need to set up OAuth applications with Google and/or Microsoft. Meeting BaaS v2 uses a **bring-your-own-credentials** model, meaning you create and manage your own OAuth applications and provide the credentials when creating calendar connections.
+
+### What You Need
+
+You'll need two sets of credentials:
+
+1. **Your Application's OAuth Credentials** (Service Level):
+   - Google: OAuth 2.0 Client ID and Client Secret
+   - Microsoft: Azure AD Application (Client) ID and Client Secret
+
+2. **User's OAuth Refresh Token** (User Level):
+   - OAuth refresh token obtained when each user authorizes your application to access their calendar
+
+<Callout type="info">
+  **Best Practice**: Request calendar access as a separate step after initial user signup. Users are more likely to grant calendar access when it's clearly tied to a specific feature they want to use.
+</Callout>
+
+## Create Google Calendar OAuth Application
+
+You'll need to create a Google OAuth application that users can authorize to access their calendar. You can skip this step if your application won't support Google Calendar. We recommend creating separate applications for development and production.
+
+### Steps
+
+1. **Create a Google Cloud Project**: Follow the directions [here](https://support.google.com/googleapi/answer/6158849?hl=en) to create a new Google Cloud project that uses OAuth.
+
+2. **Enable Google Calendar API**: In your Google Cloud project, go to "APIs & Services" > "Library" and enable the [Google Calendar API](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com).
+
+3. **Create OAuth 2.0 Credentials**: 
+   - Go to "APIs & Services" > "Credentials"
+   - Click "Create Credentials" > "OAuth client ID"
+   - Choose "Web application" as the application type
+   - Add your authorized redirect URIs
+   - Use these scopes when requesting authorization:
+     - `https://www.googleapis.com/auth/calendar.readonly` - To read calendar and event data
+     - `https://www.googleapis.com/auth/userinfo.email` - To get the user's email address (optional but recommended)
+
+4. **OAuth Consent Screen**: 
+   - Configure your OAuth consent screen in "APIs & Services" > "OAuth consent screen"
+   - Google will need to approve your application before external users can authorize it. See [here](https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification) for more information
+   - Until your app is approved, only users on your test users list can authorize it. To edit the test users list, go to "OAuth Consent Screen" > "Test Users"
+
+### Important Notes for Google OAuth
+
+- **Refresh Token Requirement**: Calendar connections require offline access. When implementing the OAuth flow, you **must** include:
+  - `access_type=offline` parameter
+  - `prompt=consent` parameter (to force the consent screen and ensure you get a refresh token)
+- Without a refresh token, the connection will expire after ~1 hour and cannot be renewed
+
+## Create Microsoft Calendar OAuth Application
+
+You'll need to create a Microsoft Azure AD application that users can authorize to access their calendar. You can skip this step if your application won't support Microsoft Calendar. We recommend creating separate applications for development and production.
+
+### Steps
+
+1. **Register an Azure AD Application**: Follow the directions [here](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app) to create a new Microsoft Azure Active Directory application. When it asks you to choose "Supported account types", select "Accounts in any organizational directory (Any Microsoft Entra ID tenant - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)".
+
+2. **Configure API Permissions**: 
+   - Go to "API permissions" in your Azure AD app
+   - Add these delegated permissions:
+     - `Calendars.Read` - To read calendar and event data
+     - `User.Read` - To get the user's profile information (optional but recommended)
+   - Click "Add a permission" > "Microsoft Graph" > "Delegated permissions"
+
+3. **Publisher Verification** (Optional but Recommended):
+   - Microsoft can verify your application before external users can authorize it. See [here](https://learn.microsoft.com/en-us/entra/identity-platform/publisher-verification-overview) for more information
+   - This process is automated and should take less than an hour
+   - Steps to get verified:
+     - [Join the Microsoft AI Cloud Partner Program](https://partner.microsoft.com/en-us/partnership)
+     - [Configure your app's publisher domain](https://learn.microsoft.com/en-us/entra/identity-platform/howto-configure-publisher-domain)
+     - [Mark your app as publisher verified](https://learn.microsoft.com/en-us/entra/identity-platform/mark-app-as-publisher-verified)
+
+### Important Notes for Microsoft OAuth
+
+- **Refresh Token Requirement**: Calendar connections require offline access. When implementing the OAuth flow, you **must** include:
+  - `offline_access` scope in your OAuth request
+- Without a refresh token, the connection will expire after ~1 hour and cannot be renewed
+- **Tenant ID**: For Microsoft, you'll need to provide the Azure AD tenant ID. You can find this in Azure Portal > Azure Active Directory > Overview. You can also use `common`, `organizations`, or `consumers` for multi-tenant scenarios
+
+## Implement OAuth Flow
+
+You'll need to add code to handle the OAuth flow for users to authorize your Calendar OAuth applications. The flow is essentially the same for both Google and Microsoft:
+
+1. **Add an authorization endpoint**: Redirect users to the OAuth provider's authorization URL
+2. **Add a callback endpoint**: Handle the OAuth callback and exchange the authorization code for tokens
+3. **Exchange authorization code for refresh token**: In your callback endpoint, exchange the authorization code for an access token and refresh token
+4. **Create calendar connection**: After obtaining the refresh token, make a `POST /v2/calendars` request to create the calendar connection, passing:
+   - `oauth_client_id`: Your OAuth client ID
+   - `oauth_client_secret`: Your OAuth client secret
+   - `oauth_refresh_token`: The refresh token obtained from the user's authorization
+   - `oauth_tenant_id`: (Microsoft only) The Azure AD tenant ID
+   - `raw_calendar_id`: The calendar ID to connect (use `POST /v2/calendars/list-raw` to get available calendars)
+
+## Supported Platforms
+
+- **Google Calendar**: Full support for Google Workspace and personal accounts
+- **Microsoft Outlook**: Full support for Microsoft 365 and personal accounts
+
+## Calendar Events
+
+Once connected, calendar events are automatically synced. You can:
+
+- List all calendars
+- List events for a calendar
+- Get event details
+- Schedule bots for specific events or entire event series
+
+## Scheduling Bots for Calendar Events
+
+To schedule a bot for a calendar event:
+
+```bash
+curl -X POST "https://api.meetingbaas.com/v2/calendars/CALENDAR-ID/bots" \
+     -H "Content-Type: application/json" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+     -d '{
+           "event_id": "EVENT-ID",
+           "all_occurrences": false,
+           "bot_name": "AI Notetaker",
+           "recording_mode": "speaker_view"
+         }'
+```
+
+**Options:**
+- `event_id`: The specific event instance ID
+- `all_occurrences`: Set to `true` to schedule for all occurrences of a recurring event
+- `series_id`: Use this instead of `event_id` to schedule for an entire series
+
+## Webhooks
+
+Calendar integrations trigger webhook events for:
+- Connection changes
+- Event syncs
+- Event creation, updates, and cancellations
+
+See the [Webhooks documentation](/docs/api-v2/webhooks) for details on calendar webhook events.
+

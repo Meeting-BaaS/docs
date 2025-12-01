@@ -1,0 +1,94 @@
+---
+title: API Keys & Permissions
+description: Learn about API keys, permissions, and access control in Meeting BaaS v2
+icon: Key
+---
+
+API keys are used to authenticate requests to the Meeting BaaS v2 API. Each API key is associated with a team and has specific permissions that determine which endpoints can be accessed.
+
+## API Key Authentication
+
+All v2 API requests must include your API key in the request header:
+
+```http
+x-meeting-baas-api-key: YOUR-API-KEY
+```
+
+## Permission Types
+
+Meeting BaaS v2 supports two permission types for API keys:
+
+### Full Access
+
+API keys with **Full Access** can perform all operations on all endpoints:
+
+- Create, list, view, update, and delete bots
+- Create, list, view, update, and delete scheduled bots
+- Manage calendar connections and events
+- Schedule and manage calendar bots
+- Use all batch operation endpoints
+- Manage webhooks and callbacks
+
+**Use cases:**
+- Complete application integration
+- Administrative operations
+- Calendar management
+- Webhook configuration
+- Data management and cleanup
+
+### Sending Access
+
+API keys with **Sending Access** are designed for bot creation only. They can only send POST requests to bot creation endpoints:
+
+**Allowed endpoints:**
+- `POST /v2/bots` - Create a bot
+- `POST /v2/bots/batch` - Create multiple bots
+- `POST /v2/bots/scheduled` - Schedule a bot
+- `POST /v2/bots/scheduled/batch` - Schedule multiple bots
+- `POST /v2/calendars/:calendar_id/bots` - Schedule a bot for a calendar event
+
+**Not allowed:**
+- Any GET requests (including listing bots, getting bot details, checking status)
+- Any PATCH or DELETE requests
+- Calendar management endpoints
+- Webhook or callback management
+
+**Use cases:**
+- Dedicated bot creation services
+- Third-party integrations that only need to send bots
+- Limited-scope applications
+- Security isolation (prevents accidental data deletion or viewing)
+
+## Rate Limiting
+
+Rate limits are applied per team (not per API key). The rate limit determines how many requests per second your team can make. GET requests are not rate limited.
+
+Default rate limits vary by plan, but can be customized for enterprise customers.
+
+## Daily Bot Cap
+
+Each team has a daily bot creation limit (e.g., 75 bots/day for pay-as-you-go, 300 for pro). This limit is checked before creating each bot. If the limit is reached, subsequent bot creation requests will fail with a `429 Too Many Requests` error.
+
+The daily bot cap resets every 24 hours based on when bots were created.
+
+## Best Practices
+
+1. **Use separate API keys for different environments** (development, staging, production)
+2. **Use Sending Access for public-facing services** that only need to create bots
+3. **Rotate API keys regularly** for security
+4. **Store API keys securely** - never commit them to version control
+5. **Monitor your daily bot cap** to avoid hitting limits
+
+## Error Responses
+
+If an API key lacks permission for an endpoint, you'll receive a `403 Forbidden` response:
+
+```json
+{
+  "success": false,
+  "error": "Forbidden",
+  "code": "FST_ERR_FORBIDDEN",
+  "statusCode": 403
+}
+```
+

@@ -1,0 +1,20 @@
+{
+  "title": "MeetingBaas API v2 <em>(Beta)</em>",
+  "icon": "Webhook",
+  "description": "Reference and guides for the v2 API.",
+  "root": true,
+  "pages": [
+    "index",
+    "getting-started",
+    "new-features",
+    "migration-guide",
+    "api-keys",
+    "webhooks",
+    "transcription",
+    "batch-operations",
+    "deduplication-rate-limiting",
+    "error-codes",
+    "reference",
+    "community-and-support"
+  ]
+}

@@ -1,0 +1,60 @@
+---
+title: Setting up webhooks
+description: Learn how to configure webhooks to receive real-time notifications
+icon: Webhook
+---
+
+# Setting Up Webhooks
+
+Webhooks allow you to receive real-time notifications about bot and calendar events without polling the API.
+
+## Overview
+
+Meeting BaaS v2 uses [SVIX](https://www.svix.com/) for reliable webhook delivery. Webhooks are configured at the account level and will receive notifications for all events.
+
+## Configuring Webhooks
+
+Webhooks are configured through your account settings (not via the API). Once configured, you'll receive webhook events for:
+
+- Bot status changes
+- Bot completion
+- Bot failures
+- Calendar events (connections, syncs, event changes)
+
+## Webhook Events
+
+### Bot Events
+
+- `bot.status_change`: Triggered when a bot's status changes
+- `bot.completed`: Triggered when a bot successfully completes
+- `bot.failed`: Triggered when a bot fails
+
+### Calendar Events
+
+- `calendar.connection_created`: New calendar connection created
+- `calendar.connection_updated`: Calendar connection updated
+- `calendar.connection_deleted`: Calendar connection deleted
+- `calendar.connection_error`: Calendar connection error
+- `calendar.events_synced`: Calendar events synced - When a calendar syncs for the first time
+- `calendar.event_created`: New calendar event created
+- `calendar.event_updated`: Calendar event updated
+- `calendar.event_cancelled`: Calendar event cancelled
+
+For detailed information about each event type, see the [Webhooks documentation](/docs/api-v2/webhooks).
+
+## Webhook Security
+
+All webhooks are signed using SVIX's signature verification. Verify webhooks using:
+
+- `svix-id`: Unique message ID
+- `svix-timestamp`: Timestamp of the message
+- `svix-signature`: Signature for verification
+
+Use SVIX's verification libraries to verify webhook signatures in your code.
+
+## Callbacks
+
+In addition to account-level webhooks, you can also configure **callbacks** per-bot when creating a bot. Callbacks are direct HTTP requests sent to a URL you specify, and are only sent for `bot.completed` and `bot.failed` events.
+
+See the [Webhooks documentation](/docs/api-v2/webhooks) for more details on callbacks.
+
