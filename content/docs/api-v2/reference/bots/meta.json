@@ -10,6 +10,12 @@
         "leave-bot",
         "list-bots",
         "resend-final-webhook",
-        "retry-callback"
+        "retry-callback",
+        "batch-create-scheduled-bots",
+        "create-scheduled-bot",
+        "delete-scheduled-bot",
+        "get-scheduled-bot-details",
+        "list-scheduled-bots",
+        "update-scheduled-bot"
     ]
 }
