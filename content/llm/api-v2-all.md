@@ -287,7 +287,7 @@ Retrieve detailed information about a specific scheduled bot.
 
 Instruct a bot to leave the meeting immediately.
     
-    The bot will stop recording and processing, then exit the meeting. Only works if the bot is currently in the meeting (status is `in_call_recording` or `transcribing`). The bot will send a final webhook event when it leaves.
+    The bot will stop recording and processing, then exit the meeting. Only works if the bot is currently in the meeting (status is `joining_call`, `in_waiting_room`, `in_call_not_recording`, `in_call_recording`, `recording_paused`, or `recording_resumed`). The bot will send a final webhook event when it leaves.
     
     **Status Requirements:** The bot must be in a state that allows leaving. Bots that have already completed, failed, or are not yet in the meeting cannot be left via this endpoint. If the bot is in an invalid state, the request will fail with a 409 Conflict status.
     
@@ -914,7 +914,7 @@ Completed payload structure
       Signed URL to download the processed transcription file. Valid for 4 hours. Null if transcription is not available or has been deleted
 
     - **`transcription_provider`** (string | null) **Required**
-      The transcription provider used (e.g., 'gladia', 'assemblyai'). Null if transcription was not enabled or if provider information is not available
+      The transcription provider used (e.g., 'gladia'). Null if transcription was not enabled or if provider information is not available
 
     - **`transcription_ids`** (string[] | null) **Required**
       Array of transcription job IDs from the transcription provider. Null if transcription was not enabled or if IDs are not available
@@ -1119,7 +1119,7 @@ Bot Completed payload structure
       Signed URL to download the processed transcription file. Valid for 4 hours. Null if transcription is not available or has been deleted
 
     - **`transcription_provider`** (string | null) **Required**
-      The transcription provider used (e.g., 'gladia', 'assemblyai'). Null if transcription was not enabled or if provider information is not available
+      The transcription provider used (e.g., 'gladia'). Null if transcription was not enabled or if provider information is not available
 
     - **`transcription_ids`** (string[] | null) **Required**
       Array of transcription job IDs from the transcription provider. Null if transcription was not enabled or if IDs are not available

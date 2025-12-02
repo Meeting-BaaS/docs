@@ -45,6 +45,17 @@
             "exclusiveMinimum": 0,
             "maximum": 9007199254740991
           },
+          "message": {
+            "description": "Human-readable error message",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "details": {
             "description": "Additional error details (string or null)",
             "anyOf": [
@@ -204,7 +215,7 @@
             }
           },
           "zoom_access_token_url": {
-            "description": "The URL to get the Zoom access token (ZAK - Zoom Access Token).\n\nThis is required for Zoom meetings where the bot needs to join in the absence of the host. The bot will make a GET request to this URL to retrieve the access token.\n\n**Expected Response Format:**\n\n- **HTTP Method:** GET\n- **Response Status:** 2xx (success)\n- **Response Body:** Plain text (ASCII) containing the Zoom access token directly\n- **Content-Type:** `text/plain` (or any text-based content type)\n- **Timeout:** The request will timeout after 15 seconds\n\n**Important Requirements:**\n\n- The response body must be plain ASCII text (not JSON, not binary)\n- The token must be a valid C string (no null bytes in the middle)\n- The token should be the raw access token string, not wrapped in JSON or any other format\n- Example response body: `\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6MX0...\"`\n\n**Error Handling:**\n\n- If the request fails, times out, or returns non-ASCII data, the bot will fail to join the meeting\n- Ensure your endpoint is reliable and returns a valid token within the timeout window\n\nOnly applicable for Zoom meetings. Leave as `null` for Google Meet and Microsoft Teams meetings.\n\nExample: \"https://your-api.com/zoom-token\"",
+            "description": "The URL to get the Zoom access token (ZAK - Zoom Access Token).\n\nThis is required for Zoom meetings where the bot needs to join in the absence of the host. The bot will make a GET request to this URL to retrieve the access token. Follow the guide in Zoom to understand how to get Zoom Access Token at https://developers.zoom.us/docs/api/users/#tag/users/get/users/me/zak.\n\n**Expected Response Format:**\n\n- **HTTP Method:** GET\n- **Response Status:** 2xx (success)\n- **Response Body:** Plain text (ASCII) containing the Zoom access token directly\n- **Content-Type:** `text/plain` (or any text-based content type)\n- **Timeout:** The request will timeout after 15 seconds\n\n**Important Requirements:**\n\n- The response body must be plain ASCII text (not JSON, not binary)\n- The token must be a valid C string (no null bytes in the middle)\n- The token should be the raw access token string, not wrapped in JSON or any other format\n- Example response body: `\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6MX0...\"`\n\n**Error Handling:**\n\n- If the request fails, times out, or returns non-ASCII data, the bot will fail to join the meeting\n- Ensure your endpoint is reliable and returns a valid token within the timeout window\n\nOnly applicable for Zoom meetings. Leave as `null` for Google Meet and Microsoft Teams meetings.\n\nExample: \"https://your-api.com/zoom-token\"",
             "example": null,
             "default": null,
             "anyOf": [
@@ -1525,7 +1536,7 @@
             }
           },
           "zoom_access_token_url": {
-            "description": "The URL to get the Zoom access token (ZAK - Zoom Access Token).\n\nThis is required for Zoom meetings where the bot needs to join in the absence of the host. The bot will make a GET request to this URL to retrieve the access token.\n\n**Expected Response Format:**\n\n- **HTTP Method:** GET\n- **Response Status:** 2xx (success)\n- **Response Body:** Plain text (ASCII) containing the Zoom access token directly\n- **Content-Type:** `text/plain` (or any text-based content type)\n- **Timeout:** The request will timeout after 15 seconds\n\n**Important Requirements:**\n\n- The response body must be plain ASCII text (not JSON, not binary)\n- The token must be a valid C string (no null bytes in the middle)\n- The token should be the raw access token string, not wrapped in JSON or any other format\n- Example response body: `\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6MX0...\"`\n\n**Error Handling:**\n\n- If the request fails, times out, or returns non-ASCII data, the bot will fail to join the meeting\n- Ensure your endpoint is reliable and returns a valid token within the timeout window\n\nOnly applicable for Zoom meetings. Leave as `null` for Google Meet and Microsoft Teams meetings.\n\nExample: \"https://your-api.com/zoom-token\"",
+            "description": "The URL to get the Zoom access token (ZAK - Zoom Access Token).\n\nThis is required for Zoom meetings where the bot needs to join in the absence of the host. The bot will make a GET request to this URL to retrieve the access token. Follow the guide in Zoom to understand how to get Zoom Access Token at https://developers.zoom.us/docs/api/users/#tag/users/get/users/me/zak.\n\n**Expected Response Format:**\n\n- **HTTP Method:** GET\n- **Response Status:** 2xx (success)\n- **Response Body:** Plain text (ASCII) containing the Zoom access token directly\n- **Content-Type:** `text/plain` (or any text-based content type)\n- **Timeout:** The request will timeout after 15 seconds\n\n**Important Requirements:**\n\n- The response body must be plain ASCII text (not JSON, not binary)\n- The token must be a valid C string (no null bytes in the middle)\n- The token should be the raw access token string, not wrapped in JSON or any other format\n- Example response body: `\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6MX0...\"`\n\n**Error Handling:**\n\n- If the request fails, times out, or returns non-ASCII data, the bot will fail to join the meeting\n- Ensure your endpoint is reliable and returns a valid token within the timeout window\n\nOnly applicable for Zoom meetings. Leave as `null` for Google Meet and Microsoft Teams meetings.\n\nExample: \"https://your-api.com/zoom-token\"",
             "example": null,
             "default": null,
             "anyOf": [
@@ -2584,7 +2595,7 @@
                 }
               },
               "zoom_access_token_url": {
-                "description": "The URL to get the Zoom access token (ZAK - Zoom Access Token).\n\nThis is required for Zoom meetings where the bot needs to join in the absence of the host. The bot will make a GET request to this URL to retrieve the access token.\n\n**Expected Response Format:**\n\n- **HTTP Method:** GET\n- **Response Status:** 2xx (success)\n- **Response Body:** Plain text (ASCII) containing the Zoom access token directly\n- **Content-Type:** `text/plain` (or any text-based content type)\n- **Timeout:** The request will timeout after 15 seconds\n\n**Important Requirements:**\n\n- The response body must be plain ASCII text (not JSON, not binary)\n- The token must be a valid C string (no null bytes in the middle)\n- The token should be the raw access token string, not wrapped in JSON or any other format\n- Example response body: `\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6MX0...\"`\n\n**Error Handling:**\n\n- If the request fails, times out, or returns non-ASCII data, the bot will fail to join the meeting\n- Ensure your endpoint is reliable and returns a valid token within the timeout window\n\nOnly applicable for Zoom meetings. Leave as `null` for Google Meet and Microsoft Teams meetings.\n\nExample: \"https://your-api.com/zoom-token\"",
+                "description": "The URL to get the Zoom access token (ZAK - Zoom Access Token).\n\nThis is required for Zoom meetings where the bot needs to join in the absence of the host. The bot will make a GET request to this URL to retrieve the access token. Follow the guide in Zoom to understand how to get Zoom Access Token at https://developers.zoom.us/docs/api/users/#tag/users/get/users/me/zak.\n\n**Expected Response Format:**\n\n- **HTTP Method:** GET\n- **Response Status:** 2xx (success)\n- **Response Body:** Plain text (ASCII) containing the Zoom access token directly\n- **Content-Type:** `text/plain` (or any text-based content type)\n- **Timeout:** The request will timeout after 15 seconds\n\n**Important Requirements:**\n\n- The response body must be plain ASCII text (not JSON, not binary)\n- The token must be a valid C string (no null bytes in the middle)\n- The token should be the raw access token string, not wrapped in JSON or any other format\n- Example response body: `\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6MX0...\"`\n\n**Error Handling:**\n\n- If the request fails, times out, or returns non-ASCII data, the bot will fail to join the meeting\n- Ensure your endpoint is reliable and returns a valid token within the timeout window\n\nOnly applicable for Zoom meetings. Leave as `null` for Google Meet and Microsoft Teams meetings.\n\nExample: \"https://your-api.com/zoom-token\"",
                 "example": null,
                 "default": null,
                 "anyOf": [
@@ -2937,7 +2948,7 @@
                 }
               },
               "zoom_access_token_url": {
-                "description": "The URL to get the Zoom access token (ZAK - Zoom Access Token).\n\nThis is required for Zoom meetings where the bot needs to join in the absence of the host. The bot will make a GET request to this URL to retrieve the access token.\n\n**Expected Response Format:**\n\n- **HTTP Method:** GET\n- **Response Status:** 2xx (success)\n- **Response Body:** Plain text (ASCII) containing the Zoom access token directly\n- **Content-Type:** `text/plain` (or any text-based content type)\n- **Timeout:** The request will timeout after 15 seconds\n\n**Important Requirements:**\n\n- The response body must be plain ASCII text (not JSON, not binary)\n- The token must be a valid C string (no null bytes in the middle)\n- The token should be the raw access token string, not wrapped in JSON or any other format\n- Example response body: `\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6MX0...\"`\n\n**Error Handling:**\n\n- If the request fails, times out, or returns non-ASCII data, the bot will fail to join the meeting\n- Ensure your endpoint is reliable and returns a valid token within the timeout window\n\nOnly applicable for Zoom meetings. Leave as `null` for Google Meet and Microsoft Teams meetings.\n\nExample: \"https://your-api.com/zoom-token\"",
+                "description": "The URL to get the Zoom access token (ZAK - Zoom Access Token).\n\nThis is required for Zoom meetings where the bot needs to join in the absence of the host. The bot will make a GET request to this URL to retrieve the access token. Follow the guide in Zoom to understand how to get Zoom Access Token at https://developers.zoom.us/docs/api/users/#tag/users/get/users/me/zak.\n\n**Expected Response Format:**\n\n- **HTTP Method:** GET\n- **Response Status:** 2xx (success)\n- **Response Body:** Plain text (ASCII) containing the Zoom access token directly\n- **Content-Type:** `text/plain` (or any text-based content type)\n- **Timeout:** The request will timeout after 15 seconds\n\n**Important Requirements:**\n\n- The response body must be plain ASCII text (not JSON, not binary)\n- The token must be a valid C string (no null bytes in the middle)\n- The token should be the raw access token string, not wrapped in JSON or any other format\n- Example response body: `\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6MX0...\"`\n\n**Error Handling:**\n\n- If the request fails, times out, or returns non-ASCII data, the bot will fail to join the meeting\n- Ensure your endpoint is reliable and returns a valid token within the timeout window\n\nOnly applicable for Zoom meetings. Leave as `null` for Google Meet and Microsoft Teams meetings.\n\nExample: \"https://your-api.com/zoom-token\"",
                 "example": null,
                 "default": null,
                 "anyOf": [
@@ -4696,7 +4707,7 @@
                 ]
               },
               "transcription_provider": {
-                "description": "The transcription provider used (e.g., 'gladia', 'assemblyai'). Null if transcription was not enabled or if provider information is not available",
+                "description": "The transcription provider used (e.g., 'gladia'). Null if transcription was not enabled or if provider information is not available",
                 "anyOf": [
                   {
                     "type": "string"
@@ -5802,7 +5813,7 @@
                 ]
               },
               "transcription_provider": {
-                "description": "The transcription provider used (e.g., 'gladia', 'assemblyai'). Null if transcription was not enabled or if provider information is not available",
+                "description": "The transcription provider used (e.g., 'gladia'). Null if transcription was not enabled or if provider information is not available",
                 "anyOf": [
                   {
                     "type": "string"
@@ -5974,6 +5985,17 @@
             "type": "integer",
             "exclusiveMinimum": 0,
             "maximum": 9007199254740991
+          },
+          "message": {
+            "description": "Human-readable error message",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "details": {
             "description": "Additional error details (string or null)",
@@ -7189,7 +7211,7 @@
             "additionalProperties": false
           },
           "zoom_access_token_url": {
-            "description": "The URL to get the Zoom access token (ZAK - Zoom Access Token).\n\nThis is required for Zoom meetings where the bot needs to join in the absence of the host. The bot will make a GET request to this URL to retrieve the access token.\n\n**Expected Response Format:**\n\n- **HTTP Method:** GET\n- **Response Status:** 2xx (success)\n- **Response Body:** Plain text (ASCII) containing the Zoom access token directly\n- **Content-Type:** `text/plain` (or any text-based content type)\n- **Timeout:** The request will timeout after 15 seconds\n\n**Important Requirements:**\n\n- The response body must be plain ASCII text (not JSON, not binary)\n- The token must be a valid C string (no null bytes in the middle)\n- The token should be the raw access token string, not wrapped in JSON or any other format\n- Example response body: `\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6MX0...\"`\n\n**Error Handling:**\n\n- If the request fails, times out, or returns non-ASCII data, the bot will fail to join the meeting\n- Ensure your endpoint is reliable and returns a valid token within the timeout window\n\nOnly applicable for Zoom meetings. Leave as `null` for Google Meet and Microsoft Teams meetings.\n\nExample: \"https://your-api.com/zoom-token\"",
+            "description": "The URL to get the Zoom access token (ZAK - Zoom Access Token).\n\nThis is required for Zoom meetings where the bot needs to join in the absence of the host. The bot will make a GET request to this URL to retrieve the access token. Follow the guide in Zoom to understand how to get Zoom Access Token at https://developers.zoom.us/docs/api/users/#tag/users/get/users/me/zak.\n\n**Expected Response Format:**\n\n- **HTTP Method:** GET\n- **Response Status:** 2xx (success)\n- **Response Body:** Plain text (ASCII) containing the Zoom access token directly\n- **Content-Type:** `text/plain` (or any text-based content type)\n- **Timeout:** The request will timeout after 15 seconds\n\n**Important Requirements:**\n\n- The response body must be plain ASCII text (not JSON, not binary)\n- The token must be a valid C string (no null bytes in the middle)\n- The token should be the raw access token string, not wrapped in JSON or any other format\n- Example response body: `\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6MX0...\"`\n\n**Error Handling:**\n\n- If the request fails, times out, or returns non-ASCII data, the bot will fail to join the meeting\n- Ensure your endpoint is reliable and returns a valid token within the timeout window\n\nOnly applicable for Zoom meetings. Leave as `null` for Google Meet and Microsoft Teams meetings.\n\nExample: \"https://your-api.com/zoom-token\"",
             "example": null,
             "default": null,
             "anyOf": [
@@ -8293,7 +8315,7 @@
                 "additionalProperties": false
               },
               "zoom_access_token_url": {
-                "description": "The URL to get the Zoom access token (ZAK - Zoom Access Token).\n\nThis is required for Zoom meetings where the bot needs to join in the absence of the host. The bot will make a GET request to this URL to retrieve the access token.\n\n**Expected Response Format:**\n\n- **HTTP Method:** GET\n- **Response Status:** 2xx (success)\n- **Response Body:** Plain text (ASCII) containing the Zoom access token directly\n- **Content-Type:** `text/plain` (or any text-based content type)\n- **Timeout:** The request will timeout after 15 seconds\n\n**Important Requirements:**\n\n- The response body must be plain ASCII text (not JSON, not binary)\n- The token must be a valid C string (no null bytes in the middle)\n- The token should be the raw access token string, not wrapped in JSON or any other format\n- Example response body: `\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6MX0...\"`\n\n**Error Handling:**\n\n- If the request fails, times out, or returns non-ASCII data, the bot will fail to join the meeting\n- Ensure your endpoint is reliable and returns a valid token within the timeout window\n\nOnly applicable for Zoom meetings. Leave as `null` for Google Meet and Microsoft Teams meetings.\n\nExample: \"https://your-api.com/zoom-token\"",
+                "description": "The URL to get the Zoom access token (ZAK - Zoom Access Token).\n\nThis is required for Zoom meetings where the bot needs to join in the absence of the host. The bot will make a GET request to this URL to retrieve the access token. Follow the guide in Zoom to understand how to get Zoom Access Token at https://developers.zoom.us/docs/api/users/#tag/users/get/users/me/zak.\n\n**Expected Response Format:**\n\n- **HTTP Method:** GET\n- **Response Status:** 2xx (success)\n- **Response Body:** Plain text (ASCII) containing the Zoom access token directly\n- **Content-Type:** `text/plain` (or any text-based content type)\n- **Timeout:** The request will timeout after 15 seconds\n\n**Important Requirements:**\n\n- The response body must be plain ASCII text (not JSON, not binary)\n- The token must be a valid C string (no null bytes in the middle)\n- The token should be the raw access token string, not wrapped in JSON or any other format\n- Example response body: `\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6MX0...\"`\n\n**Error Handling:**\n\n- If the request fails, times out, or returns non-ASCII data, the bot will fail to join the meeting\n- Ensure your endpoint is reliable and returns a valid token within the timeout window\n\nOnly applicable for Zoom meetings. Leave as `null` for Google Meet and Microsoft Teams meetings.\n\nExample: \"https://your-api.com/zoom-token\"",
                 "example": null,
                 "default": null,
                 "anyOf": [
@@ -8682,7 +8704,7 @@
                 "additionalProperties": false
               },
               "zoom_access_token_url": {
-                "description": "The URL to get the Zoom access token (ZAK - Zoom Access Token).\n\nThis is required for Zoom meetings where the bot needs to join in the absence of the host. The bot will make a GET request to this URL to retrieve the access token.\n\n**Expected Response Format:**\n\n- **HTTP Method:** GET\n- **Response Status:** 2xx (success)\n- **Response Body:** Plain text (ASCII) containing the Zoom access token directly\n- **Content-Type:** `text/plain` (or any text-based content type)\n- **Timeout:** The request will timeout after 15 seconds\n\n**Important Requirements:**\n\n- The response body must be plain ASCII text (not JSON, not binary)\n- The token must be a valid C string (no null bytes in the middle)\n- The token should be the raw access token string, not wrapped in JSON or any other format\n- Example response body: `\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6MX0...\"`\n\n**Error Handling:**\n\n- If the request fails, times out, or returns non-ASCII data, the bot will fail to join the meeting\n- Ensure your endpoint is reliable and returns a valid token within the timeout window\n\nOnly applicable for Zoom meetings. Leave as `null` for Google Meet and Microsoft Teams meetings.\n\nExample: \"https://your-api.com/zoom-token\"",
+                "description": "The URL to get the Zoom access token (ZAK - Zoom Access Token).\n\nThis is required for Zoom meetings where the bot needs to join in the absence of the host. The bot will make a GET request to this URL to retrieve the access token. Follow the guide in Zoom to understand how to get Zoom Access Token at https://developers.zoom.us/docs/api/users/#tag/users/get/users/me/zak.\n\n**Expected Response Format:**\n\n- **HTTP Method:** GET\n- **Response Status:** 2xx (success)\n- **Response Body:** Plain text (ASCII) containing the Zoom access token directly\n- **Content-Type:** `text/plain` (or any text-based content type)\n- **Timeout:** The request will timeout after 15 seconds\n\n**Important Requirements:**\n\n- The response body must be plain ASCII text (not JSON, not binary)\n- The token must be a valid C string (no null bytes in the middle)\n- The token should be the raw access token string, not wrapped in JSON or any other format\n- Example response body: `\"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJpZCI6MX0...\"`\n\n**Error Handling:**\n\n- If the request fails, times out, or returns non-ASCII data, the bot will fail to join the meeting\n- Ensure your endpoint is reliable and returns a valid token within the timeout window\n\nOnly applicable for Zoom meetings. Leave as `null` for Google Meet and Microsoft Teams meetings.\n\nExample: \"https://your-api.com/zoom-token\"",
                 "example": null,
                 "default": null,
                 "anyOf": [
@@ -10493,7 +10515,7 @@
                 ]
               },
               "transcription_provider": {
-                "description": "The transcription provider used (e.g., 'gladia', 'assemblyai'). Null if transcription was not enabled or if provider information is not available",
+                "description": "The transcription provider used (e.g., 'gladia'). Null if transcription was not enabled or if provider information is not available",
                 "anyOf": [
                   {
                     "type": "string"
@@ -11622,7 +11644,7 @@
                 ]
               },
               "transcription_provider": {
-                "description": "The transcription provider used (e.g., 'gladia', 'assemblyai'). Null if transcription was not enabled or if provider information is not available",
+                "description": "The transcription provider used (e.g., 'gladia'). Null if transcription was not enabled or if provider information is not available",
                 "anyOf": [
                   {
                     "type": "string"
@@ -12395,7 +12417,7 @@
         "tags": [
           "Bots"
         ],
-        "description": "Instruct a bot to leave the meeting immediately.\n    \n    The bot will stop recording and processing, then exit the meeting. Only works if the bot is currently in the meeting (status is `in_call_recording` or `transcribing`). The bot will send a final webhook event when it leaves.\n    \n    **Status Requirements:** The bot must be in a state that allows leaving. Bots that have already completed, failed, or are not yet in the meeting cannot be left via this endpoint. If the bot is in an invalid state, the request will fail with a 409 Conflict status.\n    \n    **Token Consumption:** When a bot is manually left, tokens are consumed based on the duration from when recording started to when the bot left. The bot will transition to `completed` status and send a completion webhook.\n    \n    **Immediate Effect:** The leave command is sent to the bot process immediately. The bot will stop recording and exit the meeting as soon as it receives the command (usually within a few seconds).\n    \n    Returns 404 if the bot is not found, or 409 if the bot's status does not allow this operation.",
+        "description": "Instruct a bot to leave the meeting immediately.\n    \n    The bot will stop recording and processing, then exit the meeting. Only works if the bot is currently in the meeting (status is `joining_call`, `in_waiting_room`, `in_call_not_recording`, `in_call_recording`, `recording_paused`, or `recording_resumed`). The bot will send a final webhook event when it leaves.\n    \n    **Status Requirements:** The bot must be in a state that allows leaving. Bots that have already completed, failed, or are not yet in the meeting cannot be left via this endpoint. If the bot is in an invalid state, the request will fail with a 409 Conflict status.\n    \n    **Token Consumption:** When a bot is manually left, tokens are consumed based on the duration from when recording started to when the bot left. The bot will transition to `completed` status and send a completion webhook.\n    \n    **Immediate Effect:** The leave command is sent to the bot process immediately. The bot will stop recording and exit the meeting as soon as it receives the command (usually within a few seconds).\n    \n    Returns 404 if the bot is not found, or 409 if the bot's status does not allow this operation.",
         "parameters": [
           {
             "schema": {

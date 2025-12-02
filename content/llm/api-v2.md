@@ -788,7 +788,7 @@ curl -X POST "https://api.meetingbaas.com/v2/calendars/CALENDAR-ID/bots" \
 
 Calendar integrations trigger webhook events for:
 - Connection changes
-- Event syncs
+- Event syncs: Triggered during first sync only
 - Event creation, updates, and cancellations
 
 See the [Webhooks documentation](/docs/api-v2/webhooks) for details on calendar webhook events.
@@ -1204,7 +1204,7 @@ To schedule a bot to join at a specific time, use `POST /v2/bots/scheduled`:
 
 - `transcription_enabled`: Set to `true` to enable transcription
 - `transcription_config`: Required if `transcription_enabled` is `true`:
-  - `provider`: `"gladia"` (default) or `"assemblyai"`
+  - `provider`: `"gladia"` (default) (More providers coming soon)
   - `api_key`: Optional. Your transcription provider API key (for BYOK transcription)
   - `custom_params`: Optional. Custom parameters for the transcription provider
 
@@ -1219,8 +1219,9 @@ To schedule a bot to join at a specific time, use `POST /v2/bots/scheduled`:
 ### Timeouts
 
 - `timeout_config`: Optional object:
-  - `waiting_room_timeout`: Seconds to wait in waiting room (default: 600)
-  - `no_one_joined_timeout`: Seconds to wait if no one joins (default: 600, isn't used by Zoom)
+  - `waiting_room_timeout`: Seconds to wait in waiting room (default: 600, min: 120, max: 1800)
+  - `no_one_joined_timeout`: Seconds to wait if no one joins (default: 600, min: 120, max: 1800, isn't used by Zoom)
+  - `silence_timeout`: Once a participant has been identified, no_one_joined_timeout stops and silence_timeout kicks in. When there is continued silence for the seconds provided, the bot leaves the meeting (default: 600, min: 300, max: 1800, isn't used by Zoom)
 
 ### Advanced Options
 
@@ -1890,7 +1891,7 @@ v2 allows you to import your remaining tokens from v1, ensuring a smooth transit
 ### Important Notes
 
 - **UI Only**: Token import is only available via the dashboard UI, not through the API
-- **One-Time Import**: You can import tokens multiple times, but it's recommended to import all at once
+- **Flexible Import**: You can import tokens multiple times at your own pace - import all at once or in smaller batches as needed
 - **Team-Based**: Imported tokens go to your current team's balance
 - **Irreversible**: Once imported, tokens cannot be transferred back to v1
 - **No Expiration**: Imported tokens don't expire and work the same as purchased tokens
@@ -2162,7 +2163,7 @@ v2 provides comprehensive token management with transparency and automation.
 **v1**: Tokens locked in v1 account
 
 **v2**:
-- **One-Time Import**: Transfer remaining tokens from v1 to v2
+- **Flexible Import**: Import your remaining v1 tokens to v2 at your own pace - you can import multiple times as needed
 - **Team-Based**: Imported tokens go to your team's balance
 - **Flexible Amount**: Import all or a portion of your v1 tokens
 - **Seamless Migration**: Continue using tokens without interruption
@@ -2192,7 +2193,7 @@ v2 offers enhanced transcription capabilities with better models and more flexib
 **v2**:
 - **Raw Transcription**: Access complete provider response (includes LLM summaries, metadata)
 - **Standardized Output**: Consistent transcription format across all providers
-- **S3 Storage**: Secure storage with presigned URLs
+- **S3 Storage**: Secure storage of transcription with presigned URLs
 - **Transcription IDs**: Track transcription jobs for BYOK users
 
 ## Standardized Request/Response Handling
@@ -2724,7 +2725,7 @@ Retrieve detailed information about a specific scheduled bot.
 
 Instruct a bot to leave the meeting immediately.
     
-    The bot will stop recording and processing, then exit the meeting. Only works if the bot is currently in the meeting (status is `in_call_recording` or `transcribing`). The bot will send a final webhook event when it leaves.
+    The bot will stop recording and processing, then exit the meeting. Only works if the bot is currently in the meeting (status is `joining_call`, `in_waiting_room`, `in_call_not_recording`, `in_call_recording`, `recording_paused`, or `recording_resumed`). The bot will send a final webhook event when it leaves.
     
     **Status Requirements:** The bot must be in a state that allows leaving. Bots that have already completed, failed, or are not yet in the meeting cannot be left via this endpoint. If the bot is in an invalid state, the request will fail with a 409 Conflict status.
     
@@ -3351,7 +3352,7 @@ Completed payload structure
       Signed URL to download the processed transcription file. Valid for 4 hours. Null if transcription is not available or has been deleted
 
     - **`transcription_provider`** (string | null) **Required**
-      The transcription provider used (e.g., 'gladia', 'assemblyai'). Null if transcription was not enabled or if provider information is not available
+      The transcription provider used (e.g., 'gladia'). Null if transcription was not enabled or if provider information is not available
 
     - **`transcription_ids`** (string[] | null) **Required**
       Array of transcription job IDs from the transcription provider. Null if transcription was not enabled or if IDs are not available
@@ -3556,7 +3557,7 @@ Bot Completed payload structure
       Signed URL to download the processed transcription file. Valid for 4 hours. Null if transcription is not available or has been deleted
 
     - **`transcription_provider`** (string | null) **Required**
-      The transcription provider used (e.g., 'gladia', 'assemblyai'). Null if transcription was not enabled or if provider information is not available
+      The transcription provider used (e.g., 'gladia'). Null if transcription was not enabled or if provider information is not available
 
     - **`transcription_ids`** (string[] | null) **Required**
       Array of transcription job IDs from the transcription provider. Null if transcription was not enabled or if IDs are not available
@@ -4242,13 +4243,6 @@ BYOK transcription is available on **Pro plans and above**. Pay-as-you-go plans 
 
 3. **Track Jobs**: Use `transcription_ids` in bot details and webhooks to track your provider jobs
 
-### BYOK Token Consumption
-
-When using BYOK:
-- **Recording tokens**: 1 token/hour (unchanged)
-- **BYOK Transcription tokens**: 0.05 tokens/hour (vs 0.25 tokens/hour with platform key)
-- **Total**: ~1.05 tokens/hour (vs ~1.25 tokens/hour)
-
 ## Custom Parameters
 
 v2 supports advanced transcription features through custom parameters. These are provider-specific options that enhance transcription capabilities.
@@ -4843,7 +4837,7 @@ Triggered when a calendar connection encounters an error (e.g., OAuth token refr
 
 ### `calendar.events_synced`
 
-Triggered after a calendar sync operation completes (initial sync or manual sync).
+Triggered after a calendar sync operation completes (initial sync).
 
 **Use Cases:**
 - Confirm sync completion
