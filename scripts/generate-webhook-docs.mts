@@ -118,7 +118,6 @@ function generateWebhookDoc(
   const frontmatter = `---
 title: ${title}
 description: ${schema.description || `${title} payload structure`}
-icon: Webhook
 ---
 
 ${schema.description ? `> ${schema.description}\n` : ''}
@@ -327,7 +326,7 @@ ${calendarWebhooks.map(([name]) => {
   const callbacksIndexContent = `---
 title: Callback Payloads
 description: Reference documentation for all callback payload structures
-icon: Webhook
+icon: Undo2
 ---
 
 This section contains reference documentation for all callback payload structures sent by Meeting BaaS v2.
