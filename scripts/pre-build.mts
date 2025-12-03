@@ -2,6 +2,7 @@ import { generateDocs } from './generate-docs.mjs';
 import { generateSDKUpdates } from './generate-sdk-updates.mjs';
 import { generateAPIUpdates } from './generate-api-updates.mjs';
 import { generateLlmConfig } from './generate-llm-config.mjs';
+import { generateWebhookDocs } from './generate-webhook-docs.mjs';
 import fs from 'fs';
 import path from 'path';
 
@@ -13,6 +14,10 @@ async function run() {
     // Step 1: Generate API docs from OpenAPI specs
     console.log('Generating API docs from OpenAPI specs...');
     await generateDocs();
+    
+    // Step 1.5: Generate webhook and callback payload docs
+    console.log('Generating webhook and callback payload docs...');
+    await generateWebhookDocs();
     
     // Step 2: Generate LLM configuration based on content structure
     // This must be done before trying to generate LLM content

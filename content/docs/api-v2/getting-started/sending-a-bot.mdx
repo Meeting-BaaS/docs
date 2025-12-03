@@ -1,0 +1,213 @@
+---
+title: Sending a bot
+description: Learn how to send bots to meetings using the Meeting BaaS v2 API
+icon: Bot
+---
+
+You can send a bot to a meeting in two ways:
+
+1. **Immediate**: The bot joins the meeting right away
+2. **Scheduled**: The bot joins at a specific time in the future
+
+## Immediate Bot
+
+Send a POST request to `https://api.meetingbaas.com/v2/bots`:
+
+<Tabs items={['Bash', 'Python', 'JavaScript']}>
+  <Tab value="Bash">
+    ```bash
+    curl -X POST "https://api.meetingbaas.com/v2/bots" \
+         -H "Content-Type: application/json" \
+         -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+         -d '{
+               "meeting_url": "https://meet.google.com/abc-defg-hij",
+               "bot_name": "AI Notetaker",
+               "recording_mode": "speaker_view",
+               "transcription_enabled": true,
+               "transcription_config": {
+                 "provider": "gladia"
+               }
+             }'
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    import requests
+
+    url = "https://api.meetingbaas.com/v2/bots"
+    headers = {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+    }
+    data = {
+        "meeting_url": "https://meet.google.com/abc-defg-hij",
+        "bot_name": "AI Notetaker",
+        "recording_mode": "speaker_view",
+        "transcription_enabled": true,
+        "transcription_config": {
+            "provider": "gladia"
+        }
+    }
+    response = requests.post(url, json=data, headers=headers)
+    print(response.json())
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript
+    fetch("https://api.meetingbaas.com/v2/bots", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+      },
+      body: JSON.stringify({
+        meeting_url: "https://meet.google.com/abc-defg-hij",
+        bot_name: "AI Notetaker",
+        recording_mode: "speaker_view",
+        transcription_enabled: true,
+        transcription_config: {
+          provider: "gladia"
+        }
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log(data.data.bot_id))
+      .catch((error) => console.error("Error:", error));
+    ```
+  </Tab>
+</Tabs>
+
+## Scheduled Bot
+
+To schedule a bot to join at a specific time, use `POST /v2/bots/scheduled`:
+
+<Tabs items={['Bash', 'Python', 'JavaScript']}>
+  <Tab value="Bash">
+    ```bash
+    curl -X POST "https://api.meetingbaas.com/v2/bots/scheduled" \
+         -H "Content-Type: application/json" \
+         -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+         -d '{
+               "meeting_url": "https://meet.google.com/abc-defg-hij",
+               "bot_name": "AI Notetaker",
+               "recording_mode": "speaker_view",
+               "join_at": "2025-01-20T14:00:00Z"
+             }'
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    import requests
+    from datetime import datetime
+
+    url = "https://api.meetingbaas.com/v2/bots/scheduled"
+    headers = {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+    }
+    data = {
+        "meeting_url": "https://meet.google.com/abc-defg-hij",
+        "bot_name": "AI Notetaker",
+        "recording_mode": "speaker_view",
+        "join_at": "2025-01-20T14:00:00Z"  # ISO 8601 format
+    }
+    response = requests.post(url, json=data, headers=headers)
+    print(response.json())
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript
+    fetch("https://api.meetingbaas.com/v2/bots/scheduled", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+      },
+      body: JSON.stringify({
+        meeting_url: "https://meet.google.com/abc-defg-hij",
+        bot_name: "AI Notetaker",
+        recording_mode: "speaker_view",
+        join_at: "2025-01-20T14:00:00Z"  // ISO 8601 format
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log(data.data.bot_id))
+      .catch((error) => console.error("Error:", error));
+    ```
+  </Tab>
+</Tabs>
+
+## Request Parameters
+
+### Required Parameters
+
+- `meeting_url`: The meeting URL (Google Meet, Microsoft Teams, or Zoom)
+- `bot_name`: The display name of the bot
+
+### Recording Options
+
+- `recording_mode`: One of:
+  - `"speaker_view"` (default): Shows only the active speaker
+  - `"gallery_view"`: Shows all participants
+  - `"audio_only"`: Audio recording only (MP3)
+
+### Bot Appearance
+
+- `bot_image`: Optional. URL to the bot's avatar image (JPEG or PNG, HTTPS required)
+
+### Transcription
+
+- `transcription_enabled`: Set to `true` to enable transcription
+- `transcription_config`: Required if `transcription_enabled` is `true`:
+  - `provider`: `"gladia"` (default) (More providers coming soon)
+  - `api_key`: Optional. Your transcription provider API key (for BYOK transcription)
+  - `custom_params`: Optional. Custom parameters for the transcription provider
+
+### Callbacks
+
+- `callback_enabled`: Set to `true` to enable callbacks for this bot
+- `callback_config`: Required if `callback_enabled` is `true`:
+  - `url`: The URL to receive callback notifications
+  - `method`: `"POST"` (default) or `"PUT"`
+  - `secret`: Optional. Secret key included in `x-mb-secret` header for verification
+
+### Timeouts
+
+- `timeout_config`: Optional object:
+  - `waiting_room_timeout`: Seconds to wait in waiting room (default: 600, min: 120, max: 1800)
+  - `no_one_joined_timeout`: Seconds to wait if no one joins (default: 600, min: 120, max: 1800, isn't used by Zoom)
+  - `silence_timeout`: Once a participant has been identified, no_one_joined_timeout stops and silence_timeout kicks in. When there is continued silence for the seconds provided, the bot leaves the meeting (default: 600, min: 300, max: 1800, isn't used by Zoom)
+
+### Advanced Options
+
+- `allow_multiple_bots`: `true` (default) to allow multiple bots in the same meeting, `false` to prevent duplicates
+- `entry_message`: Optional message the bot sends when joining
+- `extra`: Optional custom metadata (included in webhooks and callbacks)
+- `streaming_enabled`: Enable audio streaming
+- `streaming_config`: Required if `streaming_enabled` is `true`
+
+### Scheduled Bot Specific
+
+- `join_at`: Required for scheduled bots. ISO 8601 timestamp when the bot should join
+
+## Response
+
+The API returns the bot ID:
+
+```json
+{
+  "success": true,
+  "data": {
+    "bot_id": "123e4567-e89b-12d3-a456-426614174000"
+  }
+}
+```
+
+For scheduled bots, the `bot_id` is returned immediately and will be reused when the bot actually joins the meeting.
+
+## Next Steps
+
+- [Get meeting data](/docs/api-v2/getting-started/getting-the-data)
+- [Set up webhooks](/docs/api-v2/webhooks) for real-time notifications
+- [Remove a bot](/docs/api-v2/getting-started/removing-a-bot)
+

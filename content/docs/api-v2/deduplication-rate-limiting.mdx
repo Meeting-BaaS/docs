@@ -1,0 +1,141 @@
+---
+title: Deduplication & Rate Limiting
+description: Learn about duplicate bot prevention and rate limiting in Meeting BaaS v2
+icon: Shield
+---
+
+Meeting BaaS v2 includes built-in protection against duplicate bots and rate limiting to ensure fair usage.
+
+## Deduplication
+
+Deduplication prevents multiple bots from joining the same meeting within a short time window.
+
+### How It Works
+
+By default, when you create a bot with `allow_multiple_bots: false`, the system:
+
+1. Checks if a bot already exists for the same meeting URL within the last 5 minutes
+2. If a bot exists, the request fails with `BOT_ALREADY_EXISTS`
+3. If no bot exists, a lock is acquired and the bot is created
+
+### Lock Duration
+
+The deduplication lock lasts for **5 minutes**. After this time, you can create another bot for the same meeting URL.
+
+### Allowing Multiple Bots
+
+If you want to allow multiple bots in the same meeting, set `allow_multiple_bots: true` when creating the bot:
+
+```json
+{
+  "meeting_url": "https://meet.google.com/abc-defg-hij",
+  "bot_name": "Bot 1",
+  "allow_multiple_bots": true
+}
+```
+
+With `allow_multiple_bots: true`, no deduplication lock is applied, and multiple bots can join the same meeting.
+
+### Use Cases
+
+**Prevent duplicates (`allow_multiple_bots: false`):**
+- Production environments where duplicate bots are unwanted
+- Preventing accidental double-booking
+- Ensuring only one bot per meeting
+
+**Allow multiple bots (`allow_multiple_bots: true`):**
+- Testing scenarios
+- Multiple recording perspectives
+- Backup bots for reliability
+
+## Rate Limiting
+
+Rate limiting controls how many requests per second your team can make to the API.
+
+### How It Works
+
+- Rate limits are applied **per team** (not per API key)
+- Limits are measured in **requests per second**
+- **GET requests are not rate limited** (list and get endpoints)
+- Only POST, PATCH, and DELETE requests are rate limited
+
+### Default Rate Limits
+
+Default rate limits vary by plan:
+
+- **Pay-as-you-go**: 1 request/second
+- **Pro**: 1 request/second
+- **Scale**: 1 request/second
+- **Enterprise**: 20 requests/second
+
+### Rate Limit Headers
+
+When making requests, the API includes rate limit headers:
+
+- `x-ratelimit-limit`: Maximum requests per second
+- `x-ratelimit-remaining`: Remaining requests in the current window
+- `x-ratelimit-reset`: Time when the rate limit resets
+- `retry-after`: Seconds to wait before retrying (when limit exceeded)
+
+### Rate Limit Errors
+
+When you exceed the rate limit, you'll receive a `429 Too Many Requests` response:
+
+```json
+{
+  "success": false,
+  "error": "Too many requests",
+  "code": "FST_ERR_TOO_MANY_REQUESTS",
+  "statusCode": 429
+}
+```
+
+The response includes a `retry-after` header indicating how many seconds to wait before retrying.
+
+### Best Practices
+
+1. **Respect rate limits**: Implement exponential backoff when you receive 429 errors
+2. **Use batch operations**: Create multiple bots in a single request instead of multiple individual requests
+3. **Cache responses**: Cache GET requests to reduce API calls
+4. **Monitor headers**: Check rate limit headers to understand your current usage
+
+## Daily Bot Cap
+
+In addition to rate limiting, each team has a **daily bot creation limit**:
+
+- **Pay-as-you-go**: 75 bots/day
+- **Pro**: 300 bots/day
+- **Scale**: 1,000 bots/day
+- **Enterprise**: 3,000 bots/day
+
+### How It Works
+
+- The daily bot cap is checked **before** creating each bot
+- The limit is based on a 24-hour rolling window
+- If the limit is reached, subsequent bot creation requests fail with `DAILY_BOT_CAP_REACHED`
+- The cap resets based on when bots were created (not a fixed time)
+
+### Error Response
+
+When the daily bot cap is reached:
+
+```json
+{
+  "success": false,
+  "error": "Daily bot cap has been reached: 75 bots created within the last 24 hours",
+  "code": "FST_ERR_DAILY_BOT_CAP_REACHED",
+  "statusCode": 429
+}
+```
+
+## Combining Limits
+
+All limits work together:
+
+1. **Rate limiting**: Controls requests per second
+2. **Daily bot cap**: Controls total bots per day
+3. **Token availability**: Controls whether you have tokens to create bots
+4. **Deduplication**: Prevents duplicate bots (if enabled)
+
+Make sure to account for all these limits when designing your integration.
+

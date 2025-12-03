@@ -1,0 +1,395 @@
+---
+title: Webhooks
+description: Complete guide to webhooks in Meeting BaaS v2
+icon: Webhook
+---
+
+Webhooks allow you to receive real-time notifications about bot and calendar events. Instead of polling the API, you can configure webhook endpoints that will receive HTTP POST requests when events occur.
+
+## Overview
+
+Meeting BaaS v2 uses [SVIX](https://www.svix.com/) for webhook delivery, ensuring reliable delivery with retries and delivery status tracking.
+
+## Webhook Configuration
+
+Webhooks are configured at the account level. You can set up webhook endpoints in your account settings to receive notifications for all bot and calendar events.
+
+## Callbacks vs Webhooks
+
+Meeting BaaS v2 supports two notification mechanisms:
+
+1. **Webhooks** (Account-level): Configured in your account settings, sent via SVIX. All events for all bots are sent to your configured webhook endpoints.
+
+2. **Callbacks** (Bot-specific): Configured per-bot when creating a bot using the `callback_config` parameter. Callbacks are direct HTTP requests (POST or PUT) sent to your specified URL when that specific bot completes or fails.
+
+**Key Differences:**
+- **Webhooks**: Account-level, sent via SVIX with signature verification, all events
+- **Callbacks**: Bot-specific, direct HTTP requests, only for bot completion/failure events
+
+You can use both webhooks and callbacks together - they serve different purposes and complement each other.
+
+## Webhook Security
+
+All webhooks are signed using SVIX's signature verification. The signature is included in the `svix-id`, `svix-timestamp`, and `svix-signature` headers.
+
+To verify webhooks, use SVIX's verification libraries or verify the signature manually using your webhook signing secret.
+
+## Bot Webhooks
+
+### `bot.status_change`
+
+Triggered whenever a bot's status changes (e.g., from `queued` to `joining`, from `joining` to `in_call_recording`, etc.).
+
+**Use Cases:**
+- Track bot progress in real-time
+- Update UI to show current bot state
+- Trigger actions based on status changes
+- Monitor bot lifecycle
+
+**Payload:**
+```json
+{
+  "event": "bot.status_change",
+  "data": {
+    "bot_id": "123e4567-e89b-12d3-a456-426614174000",
+    "event_id": "789e0123-e45b-67c8-d901-234567890abc",
+    "status": {
+      "code": "in_call_recording",
+      "created_at": "2025-01-15T10:30:00Z",
+      "start_time": 1736941800
+    },
+    "extra": {
+      "customer_id": "12345"
+    }
+  }
+}
+```
+
+**Status Codes:**
+- `queued`: Bot is queued and waiting to join
+- `joining`: Bot is attempting to join the meeting
+- `in_call_recording`: Bot is in the meeting and recording
+- `transcribing`: Bot has exited and transcription is in progress
+- `completed`: Bot has completed successfully
+- `failed`: Bot has failed
+
+### `bot.completed`
+
+Triggered when a bot successfully completes recording and processing.
+
+**Use Cases:**
+- Download meeting recordings automatically
+- Process transcriptions
+- Trigger post-meeting workflows
+- Update meeting records in your system
+
+**Payload:**
+```json
+{
+  "event": "bot.completed",
+  "data": {
+    "bot_id": "123e4567-e89b-12d3-a456-426614174000",
+    "event_id": "789e0123-e45b-67c8-d901-234567890abc",
+    "transcription": "https://s3.amazonaws.com/.../transcription.json",
+    "mp4": "https://s3.amazonaws.com/.../video.mp4",
+    "audio": "https://s3.amazonaws.com/.../audio.mp3",
+    "diarization": "https://s3.amazonaws.com/.../diarization.json",
+    "duration_seconds": 3600,
+    "participants": [...],
+    "speakers": [...],
+    "extra": {
+      "customer_id": "12345"
+    }
+  }
+}
+```
+
+**Note:** All artifact URLs (transcription, mp4, audio, diarization) are presigned S3 URLs valid for 4 hours.
+
+### `bot.failed`
+
+Triggered when a bot fails to complete successfully.
+
+**Use Cases:**
+- Handle errors gracefully
+- Retry bot creation if appropriate
+- Log failures for analysis
+- Notify users of failures
+
+**Payload:**
+```json
+{
+  "event": "bot.failed",
+  "data": {
+    "bot_id": "123e4567-e89b-12d3-a456-426614174000",
+    "event_id": "789e0123-e45b-67c8-d901-234567890abc",
+    "error_code": "BOT_NOT_ACCEPTED",
+    "error_message": "Bot was not accepted into the meeting",
+    "extra": {
+      "customer_id": "12345"
+    }
+  }
+}
+```
+
+**Common Error Codes:**
+- `BOT_NOT_ACCEPTED`: Bot was not accepted into the meeting
+- `TIMEOUT_WAITING_TO_START`: Meeting didn't start within the timeout period
+- `INSUFFICIENT_TOKENS`: Not enough tokens to create the bot
+- `DAILY_BOT_CAP_REACHED`: Daily bot creation limit reached
+- `INVALID_MEETING_PLATFORM`: Could not determine meeting platform from URL
+- `TRANSCRIPTION_ERROR`: Error occurred during transcription
+
+## Calendar Webhooks
+
+### `calendar.connection_created`
+
+Triggered when a new calendar connection is created.
+
+**Use Cases:**
+- Confirm calendar integration success
+- Initialize calendar-specific workflows
+- Track calendar connections
+
+**Payload:**
+```json
+{
+  "event": "calendar.connection_created",
+  "data": {
+    "calendar_id": "123e4567-e89b-12d3-a456-426614174000",
+    "platform": "google",
+    "account_email": "user@example.com",
+    "calendar_name": "Primary"
+  }
+}
+```
+
+### `calendar.connection_updated`
+
+Triggered when a calendar connection is updated (e.g., OAuth credentials refreshed).
+
+**Use Cases:**
+- Track credential updates
+- Monitor connection health
+- Update connection status in your system
+
+**Payload:**
+```json
+{
+  "event": "calendar.connection_updated",
+  "data": {
+    "calendar_id": "123e4567-e89b-12d3-a456-426614174000",
+    "platform": "google",
+    "status": "active"
+  }
+}
+```
+
+### `calendar.connection_deleted`
+
+Triggered when a calendar connection is deleted.
+
+**Use Cases:**
+- Clean up calendar-related data
+- Notify users of disconnection
+- Update UI to reflect removal
+
+**Payload:**
+```json
+{
+  "event": "calendar.connection_deleted",
+  "data": {
+    "calendar_id": "123e4567-e89b-12d3-a456-426614174000",
+    "platform": "google"
+  }
+}
+```
+
+### `calendar.connection_error`
+
+Triggered when a calendar connection encounters an error (e.g., OAuth token refresh failed).
+
+**Use Cases:**
+- Alert users to connection issues
+- Trigger automatic reconnection attempts
+- Log errors for troubleshooting
+
+**Payload:**
+```json
+{
+  "event": "calendar.connection_error",
+  "data": {
+    "calendar_id": "123e4567-e89b-12d3-a456-426614174000",
+    "platform": "google",
+    "error": "OAuth token refresh failed",
+    "status": "error"
+  }
+}
+```
+
+### `calendar.events_synced`
+
+Triggered after a calendar sync operation completes (initial sync).
+
+**Use Cases:**
+- Confirm sync completion
+- Process newly synced events
+- Update event cache
+
+**Payload:**
+```json
+{
+  "event": "calendar.events_synced",
+  "data": {
+    "calendar_id": "123e4567-e89b-12d3-a456-426614174000",
+    "events_synced": 42,
+    "sync_type": "full"
+  }
+}
+```
+
+### `calendar.event_created`
+
+Triggered when a new event is created in a connected calendar.
+
+**Use Cases:**
+- Automatically schedule bots for new events
+- Update event calendars
+- Trigger event-specific workflows
+
+**Payload:**
+```json
+{
+  "event": "calendar.event_created",
+  "data": {
+    "calendar_id": "123e4567-e89b-12d3-a456-426614174000",
+    "event_type": "one_off",
+    "series_id": "789e0123-e45b-67c8-d901-234567890abc",
+    "series_bot_scheduled": false,
+    "instances": [
+      {
+        "event_id": "abc123...",
+        "title": "Team Meeting",
+        "start_time": "2025-01-20T10:00:00Z",
+        "end_time": "2025-01-20T11:00:00Z",
+        "meeting_url": "https://meet.google.com/...",
+        "bot_scheduled": false
+      }
+    ]
+  }
+}
+```
+
+### `calendar.event_updated`
+
+Triggered when an existing event is updated in a connected calendar.
+
+**Use Cases:**
+- Update bot schedules if meeting time changes
+- Sync event changes to your system
+- Handle event modifications
+
+**Payload:**
+```json
+{
+  "event": "calendar.event_updated",
+  "data": {
+    "calendar_id": "123e4567-e89b-12d3-a456-426614174000",
+    "event_type": "recurring",
+    "series_id": "789e0123-e45b-67c8-d901-234567890abc",
+    "series_bot_scheduled": true,
+    "affected_instances": [
+      {
+        "event_id": "abc123...",
+        "title": "Team Meeting",
+        "start_time": "2025-01-20T10:00:00Z",
+        "end_time": "2025-01-20T11:00:00Z",
+        "meeting_url": "https://meet.google.com/...",
+        "bot_scheduled": true
+      }
+    ]
+  }
+}
+```
+
+### `calendar.event_cancelled`
+
+Triggered when an event is cancelled in a connected calendar.
+
+**Use Cases:**
+- Cancel scheduled bots for cancelled events
+- Update event status
+- Clean up event-related data
+
+**Payload:**
+```json
+{
+  "event": "calendar.event_cancelled",
+  "data": {
+    "calendar_id": "123e4567-e89b-12d3-a456-426614174000",
+    "event_type": "one_off",
+    "series_id": "789e0123-e45b-67c8-d901-234567890abc",
+    "series_bot_scheduled": false,
+    "cancelled_instances": [
+      {
+        "event_id": "abc123...",
+        "title": "Team Meeting",
+        "start_time": "2025-01-20T10:00:00Z"
+      }
+    ]
+  }
+}
+```
+
+## Webhook Delivery
+
+- **Retries**: SVIX automatically retries failed webhook deliveries
+- **Timeout**: Webhook endpoints should respond within 30 seconds
+- **Idempotency**: Webhooks may be delivered multiple times - ensure your handler is idempotent
+- **Ordering**: Webhooks are delivered in order, but network issues may cause out-of-order delivery
+
+## Testing Webhooks
+
+You can test your webhook endpoint using tools like:
+- [ngrok](https://ngrok.com/) for local development
+- [webhook.site](https://webhook.site/) or [webhook.cool](https://webhook.cool) for testing
+- [SVIX CLI](https://www.svix.com/docs/cli/) for local testing
+
+## Callbacks
+
+Callbacks are bot-specific HTTP requests sent directly to a URL you provide when creating a bot. Unlike webhooks (which are account-level and sent via SVIX), callbacks are:
+
+- **Bot-specific**: Configured per-bot using `callback_config` when creating a bot
+- **Direct HTTP**: Sent directly to your URL (not via SVIX)
+- **Limited events**: Only sent for `bot.completed` and `bot.failed` events
+- **Same payload**: Uses the same payload structure as webhooks
+
+### Configuring Callbacks
+
+When creating a bot, include the `callback_config` in your request:
+
+```json
+{
+  "bot_name": "My Bot",
+  "meeting_url": "https://meet.google.com/...",
+  "callback_enabled": true,
+  "callback_config": {
+    "url": "https://your-server.com/webhook",
+    "method": "POST",
+    "secret": "your-secret-key"
+  }
+}
+```
+
+### Callback Security
+
+If you provide a `secret` in `callback_config`, it will be included in the `x-mb-secret` header of all callback requests. Use this to verify that callbacks are coming from Meeting BaaS.
+
+### Retrying Callbacks
+
+If a callback delivery fails, you can retry it using the `POST /v2/bots/:bot_id/retry-callback` endpoint.
+
+## Resending Webhooks
+
+If a webhook delivery fails, you can resend it using the `POST /v2/bots/:bot_id/resend-webhook` endpoint.
+

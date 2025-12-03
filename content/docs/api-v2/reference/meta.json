@@ -1,0 +1,10 @@
+{
+    "title": "API Reference",
+    "icon": "Webhook",
+    "pages": [
+        "bots",
+        "calendars",
+        "webhooks",
+        "callbacks"
+    ]
+}

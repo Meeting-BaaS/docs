@@ -1,0 +1,209 @@
+---
+title: Error Codes
+description: Complete reference for bot process error codes in Meeting BaaS v2
+icon: CircleAlert
+---
+
+When a bot fails, the error information is included in the `bot.failed` webhook event and in the bot details response. This page documents all possible error codes and their meanings.
+
+## Error Code Structure
+
+Error codes are standardized strings that indicate the reason a bot failed. They are included in:
+
+- `bot.failed` webhook events (`error_code` field)
+- Bot details response (`error_code` field)
+- Bot status history
+
+## Normal End Reasons
+
+These codes indicate the bot ended normally (not a failure):
+
+### `BOT_REMOVED`
+**Title:** Bot Removed  
+**Description:** Bot was removed from the meeting.
+
+### `NO_ATTENDEES`
+**Title:** No Attendees  
+**Description:** No attendees joined the meeting.
+
+### `NO_SPEAKER`
+**Title:** No Speaker  
+**Description:** No speakers detected during recording.
+
+### `RECORDING_TIMEOUT`
+**Title:** Recording Timeout  
+**Description:** Recording timeout reached.
+
+### `API_REQUEST`
+**Title:** API Request  
+**Description:** Recording stopped via API request (using the leave endpoint).
+
+## Error End Reasons
+
+These codes indicate the bot failed due to an error:
+
+### `BOT_NOT_ACCEPTED`
+**Title:** Bot Not Accepted  
+**Description:** Bot was not accepted into the meeting, either by the participants or the meeting platform.
+
+**Token Charging:** Only recording tokens are charged (based on waiting room duration).
+
+### `TIMEOUT_WAITING_TO_START`
+**Title:** Timeout Waiting to Start  
+**Description:** Timeout waiting to start recording.
+
+**Token Charging:** Only recording tokens are charged (based on waiting room duration).
+
+### `CANNOT_JOIN_MEETING`
+**Title:** Cannot Join Meeting  
+**Description:** Cannot join meeting - meeting is not reachable or may not exist.
+
+### `BOT_REMOVED_TOO_EARLY`
+**Title:** Bot Removed Too Early  
+**Description:** Bot was removed too early; the video is too short.
+
+### `INVALID_MEETING_URL`
+**Title:** Invalid Meeting URL  
+**Description:** Invalid meeting URL provided.
+
+### `STREAMING_SETUP_FAILED`
+**Title:** Streaming Setup Failed  
+**Description:** Failed to set up streaming audio.
+
+### `LOGIN_REQUIRED`
+**Title:** Login Required  
+**Description:** Login required to access the meeting.
+
+### `INTERNAL_ERROR`
+**Title:** Internal Error  
+**Description:** Internal error occurred during recording.
+
+## Crash Reasons
+
+These codes indicate the bot process crashed:
+
+### `OOM_KILLED`
+**Title:** Out of Memory  
+**Description:** Bot process was killed due to out of memory.
+
+### `SIGTERM`
+**Title:** Process Terminated  
+**Description:** Bot process was terminated.
+
+### `FORCE_KILLED`
+**Title:** Force Killed  
+**Description:** Bot process was force killed.
+
+### `GENERAL_ERROR`
+**Title:** General Error  
+**Description:** Bot process exited with a general error.
+
+## Transcription Errors
+
+### `TRANSCRIPTION_FAILED`
+**Title:** Transcription Failed  
+**Description:** The transcription process failed. Please try again using re-transcribe endpoint or contact support.
+
+**Token Charging:** Recording and streaming tokens are charged, but transcription tokens are not.
+
+## Zoom-Specific Errors
+
+These errors are specific to Zoom meetings:
+
+### `WAITING_FOR_HOST_TIMEOUT`
+**Title:** Waiting for Host Timeout  
+**Description:** The bot timed out while waiting for the meeting host to join the meeting.
+
+### `RECORDING_RIGHTS_NOT_GRANTED`
+**Title:** Recording Rights Not Granted  
+**Description:** The bot was unable to obtain recording rights from the meeting host.
+
+### `CANNOT_REQUEST_RECORDING_RIGHT`
+**Title:** Cannot Request Recording Right  
+**Description:** The bot could not request recording rights. The meeting may not have recording enabled.
+
+### `EXITING_MEETING_BEFORE_RECORD`
+**Title:** Exiting Meeting Before Record  
+**Description:** The meeting ended before the bot could start recording.
+
+### `MEETING_ENDED_PREMATURELY`
+**Title:** Meeting Ended Prematurely  
+**Description:** The meeting ended before the bot could participate.
+
+### `SET_ZOOM_ID_AND_PWD_TOGETHER`
+**Title:** Zoom SDK Configuration Error  
+**Description:** Zoom SDK ID and password must be set together.
+
+### `CANNOT_GET_JWT_TOKEN`
+**Title:** Cannot Get JWT Token  
+**Description:** Unable to obtain JWT token with the provided Zoom SDK credentials.
+
+### `SDK_AUTH_FAILED`
+**Title:** SDK Authentication Failed  
+**Description:** Zoom SDK authentication failed with the provided credentials.
+
+### `ZOOM_ACCESS_TOKEN_ERROR`
+**Title:** Zoom Access Token Error  
+**Description:** An error occurred while obtaining the Zoom access token.
+
+## System Errors
+
+These errors occur when the system attempts to create a bot instance. For immediate bots, this happens at creation time and the error is returned in the API response. For scheduled and calendar bots, these errors can appear in `bot.failed` webhook events when the bot is being queued to join the meeting (at its scheduled join time).
+
+### `INSUFFICIENT_TOKENS`
+**Title:** Insufficient Tokens  
+**Description:** Not enough tokens were available to launch the bot.
+
+**When it occurs:**
+- **Immediate bots**: When you call `POST /v2/bots` (error returned in API response)
+- **Scheduled bots**: When the bot is being queued at its `join_at` time (error sent via `bot.failed` webhook)
+- **Calendar bots**: When the bot is being queued at its scheduled join time (error sent via `bot.failed` webhook)
+
+### `DAILY_BOT_CAP_REACHED`
+**Title:** Daily Bot Cap Reached  
+**Description:** The daily bot creation limit configured for this team has been reached.
+
+**When it occurs:**
+- **Immediate bots**: When you call `POST /v2/bots` (error returned in API response)
+- **Scheduled bots**: When the bot is being queued at its `join_at` time (error sent via `bot.failed` webhook)
+- **Calendar bots**: When the bot is being queued at its scheduled join time (error sent via `bot.failed` webhook)
+
+**Note:** For scheduled and calendar bots, the daily bot cap is checked when the bot is being queued, not when it's scheduled. This means a bot scheduled for later in the day might fail if the daily cap is reached before its scheduled time.
+
+### `BOT_ALREADY_EXISTS`
+**Title:** Bot Already Exists  
+**Description:** A bot is already running for this meeting URL.
+
+**When it occurs:**
+- **Immediate bots**: When you call `POST /v2/bots` and `allow_multiple_bots` is `false` (error returned in API response)
+- **Scheduled bots**: When the bot is being queued and another bot already exists for the same meeting URL (error sent via `bot.failed` webhook)
+- **Calendar bots**: When the bot is being queued and another bot already exists for the same meeting URL (error sent via `bot.failed` webhook)
+
+## Unknown Error
+
+### `UNKNOWN_ERROR`
+**Title:** Unknown Error  
+**Description:** An unknown error occurred. Please contact support.
+
+This is a fallback error code used when the actual error cannot be determined or mapped to a known error code.
+
+## Token Charging
+
+Different error codes result in different token charges:
+
+- **User-responsible errors** (`BOT_NOT_ACCEPTED`, `TIMEOUT_WAITING_TO_START`): Only recording tokens charged (based on waiting room duration)
+- **Transcription errors** (`TRANSCRIPTION_FAILED`): Recording and streaming tokens charged, transcription tokens not charged
+- **Other errors**: No tokens charged (reserved tokens are released)
+- **Normal end reasons**: Full tokens charged based on meeting duration and features used
+
+## Handling Errors
+
+When you receive a `bot.failed` webhook:
+
+1. Check the `error_code` to understand what went wrong
+2. Review the `error_message` for additional context
+3. For user-responsible errors (`BOT_NOT_ACCEPTED`, `TIMEOUT_WAITING_TO_START`), ensure meeting settings allow bots
+4. For transcription errors, you can retry transcription using the re-transcribe endpoint
+5. For system errors, check your token balance and daily bot cap
+6. For unknown errors, contact support with the bot ID and error details
+

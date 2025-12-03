@@ -1,0 +1,57 @@
+---
+title: Calendar Event Updated
+description: Calendar Event Updated payload structure
+---
+
+
+
+## Payload Structure
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `event` | string | Yes | The webhook event type |
+| `data` | object | Yes |  |
+
+## Field Details
+
+- **`event`** (string) **Required**
+  The webhook event type
+
+- **`data`** (object) **Required**
+
+  Properties:
+    - **`calendar_id`** (string (uuid)) **Required**
+      The UUID of the calendar connection where the event was updated
+
+    - **`event_type`** ("one_off" | "recurring") **Required**
+      The type of event. 'one_off' for single events, 'recurring' for events that are part of a recurring series
+
+    - **`series_id`** (string (uuid) | null) **Required**
+      The UUID of the event series. Null only in rare cases where the series relationship could not be established
+
+    - **`series_bot_scheduled`** (boolean) **Required**
+      Whether a bot has been scheduled for all occurrences of this series. True if a calendar bot schedule exists for the entire series
+
+    - **`is_exception`** (boolean) **Required**
+      Whether the updated instance is an exception to a recurring series. True if this instance has been modified differently from the recurring pattern
+
+    - **`affected_instances`** (object[]) **Required**
+      Array of event instances that were affected by the update. This includes the instance that was directly updated and any related instances
+
+
+
+## Example
+
+```json
+{
+  "event": "exampleevent",
+  "data": {
+    "calendar_id": "examplecalendar_id",
+    "event_type": "exampleevent_type",
+    "series_id": null,
+    "series_bot_scheduled": true,
+    "is_exception": true,
+    "affected_instances": []
+  }
+}
+```

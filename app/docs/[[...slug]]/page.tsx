@@ -76,6 +76,7 @@ export default async function Page(props: {
     Folder,
     Files,
     blockquote: Callout as unknown as FC<ComponentProps<'blockquote'>>,
+    Note: Callout, // Alias for Note component used in generated API reference
     APIPage: openapi.APIPage,
     DocsCategory: ({ slugs = params.slug }: { slugs?: string[] }) => (
       <DocsCategory page={source.getPage(slugs)!} from={source} />

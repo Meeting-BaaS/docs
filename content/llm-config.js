@@ -35,7 +35,7 @@ export const categoryConfig = {
     "title": "Calendars API, for managing calendar integrations and events",
     "description": "Documentation for calendar integration endpoints and functionality.",
     "patterns": [
-      "./content/docs/api/reference/calendars/**/*.mdx"
+      "./content/docs/api-v2/reference/calendars/**/*.mdx"
     ]
   },
   "api/webhooks": {
@@ -49,7 +49,49 @@ export const categoryConfig = {
     "title": "Webhooks API, for event notifications and integrations",
     "description": "Documentation for webhook integration endpoints and functionality.",
     "patterns": [
-      "./content/docs/api/reference/webhooks/**/*.mdx"
+      "./content/docs/api-v2/reference/webhooks/**/*.mdx"
+    ]
+  },
+  "api-v2": {
+    "title": "api-v2 Documentation",
+    "description": "Documentation for api-v2.",
+    "patterns": [
+      "./content/docs/api-v2/**/*.mdx"
+    ]
+  },
+  "api-v2/all": {
+    "title": "Complete api-v2 Reference",
+    "description": "Complete reference for api-v2.",
+    "patterns": [
+      "./content/docs/api-v2/reference/**/*.mdx"
+    ]
+  },
+  "api-v2/bots": {
+    "title": "bots api-v2 Reference",
+    "description": "Reference documentation for bots in api-v2.",
+    "patterns": [
+      "./content/docs/api-v2/reference/bots/**/*.mdx"
+    ]
+  },
+  "api-v2/calendars": {
+    "title": "calendars api-v2 Reference",
+    "description": "Reference documentation for calendars in api-v2.",
+    "patterns": [
+      "./content/docs/api-v2/reference/calendars/**/*.mdx"
+    ]
+  },
+  "api-v2/callbacks": {
+    "title": "callbacks api-v2 Reference",
+    "description": "Reference documentation for callbacks in api-v2.",
+    "patterns": [
+      "./content/docs/api-v2/reference/callbacks/**/*.mdx"
+    ]
+  },
+  "api-v2/webhooks": {
+    "title": "webhooks api-v2 Reference",
+    "description": "Reference documentation for webhooks in api-v2.",
+    "patterns": [
+      "./content/docs/api-v2/reference/webhooks/**/*.mdx"
     ]
   },
   "mcp-servers": {
@@ -152,6 +194,35 @@ export const knownTxtPaths = [
   ],
   [
     "llms",
+    "webhooks"
+  ],
+  [
+    "llms",
+    "api-v2"
+  ],
+  [
+    "llms",
+    "api-v2",
+    "all"
+  ],
+  [
+    "llms",
+    "api-v2",
+    "bots"
+  ],
+  [
+    "llms",
+    "api-v2",
+    "calendars"
+  ],
+  [
+    "llms",
+    "api-v2",
+    "callbacks"
+  ],
+  [
+    "llms",
+    "api-v2",
     "webhooks"
   ],
   [

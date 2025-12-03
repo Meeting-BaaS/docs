@@ -1,0 +1,85 @@
+---
+title: Getting the data
+description: Learn how to retrieve meeting recordings, transcriptions, and other data from bots
+icon: Download
+---
+
+Once a bot completes recording a meeting, you can retrieve the meeting data including recordings, transcriptions, and metadata.
+
+## Getting Bot Details
+
+To get all information about a bot, including artifact URLs:
+
+```bash
+curl -X GET "https://api.meetingbaas.com/v2/bots/BOT-ID" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY"
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "bot_id": "123e4567-e89b-12d3-a456-426614174000",
+    "status": "completed",
+    "meeting_url": "https://meet.google.com/...",
+    "video": "https://s3.amazonaws.com/.../video.mp4",
+    "audio": "https://s3.amazonaws.com/.../audio.mp3",
+    "transcription": "https://s3.amazonaws.com/.../transcription.json",
+    "diarization": "https://s3.amazonaws.com/.../diarization.json",
+    "participants": ["Alice", "Bob"],
+    "speakers": ["Alice", "Bob"],
+    "duration_seconds": 3600,
+    "created_at": "2025-01-15T10:00:00Z",
+    "updated_at": "2025-01-15T11:00:00Z"
+  }
+}
+```
+
+## Getting Bot Status
+
+For a lightweight status check:
+
+```bash
+curl -X GET "https://api.meetingbaas.com/v2/bots/BOT-ID/status" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY"
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "bot_id": "123e4567-e89b-12d3-a456-426614174000",
+    "status": "in_call_recording",
+    "transcription_status": "processing",
+    "updated_at": "2025-01-15T10:30:00Z"
+  }
+}
+```
+
+## Getting Screenshots
+
+To get screenshots taken during the meeting:
+
+```bash
+curl -X GET "https://api.meetingbaas.com/v2/bots/BOT-ID/screenshots" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY"
+```
+
+**Note:** Screenshots are only available for Google Meet and Microsoft Teams. Zoom does not support screenshots.
+
+## Artifact URLs
+
+All artifact URLs (video, audio, transcription, diarization) are **presigned S3 URLs** that are valid for **4 hours**. Make sure to download them within this time window.
+
+## Recommended Approach
+
+Instead of polling the API, we recommend:
+
+1. **Use webhooks**: Configure webhooks in your account settings to receive `bot.completed` events automatically
+2. **Use callbacks**: Provide a `callback_config` when creating the bot to receive notifications for that specific bot
+3. **Poll only when necessary**: If you must poll, use a judicious interval (e.g., every 5-10 minutes) and only for reconciliation purposes
+
+For more details, see the [Webhooks documentation](/docs/api-v2/webhooks).
+

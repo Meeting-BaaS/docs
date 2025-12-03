@@ -1,0 +1,450 @@
+---
+title: Transcription
+description: Complete guide to transcription features, custom parameters, and BYOK
+icon: FileText
+---
+
+Meeting BaaS v2 provides powerful transcription capabilities with support for custom parameters, multiple providers, and Bring Your Own Key (BYOK) options.
+
+## Overview
+
+Transcription in v2 offers:
+
+- **Multiple Providers**: Currently supports Gladia, with Assembly AI and Deepgram coming soon
+- **BYOK Support**: Use your own transcription provider API keys to save on token costs
+- **Custom Parameters**: Configure LLM summaries, translation, language detection, and more
+- **Raw & Processed Output**: Access both raw provider responses and standardized transcriptions
+- **Transcription IDs**: Track transcription jobs for BYOK users
+
+## Enabling Transcription
+
+To enable transcription for a bot, include `transcription_config` in your bot creation request:
+
+```json
+{
+  "meeting_url": "https://meet.google.com/...",
+  "bot_name": "AI Notetaker",
+  "transcription_enabled": true,
+  "transcription_config": {
+    "provider": "gladia",
+    "api_key": null,
+    "custom_params": null
+  }
+}
+```
+
+### Basic Configuration
+
+**Required Fields:**
+- `transcription_enabled`: Set to `true` to enable transcription
+- `transcription_config.provider`: Currently `"gladia"` (default). Assembly AI and Deepgram support coming soon.
+
+**Optional Fields:**
+- `transcription_config.api_key`: Your transcription provider API key (for BYOK - see below)
+- `transcription_config.custom_params`: Custom parameters for advanced features (see below)
+
+## Transcription Providers
+
+### Current Provider
+
+**Gladia** (Default)
+- High-accuracy transcription
+- Speaker diarization
+- Multi-language support
+- Advanced features (summarization, translation, etc.)
+
+### Coming Soon
+
+- **Assembly AI**: Additional transcription provider option
+- **Deepgram**: Additional transcription provider option
+
+Provider selection will be available via the `provider` field in `transcription_config`.
+
+## Bring Your Own Key (BYOK)
+
+Using your own transcription provider API key can significantly reduce token costs. When you provide your own key:
+
+- **Token Savings**: Transcription tokens are reduced from 0.25 tokens/hour to 0.05 tokens/hour
+- **Provider Billing**: You're billed directly by the transcription provider
+- **Full Control**: Manage your own provider account and usage
+
+### Requirements
+
+BYOK transcription is available on **Pro plans and above**. Pay-as-you-go plans use the platform's transcription keys.
+
+### Setting Up BYOK
+
+1. **Get Your API Key**: Obtain an API key from your transcription provider (e.g., Gladia)
+2. **Include in Request**: Add the API key to `transcription_config.api_key`:
+
+```json
+{
+  "transcription_enabled": true,
+  "transcription_config": {
+    "provider": "gladia",
+    "api_key": "your-gladia-api-key-here",
+    "custom_params": null
+  }
+}
+```
+
+3. **Track Jobs**: Use `transcription_ids` in bot details and webhooks to track your provider jobs
+
+## Custom Parameters
+
+v2 supports advanced transcription features through custom parameters. These are provider-specific options that enhance transcription capabilities.
+
+For complete documentation on all available custom parameters, see the [Gladia API Reference](https://docs.gladia.io/api-reference/v2/pre-recorded/init).
+
+### Available Custom Parameters
+
+#### Summarization
+
+Generate AI-powered meeting summaries:
+
+```json
+{
+  "transcription_config": {
+    "provider": "gladia",
+    "custom_params": {
+      "summarization": true,
+      "summarization_config": {
+        "type": "general"  // or "bullet_points", "concise"
+      }
+    }
+  }
+}
+```
+
+**Summary Types:**
+- `general`: General meeting summary
+- `bullet_points`: Bullet-point format
+- `concise`: Concise summary
+
+#### Translation
+
+Translate transcriptions to multiple languages:
+
+```json
+{
+  "transcription_config": {
+    "provider": "gladia",
+    "custom_params": {
+      "translation": true,
+      "translation_config": {
+        "target_languages": ["es", "fr", "de"],
+        "model": "enhanced",  // or "base"
+        "match_original_utterances": true,
+        "lipsync": true,
+        "context_adaptation": true
+      }
+    }
+  }
+}
+```
+
+**Translation Options:**
+- `target_languages`: Array of ISO 639-1 language codes (e.g., `["es", "fr"]`)
+- `model`: `"base"` (default) or `"enhanced"` for better quality
+- `match_original_utterances`: Match translated utterances to original timing
+- `lipsync`: Enable lip-sync for video
+- `context_adaptation`: Adapt translation to context
+
+#### Language Detection
+
+Force specific languages or enable automatic detection:
+
+```json
+{
+  "transcription_config": {
+    "provider": "gladia",
+    "custom_params": {
+      "language_config": {
+        "languages": ["en", "es"],  // Force specific languages
+        "detect_language": true  // Enable automatic detection
+      }
+    }
+  }
+}
+```
+
+#### Subtitles
+
+Generate subtitles in multiple formats:
+
+```json
+{
+  "transcription_config": {
+    "provider": "gladia",
+    "custom_params": {
+      "subtitles": true,
+      "subtitles_config": {
+        "formats": ["srt", "vtt"],
+        "minimum_duration": 0.5,
+        "maximum_duration": 5,
+        "maximum_characters_per_row": 42,
+        "maximum_rows_per_caption": 2,
+        "style": "default"  // or "compliance"
+      }
+    }
+  }
+}
+```
+
+#### Custom Vocabulary
+
+Improve accuracy for domain-specific terms:
+
+```json
+{
+  "transcription_config": {
+    "provider": "gladia",
+    "custom_params": {
+      "custom_vocabulary": [
+        "MeetingBaaS",
+        "API",
+        "webhook"
+      ],
+      "custom_vocabulary_config": {
+        "vocabulary": [
+          {
+            "value": "MeetingBaaS",
+            "intensity": 0.8,
+            "pronunciations": ["meeting-baas", "meeting-bass"]
+          }
+        ],
+        "default_intensity": 0.7
+      }
+    }
+  }
+}
+```
+
+#### Additional Features
+
+Other available custom parameters:
+
+- **Moderation**: Content moderation and filtering
+- **Named Entity Recognition**: Extract names, organizations, locations
+- **Sentiment Analysis**: Analyze sentiment of utterances
+- **Chapterization**: Automatically create meeting chapters
+- **Name Consistency**: Maintain consistent speaker names
+- **Custom Spelling**: Custom spelling dictionary
+- **Structured Data Extraction**: Extract structured data using class definitions
+- **Audio to LLM**: Apply LLM prompts to transcription output
+- **Punctuation Enhanced**: Enhanced punctuation accuracy
+
+For complete documentation on all custom parameters and their configuration options, see the [Gladia API Reference](https://docs.gladia.io/api-reference/v2/pre-recorded/init). You can also check the [Meeting BaaS API Reference](/docs/api-v2/reference) for our API schema.
+
+## Transcription Output
+
+v2 provides two types of transcription files:
+
+### Raw Transcription (`raw_transcription.json`)
+
+Contains the complete, unmodified response from the transcription provider:
+
+- **Includes**: All custom parameters (LLM summaries, translations, metadata)
+- **Format**: Provider-specific structure
+- **Use Case**: Access advanced features like summaries, translations, custom metadata
+- **Note**: Presented as an array without time duration offsets or speaker diarization. Best used alongside `output_transcription.json`.
+
+**Example Structure:**
+```json
+{
+  "bot_id": "uuid",
+  "transcriptions": [
+    {
+      "transcription": {
+        "utterances": [...],
+        "summary": "Meeting discussed Q4 goals...",
+        "languages": ["en", "es"],
+        "metadata": {...}
+      }
+    }
+  ]
+}
+```
+
+### Output Transcription (`output_transcription.json`)
+
+Standardized format across all providers:
+
+- **Format**: Consistent structure regardless of provider
+- **Features**: 
+  - Speaker diarization with participant names
+  - Timestamps adjusted for multi-chunk recordings
+  - Standardized utterance format
+- **Use Case**: General transcription processing and display
+
+**Example Structure:**
+```json
+{
+  "result": {
+    "utterances": [
+      {
+        "start": 0.5,
+        "end": 2.1,
+        "text": "Hello everyone",
+        "speaker": "John Doe",
+        "language": "en"
+      }
+    ]
+  }
+}
+```
+
+## Accessing Transcriptions
+
+Transcriptions are available via presigned S3 URLs in:
+
+1. **Bot Details** (`GET /v2/bots/:bot_id`): Artifacts array includes transcription URLs
+2. **Webhooks** (`bot.completed`): Transcription URLs in webhook payload
+3. **Callbacks**: Same URLs as webhooks
+
+### Presigned URLs
+
+- **Validity**: 4 hours from generation
+- **Security**: Time-limited access to transcription files
+- **Download**: Fetch and store transcriptions promptly
+
+**Example Webhook Payload:**
+```json
+{
+  "event": "bot.completed",
+  "data": {
+    "bot_id": "uuid",
+    "raw_transcription": "https://s3.amazonaws.com/.../raw_transcription.json",
+    "transcription": "https://s3.amazonaws.com/.../output_transcription.json",
+    "transcription_ids": ["gladia-job-12345"],
+    "transcription_provider": "gladia"
+  }
+}
+```
+
+## Transcription IDs
+
+For BYOK users, `transcription_ids` provides an array of provider job IDs:
+
+- **Purpose**: Track your own transcription jobs with the provider
+- **Error Correlation**: Match transcription errors to specific provider job IDs
+- **Multi-Chunk Support**: Each audio chunk gets its own provider ID
+- **Available In**: Bot details and webhook payloads
+
+**Example:**
+```json
+{
+  "transcription_ids": ["gladia-job-12345", "gladia-job-12346"],
+  "transcription_provider": "gladia"
+}
+```
+
+## Token Consumption
+
+Transcription token consumption depends on whether you use BYOK:
+
+### With Platform Key (Default)
+- **Recording**: 1 token/hour
+- **Transcription**: 0.25 tokens/hour
+- **Total**: ~1.25 tokens/hour
+
+### With BYOK
+- **Recording**: 1 token/hour
+- **BYOK Transcription**: 0.05 tokens/hour
+- **Total**: ~1.05 tokens/hour
+
+**Note**: Custom parameters (summarization, translation, etc.) may incur additional costs from the transcription provider when using BYOK. Check your provider's pricing.
+
+## Error Handling
+
+If transcription fails:
+
+- **Error Code**: `TRANSCRIPTION_FAILED` in bot status
+- **Token Charging**: Recording and streaming tokens are charged, but transcription tokens are not
+- **Retry**: Use the re-transcribe endpoint to retry transcription
+- **Webhook**: `bot.failed` webhook includes error details
+
+See [Error Codes](/docs/api-v2/error-codes) for complete error information.
+
+## Best Practices
+
+1. **Use BYOK for Cost Savings**: If you have high transcription volume, BYOK can significantly reduce costs
+2. **Download Promptly**: Presigned URLs expire after 4 hours - download transcriptions quickly
+3. **Store Long-Term**: If you need transcriptions long-term, download and store them in your own storage
+4. **Use Raw Transcription**: Access LLM summaries, translations, and custom features from raw transcription
+5. **Track Transcription IDs**: For BYOK users, use `transcription_ids` to correlate with provider jobs
+6. **Handle Errors**: Implement retry logic for transcription failures
+
+## Examples
+
+### Basic Transcription
+
+```bash
+curl -X POST "https://api.meetingbaas.com/v2/bots" \
+  -H "x-meeting-baas-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meeting_url": "https://meet.google.com/abc-defg-hij",
+    "bot_name": "Notetaker",
+    "transcription_enabled": true,
+    "transcription_config": {
+      "provider": "gladia"
+    }
+  }'
+```
+
+### BYOK with Summarization
+
+```bash
+curl -X POST "https://api.meetingbaas.com/v2/bots" \
+  -H "x-meeting-baas-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meeting_url": "https://meet.google.com/abc-defg-hij",
+    "bot_name": "AI Notetaker",
+    "transcription_enabled": true,
+    "transcription_config": {
+      "provider": "gladia",
+      "api_key": "your-gladia-api-key",
+      "custom_params": {
+        "summarization": true,
+        "summarization_config": {
+          "type": "bullet_points"
+        }
+      }
+    }
+  }'
+```
+
+### Multi-Language Translation
+
+```bash
+curl -X POST "https://api.meetingbaas.com/v2/bots" \
+  -H "x-meeting-baas-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "meeting_url": "https://meet.google.com/abc-defg-hij",
+    "bot_name": "Multilingual Notetaker",
+    "transcription_enabled": true,
+    "transcription_config": {
+      "provider": "gladia",
+      "custom_params": {
+        "translation": true,
+        "translation_config": {
+          "target_languages": ["es", "fr", "de"],
+          "model": "enhanced"
+        },
+        "language_config": {
+          "detect_language": true
+        }
+      }
+    }
+  }'
+```
+
+## Next Steps
+
+- Learn about [Getting the Data](/docs/api-v2/getting-started/getting-the-data) to access transcriptions
+- Set up [Webhooks](/docs/api-v2/webhooks) to receive transcription URLs automatically
+- Check the [API Reference](/docs/api-v2/reference) for complete parameter documentation
+

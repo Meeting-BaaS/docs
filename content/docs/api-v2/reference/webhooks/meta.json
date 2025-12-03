@@ -1,0 +1,15 @@
+{
+  "title": "Webhooks",
+  "pages": [
+    "botwebhookstatuschange",
+    "botwebhookcompleted",
+    "botwebhookfailed",
+    "calendarwebhookconnectioncreated",
+    "calendarwebhookconnectionupdated",
+    "calendarwebhookconnectiondeleted",
+    "calendarwebhookeventssynced",
+    "calendarwebhookeventcreated",
+    "calendarwebhookeventupdated",
+    "calendarwebhookeventcancelled"
+  ]
+}

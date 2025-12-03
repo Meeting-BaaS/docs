@@ -1,0 +1,21 @@
+{
+    "title": "Bots",
+    "pages": [
+        "batch-create-bots",
+        "create-bot",
+        "delete-bot-data",
+        "get-bot-details",
+        "get-bot-screenshots",
+        "get-bot-status",
+        "leave-bot",
+        "list-bots",
+        "resend-final-webhook",
+        "retry-callback",
+        "batch-create-scheduled-bots",
+        "create-scheduled-bot",
+        "delete-scheduled-bot",
+        "get-scheduled-bot-details",
+        "list-scheduled-bots",
+        "update-scheduled-bot"
+    ]
+}

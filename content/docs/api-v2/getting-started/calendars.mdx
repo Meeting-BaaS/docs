@@ -1,0 +1,311 @@
+---
+title: Calendar integration
+description: Learn how to integrate calendars and schedule bots automatically
+icon: Calendar
+---
+
+Meeting BaaS v2 allows you to connect calendars (Google Calendar, Microsoft Outlook) and automatically schedule bots for calendar events. This guide walks you through setting up calendar integration in your application.
+
+## Overview
+
+Calendar integration enables:
+
+- Automatic bot scheduling for calendar events
+- Real-time sync of calendar events via push subscriptions
+- Webhook notifications for calendar changes
+- Support for recurring events
+- Automatic handling of event reschedules and cancellations
+
+## Prerequisites
+
+Before you can integrate calendars, you need to set up OAuth applications with Google and/or Microsoft. Meeting BaaS v2 uses a **bring-your-own-credentials** model, meaning you create and manage your own OAuth applications and provide the credentials when creating calendar connections.
+
+### What You Need
+
+You'll need two sets of credentials:
+
+1. **Your Application's OAuth Credentials** (Service Level):
+   - Google: OAuth 2.0 Client ID and Client Secret
+   - Microsoft: Azure AD Application (Client) ID and Client Secret
+
+2. **User's OAuth Refresh Token** (User Level):
+   - OAuth refresh token obtained when each user authorizes your application to access their calendar
+
+<Callout type="info">
+  **Best Practice**: Request calendar access as a separate step after initial user signup. Users are more likely to grant calendar access when it's clearly tied to a specific feature they want to use.
+</Callout>
+
+## Create Google Calendar OAuth Application
+
+You'll need to create a Google OAuth application that users can authorize to access their calendar. You can skip this step if your application won't support Google Calendar. We recommend creating separate applications for development and production.
+
+### Steps
+
+1. **Create a Google Cloud Project**: Follow the directions [here](https://support.google.com/cloud/answer/15549257) to create a new Google Cloud project that uses OAuth.
+
+2. **Enable Google Calendar API**: In your Google Cloud project, go to "APIs & Services" > "Library" and enable the [Google Calendar API](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com).
+
+3. **Create OAuth 2.0 Credentials**: 
+   - Go to "APIs & Services" > "Credentials"
+   - Click "Create Credentials" > "OAuth client ID"
+   - Choose "Web application" as the application type
+   - Add your authorized redirect URIs
+   - Use these scopes when requesting authorization:
+     - `https://www.googleapis.com/auth/calendar.readonly` - To read calendar and event data
+     - `https://www.googleapis.com/auth/userinfo.email` - To get the user's email address (optional but recommended)
+
+4. **OAuth Consent Screen**: 
+   - Configure your OAuth consent screen in "APIs & Services" > "OAuth consent screen"
+   - Google will need to approve your application before external users can authorize it. See [here](https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification) for more information
+   - Until your app is approved, only users on your test users list can authorize it. To edit the test users list, go to "OAuth Consent Screen" > "Test Users"
+
+### Important Notes for Google OAuth
+
+- **Refresh Token Requirement**: Calendar connections require offline access. When implementing the OAuth flow, you **must** include:
+  - `access_type=offline` parameter
+  - `prompt=consent` parameter (to force the consent screen and ensure you get a refresh token)
+- Without a refresh token, the connection will expire after ~1 hour and cannot be renewed
+
+## Create Microsoft Calendar OAuth Application
+
+You'll need to create a Microsoft Azure AD application that users can authorize to access their calendar. You can skip this step if your application won't support Microsoft Calendar. We recommend creating separate applications for development and production.
+
+### Steps
+
+1. **Register an Azure AD Application**: Follow the directions [here](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app) to create a new Microsoft Azure Active Directory application. When it asks you to choose "Supported account types", select "Accounts in any organizational directory (Any Microsoft Entra ID tenant - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)".
+
+2. **Configure API Permissions**: 
+   - Go to "API permissions" in your Azure AD app
+   - Add these delegated permissions:
+     - `Calendars.Read` - To read calendar and event data
+     - `User.Read` - To get the user's profile information (optional but recommended)
+   - Click "Add a permission" > "Microsoft Graph" > "Delegated permissions"
+
+3. **Publisher Verification** (Optional but Recommended):
+   - Microsoft can verify your application before external users can authorize it. See [here](https://learn.microsoft.com/en-us/entra/identity-platform/publisher-verification-overview) for more information
+   - This process is automated and should take less than an hour
+   - Steps to get verified:
+     - [Join the Microsoft AI Cloud Partner Program](https://partner.microsoft.com/en-us/partnership)
+     - [Configure your app's publisher domain](https://learn.microsoft.com/en-us/entra/identity-platform/howto-configure-publisher-domain)
+     - [Mark your app as publisher verified](https://learn.microsoft.com/en-us/entra/identity-platform/mark-app-as-publisher-verified)
+
+### Important Notes for Microsoft OAuth
+
+- **Refresh Token Requirement**: Calendar connections require offline access. When implementing the OAuth flow, you **must** include:
+  - `offline_access` scope in your OAuth request
+- Without a refresh token, the connection will expire after ~1 hour and cannot be renewed
+- **Tenant ID**: For Microsoft, you'll need to provide the Azure AD tenant ID. You can find this in Azure Portal > Azure Active Directory > Overview. You can also use `common`, `organizations`, or `consumers` for multi-tenant scenarios
+
+## Implement OAuth Flow
+
+You'll need to add code to handle the OAuth flow for users to authorize your Calendar OAuth applications. The flow is essentially the same for both Google and Microsoft:
+
+1. **Add an authorization endpoint**: Redirect users to the OAuth provider's authorization URL
+2. **Add a callback endpoint**: Handle the OAuth callback and exchange the authorization code for tokens
+3. **Exchange authorization code for refresh token**: In your callback endpoint, exchange the authorization code for an access token and refresh token
+4. **Create calendar connection**: After obtaining the refresh token, make a `POST /v2/calendars` request to create the calendar connection, passing:
+   - `oauth_client_id`: Your OAuth client ID
+   - `oauth_client_secret`: Your OAuth client secret
+   - `oauth_refresh_token`: The refresh token obtained from the user's authorization
+   - `oauth_tenant_id`: (Microsoft only) The Azure AD tenant ID
+   - `raw_calendar_id`: The calendar ID to connect (use `POST /v2/calendars/list-raw` to get available calendars)
+
+## Supported Platforms
+
+- **Google Calendar**: Full support for Google Workspace and personal accounts
+- **Microsoft Outlook**: Full support for Microsoft 365 and personal accounts
+
+## Calendar Events
+
+Once connected, calendar events are automatically synced. You can:
+
+- List all calendars
+- List events for a calendar
+- Get event details
+- Schedule bots for specific events or entire event series
+
+## Scheduling Bots for Calendar Events
+
+To schedule a bot for a calendar event:
+
+```bash
+curl -X POST "https://api.meetingbaas.com/v2/calendars/CALENDAR-ID/bots" \
+     -H "Content-Type: application/json" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+     -d '{
+           "event_id": "EVENT-ID",
+           "all_occurrences": false,
+           "bot_name": "AI Notetaker",
+           "recording_mode": "speaker_view"
+         }'
+```
+
+**Options:**
+- `event_id`: The specific event instance ID
+- `all_occurrences`: Set to `true` to schedule for all occurrences of a recurring event
+- `series_id`: Use this instead of `event_id` to schedule for an entire series
+
+## Webhooks
+
+Calendar integrations trigger webhook events for:
+- **Connection changes**: When a calendar connection is created, updated, or has a status change
+- **Initial sync**: A `calendar.events_synced` webhook is sent once when a calendar is first connected, containing all events within the 30-day window
+- **Event changes**: Individual webhooks for event creation, updates, and cancellations (sent for all subsequent changes after initial sync)
+
+### Initial Sync Webhook
+
+When a calendar connection is first created, you'll receive a single `calendar.events_synced` webhook containing all events within the 30-day materialization window. This webhook is sent **only once** and will not be triggered again for:
+- Subsequent syncs via push notifications
+- Manual resyncs
+- Periodic background syncs
+
+**How to use it:**
+
+You have two options for handling the initial event data:
+
+1. **Use the webhook payload**: The `calendar.events_synced` webhook contains the complete event data, which you can use for initial reconciliation
+2. **Call the API endpoints**: Alternatively, you can call the `GET /v2/calendars/{calendar_id}/events` or `GET /v2/calendars/{calendar_id}/series` endpoints to fetch the initial event data
+
+Most applications use the API endpoints for initial reconciliation, as they may already be calling these endpoints for other purposes.
+
+See the [Webhooks documentation](/docs/api-v2/webhooks) for details on all calendar webhook events and their payloads.
+
+## Frequently Asked Questions
+
+### What happens if a calendar event is updated close to its start time?
+
+**Lock Window Behavior (4 minutes before event start):**
+
+When an event is updated within 4 minutes of its start time, the system enters a "lock window" where the original bot schedule is preserved to prevent disruption. Here's what happens:
+
+- **Original bot continues**: The bot that was already scheduled will still attempt to join using the original meeting details
+- **New bot is also created**: A second bot schedule is created with the updated event details
+- **Why this happens**: The original bot may have already been queued for processing before the event update occurred
+
+**Outside Lock Window (more than 4 minutes before start):**
+
+If an event is updated more than 4 minutes before its start time, the bot schedule is safely updated with the new event details, and only one bot will join.
+
+### What happens if a calendar event is deleted close to its start time?
+
+**Within Lock Window (4 minutes before start):**
+- The bot schedule remains active and the bot will still attempt to join
+- This prevents last-minute cancellations from disrupting bots that are already queued
+
+**Outside Lock Window (more than 4 minutes before start):**
+- The bot schedule is automatically deleted
+- No bot will be created for the cancelled event
+
+### What happens if the meeting URL is removed from an event?
+
+**If the event originally had a meeting URL:**
+- The bot will use the meeting URL from the bot configuration, which was captured when the bot was scheduled
+- The bot will still attempt to join even if the URL is later removed from the calendar event
+
+**If the event never had a meeting URL:**
+- No bot schedule is created
+- Calendar events without meeting URLs are skipped during bot scheduling
+
+### How often are calendar events synced?
+
+Calendar events are synced via **push notifications (real-time)**:
+- **Google Calendar**: Push notifications via watch channels (renewed every 7 days)
+- **Microsoft Calendar**: Push notifications via subscriptions (renewed every 2 days)
+- Changes are typically reflected within seconds
+
+### What is the event materialization window?
+
+Meeting BaaS maintains a **30-day rolling window** of calendar events:
+- Events are synced from **now** to **30 days in the future**
+- Events outside this window are not stored or monitored
+- As time progresses, new events enter the window and old events are removed
+
+### How are recurring events handled?
+
+**Series-Level Bot Scheduling:**
+- You can schedule a bot for all occurrences of a recurring event using `all_occurrences: true` or by providing the `series_id`
+- When scheduled at the series level, bots are automatically created for:
+  - All existing instances within the 30-day window
+  - New instances as they enter the window
+
+**Series Invalidation:**
+
+In some cases, the calendar platform may invalidate an event series (such as when the recurrence pattern changes, an event is moved to a significantly different date, etc.). When this happens:
+- All instances of the old series are cancelled
+- A new series is created with the updated details
+- If series-level bot scheduling was enabled, bots are automatically scheduled for the new series
+
+This behavior is inline with how calendar platforms handle major changes to recurring events.
+
+### What happens if I decline a calendar event?
+
+If you decline a calendar event (as the calendar owner):
+- The event is treated as **cancelled** in Meeting BaaS
+- No bot will be scheduled for declined events
+- Existing bot schedules for declined events are automatically cancelled
+
+### Can I schedule bots for all-day events?
+
+All-day events are synced and stored, but:
+- They typically don't have meeting URLs
+- Bots are only scheduled for events with valid meeting URLs
+- All-day events without meeting URLs are skipped during bot scheduling
+
+### What meeting platforms are supported?
+
+Meeting BaaS automatically detects meeting URLs for:
+- **Zoom** (`zoom.us`)
+- **Google Meet** (`meet.google.com`)
+- **Microsoft Teams** (`teams.microsoft.com`)
+- **Other platforms**: URLs are stored but may not be automatically detected
+
+The meeting platform is detected from:
+- The event's meeting URL field
+- The event description (for embedded links)
+- Conference data (Google Calendar)
+
+### How are event exceptions handled?
+
+**Event exceptions** are recurring event instances that have been modified:
+- Modified start time
+- Changed title, description, or location
+- Different meeting URL
+
+Exceptions are:
+- Tracked with an `is_exception: true` flag
+- Synced and stored separately from the series pattern
+- Handled correctly for bot scheduling
+
+### What if my OAuth credentials expire?
+
+**Refresh Token Expiration:**
+- Google: Refresh tokens don't expire unless revoked by the user
+- Microsoft: Refresh tokens are valid for 90 days but are automatically renewed with each use
+
+**If credentials become invalid:**
+- The calendar connection status changes to `error` or `revoked`
+- You'll receive a webhook notification
+- Users must re-authorize your application to restore the connection
+
+### How do I handle calendar connection errors?
+
+Monitor the `status` field on calendar connections:
+- `active`: Connection is working normally
+- `error`: Temporary error (e.g., sync failure) - may recover automatically
+- `revoked`: User revoked access - requires re-authorization
+- `permission_denied`: Missing required permissions - check OAuth scopes
+
+You'll receive webhook notifications for connection status changes.
+
+### Can I connect multiple calendars from the same account?
+
+Yes! You can create separate calendar connections for:
+- Multiple calendars from the same Google account
+- Multiple calendars from the same Microsoft account
+- Primary calendar + shared calendars
+
+Each connection is independent and has its own:
+- Sync status
+- Bot schedules
+- Webhook events
+
