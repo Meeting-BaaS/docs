@@ -14,7 +14,7 @@ _openapi:
               
               Each series includes its associated event instances. Supports filtering by event type (one_off, recurring) and whether series are deleted. Use cursor-based pagination for efficient navigation.
               
-              **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 20, max: 100).
+              **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 50, max: 250).
               
               **Event Types:**
               - `one_off`: Single events (not part of a recurring series)
@@ -37,7 +37,7 @@ Retrieve a paginated list of event series (both one-off and recurring events).
     
     Each series includes its associated event instances. Supports filtering by event type (one_off, recurring) and whether series are deleted. Use cursor-based pagination for efficient navigation.
     
-    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 20, max: 100).
+    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 50, max: 250).
     
     **Event Types:**
     - `one_off`: Single events (not part of a recurring series)

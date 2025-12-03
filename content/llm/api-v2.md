@@ -787,11 +787,166 @@ curl -X POST "https://api.meetingbaas.com/v2/calendars/CALENDAR-ID/bots" \
 ## Webhooks
 
 Calendar integrations trigger webhook events for:
-- Connection changes
-- Event syncs: Triggered during first sync only
-- Event creation, updates, and cancellations
+- **Connection changes**: When a calendar connection is created, updated, or has a status change
+- **Initial sync**: A `calendar.events_synced` webhook is sent once when a calendar is first connected, containing all events within the 30-day window
+- **Event changes**: Individual webhooks for event creation, updates, and cancellations (sent for all subsequent changes after initial sync)
 
-See the [Webhooks documentation](/docs/api-v2/webhooks) for details on calendar webhook events.
+### Initial Sync Webhook
+
+When a calendar connection is first created, you'll receive a single `calendar.events_synced` webhook containing all events within the 30-day materialization window. This webhook is sent **only once** and will not be triggered again for:
+- Subsequent syncs via push notifications
+- Manual resyncs
+- Periodic background syncs
+
+**How to use it:**
+
+You have two options for handling the initial event data:
+
+1. **Use the webhook payload**: The `calendar.events_synced` webhook contains the complete event data, which you can use for initial reconciliation
+2. **Call the API endpoints**: Alternatively, you can call the `GET /v2/calendars/{calendar_id}/events` or `GET /v2/calendars/{calendar_id}/series` endpoints to fetch the initial event data
+
+Most applications use the API endpoints for initial reconciliation, as they may already be calling these endpoints for other purposes.
+
+See the [Webhooks documentation](/docs/api-v2/webhooks) for details on all calendar webhook events and their payloads.
+
+## Frequently Asked Questions
+
+### What happens if a calendar event is updated close to its start time?
+
+**Lock Window Behavior (4 minutes before event start):**
+
+When an event is updated within 4 minutes of its start time, the system enters a "lock window" where the original bot schedule is preserved to prevent disruption. Here's what happens:
+
+- **Original bot continues**: The bot that was already scheduled will still attempt to join using the original meeting details
+- **New bot is also created**: A second bot schedule is created with the updated event details
+- **Why this happens**: The original bot may have already been queued for processing before the event update occurred
+
+**Outside Lock Window (more than 4 minutes before start):**
+
+If an event is updated more than 4 minutes before its start time, the bot schedule is safely updated with the new event details, and only one bot will join.
+
+### What happens if a calendar event is deleted close to its start time?
+
+**Within Lock Window (4 minutes before start):**
+- The bot schedule remains active and the bot will still attempt to join
+- This prevents last-minute cancellations from disrupting bots that are already queued
+
+**Outside Lock Window (more than 4 minutes before start):**
+- The bot schedule is automatically deleted
+- No bot will be created for the cancelled event
+
+### What happens if the meeting URL is removed from an event?
+
+**If the event originally had a meeting URL:**
+- The bot will use the meeting URL from the bot configuration, which was captured when the bot was scheduled
+- The bot will still attempt to join even if the URL is later removed from the calendar event
+
+**If the event never had a meeting URL:**
+- No bot schedule is created
+- Calendar events without meeting URLs are skipped during bot scheduling
+
+### How often are calendar events synced?
+
+Calendar events are synced via **push notifications (real-time)**:
+- **Google Calendar**: Push notifications via watch channels (renewed every 7 days)
+- **Microsoft Calendar**: Push notifications via subscriptions (renewed every 2 days)
+- Changes are typically reflected within seconds
+
+### What is the event materialization window?
+
+Meeting BaaS maintains a **30-day rolling window** of calendar events:
+- Events are synced from **now** to **30 days in the future**
+- Events outside this window are not stored or monitored
+- As time progresses, new events enter the window and old events are removed
+
+### How are recurring events handled?
+
+**Series-Level Bot Scheduling:**
+- You can schedule a bot for all occurrences of a recurring event using `all_occurrences: true` or by providing the `series_id`
+- When scheduled at the series level, bots are automatically created for:
+  - All existing instances within the 30-day window
+  - New instances as they enter the window
+
+**Series Invalidation:**
+
+In some cases, the calendar platform may invalidate an event series (such as when the recurrence pattern changes, an event is moved to a significantly different date, etc.). When this happens:
+- All instances of the old series are cancelled
+- A new series is created with the updated details
+- If series-level bot scheduling was enabled, bots are automatically scheduled for the new series
+
+This behavior is inline with how calendar platforms handle major changes to recurring events.
+
+### What happens if I decline a calendar event?
+
+If you decline a calendar event (as the calendar owner):
+- The event is treated as **cancelled** in Meeting BaaS
+- No bot will be scheduled for declined events
+- Existing bot schedules for declined events are automatically cancelled
+
+### Can I schedule bots for all-day events?
+
+All-day events are synced and stored, but:
+- They typically don't have meeting URLs
+- Bots are only scheduled for events with valid meeting URLs
+- All-day events without meeting URLs are skipped during bot scheduling
+
+### What meeting platforms are supported?
+
+Meeting BaaS automatically detects meeting URLs for:
+- **Zoom** (`zoom.us`)
+- **Google Meet** (`meet.google.com`)
+- **Microsoft Teams** (`teams.microsoft.com`)
+- **Other platforms**: URLs are stored but may not be automatically detected
+
+The meeting platform is detected from:
+- The event's meeting URL field
+- The event description (for embedded links)
+- Conference data (Google Calendar)
+
+### How are event exceptions handled?
+
+**Event exceptions** are recurring event instances that have been modified:
+- Modified start time
+- Changed title, description, or location
+- Different meeting URL
+
+Exceptions are:
+- Tracked with an `is_exception: true` flag
+- Synced and stored separately from the series pattern
+- Handled correctly for bot scheduling
+
+### What if my OAuth credentials expire?
+
+**Refresh Token Expiration:**
+- Google: Refresh tokens don't expire unless revoked by the user
+- Microsoft: Refresh tokens are valid for 90 days but are automatically renewed with each use
+
+**If credentials become invalid:**
+- The calendar connection status changes to `error` or `revoked`
+- You'll receive a webhook notification
+- Users must re-authorize your application to restore the connection
+
+### How do I handle calendar connection errors?
+
+Monitor the `status` field on calendar connections:
+- `active`: Connection is working normally
+- `error`: Temporary error (e.g., sync failure) - may recover automatically
+- `revoked`: User revoked access - requires re-authorization
+- `permission_denied`: Missing required permissions - check OAuth scopes
+
+You'll receive webhook notifications for connection status changes.
+
+### Can I connect multiple calendars from the same account?
+
+Yes! You can create separate calendar connections for:
+- Multiple calendars from the same Google account
+- Multiple calendars from the same Microsoft account
+- Primary calendar + shared calendars
+
+Each connection is independent and has its own:
+- Sync status
+- Bot schedules
+- Webhook events
 
 
 
@@ -2750,7 +2905,7 @@ List all bots for your team with pagination support.
     
     Filter by status (queued, joining, in_call_recording, transcribing, completed, failed), meeting platform (zoom, meet, teams), and date range. Results are ordered by creation date (newest first). Use cursor-based pagination for efficient navigation through large result sets.
     
-    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The response includes a `next_cursor` if more results are available. The `limit` parameter controls how many results are returned per page (default: 20, max: 100).
+    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The response includes a `next_cursor` if more results are available. The `limit` parameter controls how many results are returned per page (default: 50, max: 250).
     
     **Filtering:** 
     - `status`: Filter by bot status (comma-separated for multiple statuses)
@@ -2931,13 +3086,13 @@ Connect a Google or Microsoft calendar to your account.
     
     **Initial Sync:** After creating the connection, an initial sync is performed automatically. This fetches all events from the calendar provider. The sync may take a few minutes for calendars with many events.
     
-    **Push Subscriptions:** A push subscription is created automatically for real-time event updates. The subscription will send webhooks when events are created, updated, or cancelled. Subscriptions expire after a certain period (3 days for Microsoft, longer for Google) and need to be renewed using the resubscribe endpoint.
+    **Push Subscriptions:** A push subscription is created automatically for real-time event updates. The subscription will send webhooks when events are created, updated, or cancelled.
     
-    **Calendar Limits:** There may be limits on the number of calendar connections per team. If the limit is exceeded, the request will fail with 403 Forbidden.
+    **Calendar Limits:** There may be limits on the number of calendar connections per team. If the limit is exceeded, the request will fail with 429 Status Code.
     
     **Duplicate Connections:** If a connection already exists for the same calendar ID and team, the request will fail with 409 Conflict. You can update an existing connection using the PATCH endpoint instead.
     
-    Returns 201 with the newly created calendar connection. Returns 401 if OAuth token refresh failed, 403 if the calendar connection limit is exceeded, or 409 if the connection already exists.
+    Returns 201 with the newly created calendar connection. Returns 401 if OAuth token refresh failed, 429 if the calendar connection limit is exceeded, or 409 if the connection already exists.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars","method":"post"}]} webhooks={[]} hasHead={false} />
 
@@ -3068,7 +3223,7 @@ Retrieve a paginated list of calendar connections.
     
     Supports filtering by calendar platform (google, microsoft) and connection status (active, error, revoked, permission_denied). Results are ordered by creation date (newest first). Use cursor-based pagination for efficient navigation.
     
-    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 20, max: 100).
+    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 50, max: 250).
     
     **Filtering:**
     - `platform`: Filter by calendar platform (google, microsoft)
@@ -3097,7 +3252,7 @@ Retrieve a paginated list of event series (both one-off and recurring events).
     
     Each series includes its associated event instances. Supports filtering by event type (one_off, recurring) and whether series are deleted. Use cursor-based pagination for efficient navigation.
     
-    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 20, max: 100).
+    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 50, max: 250).
     
     **Event Types:**
     - `one_off`: Single events (not part of a recurring series)
@@ -3128,7 +3283,7 @@ Retrieve a paginated list of calendar events.
     
     Supports filtering by date range, status (confirmed, cancelled, tentative), and whether events are deleted. Results include whether a bot is scheduled for each event. Use cursor-based pagination for efficient navigation.
     
-    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 20, max: 100).
+    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 50, max: 250).
     
     **Filtering:**
     - `start_after`: ISO 8601 timestamp - only return events starting after this time
@@ -3146,7 +3301,7 @@ Retrieve a paginated list of calendar events.
 
 ---
 
-## List available calendars
+## List raw calendars (preview before creating connection)
 
 ### Source: ./content/docs/api-v2/reference/calendars/list-raw-calendars.mdx
 

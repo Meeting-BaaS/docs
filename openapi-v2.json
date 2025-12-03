@@ -3668,6 +3668,20 @@
             "items": {
               "type": "object",
               "properties": {
+                "series_id": {
+                  "description": "The UUID of the event series this instance belongs to. Every event instance (both one-off and recurring) is associated with a series. Use this ID when scheduling bots for all occurrences of a recurring series",
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "event_type": {
+                  "description": "The type of event. 'one_off' for single events that occur once, 'recurring' for events that are part of a recurring series with multiple occurrences",
+                  "type": "string",
+                  "enum": [
+                    "one_off",
+                    "recurring"
+                  ]
+                },
                 "event_id": {
                   "description": "The UUID of the event instance",
                   "type": "string",
@@ -3748,6 +3762,8 @@
                 }
               },
               "required": [
+                "series_id",
+                "event_type",
                 "event_id",
                 "title",
                 "start_time",
@@ -9456,6 +9472,20 @@
             "items": {
               "type": "object",
               "properties": {
+                "series_id": {
+                  "description": "The UUID of the event series this instance belongs to. Every event instance (both one-off and recurring) is associated with a series. Use this ID when scheduling bots for all occurrences of a recurring series",
+                  "type": "string",
+                  "format": "uuid",
+                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                },
+                "event_type": {
+                  "description": "The type of event. 'one_off' for single events that occur once, 'recurring' for events that are part of a recurring series with multiple occurrences",
+                  "type": "string",
+                  "enum": [
+                    "one_off",
+                    "recurring"
+                  ]
+                },
                 "event_id": {
                   "description": "The UUID of the event instance",
                   "type": "string",
@@ -9536,6 +9566,8 @@
                 }
               },
               "required": [
+                "series_id",
+                "event_type",
                 "event_id",
                 "title",
                 "start_time",
@@ -11886,7 +11918,7 @@
         "tags": [
           "Bots"
         ],
-        "description": "List all bots for your team with pagination support.\n    \n    Filter by status (queued, joining, in_call_recording, transcribing, completed, failed), meeting platform (zoom, meet, teams), and date range. Results are ordered by creation date (newest first). Use cursor-based pagination for efficient navigation through large result sets.\n    \n    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The response includes a `next_cursor` if more results are available. The `limit` parameter controls how many results are returned per page (default: 20, max: 100).\n    \n    **Filtering:** \n    - `status`: Filter by bot status (comma-separated for multiple statuses)\n    - `platform`: Filter by meeting platform (zoom, meet, teams)\n    - `created_after`: ISO 8601 timestamp - only return bots created after this time\n    - `created_before`: ISO 8601 timestamp - only return bots created before this time\n    \n    **Date Range:** The `created_after` and `created_before` filters use ISO 8601 timestamps. Results are limited to bots created within the last 90 days by default.\n    \n    Returns a paginated list of bots with metadata including bot ID, status, meeting platform, creation time, and basic configuration.",
+        "description": "List all bots for your team with pagination support.\n    \n    Filter by status (queued, joining, in_call_recording, transcribing, completed, failed), meeting platform (zoom, meet, teams), and date range. Results are ordered by creation date (newest first). Use cursor-based pagination for efficient navigation through large result sets.\n    \n    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The response includes a `next_cursor` if more results are available. The `limit` parameter controls how many results are returned per page (default: 50, max: 250).\n    \n    **Filtering:** \n    - `status`: Filter by bot status (comma-separated for multiple statuses)\n    - `platform`: Filter by meeting platform (zoom, meet, teams)\n    - `created_after`: ISO 8601 timestamp - only return bots created after this time\n    - `created_before`: ISO 8601 timestamp - only return bots created before this time\n    \n    **Date Range:** The `created_after` and `created_before` filters use ISO 8601 timestamps. Results are limited to bots created within the last 90 days by default.\n    \n    Returns a paginated list of bots with metadata including bot ID, status, meeting platform, creation time, and basic configuration.",
         "parameters": [
           {
             "schema": {
@@ -13258,7 +13290,7 @@
     "/v2/calendars/list-raw": {
       "post": {
         "operationId": "listRawCalendars",
-        "summary": "List available calendars",
+        "summary": "List raw calendars (preview before creating connection)",
         "tags": [
           "Calendars"
         ],
@@ -13333,7 +13365,7 @@
         "tags": [
           "Calendars"
         ],
-        "description": "Connect a Google or Microsoft calendar to your account.\n    \n    The connection will automatically sync events and create push subscriptions for real-time updates. You must provide your own OAuth credentials (client ID, secret, refresh token). Once connected, the calendar will be synced immediately, and webhook subscriptions will be created for real-time event updates.\n    \n    **OAuth Credentials:** You must provide valid OAuth credentials for the calendar provider. The endpoint will validate the credentials by attempting to refresh the access token. If the refresh token is invalid or expired, the request will fail with 401 Unauthorized.\n    \n    **Initial Sync:** After creating the connection, an initial sync is performed automatically. This fetches all events from the calendar provider. The sync may take a few minutes for calendars with many events.\n    \n    **Push Subscriptions:** A push subscription is created automatically for real-time event updates. The subscription will send webhooks when events are created, updated, or cancelled. Subscriptions expire after a certain period (3 days for Microsoft, longer for Google) and need to be renewed using the resubscribe endpoint.\n    \n    **Calendar Limits:** There may be limits on the number of calendar connections per team. If the limit is exceeded, the request will fail with 403 Forbidden.\n    \n    **Duplicate Connections:** If a connection already exists for the same calendar ID and team, the request will fail with 409 Conflict. You can update an existing connection using the PATCH endpoint instead.\n    \n    Returns 201 with the newly created calendar connection. Returns 401 if OAuth token refresh failed, 403 if the calendar connection limit is exceeded, or 409 if the connection already exists.",
+        "description": "Connect a Google or Microsoft calendar to your account.\n    \n    The connection will automatically sync events and create push subscriptions for real-time updates. You must provide your own OAuth credentials (client ID, secret, refresh token). Once connected, the calendar will be synced immediately, and webhook subscriptions will be created for real-time event updates.\n    \n    **OAuth Credentials:** You must provide valid OAuth credentials for the calendar provider. The endpoint will validate the credentials by attempting to refresh the access token. If the refresh token is invalid or expired, the request will fail with 401 Unauthorized.\n    \n    **Initial Sync:** After creating the connection, an initial sync is performed automatically. This fetches all events from the calendar provider. The sync may take a few minutes for calendars with many events.\n    \n    **Push Subscriptions:** A push subscription is created automatically for real-time event updates. The subscription will send webhooks when events are created, updated, or cancelled.\n    \n    **Calendar Limits:** There may be limits on the number of calendar connections per team. If the limit is exceeded, the request will fail with 429 Status Code.\n    \n    **Duplicate Connections:** If a connection already exists for the same calendar ID and team, the request will fail with 409 Conflict. You can update an existing connection using the PATCH endpoint instead.\n    \n    Returns 201 with the newly created calendar connection. Returns 401 if OAuth token refresh failed, 429 if the calendar connection limit is exceeded, or 409 if the connection already exists.",
         "requestBody": {
           "content": {
             "application/json": {
@@ -13374,8 +13406,8 @@
               }
             }
           },
-          "403": {
-            "description": "Forbidden - Calendar connection limit exceeded or permission denied",
+          "409": {
+            "description": "Conflict - Calendar connection already exists",
             "content": {
               "application/json": {
                 "schema": {
@@ -13384,8 +13416,8 @@
               }
             }
           },
-          "409": {
-            "description": "Conflict - Calendar connection already exists",
+          "429": {
+            "description": "Too many requests - Calendar connection limit exceeded",
             "content": {
               "application/json": {
                 "schema": {
@@ -13412,7 +13444,7 @@
         "tags": [
           "Calendars"
         ],
-        "description": "Retrieve a paginated list of calendar connections.\n    \n    Supports filtering by calendar platform (google, microsoft) and connection status (active, error, revoked, permission_denied). Results are ordered by creation date (newest first). Use cursor-based pagination for efficient navigation.\n    \n    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 20, max: 100).\n    \n    **Filtering:**\n    - `platform`: Filter by calendar platform (google, microsoft)\n    - `status`: Filter by connection status (active, error, revoked, permission_denied)\n    \n    **Connection Status:**\n    - `active`: Connection is working and syncing events\n    - `error`: Connection has errors (OAuth token refresh failed, etc.)\n    - `revoked`: OAuth access was revoked by the user\n    - `permission_denied`: Insufficient permissions for the OAuth scopes\n    \n    Returns a paginated list of calendar connections with metadata including calendar ID, platform, account email, status, and last sync time.",
+        "description": "Retrieve a paginated list of calendar connections.\n    \n    Supports filtering by calendar platform (google, microsoft) and connection status (active, error, revoked, permission_denied). Results are ordered by creation date (newest first). Use cursor-based pagination for efficient navigation.\n    \n    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 50, max: 250).\n    \n    **Filtering:**\n    - `platform`: Filter by calendar platform (google, microsoft)\n    - `status`: Filter by connection status (active, error, revoked, permission_denied)\n    \n    **Connection Status:**\n    - `active`: Connection is working and syncing events\n    - `error`: Connection has errors (OAuth token refresh failed, etc.)\n    - `revoked`: OAuth access was revoked by the user\n    - `permission_denied`: Insufficient permissions for the OAuth scopes\n    \n    Returns a paginated list of calendar connections with metadata including calendar ID, platform, account email, status, and last sync time.",
         "parameters": [
           {
             "schema": {
@@ -13931,7 +13963,7 @@
         "tags": [
           "Calendars"
         ],
-        "description": "Retrieve a paginated list of calendar events.\n    \n    Supports filtering by date range, status (confirmed, cancelled, tentative), and whether events are deleted. Results include whether a bot is scheduled for each event. Use cursor-based pagination for efficient navigation.\n    \n    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 20, max: 100).\n    \n    **Filtering:**\n    - `start_after`: ISO 8601 timestamp - only return events starting after this time\n    - `start_before`: ISO 8601 timestamp - only return events starting before this time\n    - `status`: Filter by event status (confirmed, cancelled, tentative)\n    - `include_deleted`: Include deleted events in results (default: false)\n    \n    **Event Information:** Each event includes its ID, title, start/end times, status, meeting URL (if available), meeting platform (if detected), and whether a bot is scheduled for the event.\n    \n    **Bot Scheduling:** The `bot_scheduled` field indicates whether a calendar bot schedule exists for this event. This does not mean the bot has joined - it means a bot is scheduled to join when the event starts.\n    \n    Returns a paginated list of calendar events with metadata.",
+        "description": "Retrieve a paginated list of calendar events.\n    \n    Supports filtering by date range, status (confirmed, cancelled, tentative), and whether events are deleted. Results include whether a bot is scheduled for each event. Use cursor-based pagination for efficient navigation.\n    \n    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 50, max: 250).\n    \n    **Filtering:**\n    - `start_after`: ISO 8601 timestamp - only return events starting after this time\n    - `start_before`: ISO 8601 timestamp - only return events starting before this time\n    - `status`: Filter by event status (confirmed, cancelled, tentative)\n    - `include_deleted`: Include deleted events in results (default: false)\n    \n    **Event Information:** Each event includes its ID, title, start/end times, status, meeting URL (if available), meeting platform (if detected), and whether a bot is scheduled for the event.\n    \n    **Bot Scheduling:** The `bot_scheduled` field indicates whether a calendar bot schedule exists for this event. This does not mean the bot has joined - it means a bot is scheduled to join when the event starts.\n    \n    Returns a paginated list of calendar events with metadata.",
         "parameters": [
           {
             "schema": {
@@ -14088,7 +14120,7 @@
         "tags": [
           "Calendars"
         ],
-        "description": "Retrieve a paginated list of event series (both one-off and recurring events).\n    \n    Each series includes its associated event instances. Supports filtering by event type (one_off, recurring) and whether series are deleted. Use cursor-based pagination for efficient navigation.\n    \n    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 20, max: 100).\n    \n    **Event Types:**\n    - `one_off`: Single events (not part of a recurring series)\n    - `recurring`: Events that are part of a recurring series\n    \n    **Series Information:** Each series includes its series ID, event type, whether a bot is scheduled for all occurrences (`series_bot_scheduled`), and an array of event instances. For one-off events, the instances array contains a single instance. For recurring events, it contains all instances that have been synced.\n    \n    **Filtering:**\n    - `event_type`: Filter by event type (one_off, recurring)\n    - `include_deleted`: Include deleted series in results (default: false)\n    \n    **Bot Scheduling:** The `series_bot_scheduled` field indicates whether a calendar bot schedule exists for all occurrences of this series. Individual instances may have different bot scheduling status.\n    \n    Returns a paginated list of event series with their instances.",
+        "description": "Retrieve a paginated list of event series (both one-off and recurring events).\n    \n    Each series includes its associated event instances. Supports filtering by event type (one_off, recurring) and whether series are deleted. Use cursor-based pagination for efficient navigation.\n    \n    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 50, max: 250).\n    \n    **Event Types:**\n    - `one_off`: Single events (not part of a recurring series)\n    - `recurring`: Events that are part of a recurring series\n    \n    **Series Information:** Each series includes its series ID, event type, whether a bot is scheduled for all occurrences (`series_bot_scheduled`), and an array of event instances. For one-off events, the instances array contains a single instance. For recurring events, it contains all instances that have been synced.\n    \n    **Filtering:**\n    - `event_type`: Filter by event type (one_off, recurring)\n    - `include_deleted`: Include deleted series in results (default: false)\n    \n    **Bot Scheduling:** The `series_bot_scheduled` field indicates whether a calendar bot schedule exists for all occurrences of this series. Individual instances may have different bot scheduling status.\n    \n    Returns a paginated list of event series with their instances.",
         "parameters": [
           {
             "schema": {
@@ -14541,7 +14573,7 @@
   },
   "servers": [
     {
-      "url": "https://api.pre-prod-meetingbaas.com",
+      "url": "https://api.meetingbaas.com",
       "description": "production server"
     }
   ],

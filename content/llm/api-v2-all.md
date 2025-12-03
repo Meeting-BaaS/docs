@@ -312,7 +312,7 @@ List all bots for your team with pagination support.
     
     Filter by status (queued, joining, in_call_recording, transcribing, completed, failed), meeting platform (zoom, meet, teams), and date range. Results are ordered by creation date (newest first). Use cursor-based pagination for efficient navigation through large result sets.
     
-    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The response includes a `next_cursor` if more results are available. The `limit` parameter controls how many results are returned per page (default: 20, max: 100).
+    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The response includes a `next_cursor` if more results are available. The `limit` parameter controls how many results are returned per page (default: 50, max: 250).
     
     **Filtering:** 
     - `status`: Filter by bot status (comma-separated for multiple statuses)
@@ -493,13 +493,13 @@ Connect a Google or Microsoft calendar to your account.
     
     **Initial Sync:** After creating the connection, an initial sync is performed automatically. This fetches all events from the calendar provider. The sync may take a few minutes for calendars with many events.
     
-    **Push Subscriptions:** A push subscription is created automatically for real-time event updates. The subscription will send webhooks when events are created, updated, or cancelled. Subscriptions expire after a certain period (3 days for Microsoft, longer for Google) and need to be renewed using the resubscribe endpoint.
+    **Push Subscriptions:** A push subscription is created automatically for real-time event updates. The subscription will send webhooks when events are created, updated, or cancelled.
     
-    **Calendar Limits:** There may be limits on the number of calendar connections per team. If the limit is exceeded, the request will fail with 403 Forbidden.
+    **Calendar Limits:** There may be limits on the number of calendar connections per team. If the limit is exceeded, the request will fail with 429 Status Code.
     
     **Duplicate Connections:** If a connection already exists for the same calendar ID and team, the request will fail with 409 Conflict. You can update an existing connection using the PATCH endpoint instead.
     
-    Returns 201 with the newly created calendar connection. Returns 401 if OAuth token refresh failed, 403 if the calendar connection limit is exceeded, or 409 if the connection already exists.
+    Returns 201 with the newly created calendar connection. Returns 401 if OAuth token refresh failed, 429 if the calendar connection limit is exceeded, or 409 if the connection already exists.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars","method":"post"}]} webhooks={[]} hasHead={false} />
 
@@ -630,7 +630,7 @@ Retrieve a paginated list of calendar connections.
     
     Supports filtering by calendar platform (google, microsoft) and connection status (active, error, revoked, permission_denied). Results are ordered by creation date (newest first). Use cursor-based pagination for efficient navigation.
     
-    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 20, max: 100).
+    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 50, max: 250).
     
     **Filtering:**
     - `platform`: Filter by calendar platform (google, microsoft)
@@ -659,7 +659,7 @@ Retrieve a paginated list of event series (both one-off and recurring events).
     
     Each series includes its associated event instances. Supports filtering by event type (one_off, recurring) and whether series are deleted. Use cursor-based pagination for efficient navigation.
     
-    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 20, max: 100).
+    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 50, max: 250).
     
     **Event Types:**
     - `one_off`: Single events (not part of a recurring series)
@@ -690,7 +690,7 @@ Retrieve a paginated list of calendar events.
     
     Supports filtering by date range, status (confirmed, cancelled, tentative), and whether events are deleted. Results include whether a bot is scheduled for each event. Use cursor-based pagination for efficient navigation.
     
-    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 20, max: 100).
+    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 50, max: 250).
     
     **Filtering:**
     - `start_after`: ISO 8601 timestamp - only return events starting after this time
@@ -708,7 +708,7 @@ Retrieve a paginated list of calendar events.
 
 ---
 
-## List available calendars
+## List raw calendars (preview before creating connection)
 
 ### Source: ./content/docs/api-v2/reference/calendars/list-raw-calendars.mdx
 
