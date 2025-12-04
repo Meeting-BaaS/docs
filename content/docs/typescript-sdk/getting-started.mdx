@@ -3,6 +3,9 @@ title: Getting Started
 description: Learn how to install and use the Meeting BaaS TypeScript SDK.
 icon: Download
 ---
+<Callout type="info">
+  This guide uses v2 API, the recommended version for new projects. Get your API key at [dashboard.meetingbaas.com](https://dashboard.meetingbaas.com/onboarding).
+</Callout>
 
 <Steps>
 <Step>
@@ -36,9 +39,10 @@ Create a new instance of the BaaS client with your API key:
 ```typescript
 import { createBaasClient } from "@meeting-baas/sdk";
 
-// Create a BaaS client
+// Create a v2 BaaS client (recommended for new projects)
 const client = createBaasClient({
-  api_key: "your-api-key", // Get yours at https://meetingbaas.com
+  api_key: "your-api-key", // Get yours at https://dashboard.meetingbaas.com
+  api_version: "v2"
 });
 ```
 
@@ -54,28 +58,27 @@ const client = createBaasClient({
 With this client instance created, you can call Meeting BaaS methods, such as:
 
 ```typescript
-// Join a meeting
-const { success, data, error } = await client.joinMeeting({
+// Create a bot to join a meeting
+const { success, data, error } = await client.createBot({
   bot_name: "Meeting Assistant",
   meeting_url: "https://meet.google.com/abc-def-ghi",
-  reserved: true,
 });
 
 if (success) {
-  console.log("Bot joined successfully:", data.bot_id);
+  console.log("Bot created successfully:", data.bot_id);
 } else {
-  console.error("Error joining meeting:", error);
+  console.error("Error creating bot:", error);
 }
 ```
 
 ```typescript
-// Leave a meeting
-const { success, data, error } = await client.leaveMeeting({
-  uuid: "123e4567-e89b-12d3-a456-426614174000"
+// Have a bot leave the meeting
+const { success, data, error } = await client.leaveBot({
+  bot_id: "123e4567-e89b-12d3-a456-426614174000"
 });
 
 if (success) {
-  console.log("Bot left the meeting successfully:", data.bot_id);
+  console.log("Bot left the meeting successfully");
 } else {
   console.error("Error leaving meeting:", error);
 }

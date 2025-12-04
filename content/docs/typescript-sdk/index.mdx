@@ -9,9 +9,13 @@ icon: Book
   see [LLMs](../llms/sdk) and for MCP access, visit [auth.meetingbaas.com](https://auth.meetingbaas.com/home).
 </Callout>
 
+<Callout type="info">
+  **New to Meeting BaaS?** Start with v2 API - it's our recommended version with enhanced security, better error handling, and more features.
+  Sign up at [dashboard.meetingbaas.com](https://dashboard.meetingbaas.com/onboarding).
+</Callout>
+
 <Callout type="warn">
-  **New in v6.0.0**: Dual API support for both v1 and v2 APIs with type-safe version selection. Fully backward compatible with v5.x.
-  See our [Migration to v2 API Guide](/docs/typescript-sdk/migration-to-v2) for detailed upgrade instructions.
+  **Migrating from v1?** SDK v6.0.0 supports both v1 and v2 APIs. See our [Migration to v2 API Guide](/docs/typescript-sdk/migration-to-v2) for upgrade instructions.
 </Callout>
 
 ## Introduction
@@ -29,22 +33,22 @@ The **Meeting BaaS SDK** is the officially supported TypeScript package that emp
 ```typescript
 import { createBaasClient } from "@meeting-baas/sdk";
 
-// Create a client
+// Create a v2 client (recommended for new projects)
 const client = createBaasClient({
-  api_key: "your-api-key", // Get yours at https://meetingbaas.com
+  api_key: "your-api-key", // Get yours at https://dashboard.meetingbaas.com
+  api_version: "v2"
 });
 
-// Join a meeting with type-safe error handling
-const { success, data, error } = await client.joinMeeting({
+// Create a bot to join and record a meeting
+const { success, data, error } = await client.createBot({
   bot_name: "Meeting Assistant",
   meeting_url: "https://meet.google.com/abc-def-ghi",
-  reserved: true,
 });
 
 if (success) {
-  console.log("Bot joined successfully:", data.bot_id);
+  console.log("Bot created successfully:", data.bot_id);
 } else {
-  console.error("Error joining meeting:", error);
+  console.error("Error creating bot:", error);
 }
 ```
 

@@ -4,6 +4,10 @@ description: Learn how to integrate the Meeting BaaS SDK with your applications 
 icon: FileText
 ---
 
+<Callout type="info">
+  This guide uses v2 API, the recommended version for new projects. Get your API key at [dashboard.meetingbaas.com](https://dashboard.meetingbaas.com/onboarding).
+</Callout>
+
 ## SDK Integration
 
 The Meeting BaaS SDK provides a clean, type-safe interface for integrating with the Meeting BaaS API. Here are the main integration patterns:
@@ -15,22 +19,22 @@ The simplest way to integrate the SDK:
 ```typescript
 import { createBaasClient } from '@meeting-baas/sdk';
 
-// Create a BaaS client with your API key
+// Create a v2 BaaS client with your API key
 const client = createBaasClient({
   api_key: process.env.MEETING_BAAS_API_KEY,
+  api_version: 'v2'
 });
 
 // Use the client for API calls
-const { success, data, error } = await client.joinMeeting({
+const { success, data, error } = await client.createBot({
   bot_name: 'My Bot',
   meeting_url: 'https://meet.google.com/abc-def-ghi',
-  reserved: true,
 });
 
 if (success) {
-  console.log('Bot joined successfully:', data.bot_id);
+  console.log('Bot created successfully:', data.bot_id);
 } else {
-  console.error('Error joining meeting:', error);
+  console.error('Error creating bot:', error);
 }
 ```
 
@@ -39,7 +43,7 @@ if (success) {
 For MCP (Model Context Protocol) server integration, you can use the SDK functions directly within your tool handlers:
 
 ```typescript
-import { type JoinRequest, createBaasClient } from "@meeting-baas/sdk"
+import { createBaasClient } from "@meeting-baas/sdk"
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 
@@ -50,36 +54,36 @@ const server = new McpServer({
 })
 
 // @modelcontextprotocol/sdk expects the input schema to be a ZodRawShape (plain object with zod types)
-const joinToolInputSchema = {
+const createBotInputSchema = {
   bot_name: z.string().default("Meeting BaaS Bot"),
-  meeting_url: z.string(),
-  reserved: z.boolean().default(false)
+  meeting_url: z.string()
 }
 
-// Add a joinMeeting tool
+// Add a createBot tool
 server.registerTool(
-  "joinMeeting",
+  "createBot",
   {
     title: "Send a Meeting BaaS bot to a meeting",
     description:
       "Send a Meeting BaaS bot to a Google Meet/Teams/Zoom meeting to automatically record and transcribe the meeting with speech diarization",
-    inputSchema: joinToolInputSchema
+    inputSchema: createBotInputSchema
   },
   async (args) => {
     const client = createBaasClient({
-      api_key: "your-api-key"
+      api_key: "your-api-key",
+      api_version: "v2"
     })
 
-    const { success, data, error } = await client.joinMeeting(args as JoinRequest)
+    const { success, data, error } = await client.createBot(args)
 
     if (success) {
       return {
-        content: [{ type: "text", text: `Successfully joined meeting: ${JSON.stringify(data)}` }]
+        content: [{ type: "text", text: `Successfully created bot: ${JSON.stringify(data)}` }]
       }
     }
 
     return {
-      content: [{ type: "text", text: `Failed to join meeting: ${error}` }]
+      content: [{ type: "text", text: `Failed to create bot: ${error}` }]
     }
   }
 )
@@ -94,18 +98,20 @@ import { createBaasClient } from '@meeting-baas/sdk';
 
 const client = createBaasClient({
   api_key: 'your-api-key',
+  api_version: 'v2'
 });
 
-// Create a calendar integration
-const calendarResult = await client.createCalendar({
+// Create a calendar connection
+const calendarResult = await client.createCalendarConnection({
+  calendar_platform: 'google',
   oauth_client_id: 'your-oauth-client-id',
   oauth_client_secret: 'your-oauth-client-secret',
   oauth_refresh_token: 'your-oauth-refresh-token',
-  platform: 'Google',
+  raw_calendar_id: 'primary'
 });
 
 if (calendarResult.success) {
-  console.log('Calendar created:', calendarResult.data);
+  console.log('Calendar connected:', calendarResult.data);
 
   // List all calendars
   const calendarsResult = await client.listCalendars();
@@ -114,31 +120,30 @@ if (calendarResult.success) {
   }
 
   // List events from a calendar
-  const eventsResult = await client.listCalendarEvents({
-    calendar_id: calendarResult.data.calendar.uuid
+  const eventsResult = await client.listEvents({
+    calendar_id: calendarResult.data.calendar_id
   });
   
   if (eventsResult.success) {
     console.log('Events:', eventsResult.data);
   }
 
-  // Schedule a recording for an event
+  // Schedule a bot for an event
   if (eventsResult.success && eventsResult.data.events.length > 0) {
-    const scheduleResult = await client.scheduleCalendarRecordEvent({
-      uuid: eventsResult.data.events[0].uuid,
+    const scheduleResult = await client.createCalendarBot({
+      calendar_id: calendarResult.data.calendar_id,
       body: {
-        bot_name: 'Event Recording Bot',
-        extra: { custom_id: 'my-event-123' },
-        webhook_url: 'https://example.com/webhook'
+        event_id: eventsResult.data.events[0].event_id,
+        bot_name: 'Event Recording Bot'
       }
     });
     
     if (scheduleResult.success) {
-      console.log('Recording scheduled successfully');
+      console.log('Bot scheduled for event successfully');
     }
   }
 } else {
-  console.error('Error creating calendar:', calendarResult.error);
+  console.error('Error connecting calendar:', calendarResult.error);
 }
 ```
 
@@ -155,12 +160,12 @@ export async function POST(req: Request) {
 
   const client = createBaasClient({
     api_key: process.env.MEETING_BAAS_API_KEY!,
+    api_version: 'v2'
   });
 
-  const result = await client.joinMeeting({
+  const result = await client.createBot({
     meeting_url,
     bot_name: bot_name || 'Meeting BaaS Bot',
-    reserved: false,
   });
 
   if (result.success) {
@@ -169,18 +174,11 @@ export async function POST(req: Request) {
       bot_id: result.data.bot_id 
     });
   } else {
-    // Error could be an instance of Error or ZodError
-    if(result.error instanceof Error) {
-      return Response.json({ 
-        success: false, 
-        error: result.error.message
-      }, { status: 400 });
-    } else {
-      return Response.json({ 
-        success: false, 
-        error: "Validation error"
-      }, { status: 422 });
-    }
+    return Response.json({ 
+      success: false, 
+      error: result.error,
+      code: result.code
+    }, { status: result.statusCode || 400 });
   }
 }
 ```
@@ -198,15 +196,15 @@ app.use(express.json());
 
 const client = createBaasClient({
   api_key: process.env.MEETING_BAAS_API_KEY!,
+  api_version: 'v2'
 });
 
-app.post('/join-meeting', async (req, res) => {
+app.post('/create-bot', async (req, res) => {
   const { meeting_url, bot_name } = req.body;
 
-  const result = await client.joinMeeting({
+  const result = await client.createBot({
     meeting_url,
     bot_name: bot_name || 'Meeting BaaS Bot',
-    reserved: false,
   });
 
   if (result.success) {
@@ -215,9 +213,10 @@ app.post('/join-meeting', async (req, res) => {
       bot_id: result.data.bot_id 
     });
   } else {
-    res.status(400).json({ 
+    res.status(result.statusCode || 400).json({ 
       success: false, 
-      error: result.error.message 
+      error: result.error,
+      code: result.code
     });
   }
 });

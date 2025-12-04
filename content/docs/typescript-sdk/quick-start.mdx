@@ -4,34 +4,38 @@ description: Quick guide for integrating with Meeting BaaS services.
 icon: Zap
 ---
 
+<Callout type="info">
+  This guide uses v2 API, the recommended version for new projects. Get your API key at [dashboard.meetingbaas.com](https://dashboard.meetingbaas.com/onboarding).
+</Callout>
+
 ```typescript
 import { createBaasClient } from '@meeting-baas/sdk';
 
-// Create a BaaS client
+// Create a v2 BaaS client
 const client = createBaasClient({
-  api_key: 'your-api-key', // Get yours at https://meetingbaas.com
+  api_key: 'your-api-key', // Get yours at https://dashboard.meetingbaas.com
+  api_version: 'v2'
 });
 
-// Join a meeting
-const { success, data, error } = await client.joinMeeting({
+// Create a bot to join a meeting
+const { success, data, error } = await client.createBot({
   bot_name: 'Meeting Assistant',
   meeting_url: 'https://meet.google.com/abc-def-ghi',
-  reserved: true,
 });
 
 if (success) {
-  console.log('Bot joined successfully:', data.bot_id);
+  console.log('Bot created successfully:', data.bot_id);
   
-  // Get meeting data
-  const meetingDataResult = await client.getMeetingData({
+  // Get bot details
+  const botDetails = await client.getBotDetails({
     bot_id: data.bot_id
   });
   
-  if (meetingDataResult.success) {
-    console.log('Meeting data:', meetingDataResult.data);
+  if (botDetails.success) {
+    console.log('Bot details:', botDetails.data);
   }
 } else {
-  console.error('Error joining meeting:', error);
+  console.error('Error creating bot:', error);
 }
 ```
 
@@ -42,42 +46,42 @@ if (success) {
 ```typescript
 import { createBaasClient } from '@meeting-baas/sdk';
 
-// Create a BaaS client
+// Create a v2 BaaS client
 const client = createBaasClient({
   api_key: 'your-api-key',
+  api_version: 'v2'
 });
 
-// Join a meeting
-const joinResult = await client.joinMeeting({
+// Create a bot
+const createResult = await client.createBot({
   bot_name: 'My Assistant',
   meeting_url: 'https://meet.google.com/abc-def-ghi',
-  reserved: true,
 });
 
-if (joinResult.success) {
-  console.log('Bot joined successfully:', joinResult.data.bot_id);
+if (createResult.success) {
+  console.log('Bot created successfully:', createResult.data.bot_id);
   
-  // Get meeting data
-  const meetingDataResult = await client.getMeetingData({
-    bot_id: joinResult.data.bot_id
+  // Get bot details
+  const botDetails = await client.getBotDetails({
+    bot_id: createResult.data.bot_id
   });
   
-  if (meetingDataResult.success) {
-    console.log('Meeting data:', meetingDataResult.data);
+  if (botDetails.success) {
+    console.log('Bot details:', botDetails.data);
   } else {
-    console.error('Error getting meeting data:', meetingDataResult.error);
+    console.error('Error getting bot details:', botDetails.error);
   }
   
-  // Delete meeting data
+  // Delete bot data
   const deleteResult = await client.deleteBotData({
-    uuid: joinResult.data.bot_id
+    bot_id: createResult.data.bot_id
   });
   
   if (deleteResult.success) {
     console.log('Bot data deleted successfully');
   }
 } else {
-  console.error('Error joining meeting:', joinResult.error);
+  console.error('Error creating bot:', createResult.error);
 }
 ```
 
@@ -88,18 +92,20 @@ import { createBaasClient } from '@meeting-baas/sdk';
 
 const client = createBaasClient({
   api_key: 'your-api-key',
+  api_version: 'v2'
 });
 
-// Create a calendar integration
-const calendarResult = await client.createCalendar({
+// Create a calendar connection
+const calendarResult = await client.createCalendarConnection({
+  calendar_platform: 'google',
   oauth_client_id: 'your-oauth-client-id',
   oauth_client_secret: 'your-oauth-client-secret',
   oauth_refresh_token: 'your-oauth-refresh-token',
-  platform: 'Google',
+  raw_calendar_id: 'primary'
 });
 
 if (calendarResult.success) {
-  console.log('Calendar created:', calendarResult.data);
+  console.log('Calendar connected:', calendarResult.data);
 
   // List all calendars
   const calendarsResult = await client.listCalendars();
@@ -108,17 +114,15 @@ if (calendarResult.success) {
   }
 
   // List events from a calendar
-  const eventsResult = await client.listCalendarEvents({
-    calendar_id: calendarResult.data.calendar.uuid,
-    start_date_gte: new Date().toISOString(),
-    start_date_lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+  const eventsResult = await client.listEvents({
+    calendar_id: calendarResult.data.calendar_id
   });
   
   if (eventsResult.success) {
     console.log('Events:', eventsResult.data);
   }
 } else {
-  console.error('Error creating calendar:', calendarResult.error);
+  console.error('Error connecting calendar:', calendarResult.error);
 }
 ```
 
@@ -129,59 +133,66 @@ import { createBaasClient } from '@meeting-baas/sdk';
 
 const client = createBaasClient({
   api_key: 'your-api-key',
+  api_version: 'v2',
   timeout: 60000
 });
 
 async function comprehensiveExample() {
-  try {
-    // Join a meeting with all options
-    const joinResult = await client.joinMeeting({
-      meeting_url: 'https://meet.google.com/abc-defg-hij',
-      bot_name: 'Advanced Test Bot',
-      reserved: false,
-      bot_image: 'https://example.com/bot-image.jpg',
-      enter_message: 'Hello from the advanced test bot!',
-      extra: { test_id: 'advanced-example' },
-      recording_mode: 'speaker_view',
-      speech_to_text: { provider: 'Gladia' },
-      webhook_url: 'https://example.com/webhook'
+  // Create a bot with all options
+  const createResult = await client.createBot({
+    meeting_url: 'https://meet.google.com/abc-defg-hij',
+    bot_name: 'Advanced Test Bot',
+    bot_image: 'https://example.com/bot-image.jpg',
+    entry_message: 'Hello from the advanced test bot!',
+    recording_mode: 'speaker_view',
+    transcription_config: { 
+      provider: 'gladia' 
+    },
+    extra: { test_id: 'advanced-example' }
+  });
+
+  if (createResult.success) {
+    const botId = createResult.data.bot_id;
+    console.log('Bot created with ID:', botId);
+
+    // Get bot status
+    const statusResult = await client.getBotStatus({
+      bot_id: botId
     });
 
-    if (joinResult.success) {
-      const botId = joinResult.data.bot_id;
-      console.log('Bot joined with ID:', botId);
-
-      // Get meeting data with transcripts
-      const meetingDataResult = await client.getMeetingData({
-        bot_id: botId,
-        include_transcripts: true
-      });
-
-      if (meetingDataResult.success) {
-        console.log('Meeting duration:', meetingDataResult.data.duration);
-        console.log('Has MP4:', !!meetingDataResult.data.mp4);
-      }
-
-      // Leave the meeting
-      const leaveResult = await client.leaveMeeting({
-        uuid: botId
-      });
-
-      if (leaveResult.success) {
-        console.log('Bot left meeting successfully');
-      }
-
-      // Delete bot data
-      const deleteResult = await client.deleteBotData({
-        uuid: botId
-      });
-
-      if (deleteResult.success) {
-        console.log('Bot data deleted successfully');
-      }
+    if (statusResult.success) {
+      console.log('Bot status:', statusResult.data.status);
     }
-  } catch (error) {
-    console.error('Unexpected error:', error);
+
+    // Get bot details
+    const detailsResult = await client.getBotDetails({
+      bot_id: botId
+    });
+
+    if (detailsResult.success) {
+      console.log('Bot details:', detailsResult.data);
+    }
+
+    // Leave the meeting
+    const leaveResult = await client.leaveBot({
+      bot_id: botId
+    });
+
+    if (leaveResult.success) {
+      console.log('Bot left meeting successfully');
+    }
+
+    // Delete bot data
+    const deleteResult = await client.deleteBotData({
+      bot_id: botId
+    });
+
+    if (deleteResult.success) {
+      console.log('Bot data deleted successfully');
+    }
+  } else {
+    console.error('Error creating bot:', createResult.error);
+    console.error('Error code:', createResult.code);
   }
 }
 ```
