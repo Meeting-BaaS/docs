@@ -1,0 +1,513 @@
+---
+title: Migration to v2 API
+description: Guide for migrating from Meeting BaaS SDK v5.x to v6.0.0 with v2 API support.
+icon: ArrowUpCircle
+---
+
+<Callout type="info">
+  **SDK v6.0.0** adds support for Meeting BaaS v2 API while maintaining full backward compatibility with v1 API. All existing v1 code continues to work without changes.
+</Callout>
+
+## What's New in v6.0.0
+
+- **Dual API Support**: Support for both Meeting BaaS v1 and v2 APIs in parallel
+- **Type-Safe Version Selection**: TypeScript automatically infers available methods based on `api_version`
+- **Pass-Through v2 Responses**: v2 API responses are passed through without transformation
+- **Backward Compatible**: All existing v1 code continues to work without changes
+- **Easy Migration Path**: Simply change `api_version: "v2"` to migrate to v2 API
+
+## No Breaking Changes
+
+v6.0.0 is **fully backward compatible** with v5.x. All existing code using v1 API will continue to work without any changes.
+
+## Configuration Options
+
+The client accepts the following configuration options:
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `api_key` | `string` | ✅ Yes | - | Your Meeting BaaS API key. Get yours at [meetingbaas.com](https://meetingbaas.com) |
+| `api_version` | `"v1" \| "v2"` | ❌ No | `"v1"` | API version to use. Use `"v2"` for the new Meeting BaaS v2 API |
+| `timeout` | `number` | ❌ No | `30000` | Request timeout in milliseconds |
+
+```typescript
+interface BaasClientConfig {
+  api_key: string;           // Required: Your Meeting BaaS API key
+  api_version?: "v1" | "v2"; // Optional: API version (default: "v1")
+  base_url?: string;         // Optional: Base URL (internal use)
+  timeout?: number;          // Optional: Request timeout in ms (default: 30000)
+}
+```
+
+## Update Dependencies
+
+```bash tab="npm"
+npm install @meeting-baas/sdk@^6.0.0
+```
+
+```bash tab="pnpm"
+pnpm add @meeting-baas/sdk@^6.0.0
+```
+
+```bash tab="yarn"
+yarn add @meeting-baas/sdk@^6.0.0
+```
+
+## Using the v2 API
+
+### Basic Usage
+
+To use the v2 API, specify `api_version: "v2"` when creating the client:
+
+```typescript
+import { createBaasClient } from "@meeting-baas/sdk";
+
+// v1 API (default, backward compatible)
+const v1Client = createBaasClient({
+  api_key: "your-api-key"
+  // api_version defaults to "v1"
+});
+
+// v2 API
+const v2Client = createBaasClient({
+  api_key: "your-api-key",
+  api_version: "v2"
+});
+```
+
+### Type-Safe Method Access
+
+TypeScript automatically infers which methods are available based on the API version:
+
+```typescript
+// v1 client - only v1 methods available
+const v1Client = createBaasClient({ api_key: "key" });
+v1Client.joinMeeting({ ... }); // ✅ Available
+v1Client.createBot({ ... }); // ❌ TypeScript error - not available
+
+// v2 client - only v2 methods available
+const v2Client = createBaasClient({ api_key: "key", api_version: "v2" });
+v2Client.createBot({ ... }); // ✅ Available
+v2Client.joinMeeting({ ... }); // ❌ TypeScript error - not available
+```
+
+## Response Format Differences
+
+### v1 API Response
+
+```typescript
+type ApiResponse<T> =
+  | { success: true; data: T; error?: never }
+  | { success: false; error: ZodError | Error; data?: never }
+```
+
+### v2 API Response
+
+```typescript
+type ApiResponseV2<T> =
+  | { success: true; data: T }
+  | { success: false; error: string; code: string; statusCode: number; details: unknown | null }
+```
+
+**Key Differences:**
+
+- v1: SDK wraps responses, `error` can be `ZodError | Error`
+- v2: API already returns structured format, SDK passes through as-is
+- v2 error responses include `code`, `statusCode`, and `details` fields
+
+### Batch Routes (v2)
+
+v2 batch routes return a special format for partial success:
+
+```typescript
+// Batch response format
+{
+  success: true,
+  data: [...], // Successful items
+  errors: [...] // Failed items with error details
+}
+
+// Example: batchCreateBots
+const result = await v2Client.batchCreateBots({
+  bots: [...]
+});
+
+if (result.success) {
+  console.log("Successful:", result.data);
+  if (result.errors.length > 0) {
+    console.log("Failed:", result.errors);
+  }
+}
+```
+
+## v1 to v2 Method Mapping
+
+When migrating from v1 to v2, use this mapping to find the equivalent v2 methods:
+
+### Bot Methods
+
+| v1 Method | v2 Method | Notes |
+|-----------|-----------|-------|
+| `joinMeeting` | `createBot` | Creates and joins immediately |
+| `leaveMeeting` | `leaveBot` | - |
+| `getMeetingData` | `getBotDetails` | - |
+| `deleteBotData` | `deleteBotData` | Now accepts `delete_from_provider` option |
+| `listBots` | `listBots` | - |
+| `retranscribeBot` | - | Not available in v2 |
+| `getScreenshots` | `getBotScreenshots` | Now supports pagination |
+
+### Calendar Methods
+
+| v1 Method | v2 Method | Notes |
+|-----------|-----------|-------|
+| `createCalendar` | `createCalendarConnection` | - |
+| `listCalendars` | `listCalendars` | - |
+| `getCalendar` | `getCalendarDetails` | - |
+| `updateCalendar` | `updateCalendarConnection` | - |
+| `deleteCalendar` | `deleteCalendarConnection` | - |
+| `listCalendarEvents` | `listEvents` | Now requires `calendar_id` in path |
+| `getCalendarEvent` | `getEventDetails` | Now requires `calendar_id` in path |
+| `scheduleCalendarRecordEvent` | `createCalendarBot` | - |
+| `unscheduleCalendarRecordEvent` | `deleteCalendarBot` | - |
+| `patchBot` | `updateCalendarBot` | - |
+| `listRawCalendars` | `listRawCalendars` | - |
+| `resyncAllCalendars` | `syncCalendar` | Now per-calendar |
+
+### New v2-Only Methods
+
+These methods are only available in v2:
+
+- `batchCreateBots` - Create multiple bots at once
+- `getBotStatus` - Get bot status separately from details
+- `resendFinalWebhook` - Resend the final webhook for a bot
+- `retryCallback` - Retry a failed callback
+- `createScheduledBot` - Create a bot scheduled for a future time
+- `batchCreateScheduledBots` - Create multiple scheduled bots
+- `listScheduledBots` - List scheduled bots
+- `getScheduledBot` - Get scheduled bot details
+- `updateScheduledBot` - Update a scheduled bot
+- `deleteScheduledBot` - Delete a scheduled bot
+- `listEventSeries` - List recurring event series
+- `resubscribeCalendar` - Resubscribe to calendar webhooks
+
+## Migration Examples
+
+### Example 1: Migrating Bot Creation from v1 to v2
+
+**Before (v1 API):**
+
+```typescript
+import { createBaasClient } from "@meeting-baas/sdk";
+
+const client = createBaasClient({
+  api_key: "your-api-key"
+});
+
+const result = await client.joinMeeting({
+  meeting_url: "https://meet.google.com/abc-def-ghi",
+  bot_name: "My Bot",
+  reserved: true
+});
+
+if (result.success) {
+  console.log("Bot ID:", result.data.bot_id);
+}
+```
+
+**After (v2 API):**
+
+```typescript
+import { createBaasClient } from "@meeting-baas/sdk";
+
+const client = createBaasClient({
+  api_key: "your-api-key",
+  api_version: "v2" // Only change needed!
+});
+
+// v2 uses createBot instead of joinMeeting
+const result = await client.createBot({
+  meeting_url: "https://meet.google.com/abc-def-ghi",
+  bot_name: "My Bot"
+});
+
+if (result.success) {
+  console.log("Bot ID:", result.data.bot_id);
+} else {
+  // v2 error format includes code and statusCode
+  console.error("Error:", result.error);
+  console.error("Code:", result.code);
+  console.error("Status:", result.statusCode);
+}
+```
+
+### Example 2: Using Both APIs in Parallel
+
+You can use both APIs in the same codebase:
+
+```typescript
+import { createBaasClient } from "@meeting-baas/sdk";
+
+const v1Client = createBaasClient({
+  api_key: "your-api-key",
+  api_version: "v1"
+});
+
+const v2Client = createBaasClient({
+  api_key: "your-api-key",
+  api_version: "v2"
+});
+
+// Use v1 for legacy operations
+const v1Result = await v1Client.joinMeeting({ ... });
+
+// Use v2 for new features
+const v2Result = await v2Client.createBot({ ... });
+```
+
+## v2 API Methods Reference
+
+### Bot Management
+
+| Method | Description |
+|--------|-------------|
+| `createBot` | Create a bot |
+| `batchCreateBots` | Create multiple bots |
+| `listBots` | List bots |
+| `getBotDetails` | Get bot details |
+| `getBotStatus` | Get bot status |
+| `getBotScreenshots` | Get bot screenshots |
+| `leaveBot` | Leave meeting |
+| `deleteBotData` | Delete bot data |
+| `resendFinalWebhook` | Resend final webhook |
+| `retryCallback` | Retry callback |
+
+### Scheduled Bot Management
+
+| Method | Description |
+|--------|-------------|
+| `createScheduledBot` | Create scheduled bot |
+| `batchCreateScheduledBots` | Create multiple scheduled bots |
+| `listScheduledBots` | List scheduled bots |
+| `getScheduledBot` | Get scheduled bot details |
+| `updateScheduledBot` | Update scheduled bot |
+| `deleteScheduledBot` | Delete scheduled bot |
+
+### Calendar Connection Management
+
+| Method | Description |
+|--------|-------------|
+| `listRawCalendars` | List raw calendars (preview before creating connection) |
+| `createCalendarConnection` | Create calendar connection |
+| `listCalendars` | List calendar connections |
+| `getCalendarDetails` | Get calendar connection details |
+| `updateCalendarConnection` | Update calendar connection |
+| `deleteCalendarConnection` | Delete calendar connection |
+| `syncCalendar` | Sync calendar events |
+| `resubscribeCalendar` | Resubscribe to calendar webhooks |
+
+### Calendar Event Management
+
+| Method | Description |
+|--------|-------------|
+| `listEvents` | List calendar events |
+| `listEventSeries` | List event series |
+| `getEventDetails` | Get event details |
+
+### Calendar Bot Management
+
+| Method | Description |
+|--------|-------------|
+| `createCalendarBot` | Schedule bot for calendar event |
+| `updateCalendarBot` | Update calendar bot |
+| `deleteCalendarBot` | Cancel calendar bot |
+
+## Webhook Types (v2)
+
+The v2 API includes comprehensive TypeScript types for all webhook events:
+
+### Bot Webhooks
+
+- `BotWebhookCompleted` - Sent when a bot successfully completes recording
+- `BotWebhookFailed` - Sent when a bot fails to join or record
+- `BotWebhookStatusChange` - Sent when a bot's status changes
+
+### Calendar Webhooks
+
+- `CalendarWebhookConnectionCreated` - Sent when a calendar connection is created
+- `CalendarWebhookConnectionUpdated` - Sent when a calendar connection is updated
+- `CalendarWebhookConnectionDeleted` - Sent when a calendar connection is deleted
+- `CalendarWebhookEventCreated` - Sent when a calendar event is created
+- `CalendarWebhookEventUpdated` - Sent when a calendar event is updated
+- `CalendarWebhookEventCancelled` - Sent when a calendar event is cancelled
+- `CalendarWebhookEventsSynced` - Sent when a calendar completes the initial sync
+
+### Callback Payloads
+
+- `CallbackCompleted` - Callback payload sent when a bot successfully completes recording (event: `"bot.completed"`)
+- `CallbackFailed` - Callback payload sent when a bot fails to join or record (event: `"bot.failed"`)
+
+<Callout type="info">
+  Callback payloads have the same structure as webhook events but are sent to bot-specific callback URLs configured via `callback_config` when creating bots.
+</Callout>
+
+For detailed webhook documentation, see the [v2 API webhook reference](https://docs.meetingbaas.com/api-v2/reference/webhooks).
+
+### Usage Example
+
+```typescript
+import type { V2 } from "@meeting-baas/sdk";
+
+// Type-safe webhook handler
+async function handleWebhook(payload: V2.BotWebhookCompleted) {
+  if (payload.event === "bot.completed") {
+    console.log("Bot completed:", payload.data.bot_id);
+    console.log("Transcription:", payload.data.transcription);
+    console.log("Video URL:", payload.data.video);
+  }
+}
+
+// Handle multiple event types with discriminated unions
+type WebhookEvent = 
+  | V2.BotWebhookCompleted 
+  | V2.BotWebhookFailed 
+  | V2.BotWebhookStatusChange
+  | V2.CalendarWebhookEventCreated;
+
+async function handleAnyWebhook(payload: WebhookEvent) {
+  switch (payload.event) {
+    case "bot.completed":
+      // TypeScript knows payload.data has BotWebhookCompletedData
+      break;
+    case "bot.failed":
+      // TypeScript knows payload.data has BotWebhookFailedData
+      break;
+    // ... other cases
+  }
+}
+
+// Callback payloads can be handled the same way
+async function handleCallback(payload: V2.CallbackCompleted | V2.CallbackFailed) {
+  if (payload.event === "bot.completed") {
+    // TypeScript knows this is CallbackCompleted
+    console.log("Callback - Bot completed:", payload.data.bot_id);
+  } else if (payload.event === "bot.failed") {
+    // TypeScript knows this is CallbackFailed
+    console.log("Callback - Bot failed:", payload.data.bot_id);
+  }
+}
+```
+
+## Migration Checklist
+
+<Steps>
+<Step>
+### Update Dependencies to SDK v6
+
+```bash
+npm install @meeting-baas/sdk@^6.0.0
+```
+
+</Step>
+
+<Step>
+### Test Existing Code
+
+All existing v1 code should continue to work without changes. Test your application to ensure everything works as expected.
+
+</Step>
+
+<Step>
+### Migrate to v2 (Optional)
+
+If you want to use v2 API:
+
+1. **Update client creation** to include `api_version: "v2"`
+2. **Update method calls** to use v2 method names (e.g., `createBot` instead of `joinMeeting`)
+3. **Update error handling** to use v2 error format (`code`, `statusCode`, `details`)
+4. **Handle batch responses** if using batch operations (check `errors` array)
+
+</Step>
+
+<Step>
+### Update Type Imports (if needed)
+
+If you're importing types, they're now organized by version:
+
+```typescript
+// v1 types (from generated/v1/schema)
+import type { JoinRequest, JoinResponse } from "@meeting-baas/sdk";
+
+// v2 types (from generated/v2/schema)
+import type { CreateBotRequest, CreateBotResponse } from "@meeting-baas/sdk";
+```
+
+</Step>
+</Steps>
+
+## Common Issues
+
+### TypeScript Shows Wrong Methods
+
+**Problem:** TypeScript shows v1 methods when you want v2, or vice versa.
+
+**Solution:** Ensure `api_version` is correctly set in the client configuration:
+
+```typescript
+// Correct - must be explicitly set for v2
+const client = createBaasClient({
+  api_key: "key",
+  api_version: "v2"
+});
+```
+
+### Error Handling Differences
+
+**Problem:** v2 error format is different from v1.
+
+**Solution:** Update error handling to use v2 error fields:
+
+```typescript
+// v1 error handling
+if (!result.success) {
+  console.error(result.error); // ZodError | Error
+}
+
+// v2 error handling
+if (!result.success) {
+  console.error(result.error); // string
+  console.error(result.code); // string
+  console.error(result.statusCode); // number
+  console.error(result.details); // unknown | null
+}
+```
+
+### Batch Route Errors
+
+**Problem:** Batch routes return `success: true` even when some items fail.
+
+**Solution:** Check the `errors` array for partial failures:
+
+```typescript
+const result = await client.batchCreateBots({ bots: [...] });
+
+if (result.success) {
+  if (result.errors.length > 0) {
+    // Some items failed
+    console.log("Partial success:", result.data);
+    console.log("Errors:", result.errors);
+  } else {
+    // All items succeeded
+    console.log("All succeeded:", result.data);
+  }
+}
+```
+
+## Getting Help
+
+If you encounter issues during migration:
+
+1. Check this migration guide
+2. Review the [API Reference](/docs/typescript-sdk/complete-reference) for current usage examples
+3. Open an issue on [GitHub](https://github.com/Meeting-Baas/sdk-generator/issues)
+4. Join our [Discord community](https://discord.com/invite/dsvFgDTr6c) for support
+

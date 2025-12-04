@@ -10,6 +10,7 @@
     "integration",
     "mcp-tools",
     "advanced-examples",
-    "complete-reference"
+    "complete-reference",
+    "migration-to-v2"
   ]
 }
