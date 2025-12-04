@@ -5,12 +5,12 @@
   "root": true,
   "pages": [
     "index",
+    "migration-to-v2",
     "getting-started",
     "quick-start",
     "integration",
     "mcp-tools",
     "advanced-examples",
-    "complete-reference",
-    "migration-to-v2"
+    "complete-reference"
   ]
 }
