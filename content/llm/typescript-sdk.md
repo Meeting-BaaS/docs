@@ -1342,6 +1342,9 @@ Learn how to install and use the Meeting BaaS TypeScript SDK.
 
 ### Source: ./content/docs/typescript-sdk/getting-started.mdx
 
+<Callout type="info">
+  This guide uses v2 API, the recommended version for new projects. Get your API key at [dashboard.meetingbaas.com](https://dashboard.meetingbaas.com/onboarding).
+</Callout>
 
 <Steps>
 <Step>
@@ -1375,9 +1378,10 @@ Create a new instance of the BaaS client with your API key:
 ```typescript
 import { createBaasClient } from "@meeting-baas/sdk";
 
-// Create a BaaS client
+// Create a v2 BaaS client (recommended for new projects)
 const client = createBaasClient({
-  api_key: "your-api-key", // Get yours at https://meetingbaas.com
+  api_key: "your-api-key", // Get yours at https://dashboard.meetingbaas.com
+  api_version: "v2"
 });
 ```
 
@@ -1393,28 +1397,27 @@ const client = createBaasClient({
 With this client instance created, you can call Meeting BaaS methods, such as:
 
 ```typescript
-// Join a meeting
-const { success, data, error } = await client.joinMeeting({
+// Create a bot to join a meeting
+const { success, data, error } = await client.createBot({
   bot_name: "Meeting Assistant",
   meeting_url: "https://meet.google.com/abc-def-ghi",
-  reserved: true,
 });
 
 if (success) {
-  console.log("Bot joined successfully:", data.bot_id);
+  console.log("Bot created successfully:", data.bot_id);
 } else {
-  console.error("Error joining meeting:", error);
+  console.error("Error creating bot:", error);
 }
 ```
 
 ```typescript
-// Leave a meeting
-const { success, data, error } = await client.leaveMeeting({
-  uuid: "123e4567-e89b-12d3-a456-426614174000"
+// Have a bot leave the meeting
+const { success, data, error } = await client.leaveBot({
+  bot_id: "123e4567-e89b-12d3-a456-426614174000"
 });
 
 if (success) {
-  console.log("Bot left the meeting successfully:", data.bot_id);
+  console.log("Bot left the meeting successfully");
 } else {
   console.error("Error leaving meeting:", error);
 }
@@ -1438,9 +1441,13 @@ Get started with the Meeting BaaS TypeScript SDK
   see [LLMs](../llms/sdk) and for MCP access, visit [auth.meetingbaas.com](https://auth.meetingbaas.com/home).
 </Callout>
 
+<Callout type="info">
+  **New to Meeting BaaS?** Start with v2 API - it's our recommended version with enhanced security, better error handling, and more features.
+  Sign up at [dashboard.meetingbaas.com](https://dashboard.meetingbaas.com/onboarding).
+</Callout>
+
 <Callout type="warn">
-  **New in v5.0.0**: Complete architectural redesign with improved TypeScript support, better error handling, and enhanced developer experience. 
-  If you're upgrading from v4.x, see our [Migration Guide](https://github.com/Meeting-BaaS/sdk-generator/blob/main/MIGRATION.md) for detailed upgrade instructions.
+  **Migrating from v1?** SDK v6.0.0 supports both v1 and v2 APIs. See our [Migration to v2 API Guide](/docs/typescript-sdk/migration-to-v2) for upgrade instructions.
 </Callout>
 
 ## Introduction
@@ -1458,22 +1465,22 @@ The **Meeting BaaS SDK** is the officially supported TypeScript package that emp
 ```typescript
 import { createBaasClient } from "@meeting-baas/sdk";
 
-// Create a client
+// Create a v2 client (recommended for new projects)
 const client = createBaasClient({
-  api_key: "your-api-key", // Get yours at https://meetingbaas.com
+  api_key: "your-api-key", // Get yours at https://dashboard.meetingbaas.com
+  api_version: "v2"
 });
 
-// Join a meeting with type-safe error handling
-const { success, data, error } = await client.joinMeeting({
+// Create a bot to join and record a meeting
+const { success, data, error } = await client.createBot({
   bot_name: "Meeting Assistant",
   meeting_url: "https://meet.google.com/abc-def-ghi",
-  reserved: true,
 });
 
 if (success) {
-  console.log("Bot joined successfully:", data.bot_id);
+  console.log("Bot created successfully:", data.bot_id);
 } else {
-  console.error("Error joining meeting:", error);
+  console.error("Error creating bot:", error);
 }
 ```
 
@@ -1590,6 +1597,13 @@ if (success) {
   >
     Complete API documentation for all SDK methods and types.
   </Card>
+  <Card
+    title="Migration to v2 API"
+    icon={<ArrowUpCircle />}
+    href="/docs/typescript-sdk/migration-to-v2"
+  >
+    Guide for migrating to v6.0.0 with v2 API support.
+  </Card>
 </Cards>
 
 
@@ -1602,6 +1616,10 @@ Learn how to integrate the Meeting BaaS SDK with your applications and MCP serve
 ### Source: ./content/docs/typescript-sdk/integration.mdx
 
 
+<Callout type="info">
+  This guide uses v2 API, the recommended version for new projects. Get your API key at [dashboard.meetingbaas.com](https://dashboard.meetingbaas.com/onboarding).
+</Callout>
+
 ## SDK Integration
 
 The Meeting BaaS SDK provides a clean, type-safe interface for integrating with the Meeting BaaS API. Here are the main integration patterns:
@@ -1613,22 +1631,22 @@ The simplest way to integrate the SDK:
 ```typescript
 import { createBaasClient } from '@meeting-baas/sdk';
 
-// Create a BaaS client with your API key
+// Create a v2 BaaS client with your API key
 const client = createBaasClient({
   api_key: process.env.MEETING_BAAS_API_KEY,
+  api_version: 'v2'
 });
 
 // Use the client for API calls
-const { success, data, error } = await client.joinMeeting({
+const { success, data, error } = await client.createBot({
   bot_name: 'My Bot',
   meeting_url: 'https://meet.google.com/abc-def-ghi',
-  reserved: true,
 });
 
 if (success) {
-  console.log('Bot joined successfully:', data.bot_id);
+  console.log('Bot created successfully:', data.bot_id);
 } else {
-  console.error('Error joining meeting:', error);
+  console.error('Error creating bot:', error);
 }
 ```
 
@@ -1637,7 +1655,7 @@ if (success) {
 For MCP (Model Context Protocol) server integration, you can use the SDK functions directly within your tool handlers:
 
 ```typescript
-import { type JoinRequest, createBaasClient } from "@meeting-baas/sdk"
+import { createBaasClient } from "@meeting-baas/sdk"
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js"
 import { z } from "zod"
 
@@ -1648,36 +1666,36 @@ const server = new McpServer({
 })
 
 // @modelcontextprotocol/sdk expects the input schema to be a ZodRawShape (plain object with zod types)
-const joinToolInputSchema = {
+const createBotInputSchema = {
   bot_name: z.string().default("Meeting BaaS Bot"),
-  meeting_url: z.string(),
-  reserved: z.boolean().default(false)
+  meeting_url: z.string()
 }
 
-// Add a joinMeeting tool
+// Add a createBot tool
 server.registerTool(
-  "joinMeeting",
+  "createBot",
   {
     title: "Send a Meeting BaaS bot to a meeting",
     description:
       "Send a Meeting BaaS bot to a Google Meet/Teams/Zoom meeting to automatically record and transcribe the meeting with speech diarization",
-    inputSchema: joinToolInputSchema
+    inputSchema: createBotInputSchema
   },
   async (args) => {
     const client = createBaasClient({
-      api_key: "your-api-key"
+      api_key: "your-api-key",
+      api_version: "v2"
     })
 
-    const { success, data, error } = await client.joinMeeting(args as JoinRequest)
+    const { success, data, error } = await client.createBot(args)
 
     if (success) {
       return {
-        content: [{ type: "text", text: `Successfully joined meeting: ${JSON.stringify(data)}` }]
+        content: [{ type: "text", text: `Successfully created bot: ${JSON.stringify(data)}` }]
       }
     }
 
     return {
-      content: [{ type: "text", text: `Failed to join meeting: ${error}` }]
+      content: [{ type: "text", text: `Failed to create bot: ${error}` }]
     }
   }
 )
@@ -1692,18 +1710,20 @@ import { createBaasClient } from '@meeting-baas/sdk';
 
 const client = createBaasClient({
   api_key: 'your-api-key',
+  api_version: 'v2'
 });
 
-// Create a calendar integration
-const calendarResult = await client.createCalendar({
+// Create a calendar connection
+const calendarResult = await client.createCalendarConnection({
+  calendar_platform: 'google',
   oauth_client_id: 'your-oauth-client-id',
   oauth_client_secret: 'your-oauth-client-secret',
   oauth_refresh_token: 'your-oauth-refresh-token',
-  platform: 'Google',
+  raw_calendar_id: 'primary'
 });
 
 if (calendarResult.success) {
-  console.log('Calendar created:', calendarResult.data);
+  console.log('Calendar connected:', calendarResult.data);
 
   // List all calendars
   const calendarsResult = await client.listCalendars();
@@ -1712,31 +1732,30 @@ if (calendarResult.success) {
   }
 
   // List events from a calendar
-  const eventsResult = await client.listCalendarEvents({
-    calendar_id: calendarResult.data.calendar.uuid
+  const eventsResult = await client.listEvents({
+    calendar_id: calendarResult.data.calendar_id
   });
   
   if (eventsResult.success) {
     console.log('Events:', eventsResult.data);
   }
 
-  // Schedule a recording for an event
+  // Schedule a bot for an event
   if (eventsResult.success && eventsResult.data.events.length > 0) {
-    const scheduleResult = await client.scheduleCalendarRecordEvent({
-      uuid: eventsResult.data.events[0].uuid,
+    const scheduleResult = await client.createCalendarBot({
+      calendar_id: calendarResult.data.calendar_id,
       body: {
-        bot_name: 'Event Recording Bot',
-        extra: { custom_id: 'my-event-123' },
-        webhook_url: 'https://example.com/webhook'
+        event_id: eventsResult.data.events[0].event_id,
+        bot_name: 'Event Recording Bot'
       }
     });
     
     if (scheduleResult.success) {
-      console.log('Recording scheduled successfully');
+      console.log('Bot scheduled for event successfully');
     }
   }
 } else {
-  console.error('Error creating calendar:', calendarResult.error);
+  console.error('Error connecting calendar:', calendarResult.error);
 }
 ```
 
@@ -1753,12 +1772,12 @@ export async function POST(req: Request) {
 
   const client = createBaasClient({
     api_key: process.env.MEETING_BAAS_API_KEY!,
+    api_version: 'v2'
   });
 
-  const result = await client.joinMeeting({
+  const result = await client.createBot({
     meeting_url,
     bot_name: bot_name || 'Meeting BaaS Bot',
-    reserved: false,
   });
 
   if (result.success) {
@@ -1767,18 +1786,11 @@ export async function POST(req: Request) {
       bot_id: result.data.bot_id 
     });
   } else {
-    // Error could be an instance of Error or ZodError
-    if(result.error instanceof Error) {
-      return Response.json({ 
-        success: false, 
-        error: result.error.message
-      }, { status: 400 });
-    } else {
-      return Response.json({ 
-        success: false, 
-        error: "Validation error"
-      }, { status: 422 });
-    }
+    return Response.json({ 
+      success: false, 
+      error: result.error,
+      code: result.code
+    }, { status: result.statusCode || 400 });
   }
 }
 ```
@@ -1796,15 +1808,15 @@ app.use(express.json());
 
 const client = createBaasClient({
   api_key: process.env.MEETING_BAAS_API_KEY!,
+  api_version: 'v2'
 });
 
-app.post('/join-meeting', async (req, res) => {
+app.post('/create-bot', async (req, res) => {
   const { meeting_url, bot_name } = req.body;
 
-  const result = await client.joinMeeting({
+  const result = await client.createBot({
     meeting_url,
     bot_name: bot_name || 'Meeting BaaS Bot',
-    reserved: false,
   });
 
   if (result.success) {
@@ -1813,9 +1825,10 @@ app.post('/join-meeting', async (req, res) => {
       bot_id: result.data.bot_id 
     });
   } else {
-    res.status(400).json({ 
+    res.status(result.statusCode || 400).json({ 
       success: false, 
-      error: result.error.message 
+      error: result.error,
+      code: result.code
     });
   }
 });
@@ -2180,6 +2193,537 @@ You can create MCP tools for any of these SDK methods:
 
 ---
 
+## Migration to v2 API
+
+Guide for migrating from Meeting BaaS SDK v5.x to v6.0.0 with v2 API support.
+
+### Source: ./content/docs/typescript-sdk/migration-to-v2.mdx
+
+
+<Callout type="info">
+  **SDK v6.0.0** adds support for Meeting BaaS v2 API while maintaining full backward compatibility with v1 API. All existing v1 code continues to work without changes.
+</Callout>
+
+## About Meeting BaaS v2
+
+Meeting BaaS v2 is a new revamp of API platform, built on your feedback and the experience of building a meeting bot api of the last two years.
+
+<Cards>
+  <Card title="v2 Release Notes" icon={<FileText />} href="https://www.meetingbaas.com/en/api/introducing-meeting-baas-v2">
+    Read the full announcement with all new features, improvements, and what's coming next.
+  </Card>
+  <Card title="v2 API Migration Guide" icon={<ArrowRight />} href="/docs/api-v2/migration-guide">
+    Complete guide to migrating your API calls from v1 to v2 (without the SDK).
+  </Card>
+</Cards>
+
+## What's New in SDK v6.0.0
+
+- **Dual API Support**: Support for both Meeting BaaS v1 and v2 APIs in parallel
+- **Type-Safe Version Selection**: TypeScript automatically infers available methods based on `api_version`
+- **Pass-Through v2 Responses**: v2 API responses are passed through without transformation
+- **Backward Compatible**: All existing v1 code continues to work without changes
+- **Easy Migration Path**: Simply change `api_version: "v2"` to migrate to v2 API
+
+## No Breaking Changes
+
+v6.0.0 is **fully backward compatible** with v5.x. All existing code using v1 API will continue to work without any changes.
+
+## Configuration Options
+
+The client accepts the following configuration options:
+
+| Option | Type | Required | Default | Description |
+|--------|------|----------|---------|-------------|
+| `api_key` | `string` | ✅ Yes | - | Your Meeting BaaS API key. Get yours at [meetingbaas.com](https://meetingbaas.com) |
+| `api_version` | `"v1" \| "v2"` | ❌ No | `"v1"` | API version to use. Use `"v2"` for the new Meeting BaaS v2 API |
+| `timeout` | `number` | ❌ No | `30000` | Request timeout in milliseconds |
+
+```typescript
+interface BaasClientConfig {
+  api_key: string;           // Required: Your Meeting BaaS API key
+  api_version?: "v1" | "v2"; // Optional: API version (default: "v1")
+  base_url?: string;         // Optional: Base URL (internal use)
+  timeout?: number;          // Optional: Request timeout in ms (default: 30000)
+}
+```
+
+## Update Dependencies
+
+```bash tab="npm"
+npm install @meeting-baas/sdk@^6.0.0
+```
+
+```bash tab="pnpm"
+pnpm add @meeting-baas/sdk@^6.0.0
+```
+
+```bash tab="yarn"
+yarn add @meeting-baas/sdk@^6.0.0
+```
+
+## Using the v2 API
+
+### Basic Usage
+
+To use the v2 API, specify `api_version: "v2"` when creating the client:
+
+```typescript
+import { createBaasClient } from "@meeting-baas/sdk";
+
+// v1 API (default, backward compatible)
+const v1Client = createBaasClient({
+  api_key: "your-api-key"
+  // api_version defaults to "v1"
+});
+
+// v2 API
+const v2Client = createBaasClient({
+  api_key: "your-api-key",
+  api_version: "v2"
+});
+```
+
+### Type-Safe Method Access
+
+TypeScript automatically infers which methods are available based on the API version:
+
+```typescript
+// v1 client - only v1 methods available
+const v1Client = createBaasClient({ api_key: "key" });
+v1Client.joinMeeting({ ... }); // ✅ Available
+v1Client.createBot({ ... }); // ❌ TypeScript error - not available
+
+// v2 client - only v2 methods available
+const v2Client = createBaasClient({ api_key: "key", api_version: "v2" });
+v2Client.createBot({ ... }); // ✅ Available
+v2Client.joinMeeting({ ... }); // ❌ TypeScript error - not available
+```
+
+## Response Format Differences
+
+### v1 API Response
+
+```typescript
+type ApiResponse<T> =
+  | { success: true; data: T; error?: never }
+  | { success: false; error: ZodError | Error; data?: never }
+```
+
+### v2 API Response
+
+```typescript
+type ApiResponseV2<T> =
+  | { success: true; data: T }
+  | { success: false; error: string; code: string; statusCode: number; details: unknown | null }
+```
+
+**Key Differences:**
+
+- v1: SDK wraps responses, `error` can be `ZodError | Error`
+- v2: API already returns structured format, SDK passes through as-is
+- v2 error responses include `code`, `statusCode`, and `details` fields
+
+### Batch Routes (v2)
+
+v2 batch routes return a special format for partial success:
+
+```typescript
+// Batch response format
+{
+  success: true,
+  data: [...], // Successful items
+  errors: [...] // Failed items with error details
+}
+
+// Example: batchCreateBots
+const result = await v2Client.batchCreateBots({
+  bots: [...]
+});
+
+if (result.success) {
+  console.log("Successful:", result.data);
+  if (result.errors.length > 0) {
+    console.log("Failed:", result.errors);
+  }
+}
+```
+
+## v1 to v2 Method Mapping
+
+When migrating from v1 to v2, use this mapping to find the equivalent v2 methods:
+
+### Bot Methods
+
+| v1 Method | v2 Method | Notes |
+|-----------|-----------|-------|
+| `joinMeeting` | `createBot` | Creates and joins immediately |
+| `leaveMeeting` | `leaveBot` | - |
+| `getMeetingData` | `getBotDetails` | - |
+| `deleteBotData` | `deleteBotData` | Now accepts `delete_from_provider` option |
+| `listBots` | `listBots` | - |
+| `retranscribeBot` | - | Not available in v2 |
+| `getScreenshots` | `getBotScreenshots` | Now supports pagination |
+
+### Calendar Methods
+
+| v1 Method | v2 Method | Notes |
+|-----------|-----------|-------|
+| `createCalendar` | `createCalendarConnection` | - |
+| `listCalendars` | `listCalendars` | - |
+| `getCalendar` | `getCalendarDetails` | - |
+| `updateCalendar` | `updateCalendarConnection` | - |
+| `deleteCalendar` | `deleteCalendarConnection` | - |
+| `listCalendarEvents` | `listEvents` | Now requires `calendar_id` in path |
+| `getCalendarEvent` | `getEventDetails` | Now requires `calendar_id` in path |
+| `scheduleCalendarRecordEvent` | `createCalendarBot` | - |
+| `unscheduleCalendarRecordEvent` | `deleteCalendarBot` | - |
+| `patchBot` | `updateCalendarBot` | - |
+| `listRawCalendars` | `listRawCalendars` | - |
+| `resyncAllCalendars` | `syncCalendar` | Now per-calendar |
+
+### New v2-Only Methods
+
+These methods are only available in v2:
+
+- `batchCreateBots` - Create multiple bots at once
+- `getBotStatus` - Get bot status separately from details
+- `resendFinalWebhook` - Resend the final webhook for a bot
+- `retryCallback` - Retry a failed callback
+- `createScheduledBot` - Create a bot scheduled for a future time
+- `batchCreateScheduledBots` - Create multiple scheduled bots
+- `listScheduledBots` - List scheduled bots
+- `getScheduledBot` - Get scheduled bot details
+- `updateScheduledBot` - Update a scheduled bot
+- `deleteScheduledBot` - Delete a scheduled bot
+- `listEventSeries` - List recurring event series
+- `resubscribeCalendar` - Resubscribe to calendar webhooks
+
+## Migration Examples
+
+### Example 1: Migrating Bot Creation from v1 to v2
+
+**Before (v1 API):**
+
+```typescript
+import { createBaasClient } from "@meeting-baas/sdk";
+
+const client = createBaasClient({
+  api_key: "your-api-key"
+});
+
+const result = await client.joinMeeting({
+  meeting_url: "https://meet.google.com/abc-def-ghi",
+  bot_name: "My Bot",
+  reserved: true
+});
+
+if (result.success) {
+  console.log("Bot ID:", result.data.bot_id);
+}
+```
+
+**After (v2 API):**
+
+```typescript
+import { createBaasClient } from "@meeting-baas/sdk";
+
+const client = createBaasClient({
+  api_key: "your-api-key",
+  api_version: "v2" // Only change needed!
+});
+
+// v2 uses createBot instead of joinMeeting
+const result = await client.createBot({
+  meeting_url: "https://meet.google.com/abc-def-ghi",
+  bot_name: "My Bot"
+});
+
+if (result.success) {
+  console.log("Bot ID:", result.data.bot_id);
+} else {
+  // v2 error format includes code and statusCode
+  console.error("Error:", result.error);
+  console.error("Code:", result.code);
+  console.error("Status:", result.statusCode);
+}
+```
+
+### Example 2: Using Both APIs in Parallel
+
+You can use both APIs in the same codebase:
+
+```typescript
+import { createBaasClient } from "@meeting-baas/sdk";
+
+const v1Client = createBaasClient({
+  api_key: "your-api-key",
+  api_version: "v1"
+});
+
+const v2Client = createBaasClient({
+  api_key: "your-api-key",
+  api_version: "v2"
+});
+
+// Use v1 for legacy operations
+const v1Result = await v1Client.joinMeeting({ ... });
+
+// Use v2 for new features
+const v2Result = await v2Client.createBot({ ... });
+```
+
+## v2 API Methods Reference
+
+### Bot Management
+
+| Method | Description |
+|--------|-------------|
+| `createBot` | Create a bot |
+| `batchCreateBots` | Create multiple bots |
+| `listBots` | List bots |
+| `getBotDetails` | Get bot details |
+| `getBotStatus` | Get bot status |
+| `getBotScreenshots` | Get bot screenshots |
+| `leaveBot` | Leave meeting |
+| `deleteBotData` | Delete bot data |
+| `resendFinalWebhook` | Resend final webhook |
+| `retryCallback` | Retry callback |
+
+### Scheduled Bot Management
+
+| Method | Description |
+|--------|-------------|
+| `createScheduledBot` | Create scheduled bot |
+| `batchCreateScheduledBots` | Create multiple scheduled bots |
+| `listScheduledBots` | List scheduled bots |
+| `getScheduledBot` | Get scheduled bot details |
+| `updateScheduledBot` | Update scheduled bot |
+| `deleteScheduledBot` | Delete scheduled bot |
+
+### Calendar Connection Management
+
+| Method | Description |
+|--------|-------------|
+| `listRawCalendars` | List raw calendars (preview before creating connection) |
+| `createCalendarConnection` | Create calendar connection |
+| `listCalendars` | List calendar connections |
+| `getCalendarDetails` | Get calendar connection details |
+| `updateCalendarConnection` | Update calendar connection |
+| `deleteCalendarConnection` | Delete calendar connection |
+| `syncCalendar` | Sync calendar events |
+| `resubscribeCalendar` | Resubscribe to calendar webhooks |
+
+### Calendar Event Management
+
+| Method | Description |
+|--------|-------------|
+| `listEvents` | List calendar events |
+| `listEventSeries` | List event series |
+| `getEventDetails` | Get event details |
+
+### Calendar Bot Management
+
+| Method | Description |
+|--------|-------------|
+| `createCalendarBot` | Schedule bot for calendar event |
+| `updateCalendarBot` | Update calendar bot |
+| `deleteCalendarBot` | Cancel calendar bot |
+
+## Webhook Types (v2)
+
+The v2 API includes comprehensive TypeScript types for all webhook events:
+
+### Bot Webhooks
+
+- `BotWebhookCompleted` - Sent when a bot successfully completes recording
+- `BotWebhookFailed` - Sent when a bot fails to join or record
+- `BotWebhookStatusChange` - Sent when a bot's status changes
+
+### Calendar Webhooks
+
+- `CalendarWebhookConnectionCreated` - Sent when a calendar connection is created
+- `CalendarWebhookConnectionUpdated` - Sent when a calendar connection is updated
+- `CalendarWebhookConnectionDeleted` - Sent when a calendar connection is deleted
+- `CalendarWebhookEventCreated` - Sent when a calendar event is created
+- `CalendarWebhookEventUpdated` - Sent when a calendar event is updated
+- `CalendarWebhookEventCancelled` - Sent when a calendar event is cancelled
+- `CalendarWebhookEventsSynced` - Sent when a calendar completes the initial sync
+
+### Callback Payloads
+
+- `CallbackCompleted` - Callback payload sent when a bot successfully completes recording (event: `"bot.completed"`)
+- `CallbackFailed` - Callback payload sent when a bot fails to join or record (event: `"bot.failed"`)
+
+<Callout type="info">
+  Callback payloads have the same structure as webhook events but are sent to bot-specific callback URLs configured via `callback_config` when creating bots.
+</Callout>
+
+For detailed webhook documentation, see the [v2 API webhook reference](https://docs.meetingbaas.com/api-v2/reference/webhooks).
+
+### Usage Example
+
+```typescript
+import type { V2 } from "@meeting-baas/sdk";
+
+// Type-safe webhook handler
+async function handleWebhook(payload: V2.BotWebhookCompleted) {
+  if (payload.event === "bot.completed") {
+    console.log("Bot completed:", payload.data.bot_id);
+    console.log("Transcription:", payload.data.transcription);
+    console.log("Video URL:", payload.data.video);
+  }
+}
+
+// Handle multiple event types with discriminated unions
+type WebhookEvent = 
+  | V2.BotWebhookCompleted 
+  | V2.BotWebhookFailed 
+  | V2.BotWebhookStatusChange
+  | V2.CalendarWebhookEventCreated;
+
+async function handleAnyWebhook(payload: WebhookEvent) {
+  switch (payload.event) {
+    case "bot.completed":
+      // TypeScript knows payload.data has BotWebhookCompletedData
+      break;
+    case "bot.failed":
+      // TypeScript knows payload.data has BotWebhookFailedData
+      break;
+    // ... other cases
+  }
+}
+
+// Callback payloads can be handled the same way
+async function handleCallback(payload: V2.CallbackCompleted | V2.CallbackFailed) {
+  if (payload.event === "bot.completed") {
+    // TypeScript knows this is CallbackCompleted
+    console.log("Callback - Bot completed:", payload.data.bot_id);
+  } else if (payload.event === "bot.failed") {
+    // TypeScript knows this is CallbackFailed
+    console.log("Callback - Bot failed:", payload.data.bot_id);
+  }
+}
+```
+
+## Migration Checklist
+
+<Steps>
+<Step>
+### Update Dependencies to SDK v6
+
+```bash
+npm install @meeting-baas/sdk@^6.0.0
+```
+
+</Step>
+
+<Step>
+### Test Existing Code
+
+All existing v1 code should continue to work without changes. Test your application to ensure everything works as expected.
+
+</Step>
+
+<Step>
+### Migrate to v2 (Optional)
+
+If you want to use v2 API:
+
+1. **Update client creation** to include `api_version: "v2"`
+2. **Update method calls** to use v2 method names (e.g., `createBot` instead of `joinMeeting`)
+3. **Update error handling** to use v2 error format (`code`, `statusCode`, `details`)
+4. **Handle batch responses** if using batch operations (check `errors` array)
+
+</Step>
+
+<Step>
+### Update Type Imports (if needed)
+
+If you're importing types, they're now organized by version:
+
+```typescript
+// v1 types (from generated/v1/schema)
+import type { JoinRequest, JoinResponse } from "@meeting-baas/sdk";
+
+// v2 types (from generated/v2/schema)
+import type { CreateBotRequest, CreateBotResponse } from "@meeting-baas/sdk";
+```
+
+</Step>
+</Steps>
+
+## Common Issues
+
+### TypeScript Shows Wrong Methods
+
+**Problem:** TypeScript shows v1 methods when you want v2, or vice versa.
+
+**Solution:** Ensure `api_version` is correctly set in the client configuration:
+
+```typescript
+// Correct - must be explicitly set for v2
+const client = createBaasClient({
+  api_key: "key",
+  api_version: "v2"
+});
+```
+
+### Error Handling Differences
+
+**Problem:** v2 error format is different from v1.
+
+**Solution:** Update error handling to use v2 error fields:
+
+```typescript
+// v1 error handling
+if (!result.success) {
+  console.error(result.error); // ZodError | Error
+}
+
+// v2 error handling
+if (!result.success) {
+  console.error(result.error); // string
+  console.error(result.code); // string
+  console.error(result.statusCode); // number
+  console.error(result.details); // unknown | null
+}
+```
+
+### Batch Route Errors
+
+**Problem:** Batch routes return `success: true` even when some items fail.
+
+**Solution:** Check the `errors` array for partial failures:
+
+```typescript
+const result = await client.batchCreateBots({ bots: [...] });
+
+if (result.success) {
+  if (result.errors.length > 0) {
+    // Some items failed
+    console.log("Partial success:", result.data);
+    console.log("Errors:", result.errors);
+  } else {
+    // All items succeeded
+    console.log("All succeeded:", result.data);
+  }
+}
+```
+
+## Getting Help
+
+If you encounter issues during migration:
+
+1. Check this migration guide
+2. Review the [API Reference](/docs/typescript-sdk/complete-reference) for current usage examples
+3. Open an issue on [GitHub](https://github.com/Meeting-Baas/sdk-generator/issues)
+4. Join our [Discord community](https://discord.com/invite/dsvFgDTr6c) for support
+
+
+
+---
+
 ## Quick Start
 
 Quick guide for integrating with Meeting BaaS services.
@@ -2187,34 +2731,38 @@ Quick guide for integrating with Meeting BaaS services.
 ### Source: ./content/docs/typescript-sdk/quick-start.mdx
 
 
+<Callout type="info">
+  This guide uses v2 API, the recommended version for new projects. Get your API key at [dashboard.meetingbaas.com](https://dashboard.meetingbaas.com/onboarding).
+</Callout>
+
 ```typescript
 import { createBaasClient } from '@meeting-baas/sdk';
 
-// Create a BaaS client
+// Create a v2 BaaS client
 const client = createBaasClient({
-  api_key: 'your-api-key', // Get yours at https://meetingbaas.com
+  api_key: 'your-api-key', // Get yours at https://dashboard.meetingbaas.com
+  api_version: 'v2'
 });
 
-// Join a meeting
-const { success, data, error } = await client.joinMeeting({
+// Create a bot to join a meeting
+const { success, data, error } = await client.createBot({
   bot_name: 'Meeting Assistant',
   meeting_url: 'https://meet.google.com/abc-def-ghi',
-  reserved: true,
 });
 
 if (success) {
-  console.log('Bot joined successfully:', data.bot_id);
+  console.log('Bot created successfully:', data.bot_id);
   
-  // Get meeting data
-  const meetingDataResult = await client.getMeetingData({
+  // Get bot details
+  const botDetails = await client.getBotDetails({
     bot_id: data.bot_id
   });
   
-  if (meetingDataResult.success) {
-    console.log('Meeting data:', meetingDataResult.data);
+  if (botDetails.success) {
+    console.log('Bot details:', botDetails.data);
   }
 } else {
-  console.error('Error joining meeting:', error);
+  console.error('Error creating bot:', error);
 }
 ```
 
@@ -2225,42 +2773,42 @@ if (success) {
 ```typescript
 import { createBaasClient } from '@meeting-baas/sdk';
 
-// Create a BaaS client
+// Create a v2 BaaS client
 const client = createBaasClient({
   api_key: 'your-api-key',
+  api_version: 'v2'
 });
 
-// Join a meeting
-const joinResult = await client.joinMeeting({
+// Create a bot
+const createResult = await client.createBot({
   bot_name: 'My Assistant',
   meeting_url: 'https://meet.google.com/abc-def-ghi',
-  reserved: true,
 });
 
-if (joinResult.success) {
-  console.log('Bot joined successfully:', joinResult.data.bot_id);
+if (createResult.success) {
+  console.log('Bot created successfully:', createResult.data.bot_id);
   
-  // Get meeting data
-  const meetingDataResult = await client.getMeetingData({
-    bot_id: joinResult.data.bot_id
+  // Get bot details
+  const botDetails = await client.getBotDetails({
+    bot_id: createResult.data.bot_id
   });
   
-  if (meetingDataResult.success) {
-    console.log('Meeting data:', meetingDataResult.data);
+  if (botDetails.success) {
+    console.log('Bot details:', botDetails.data);
   } else {
-    console.error('Error getting meeting data:', meetingDataResult.error);
+    console.error('Error getting bot details:', botDetails.error);
   }
   
-  // Delete meeting data
+  // Delete bot data
   const deleteResult = await client.deleteBotData({
-    uuid: joinResult.data.bot_id
+    bot_id: createResult.data.bot_id
   });
   
   if (deleteResult.success) {
     console.log('Bot data deleted successfully');
   }
 } else {
-  console.error('Error joining meeting:', joinResult.error);
+  console.error('Error creating bot:', createResult.error);
 }
 ```
 
@@ -2271,18 +2819,20 @@ import { createBaasClient } from '@meeting-baas/sdk';
 
 const client = createBaasClient({
   api_key: 'your-api-key',
+  api_version: 'v2'
 });
 
-// Create a calendar integration
-const calendarResult = await client.createCalendar({
+// Create a calendar connection
+const calendarResult = await client.createCalendarConnection({
+  calendar_platform: 'google',
   oauth_client_id: 'your-oauth-client-id',
   oauth_client_secret: 'your-oauth-client-secret',
   oauth_refresh_token: 'your-oauth-refresh-token',
-  platform: 'Google',
+  raw_calendar_id: 'primary'
 });
 
 if (calendarResult.success) {
-  console.log('Calendar created:', calendarResult.data);
+  console.log('Calendar connected:', calendarResult.data);
 
   // List all calendars
   const calendarsResult = await client.listCalendars();
@@ -2291,17 +2841,15 @@ if (calendarResult.success) {
   }
 
   // List events from a calendar
-  const eventsResult = await client.listCalendarEvents({
-    calendar_id: calendarResult.data.calendar.uuid,
-    start_date_gte: new Date().toISOString(),
-    start_date_lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+  const eventsResult = await client.listEvents({
+    calendar_id: calendarResult.data.calendar_id
   });
   
   if (eventsResult.success) {
     console.log('Events:', eventsResult.data);
   }
 } else {
-  console.error('Error creating calendar:', calendarResult.error);
+  console.error('Error connecting calendar:', calendarResult.error);
 }
 ```
 
@@ -2312,59 +2860,66 @@ import { createBaasClient } from '@meeting-baas/sdk';
 
 const client = createBaasClient({
   api_key: 'your-api-key',
+  api_version: 'v2',
   timeout: 60000
 });
 
 async function comprehensiveExample() {
-  try {
-    // Join a meeting with all options
-    const joinResult = await client.joinMeeting({
-      meeting_url: 'https://meet.google.com/abc-defg-hij',
-      bot_name: 'Advanced Test Bot',
-      reserved: false,
-      bot_image: 'https://example.com/bot-image.jpg',
-      enter_message: 'Hello from the advanced test bot!',
-      extra: { test_id: 'advanced-example' },
-      recording_mode: 'speaker_view',
-      speech_to_text: { provider: 'Gladia' },
-      webhook_url: 'https://example.com/webhook'
+  // Create a bot with all options
+  const createResult = await client.createBot({
+    meeting_url: 'https://meet.google.com/abc-defg-hij',
+    bot_name: 'Advanced Test Bot',
+    bot_image: 'https://example.com/bot-image.jpg',
+    entry_message: 'Hello from the advanced test bot!',
+    recording_mode: 'speaker_view',
+    transcription_config: { 
+      provider: 'gladia' 
+    },
+    extra: { test_id: 'advanced-example' }
+  });
+
+  if (createResult.success) {
+    const botId = createResult.data.bot_id;
+    console.log('Bot created with ID:', botId);
+
+    // Get bot status
+    const statusResult = await client.getBotStatus({
+      bot_id: botId
     });
 
-    if (joinResult.success) {
-      const botId = joinResult.data.bot_id;
-      console.log('Bot joined with ID:', botId);
-
-      // Get meeting data with transcripts
-      const meetingDataResult = await client.getMeetingData({
-        bot_id: botId,
-        include_transcripts: true
-      });
-
-      if (meetingDataResult.success) {
-        console.log('Meeting duration:', meetingDataResult.data.duration);
-        console.log('Has MP4:', !!meetingDataResult.data.mp4);
-      }
-
-      // Leave the meeting
-      const leaveResult = await client.leaveMeeting({
-        uuid: botId
-      });
-
-      if (leaveResult.success) {
-        console.log('Bot left meeting successfully');
-      }
-
-      // Delete bot data
-      const deleteResult = await client.deleteBotData({
-        uuid: botId
-      });
-
-      if (deleteResult.success) {
-        console.log('Bot data deleted successfully');
-      }
+    if (statusResult.success) {
+      console.log('Bot status:', statusResult.data.status);
     }
-  } catch (error) {
-    console.error('Unexpected error:', error);
+
+    // Get bot details
+    const detailsResult = await client.getBotDetails({
+      bot_id: botId
+    });
+
+    if (detailsResult.success) {
+      console.log('Bot details:', detailsResult.data);
+    }
+
+    // Leave the meeting
+    const leaveResult = await client.leaveBot({
+      bot_id: botId
+    });
+
+    if (leaveResult.success) {
+      console.log('Bot left meeting successfully');
+    }
+
+    // Delete bot data
+    const deleteResult = await client.deleteBotData({
+      bot_id: botId
+    });
+
+    if (deleteResult.success) {
+      console.log('Bot data deleted successfully');
+    }
+  } else {
+    console.error('Error creating bot:', createResult.error);
+    console.error('Error code:', createResult.code);
   }
 }
 ```

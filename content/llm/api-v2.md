@@ -93,7 +93,8 @@ If an API key lacks permission for an endpoint, you'll receive a `403 Forbidden`
   "success": false,
   "error": "Forbidden",
   "code": "FST_ERR_FORBIDDEN",
-  "statusCode": 403
+  "statusCode": 403,
+  "message": "Forbidden"
 }
 ```
 
@@ -363,9 +364,11 @@ When you exceed the rate limit, you'll receive a `429 Too Many Requests` respons
 ```json
 {
   "success": false,
-  "error": "Too many requests",
+  "error": "Rate Limited",
   "code": "FST_ERR_TOO_MANY_REQUESTS",
-  "statusCode": 429
+  "statusCode": 429,
+  "message": "Rate limit exceeded. Maximum 1 request(s) per second allowed. Retry after x seconds",
+  "retryAfter": 1
 }
 ```
 
@@ -401,7 +404,8 @@ When the daily bot cap is reached:
 ```json
 {
   "success": false,
-  "error": "Daily bot cap has been reached: 75 bots created within the last 24 hours",
+  "error": "Rate Limited",
+  "message": "Daily bot cap has been reached: 75 bots created within the last 24 hours",
   "code": "FST_ERR_DAILY_BOT_CAP_REACHED",
   "statusCode": 429
 }
@@ -1090,7 +1094,8 @@ The leave endpoint can only be called when the bot is in one of these statuses:
 ```json
 {
   "success": false,
-  "error": "Bot with ID 'BOT-ID' not found",
+  "error": "Not Found",
+  "message": "Bot with ID 'BOT-ID' not found",
   "code": "FST_ERR_BOT_NOT_FOUND_BY_ID",
   "statusCode": 404
 }
@@ -1100,7 +1105,8 @@ The leave endpoint can only be called when the bot is in one of these statuses:
 ```json
 {
   "success": false,
-  "error": "Status of bot 'BOT-ID' is: completed. Operation not permitted in this state.",
+  "error": "Conflict",
+  "message": "Status of bot 'BOT-ID' is: completed. Operation not permitted in this state.",
   "code": "FST_ERR_BOT_STATUS",
   "statusCode": 409
 }
@@ -1155,7 +1161,8 @@ The delete endpoint can only be called when the bot is in one of these statuses:
 ```json
 {
   "success": false,
-  "error": "Bot with ID 'BOT-ID' not found",
+  "error": "Not Found",
+  "message": "Bot with ID 'BOT-ID' not found",
   "code": "FST_ERR_BOT_NOT_FOUND_BY_ID",
   "statusCode": 404
 }
@@ -1165,7 +1172,8 @@ The delete endpoint can only be called when the bot is in one of these statuses:
 ```json
 {
   "success": false,
-  "error": "Status of bot 'BOT-ID' is: in_call_recording. Operation not permitted in this state.",
+  "error": "Conflict",
+  "message": "Status of bot 'BOT-ID' is: in_call_recording. Operation not permitted in this state.",
   "code": "FST_ERR_BOT_STATUS",
   "statusCode": 409
 }
@@ -1651,7 +1659,8 @@ v2 uses the same API key authentication:
 ```json
 {
   "success": false,
-  "error": "Human-readable error message",
+  "error": "status code label",
+  "message": "Human-readable error message",
   "code": "FST_ERR_BOT_NOT_FOUND_BY_ID",
   "statusCode": 404,
   "details": null
@@ -1738,7 +1747,8 @@ v2 uses standardized error codes with `FST_ERR_` prefix:
 ```json
 {
   "success": false,
-  "error": "Bot with ID 'uuid' not found",
+  "error": "Not Found",
+  "message": "Bot with ID 'uuid' not found",
   "code": "FST_ERR_BOT_NOT_FOUND_BY_ID",
   "statusCode": 404,
   "details": null

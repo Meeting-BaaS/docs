@@ -72,9 +72,9 @@
 
 @layer base {
   :root {
-    --color-fd-background: hsl(168, 29%, 97%) !important;
+    --color-fd-background: hsl(300 50% 100%) !important;
     --color-fd-primary: hsl(176 100% 43%) !important;
-    --color-fd-foreground: hsl(240, 6%, 25%) !important;
+    --color-fd-foreground: hsl(300 0% 4%) !important;
 
     --api-color: hsl(176 100% 43%);
     --transcript-seeker-color: hsl(220deg 91% 54%);
@@ -82,19 +82,19 @@
   }
 
   .dark {
-    --color-fd-background: hsl(0, 0%, 17%) !important;
-    --color-fd-foreground: hsl(0, 0%, 100%) !important;
-    --color-fd-card: hsl(0, 0%, 17%) !important;
-    --color-fd-card-foreground: hsl(0, 0%, 100%) !important;
-    --color-fd-popover: hsl(0, 0%, 17%) !important;
-    --color-fd-popover-foreground: hsl(0, 0%, 100%) !important;
+    --color-fd-background: hsl(300 0% 4%) !important;
+    --color-fd-foreground: hsl(300 0% 98%) !important;
+    --color-fd-card: hsl(330 0% 9%) !important;
+    --color-fd-card-foreground: hsl(300 0% 98%) !important;
+    --color-fd-popover: hsl(330 0% 9%) !important;
+    --color-fd-popover-foreground: hsl(300 0% 98%) !important;
     --color-fd-primary-foreground: hsl(213, 16%, 27%) !important;
     --color-fd-secondary-foreground: hsl(0, 0%, 100%) !important;
-    --color-fd-muted: hsl(173 8% 22%) !important;
-    --color-fd-muted-foreground: hsl(0 0% 65%) !important;
-    --color-fd-border: hsl(173 8% 22%) !important;
-    --color-fd-accent: hsl(173 8% 22%) !important;
-    --color-fd-accent-foreground: hsl(0 0% 100%) !important;
+    --color-fd-muted: hsl(320 0% 15%) !important;
+    --color-fd-muted-foreground: hsl(0 0% 63%) !important;
+    --color-fd-border: hsl(300 50% 100% / 0.1) !important;
+    --color-fd-accent: hsl(320 0% 15%) !important;
+    --color-fd-accent-foreground: hsl(300 0% 98%) !important;
     --color-fd-ring: hsl(197 100% 44%) !important;
 
     --api-color: hsl(176 100% 43%);

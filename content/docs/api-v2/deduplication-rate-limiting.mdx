@@ -84,9 +84,11 @@ When you exceed the rate limit, you'll receive a `429 Too Many Requests` respons
 ```json
 {
   "success": false,
-  "error": "Too many requests",
+  "error": "Rate Limited",
   "code": "FST_ERR_TOO_MANY_REQUESTS",
-  "statusCode": 429
+  "statusCode": 429,
+  "message": "Rate limit exceeded. Maximum 1 request(s) per second allowed. Retry after x seconds",
+  "retryAfter": 1
 }
 ```
 
@@ -122,7 +124,8 @@ When the daily bot cap is reached:
 ```json
 {
   "success": false,
-  "error": "Daily bot cap has been reached: 75 bots created within the last 24 hours",
+  "error": "Rate Limited",
+  "message": "Daily bot cap has been reached: 75 bots created within the last 24 hours",
   "code": "FST_ERR_DAILY_BOT_CAP_REACHED",
   "statusCode": 429
 }

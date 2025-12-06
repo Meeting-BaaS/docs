@@ -112,7 +112,8 @@ v2 uses the same API key authentication:
 ```json
 {
   "success": false,
-  "error": "Human-readable error message",
+  "error": "status code label",
+  "message": "Human-readable error message",
   "code": "FST_ERR_BOT_NOT_FOUND_BY_ID",
   "statusCode": 404,
   "details": null
@@ -199,7 +200,8 @@ v2 uses standardized error codes with `FST_ERR_` prefix:
 ```json
 {
   "success": false,
-  "error": "Bot with ID 'uuid' not found",
+  "error": "Not Found",
+  "message": "Bot with ID 'uuid' not found",
   "code": "FST_ERR_BOT_NOT_FOUND_BY_ID",
   "statusCode": 404,
   "details": null
