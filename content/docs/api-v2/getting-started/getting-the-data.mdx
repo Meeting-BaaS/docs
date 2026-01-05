@@ -16,6 +16,7 @@ curl -X GET "https://api.meetingbaas.com/v2/bots/BOT-ID" \
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -46,6 +47,7 @@ curl -X GET "https://api.meetingbaas.com/v2/bots/BOT-ID/status" \
 ```
 
 **Response:**
+
 ```json
 {
   "success": true,
@@ -73,6 +75,8 @@ curl -X GET "https://api.meetingbaas.com/v2/bots/BOT-ID/screenshots" \
 
 All artifact URLs (video, audio, transcription, diarization) are **presigned S3 URLs** that are valid for **4 hours**. Make sure to download them within this time window.
 
+For detailed information about each artifact type, their formats, and use cases, see the [Artifacts documentation](/docs/api-v2/artifacts).
+
 ## Recommended Approach
 
 Instead of polling the API, we recommend:
@@ -82,4 +86,3 @@ Instead of polling the API, we recommend:
 3. **Poll only when necessary**: If you must poll, use a judicious interval (e.g., every 5-10 minutes) and only for reconciliation purposes
 
 For more details, see the [Webhooks documentation](/docs/api-v2/webhooks).
-

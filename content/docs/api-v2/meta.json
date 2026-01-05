@@ -11,6 +11,7 @@
     "api-keys",
     "webhooks",
     "transcription",
+    "artifacts",
     "batch-operations",
     "deduplication-rate-limiting",
     "error-codes",

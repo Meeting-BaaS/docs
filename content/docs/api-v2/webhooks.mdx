@@ -23,6 +23,7 @@ Meeting BaaS v2 supports two notification mechanisms:
 2. **Callbacks** (Bot-specific): Configured per-bot when creating a bot using the `callback_config` parameter. Callbacks are direct HTTP requests (POST or PUT) sent to your specified URL when that specific bot completes or fails.
 
 **Key Differences:**
+
 - **Webhooks**: Account-level, sent via SVIX with signature verification, all events
 - **Callbacks**: Bot-specific, direct HTTP requests, only for bot completion/failure events
 
@@ -41,12 +42,14 @@ To verify webhooks, use SVIX's verification libraries or verify the signature ma
 Triggered whenever a bot's status changes (e.g., from `queued` to `joining`, from `joining` to `in_call_recording`, etc.).
 
 **Use Cases:**
+
 - Track bot progress in real-time
 - Update UI to show current bot state
 - Trigger actions based on status changes
 - Monitor bot lifecycle
 
 **Payload:**
+
 ```json
 {
   "event": "bot.status_change",
@@ -66,6 +69,7 @@ Triggered whenever a bot's status changes (e.g., from `queued` to `joining`, fro
 ```
 
 **Status Codes:**
+
 - `queued`: Bot is queued and waiting to join
 - `joining`: Bot is attempting to join the meeting
 - `in_call_recording`: Bot is in the meeting and recording
@@ -78,12 +82,14 @@ Triggered whenever a bot's status changes (e.g., from `queued` to `joining`, fro
 Triggered when a bot successfully completes recording and processing.
 
 **Use Cases:**
+
 - Download meeting recordings automatically
 - Process transcriptions
 - Trigger post-meeting workflows
 - Update meeting records in your system
 
 **Payload:**
+
 ```json
 {
   "event": "bot.completed",
@@ -104,19 +110,21 @@ Triggered when a bot successfully completes recording and processing.
 }
 ```
 
-**Note:** All artifact URLs (transcription, mp4, audio, diarization) are presigned S3 URLs valid for 4 hours.
+**Note:** All artifact URLs (transcription, mp4, audio, diarization) are presigned S3 URLs valid for 4 hours. For detailed information about each artifact type, see the [Artifacts documentation](/docs/api-v2/artifacts).
 
 ### `bot.failed`
 
 Triggered when a bot fails to complete successfully.
 
 **Use Cases:**
+
 - Handle errors gracefully
 - Retry bot creation if appropriate
 - Log failures for analysis
 - Notify users of failures
 
 **Payload:**
+
 ```json
 {
   "event": "bot.failed",
@@ -133,6 +141,7 @@ Triggered when a bot fails to complete successfully.
 ```
 
 **Common Error Codes:**
+
 - `BOT_NOT_ACCEPTED`: Bot was not accepted into the meeting
 - `TIMEOUT_WAITING_TO_START`: Meeting didn't start within the timeout period
 - `INSUFFICIENT_TOKENS`: Not enough tokens to create the bot
@@ -147,11 +156,13 @@ Triggered when a bot fails to complete successfully.
 Triggered when a new calendar connection is created.
 
 **Use Cases:**
+
 - Confirm calendar integration success
 - Initialize calendar-specific workflows
 - Track calendar connections
 
 **Payload:**
+
 ```json
 {
   "event": "calendar.connection_created",
@@ -169,11 +180,13 @@ Triggered when a new calendar connection is created.
 Triggered when a calendar connection is updated (e.g., OAuth credentials refreshed).
 
 **Use Cases:**
+
 - Track credential updates
 - Monitor connection health
 - Update connection status in your system
 
 **Payload:**
+
 ```json
 {
   "event": "calendar.connection_updated",
@@ -190,11 +203,13 @@ Triggered when a calendar connection is updated (e.g., OAuth credentials refresh
 Triggered when a calendar connection is deleted.
 
 **Use Cases:**
+
 - Clean up calendar-related data
 - Notify users of disconnection
 - Update UI to reflect removal
 
 **Payload:**
+
 ```json
 {
   "event": "calendar.connection_deleted",
@@ -210,11 +225,13 @@ Triggered when a calendar connection is deleted.
 Triggered when a calendar connection encounters an error (e.g., OAuth token refresh failed).
 
 **Use Cases:**
+
 - Alert users to connection issues
 - Trigger automatic reconnection attempts
 - Log errors for troubleshooting
 
 **Payload:**
+
 ```json
 {
   "event": "calendar.connection_error",
@@ -232,11 +249,13 @@ Triggered when a calendar connection encounters an error (e.g., OAuth token refr
 Triggered after a calendar sync operation completes (initial sync).
 
 **Use Cases:**
+
 - Confirm sync completion
 - Process newly synced events
 - Update event cache
 
 **Payload:**
+
 ```json
 {
   "event": "calendar.events_synced",
@@ -253,11 +272,13 @@ Triggered after a calendar sync operation completes (initial sync).
 Triggered when a new event is created in a connected calendar.
 
 **Use Cases:**
+
 - Automatically schedule bots for new events
 - Update event calendars
 - Trigger event-specific workflows
 
 **Payload:**
+
 ```json
 {
   "event": "calendar.event_created",
@@ -285,11 +306,13 @@ Triggered when a new event is created in a connected calendar.
 Triggered when an existing event is updated in a connected calendar.
 
 **Use Cases:**
+
 - Update bot schedules if meeting time changes
 - Sync event changes to your system
 - Handle event modifications
 
 **Payload:**
+
 ```json
 {
   "event": "calendar.event_updated",
@@ -317,11 +340,13 @@ Triggered when an existing event is updated in a connected calendar.
 Triggered when an event is cancelled in a connected calendar.
 
 **Use Cases:**
+
 - Cancel scheduled bots for cancelled events
 - Update event status
 - Clean up event-related data
 
 **Payload:**
+
 ```json
 {
   "event": "calendar.event_cancelled",
@@ -351,6 +376,7 @@ Triggered when an event is cancelled in a connected calendar.
 ## Testing Webhooks
 
 You can test your webhook endpoint using tools like:
+
 - [ngrok](https://ngrok.com/) for local development
 - [webhook.site](https://webhook.site/) or [webhook.cool](https://webhook.cool) for testing
 - [SVIX CLI](https://www.svix.com/docs/cli/) for local testing
@@ -392,4 +418,3 @@ If a callback delivery fails, you can retry it using the `POST /v2/bots/:bot_id/
 ## Resending Webhooks
 
 If a webhook delivery fails, you can resend it using the `POST /v2/bots/:bot_id/resend-webhook` endpoint.
-
