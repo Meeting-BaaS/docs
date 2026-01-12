@@ -28,8 +28,14 @@ curl -X GET "https://api.meetingbaas.com/v2/bots/BOT-ID" \
     "audio": "https://s3.amazonaws.com/.../audio.mp3",
     "transcription": "https://s3.amazonaws.com/.../transcription.json",
     "diarization": "https://s3.amazonaws.com/.../diarization.json",
-    "participants": ["Alice", "Bob"],
-    "speakers": ["Alice", "Bob"],
+    "participants": [
+      { "name": "Alice", "id": 1, "display_name": "Alice", "profile_picture": "https://..." },
+      { "name": "Bob", "id": 2 }
+    ],
+    "speakers": [
+      { "name": "Alice", "id": 1, "display_name": "Alice", "profile_picture": "https://..." },
+      { "name": "Bob", "id": 2 }
+    ],
     "duration_seconds": 3600,
     "created_at": "2025-01-15T10:00:00Z",
     "updated_at": "2025-01-15T11:00:00Z"

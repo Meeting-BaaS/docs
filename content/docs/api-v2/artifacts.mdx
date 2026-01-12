@@ -286,8 +286,8 @@ The diarization artifact contains speaker identification and timing information,
 **Structure** (Google Meet/Teams example):
 
 ```jsonl
-{"speaker": "John Doe", "start_time": 0.5, "end_time": 5.2}
-{"speaker": "Jane Smith", "start_time": 5.3, "end_time": 10.1}
+{"speaker": "John Doe", "start_time": 0.5, "end_time": 5.2, "user_id": 1}
+{"speaker": "Jane Smith", "start_time": 5.3, "end_time": 10.1, "user_id": 2}
 ```
 
 **Fields**:
@@ -295,7 +295,7 @@ The diarization artifact contains speaker identification and timing information,
 - `speaker`: Real speaker name
 - `start_time`: Start time in seconds
 - `end_time`: End time in seconds
-- `user_id`: Platform user ID (Zoom only)
+- `user_id`: Platform or Assigned user ID - (Zoom and Google Meet only, optional)
 - `lang`: Language code (Zoom only, optional)
 
 **Use Cases**:
@@ -313,8 +313,8 @@ The diarization artifact contains speaker identification and timing information,
 
 **Platform Differences**:
 
-- **Zoom**: Includes `user_id` and optional `lang` fields in each segment
-- **Google Meet/Teams**: Only includes `speaker`, `start_time`, and `end_time` fields (UI-based speaker detection)
+- **Zoom**: Includes `user_id` (platform user ID) and optional `lang` fields in each segment
+- **Google Meet/Teams**: Includes `user_id` (assigned user ID) when available. The assigned ID attempts to remain consistent even if a participant rejoins the meeting.
 
 ## Additional Response Fields
 
@@ -345,7 +345,7 @@ The diarization artifact contains speaker identification and timing information,
 
 ### Participants Array
 
-**Type**: `Array<{name: string, id: number | null}>`
+**Type**: `Array<{name: string, id: number | null, display_name?: string, profile_picture?: string}>`
 
 **Description**: List of all participants who joined the meeting
 
@@ -356,11 +356,13 @@ The diarization artifact contains speaker identification and timing information,
   "participants": [
     {
       "name": "John Doe",
-      "id": 123
+      "id": 1,
+      "display_name": "John",
+      "profile_picture": "https://lh3.googleusercontent.com/..."
     },
     {
       "name": "Jane Smith",
-      "id": 456
+      "id": 2
     }
   ]
 }
@@ -368,8 +370,10 @@ The diarization artifact contains speaker identification and timing information,
 
 **Fields**:
 
-- `name`: Participant display name
-- `id`: Platform-specific user ID (null if unavailable)
+- `name`: Participant full name
+- `id`: Platform or assigned user ID (null if unavailable)
+- `display_name`: Display name shown in UI (optional, only present if different from `name`)
+- `profile_picture`: Profile picture URL (optional, only present when available)
 
 **Use Cases**:
 
@@ -382,11 +386,18 @@ The diarization artifact contains speaker identification and timing information,
 
 ### Speakers Array
 
-**Type**: `Array<{name: string, id: number | null}>`
+**Type**: `Array<{name: string, id: number | null, display_name?: string, profile_picture?: string}>`
 
 **Description**: List of speakers identified in the meeting (subset of participants who spoke)
 
 **Structure**: Same as participants array
+
+**Fields**:
+
+- `name`: Speaker full name
+- `id`: Platform or assigned user ID (null if unavailable)
+- `display_name`: Display name shown in UI (optional, only present if different from `name`)
+- `profile_picture`: Profile picture URL (optional, only present when available)
 
 **Use Cases**:
 
@@ -456,7 +467,24 @@ If you have a specific reason for needing data retained longer than your plan's 
 - User ID mapping in diarization data
 - Multi-speaker support with channel-based audio
 
-### Google Meet/Teams
+### Google Meet
+
+- JSONL diarization format (same as Zoom)
+- Network-based speaker detection for improved accuracy
+- Diarization segments include `speaker`, `start_time`, `end_time`, and `user_id` (assigned user ID)
+- Single audio file processing
+- **Diarization Accuracy**: 
+  - Uses network-based detection which provides more accurate speaker identification
+  - May have slight inaccuracies in timestamp alignment (typically less than 1 second)
+  - Our system uses a statistical analysis approach to improve accuracy:
+    - Matches transcription utterances to diarization segments using a ±1 second time window
+    - Samples 30% of utterances (minimum 50, maximum 200 samples per speaker) for statistical significance
+    - Uses frequency-based matching: the speaker with the highest match count within the time window is selected
+    - Calculates confidence scores based on match frequency
+    - This approach compensates for any timing discrepancies by finding the most likely speaker match statistically
+  - For the most accurate timestamps, use the `transcription` artifact (output transcription) which applies timestamp offsets to account for chunk boundaries and provides accurate timing across the entire meeting
+
+### Microsoft Teams
 
 - JSONL diarization format (same as Zoom)
 - UI-based speaker detection
@@ -495,12 +523,12 @@ curl -X GET "https://api.meetingbaas.com/v2/bots/BOT-ID" \
     "raw_transcription": "https://s3.amazonaws.com/.../raw_transcription.json",
     "diarization": "https://s3.amazonaws.com/.../diarization.jsonl",
     "participants": [
-      { "name": "John Doe", "id": 123 },
-      { "name": "Jane Smith", "id": 456 }
+      { "name": "John Doe", "id": 1, "display_name": "John", "profile_picture": "https://lh3.googleusercontent.com/..." },
+      { "name": "Jane Smith", "id": 2 }
     ],
     "speakers": [
-      { "name": "John Doe", "id": 123 },
-      { "name": "Jane Smith", "id": 456 }
+      { "name": "John Doe", "id": 1, "display_name": "John", "profile_picture": "https://lh3.googleusercontent.com/..." },
+      { "name": "Jane Smith", "id": 2 }
     ],
     "transcription_ids": ["gladia-job-12345"],
     "transcription_provider": "gladia"
@@ -563,18 +591,31 @@ When a bot completes, you'll receive a webhook with all artifact URLs:
     - Timestamps are precise and directly tied to Zoom's audio stream
     - Each segment includes `user_id` for reliable speaker identification
 
-    **Google Meet/Teams:**
+    **Google Meet:**
+
+    - Uses network-based speaker detection for improved accuracy
+    - May have slight inaccuracies in timestamp alignment (typically less than 1 second)
+    - See the [Google Meet section](#google-meet) above for detailed information about our statistical analysis approach
+
+    **Microsoft Teams:**
 
     - **May have slight inaccuracies** - Uses UI-based speaker detection which can introduce latency
     - UI diarization relies on visual indicators (speaker highlighting) which may lag behind actual speech by 1-2 seconds
-    - Our system uses a **statistical analysis approach** to improve accuracy:
-      - Matches transcription utterances to UI diarization segments using a ±1 second time window
-      - Samples 30% of utterances (minimum 50, maximum 200 samples per speaker) for statistical significance
-      - Uses frequency-based matching: the speaker with the highest match count within the time window is selected
-      - Calculates confidence scores based on match frequency
-      - This approach compensates for UI lag by finding the most likely speaker match statistically
 
     For the most accurate timestamps, use the `transcription` artifact (output transcription) which applies timestamp offsets to account for chunk boundaries and provides accurate timing across the entire meeting.
+
+  </Accordion>
+
+  <Accordion title="How does Google Meet maintain consistent user_id across rejoins?">
+    Google Meet uses a stable identifier system to assign `user_id` values that remain consistent even when participants rejoin:
+
+    - **Identification Method**: Creates a unique hash based on the participant's profile picture URL (preferred) or full name
+    - **Consistency**: The `user_id` will remain the same as long as:
+      - The participant's profile picture URL doesn't change between rejoins (highly unlikely)
+      - Or, if no profile picture is available, the participant's name remains unchanged
+    - **Why This Works**: Profile picture URLs are unique per Google account and rarely change, making them a stable identifier. If a profile picture isn't available, the full name serves as a fallback identifier.
+
+    This approach ensures that the same participant receives the same `user_id` throughout the meeting, even if they temporarily leave and rejoin, making it easier to track speaker continuity in your analysis.
 
   </Accordion>
 

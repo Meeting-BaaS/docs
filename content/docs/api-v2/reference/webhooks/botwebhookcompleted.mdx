@@ -27,11 +27,16 @@ description: Bot Completed payload structure
     - **`event_id`** (string (uuid) | null) **Required**
       The UUID of the calendar event associated with this bot. Null for non-calendar bots
 
-    - **`participants`** (string[] | null) **Required**
-      List of participant names or identifiers who joined the meeting. Null if participant information is not available
+    - **`participants`** (Array<{name: string, id: number | null, display_name?: string, profile_picture?: string}> | null) **Required**
+      List of all participants who joined the meeting. Each participant object contains:
+      - `name`: Participant full name
+      - `id`: Platform or assigned user ID (null if unavailable)
+      - `display_name`: Display name shown in UI (optional, only present if different from `name`)
+      - `profile_picture`: Profile picture URL (optional, only present when available)
+      Null if participant information is not available
 
-    - **`speakers`** (string[] | null) **Required**
-      List of speaker names or identifiers detected in the meeting. Null if speaker information is not available
+    - **`speakers`** (Array<{name: string, id: number | null, display_name?: string, profile_picture?: string}> | null) **Required**
+      List of speakers identified in the meeting (subset of participants who spoke). Structure same as participants array. Null if speaker information is not available
 
     - **`duration_seconds`** (integer | null) **Required**
 
@@ -81,8 +86,12 @@ description: Bot Completed payload structure
   "data": {
     "bot_id": "examplebot_id",
     "event_id": null,
-    "participants": [],
-    "speakers": [],
+    "participants": [
+      { "name": "John Doe", "id": 1, "display_name": "John", "profile_picture": "https://..." }
+    ],
+    "speakers": [
+      { "name": "John Doe", "id": 1, "display_name": "John", "profile_picture": "https://..." }
+    ],
     "duration_seconds": null,
     "joined_at": null,
     "exited_at": null,
