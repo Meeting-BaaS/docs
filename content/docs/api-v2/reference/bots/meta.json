@@ -3,6 +3,7 @@
     "pages": [
         "batch-create-bots",
         "create-bot",
+        "update-bot-config",
         "delete-bot-data",
         "get-bot-details",
         "get-bot-screenshots",
