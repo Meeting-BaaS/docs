@@ -286,14 +286,30 @@
                     ]
                   },
                   "audio_frequency": {
-                    "description": "The audio frequency in Hz. The default is 24000 Hz.",
+                    "description": "The audio frequency in Hz. Supported values: 24000 (default), 32000, 48000 Hz.",
                     "example": null,
                     "default": 24000,
                     "anyOf": [
                       {
-                        "type": "integer",
-                        "exclusiveMinimum": 0,
-                        "maximum": 9007199254740991
+                        "description": "Audio frequency in Hz. Supported values: 16000, 24000 (default), 32000, 48000 Hz.",
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "const": 16000
+                          },
+                          {
+                            "type": "number",
+                            "const": 24000
+                          },
+                          {
+                            "type": "number",
+                            "const": 32000
+                          },
+                          {
+                            "type": "number",
+                            "const": 48000
+                          }
+                        ]
                       },
                       {
                         "type": "null"
@@ -944,23 +960,36 @@
                 ]
               },
               "participants": {
-                "description": "List of participants who joined the meeting",
+                "description": "List of participants who joined the meeting with their names and metadata",
                 "type": "array",
                 "items": {
                   "type": "object",
                   "properties": {
                     "name": {
+                      "description": "Participant's name (full name or display name)",
                       "type": "string"
                     },
                     "id": {
+                      "description": "Sequential participant ID (1, 2, 3...). Null if not available",
                       "anyOf": [
                         {
-                          "type": "number"
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
                         },
                         {
                           "type": "null"
                         }
                       ]
+                    },
+                    "display_name": {
+                      "description": "Display name shown in UI (if different from name)",
+                      "type": "string"
+                    },
+                    "profile_picture": {
+                      "description": "Profile picture URL (if available)",
+                      "type": "string",
+                      "format": "uri"
                     }
                   },
                   "required": [
@@ -970,23 +999,36 @@
                 }
               },
               "speakers": {
-                "description": "List of speakers identified in the meeting",
+                "description": "List of speakers identified in the meeting with their names and metadata",
                 "type": "array",
                 "items": {
                   "type": "object",
                   "properties": {
                     "name": {
+                      "description": "Participant's name (full name or display name)",
                       "type": "string"
                     },
                     "id": {
+                      "description": "Sequential participant ID (1, 2, 3...). Null if not available",
                       "anyOf": [
                         {
-                          "type": "number"
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
                         },
                         {
                           "type": "null"
                         }
                       ]
+                    },
+                    "display_name": {
+                      "description": "Display name shown in UI (if different from name)",
+                      "type": "string"
+                    },
+                    "profile_picture": {
+                      "description": "Profile picture URL (if available)",
+                      "type": "string",
+                      "format": "uri"
                     }
                   },
                   "required": [
@@ -1607,14 +1649,30 @@
                     ]
                   },
                   "audio_frequency": {
-                    "description": "The audio frequency in Hz. The default is 24000 Hz.",
+                    "description": "The audio frequency in Hz. Supported values: 24000 (default), 32000, 48000 Hz.",
                     "example": null,
                     "default": 24000,
                     "anyOf": [
                       {
-                        "type": "integer",
-                        "exclusiveMinimum": 0,
-                        "maximum": 9007199254740991
+                        "description": "Audio frequency in Hz. Supported values: 16000, 24000 (default), 32000, 48000 Hz.",
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "const": 16000
+                          },
+                          {
+                            "type": "number",
+                            "const": 24000
+                          },
+                          {
+                            "type": "number",
+                            "const": 32000
+                          },
+                          {
+                            "type": "number",
+                            "const": 48000
+                          }
+                        ]
                       },
                       {
                         "type": "null"
@@ -1941,6 +1999,21 @@
                     "failed"
                   ]
                 },
+                "extra": {
+                  "description": "Custom metadata associated with the scheduled bot",
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "created_at": {
                   "description": "ISO 8601 timestamp when the scheduled bot was created",
                   "type": "string",
@@ -1961,6 +2034,7 @@
                 "meeting_platform",
                 "join_at",
                 "status",
+                "extra",
                 "created_at",
                 "updated_at"
               ]
@@ -2218,7 +2292,7 @@
                         ]
                       },
                       "audio_frequency": {
-                        "description": "Audio frequency in Hz (null if not set)",
+                        "description": "Audio frequency in Hz (null if not set). Supported values: 16000, 24000 (default), 32000, 48000 Hz.",
                         "anyOf": [
                           {
                             "type": "integer",
@@ -2666,14 +2740,30 @@
                         ]
                       },
                       "audio_frequency": {
-                        "description": "The audio frequency in Hz. The default is 24000 Hz.",
+                        "description": "The audio frequency in Hz. Supported values: 24000 (default), 32000, 48000 Hz.",
                         "example": null,
                         "default": 24000,
                         "anyOf": [
                           {
-                            "type": "integer",
-                            "exclusiveMinimum": 0,
-                            "maximum": 9007199254740991
+                            "description": "Audio frequency in Hz. Supported values: 16000, 24000 (default), 32000, 48000 Hz.",
+                            "anyOf": [
+                              {
+                                "type": "number",
+                                "const": 16000
+                              },
+                              {
+                                "type": "number",
+                                "const": 24000
+                              },
+                              {
+                                "type": "number",
+                                "const": 32000
+                              },
+                              {
+                                "type": "number",
+                                "const": 48000
+                              }
+                            ]
                           },
                           {
                             "type": "null"
@@ -3016,14 +3106,30 @@
                     ]
                   },
                   "audio_frequency": {
-                    "description": "The audio frequency in Hz. The default is 24000 Hz.",
+                    "description": "The audio frequency in Hz. Supported values: 24000 (default), 32000, 48000 Hz.",
                     "example": null,
                     "default": 24000,
                     "anyOf": [
                       {
-                        "type": "integer",
-                        "exclusiveMinimum": 0,
-                        "maximum": 9007199254740991
+                        "description": "Audio frequency in Hz. Supported values: 16000, 24000 (default), 32000, 48000 Hz.",
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "const": 16000
+                          },
+                          {
+                            "type": "number",
+                            "const": 24000
+                          },
+                          {
+                            "type": "number",
+                            "const": 32000
+                          },
+                          {
+                            "type": "number",
+                            "const": 48000
+                          }
+                        ]
                       },
                       {
                         "type": "null"
@@ -4592,32 +4698,82 @@
                 ]
               },
               "participants": {
-                "description": "List of participant names or identifiers who joined the meeting. Null if participant information is not available",
-                "anyOf": [
-                  {
-                    "type": "array",
-                    "items": {
+                "description": "List of participants who joined the meeting with their names and metadata. Empty array if participant information is not available",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "description": "Participant's name (full name or display name)",
                       "type": "string"
+                    },
+                    "id": {
+                      "description": "Sequential participant ID (1, 2, 3...). Null if not available",
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "display_name": {
+                      "description": "Display name shown in UI (if different from name)",
+                      "type": "string"
+                    },
+                    "profile_picture": {
+                      "description": "Profile picture URL (if available)",
+                      "type": "string",
+                      "format": "uri"
                     }
                   },
-                  {
-                    "type": "null"
-                  }
-                ]
+                  "required": [
+                    "name",
+                    "id"
+                  ]
+                }
               },
               "speakers": {
-                "description": "List of speaker names or identifiers detected in the meeting. Null if speaker information is not available",
-                "anyOf": [
-                  {
-                    "type": "array",
-                    "items": {
+                "description": "List of speakers detected in the meeting with their names and metadata. Empty array if speaker information is not available",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "description": "Participant's name (full name or display name)",
                       "type": "string"
+                    },
+                    "id": {
+                      "description": "Sequential participant ID (1, 2, 3...). Null if not available",
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "display_name": {
+                      "description": "Display name shown in UI (if different from name)",
+                      "type": "string"
+                    },
+                    "profile_picture": {
+                      "description": "Profile picture URL (if available)",
+                      "type": "string",
+                      "format": "uri"
                     }
                   },
-                  {
-                    "type": "null"
-                  }
-                ]
+                  "required": [
+                    "name",
+                    "id"
+                  ]
+                }
               },
               "duration_seconds": {
                 "anyOf": [
@@ -5698,32 +5854,82 @@
                 ]
               },
               "participants": {
-                "description": "List of participant names or identifiers who joined the meeting. Null if participant information is not available",
-                "anyOf": [
-                  {
-                    "type": "array",
-                    "items": {
+                "description": "List of participants who joined the meeting with their names and metadata. Empty array if participant information is not available",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "description": "Participant's name (full name or display name)",
                       "type": "string"
+                    },
+                    "id": {
+                      "description": "Sequential participant ID (1, 2, 3...). Null if not available",
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "display_name": {
+                      "description": "Display name shown in UI (if different from name)",
+                      "type": "string"
+                    },
+                    "profile_picture": {
+                      "description": "Profile picture URL (if available)",
+                      "type": "string",
+                      "format": "uri"
                     }
                   },
-                  {
-                    "type": "null"
-                  }
-                ]
+                  "required": [
+                    "name",
+                    "id"
+                  ]
+                }
               },
               "speakers": {
-                "description": "List of speaker names or identifiers detected in the meeting. Null if speaker information is not available",
-                "anyOf": [
-                  {
-                    "type": "array",
-                    "items": {
+                "description": "List of speakers detected in the meeting with their names and metadata. Empty array if speaker information is not available",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "description": "Participant's name (full name or display name)",
                       "type": "string"
+                    },
+                    "id": {
+                      "description": "Sequential participant ID (1, 2, 3...). Null if not available",
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "display_name": {
+                      "description": "Display name shown in UI (if different from name)",
+                      "type": "string"
+                    },
+                    "profile_picture": {
+                      "description": "Profile picture URL (if available)",
+                      "type": "string",
+                      "format": "uri"
                     }
                   },
-                  {
-                    "type": "null"
-                  }
-                ]
+                  "required": [
+                    "name",
+                    "id"
+                  ]
+                }
               },
               "duration_seconds": {
                 "anyOf": [
@@ -5976,6 +6182,436 @@
           "event",
           "data",
           "extra"
+        ]
+      },
+      "OutputTranscriptionInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/OutputTranscriptionInput",
+        "type": "object",
+        "properties": {
+          "bot_id": {
+            "description": "The bot UUID",
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "provider": {
+            "description": "The transcription provider",
+            "type": "string",
+            "const": "gladia"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "utterances": {
+                "description": "Array of diarized utterances, sorted chronologically",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "description": "The transcribed text for this utterance",
+                      "type": "string"
+                    },
+                    "language": {
+                      "description": "ISO 639-1 language code (e.g., 'en', 'es')",
+                      "type": "string"
+                    },
+                    "start": {
+                      "description": "Start time in seconds (floating point)",
+                      "type": "number"
+                    },
+                    "end": {
+                      "description": "End time in seconds (floating point)",
+                      "type": "number"
+                    },
+                    "confidence": {
+                      "description": "Confidence score (0.0 to 1.0)",
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "channel": {
+                      "description": "Audio channel number",
+                      "type": "number"
+                    },
+                    "words": {
+                      "description": "Array of word-level timestamps",
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "word": {
+                            "description": "The word text",
+                            "type": "string"
+                          },
+                          "start": {
+                            "description": "Start time in seconds",
+                            "type": "number"
+                          },
+                          "end": {
+                            "description": "End time in seconds",
+                            "type": "number"
+                          },
+                          "confidence": {
+                            "description": "Confidence score (0.0 to 1.0)",
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
+                        },
+                        "required": [
+                          "word",
+                          "start",
+                          "end",
+                          "confidence"
+                        ]
+                      }
+                    },
+                    "speaker": {
+                      "description": "Real speaker name",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "text",
+                    "language",
+                    "start",
+                    "end",
+                    "confidence",
+                    "channel",
+                    "words",
+                    "speaker"
+                  ]
+                }
+              },
+              "languages": {
+                "description": "Array of detected language codes",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "total_utterances": {
+                "description": "Total number of utterances",
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "total_duration": {
+                "description": "Total duration of the meeting in seconds",
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "utterances",
+              "languages",
+              "total_utterances",
+              "total_duration"
+            ]
+          },
+          "created_at": {
+            "description": "ISO 8601 timestamp when the transcription was created",
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+          }
+        },
+        "required": [
+          "bot_id",
+          "provider",
+          "result",
+          "created_at"
+        ]
+      },
+      "ZoomDiarizationSegmentInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/ZoomDiarizationSegmentInput",
+        "type": "object",
+        "properties": {
+          "speaker": {
+            "description": "Real speaker name",
+            "type": "string"
+          },
+          "start_time": {
+            "description": "Start time in seconds",
+            "type": "number"
+          },
+          "end_time": {
+            "description": "End time in seconds",
+            "type": "number"
+          },
+          "user_id": {
+            "description": "Platform user ID (Zoom only)",
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "lang": {
+            "description": "Language code (optional)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "speaker",
+          "start_time",
+          "end_time",
+          "user_id"
+        ]
+      },
+      "MeetTeamsDiarizationSegmentInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/MeetTeamsDiarizationSegmentInput",
+        "type": "object",
+        "properties": {
+          "speaker": {
+            "description": "Real speaker name",
+            "type": "string"
+          },
+          "start_time": {
+            "description": "Start time in seconds",
+            "type": "number"
+          },
+          "end_time": {
+            "description": "End time in seconds",
+            "type": "number"
+          }
+        },
+        "required": [
+          "speaker",
+          "start_time",
+          "end_time"
+        ]
+      },
+      "DiarizationSegmentInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/DiarizationSegmentInput",
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/ZoomDiarizationSegmentInput"
+          },
+          {
+            "$ref": "#/components/schemas/MeetTeamsDiarizationSegmentInput"
+          }
+        ]
+      },
+      "RawTranscriptionInput": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/RawTranscriptionInput",
+        "type": "object",
+        "properties": {
+          "bot_id": {
+            "description": "The bot UUID",
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "transcriptions": {
+            "description": "Array of transcription payloads, one per audio chunk",
+            "type": "array",
+            "items": {
+              "description": "Gladia transcription payload with provider-specific features. Additional fields may be present based on custom parameters.",
+              "type": "object",
+              "properties": {
+                "metadata": {
+                  "type": "object",
+                  "properties": {
+                    "audio_duration": {
+                      "description": "Audio duration in seconds",
+                      "type": "number"
+                    },
+                    "number_of_distinct_channels": {
+                      "description": "Number of distinct audio channels",
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "billing_time": {
+                      "description": "Billing time in seconds",
+                      "type": "number"
+                    },
+                    "transcription_time": {
+                      "description": "Transcription processing time in seconds",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "audio_duration",
+                    "number_of_distinct_channels",
+                    "billing_time",
+                    "transcription_time"
+                  ]
+                },
+                "transcription": {
+                  "type": "object",
+                  "properties": {
+                    "full_transcript": {
+                      "description": "Full transcript text",
+                      "type": "string"
+                    },
+                    "languages": {
+                      "description": "Array of detected language codes",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "utterances": {
+                      "description": "Array of utterances",
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "text": {
+                            "type": "string"
+                          },
+                          "language": {
+                            "type": "string"
+                          },
+                          "start": {
+                            "type": "number"
+                          },
+                          "end": {
+                            "type": "number"
+                          },
+                          "confidence": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          },
+                          "channel": {
+                            "type": "number"
+                          },
+                          "words": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "word": {
+                                  "type": "string"
+                                },
+                                "start": {
+                                  "type": "number"
+                                },
+                                "end": {
+                                  "type": "number"
+                                },
+                                "confidence": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                }
+                              },
+                              "required": [
+                                "word",
+                                "start",
+                                "end",
+                                "confidence"
+                              ]
+                            }
+                          },
+                          "speaker": {
+                            "description": "Gladia's numeric speaker ID (0, 1, 2, etc.)",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "text",
+                          "language",
+                          "start",
+                          "end",
+                          "confidence",
+                          "channel",
+                          "words",
+                          "speaker"
+                        ]
+                      }
+                    },
+                    "error": {
+                      "description": "Error information if transcription failed"
+                    }
+                  },
+                  "required": [
+                    "languages",
+                    "utterances"
+                  ]
+                },
+                "summarization": {
+                  "description": "AI-generated meeting summary",
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "translation": {
+                  "description": "Translated transcriptions by target language",
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "sentiment_analysis": {
+                  "description": "Sentiment scores for utterances",
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "named_entity_recognition": {
+                  "description": "Extracted entities (names, organizations, locations)",
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "audio_to_llm": {
+                  "description": "LLM prompt responses",
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "moderation": {
+                  "description": "Content moderation results",
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "chapterization": {
+                  "description": "Automatic meeting chapters",
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              "required": [
+                "metadata",
+                "transcription"
+              ],
+              "additionalProperties": {}
+            }
+          },
+          "created_at": {
+            "description": "ISO 8601 timestamp when the combined transcription was created",
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+          }
+        },
+        "required": [
+          "bot_id",
+          "transcriptions",
+          "created_at"
         ]
       },
       "ErrorResponse": {
@@ -6612,23 +7248,36 @@
                 ]
               },
               "participants": {
-                "description": "List of participants who joined the meeting",
+                "description": "List of participants who joined the meeting with their names and metadata",
                 "type": "array",
                 "items": {
                   "type": "object",
                   "properties": {
                     "name": {
+                      "description": "Participant's name (full name or display name)",
                       "type": "string"
                     },
                     "id": {
+                      "description": "Sequential participant ID (1, 2, 3...). Null if not available",
                       "anyOf": [
                         {
-                          "type": "number"
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
                         },
                         {
                           "type": "null"
                         }
                       ]
+                    },
+                    "display_name": {
+                      "description": "Display name shown in UI (if different from name)",
+                      "type": "string"
+                    },
+                    "profile_picture": {
+                      "description": "Profile picture URL (if available)",
+                      "type": "string",
+                      "format": "uri"
                     }
                   },
                   "required": [
@@ -6639,23 +7288,36 @@
                 }
               },
               "speakers": {
-                "description": "List of speakers identified in the meeting",
+                "description": "List of speakers identified in the meeting with their names and metadata",
                 "type": "array",
                 "items": {
                   "type": "object",
                   "properties": {
                     "name": {
+                      "description": "Participant's name (full name or display name)",
                       "type": "string"
                     },
                     "id": {
+                      "description": "Sequential participant ID (1, 2, 3...). Null if not available",
                       "anyOf": [
                         {
-                          "type": "number"
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
                         },
                         {
                           "type": "null"
                         }
                       ]
+                    },
+                    "display_name": {
+                      "description": "Display name shown in UI (if different from name)",
+                      "type": "string"
+                    },
+                    "profile_picture": {
+                      "description": "Profile picture URL (if available)",
+                      "type": "string",
+                      "format": "uri"
                     }
                   },
                   "required": [
@@ -7298,14 +7960,30 @@
                     ]
                   },
                   "audio_frequency": {
-                    "description": "The audio frequency in Hz. The default is 24000 Hz.",
+                    "description": "The audio frequency in Hz. Supported values: 24000 (default), 32000, 48000 Hz.",
                     "example": null,
                     "default": 24000,
                     "anyOf": [
                       {
-                        "type": "integer",
-                        "exclusiveMinimum": 0,
-                        "maximum": 9007199254740991
+                        "description": "Audio frequency in Hz. Supported values: 16000, 24000 (default), 32000, 48000 Hz.",
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "const": 16000
+                          },
+                          {
+                            "type": "number",
+                            "const": 24000
+                          },
+                          {
+                            "type": "number",
+                            "const": 32000
+                          },
+                          {
+                            "type": "number",
+                            "const": 48000
+                          }
+                        ]
                       },
                       {
                         "type": "null"
@@ -7653,6 +8331,21 @@
                     "failed"
                   ]
                 },
+                "extra": {
+                  "description": "Custom metadata associated with the scheduled bot",
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "propertyNames": {
+                        "type": "string"
+                      },
+                      "additionalProperties": {}
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
                 "created_at": {
                   "description": "ISO 8601 timestamp when the scheduled bot was created",
                   "type": "string",
@@ -7673,6 +8366,7 @@
                 "meeting_platform",
                 "join_at",
                 "status",
+                "extra",
                 "created_at",
                 "updated_at"
               ],
@@ -7934,7 +8628,7 @@
                         ]
                       },
                       "audio_frequency": {
-                        "description": "Audio frequency in Hz (null if not set)",
+                        "description": "Audio frequency in Hz (null if not set). Supported values: 16000, 24000 (default), 32000, 48000 Hz.",
                         "anyOf": [
                           {
                             "type": "integer",
@@ -8402,14 +9096,30 @@
                         ]
                       },
                       "audio_frequency": {
-                        "description": "The audio frequency in Hz. The default is 24000 Hz.",
+                        "description": "The audio frequency in Hz. Supported values: 24000 (default), 32000, 48000 Hz.",
                         "example": null,
                         "default": 24000,
                         "anyOf": [
                           {
-                            "type": "integer",
-                            "exclusiveMinimum": 0,
-                            "maximum": 9007199254740991
+                            "description": "Audio frequency in Hz. Supported values: 16000, 24000 (default), 32000, 48000 Hz.",
+                            "anyOf": [
+                              {
+                                "type": "number",
+                                "const": 16000
+                              },
+                              {
+                                "type": "number",
+                                "const": 24000
+                              },
+                              {
+                                "type": "number",
+                                "const": 32000
+                              },
+                              {
+                                "type": "number",
+                                "const": 48000
+                              }
+                            ]
                           },
                           {
                             "type": "null"
@@ -8788,14 +9498,30 @@
                     ]
                   },
                   "audio_frequency": {
-                    "description": "The audio frequency in Hz. The default is 24000 Hz.",
+                    "description": "The audio frequency in Hz. Supported values: 24000 (default), 32000, 48000 Hz.",
                     "example": null,
                     "default": 24000,
                     "anyOf": [
                       {
-                        "type": "integer",
-                        "exclusiveMinimum": 0,
-                        "maximum": 9007199254740991
+                        "description": "Audio frequency in Hz. Supported values: 16000, 24000 (default), 32000, 48000 Hz.",
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "const": 16000
+                          },
+                          {
+                            "type": "number",
+                            "const": 24000
+                          },
+                          {
+                            "type": "number",
+                            "const": 32000
+                          },
+                          {
+                            "type": "number",
+                            "const": 48000
+                          }
+                        ]
                       },
                       {
                         "type": "null"
@@ -10416,32 +11142,84 @@
                 ]
               },
               "participants": {
-                "description": "List of participant names or identifiers who joined the meeting. Null if participant information is not available",
-                "anyOf": [
-                  {
-                    "type": "array",
-                    "items": {
+                "description": "List of participants who joined the meeting with their names and metadata. Empty array if participant information is not available",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "description": "Participant's name (full name or display name)",
                       "type": "string"
+                    },
+                    "id": {
+                      "description": "Sequential participant ID (1, 2, 3...). Null if not available",
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "display_name": {
+                      "description": "Display name shown in UI (if different from name)",
+                      "type": "string"
+                    },
+                    "profile_picture": {
+                      "description": "Profile picture URL (if available)",
+                      "type": "string",
+                      "format": "uri"
                     }
                   },
-                  {
-                    "type": "null"
-                  }
-                ]
+                  "required": [
+                    "name",
+                    "id"
+                  ],
+                  "additionalProperties": false
+                }
               },
               "speakers": {
-                "description": "List of speaker names or identifiers detected in the meeting. Null if speaker information is not available",
-                "anyOf": [
-                  {
-                    "type": "array",
-                    "items": {
+                "description": "List of speakers detected in the meeting with their names and metadata. Empty array if speaker information is not available",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "description": "Participant's name (full name or display name)",
                       "type": "string"
+                    },
+                    "id": {
+                      "description": "Sequential participant ID (1, 2, 3...). Null if not available",
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "display_name": {
+                      "description": "Display name shown in UI (if different from name)",
+                      "type": "string"
+                    },
+                    "profile_picture": {
+                      "description": "Profile picture URL (if available)",
+                      "type": "string",
+                      "format": "uri"
                     }
                   },
-                  {
-                    "type": "null"
-                  }
-                ]
+                  "required": [
+                    "name",
+                    "id"
+                  ],
+                  "additionalProperties": false
+                }
               },
               "duration_seconds": {
                 "anyOf": [
@@ -11545,32 +12323,84 @@
                 ]
               },
               "participants": {
-                "description": "List of participant names or identifiers who joined the meeting. Null if participant information is not available",
-                "anyOf": [
-                  {
-                    "type": "array",
-                    "items": {
+                "description": "List of participants who joined the meeting with their names and metadata. Empty array if participant information is not available",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "description": "Participant's name (full name or display name)",
                       "type": "string"
+                    },
+                    "id": {
+                      "description": "Sequential participant ID (1, 2, 3...). Null if not available",
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "display_name": {
+                      "description": "Display name shown in UI (if different from name)",
+                      "type": "string"
+                    },
+                    "profile_picture": {
+                      "description": "Profile picture URL (if available)",
+                      "type": "string",
+                      "format": "uri"
                     }
                   },
-                  {
-                    "type": "null"
-                  }
-                ]
+                  "required": [
+                    "name",
+                    "id"
+                  ],
+                  "additionalProperties": false
+                }
               },
               "speakers": {
-                "description": "List of speaker names or identifiers detected in the meeting. Null if speaker information is not available",
-                "anyOf": [
-                  {
-                    "type": "array",
-                    "items": {
+                "description": "List of speakers detected in the meeting with their names and metadata. Empty array if speaker information is not available",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "description": "Participant's name (full name or display name)",
                       "type": "string"
+                    },
+                    "id": {
+                      "description": "Sequential participant ID (1, 2, 3...). Null if not available",
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "display_name": {
+                      "description": "Display name shown in UI (if different from name)",
+                      "type": "string"
+                    },
+                    "profile_picture": {
+                      "description": "Profile picture URL (if available)",
+                      "type": "string",
+                      "format": "uri"
                     }
                   },
-                  {
-                    "type": "null"
-                  }
-                ]
+                  "required": [
+                    "name",
+                    "id"
+                  ],
+                  "additionalProperties": false
+                }
               },
               "duration_seconds": {
                 "anyOf": [
@@ -11828,6 +12658,447 @@
           "extra"
         ],
         "additionalProperties": false
+      },
+      "OutputTranscription": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/OutputTranscription",
+        "type": "object",
+        "properties": {
+          "bot_id": {
+            "description": "The bot UUID",
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "provider": {
+            "description": "The transcription provider",
+            "type": "string",
+            "const": "gladia"
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "utterances": {
+                "description": "Array of diarized utterances, sorted chronologically",
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "text": {
+                      "description": "The transcribed text for this utterance",
+                      "type": "string"
+                    },
+                    "language": {
+                      "description": "ISO 639-1 language code (e.g., 'en', 'es')",
+                      "type": "string"
+                    },
+                    "start": {
+                      "description": "Start time in seconds (floating point)",
+                      "type": "number"
+                    },
+                    "end": {
+                      "description": "End time in seconds (floating point)",
+                      "type": "number"
+                    },
+                    "confidence": {
+                      "description": "Confidence score (0.0 to 1.0)",
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "channel": {
+                      "description": "Audio channel number",
+                      "type": "number"
+                    },
+                    "words": {
+                      "description": "Array of word-level timestamps",
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "word": {
+                            "description": "The word text",
+                            "type": "string"
+                          },
+                          "start": {
+                            "description": "Start time in seconds",
+                            "type": "number"
+                          },
+                          "end": {
+                            "description": "End time in seconds",
+                            "type": "number"
+                          },
+                          "confidence": {
+                            "description": "Confidence score (0.0 to 1.0)",
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          }
+                        },
+                        "required": [
+                          "word",
+                          "start",
+                          "end",
+                          "confidence"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "speaker": {
+                      "description": "Real speaker name",
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "text",
+                    "language",
+                    "start",
+                    "end",
+                    "confidence",
+                    "channel",
+                    "words",
+                    "speaker"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "languages": {
+                "description": "Array of detected language codes",
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "total_utterances": {
+                "description": "Total number of utterances",
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "total_duration": {
+                "description": "Total duration of the meeting in seconds",
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "utterances",
+              "languages",
+              "total_utterances",
+              "total_duration"
+            ],
+            "additionalProperties": false
+          },
+          "created_at": {
+            "description": "ISO 8601 timestamp when the transcription was created",
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+          }
+        },
+        "required": [
+          "bot_id",
+          "provider",
+          "result",
+          "created_at"
+        ],
+        "additionalProperties": false
+      },
+      "ZoomDiarizationSegment": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/ZoomDiarizationSegment",
+        "type": "object",
+        "properties": {
+          "speaker": {
+            "description": "Real speaker name",
+            "type": "string"
+          },
+          "start_time": {
+            "description": "Start time in seconds",
+            "type": "number"
+          },
+          "end_time": {
+            "description": "End time in seconds",
+            "type": "number"
+          },
+          "user_id": {
+            "description": "Platform user ID (Zoom only)",
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "lang": {
+            "description": "Language code (optional)",
+            "type": "string"
+          }
+        },
+        "required": [
+          "speaker",
+          "start_time",
+          "end_time",
+          "user_id"
+        ],
+        "additionalProperties": false
+      },
+      "MeetTeamsDiarizationSegment": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/MeetTeamsDiarizationSegment",
+        "type": "object",
+        "properties": {
+          "speaker": {
+            "description": "Real speaker name",
+            "type": "string"
+          },
+          "start_time": {
+            "description": "Start time in seconds",
+            "type": "number"
+          },
+          "end_time": {
+            "description": "End time in seconds",
+            "type": "number"
+          }
+        },
+        "required": [
+          "speaker",
+          "start_time",
+          "end_time"
+        ],
+        "additionalProperties": false
+      },
+      "DiarizationSegment": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/DiarizationSegment",
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/ZoomDiarizationSegment"
+          },
+          {
+            "$ref": "#/components/schemas/MeetTeamsDiarizationSegment"
+          }
+        ]
+      },
+      "RawTranscription": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "$id": "#/components/schemas/RawTranscription",
+        "type": "object",
+        "properties": {
+          "bot_id": {
+            "description": "The bot UUID",
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "transcriptions": {
+            "description": "Array of transcription payloads, one per audio chunk",
+            "type": "array",
+            "items": {
+              "description": "Gladia transcription payload with provider-specific features. Additional fields may be present based on custom parameters.",
+              "type": "object",
+              "properties": {
+                "metadata": {
+                  "type": "object",
+                  "properties": {
+                    "audio_duration": {
+                      "description": "Audio duration in seconds",
+                      "type": "number"
+                    },
+                    "number_of_distinct_channels": {
+                      "description": "Number of distinct audio channels",
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "billing_time": {
+                      "description": "Billing time in seconds",
+                      "type": "number"
+                    },
+                    "transcription_time": {
+                      "description": "Transcription processing time in seconds",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "audio_duration",
+                    "number_of_distinct_channels",
+                    "billing_time",
+                    "transcription_time"
+                  ],
+                  "additionalProperties": false
+                },
+                "transcription": {
+                  "type": "object",
+                  "properties": {
+                    "full_transcript": {
+                      "description": "Full transcript text",
+                      "type": "string"
+                    },
+                    "languages": {
+                      "description": "Array of detected language codes",
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "utterances": {
+                      "description": "Array of utterances",
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "text": {
+                            "type": "string"
+                          },
+                          "language": {
+                            "type": "string"
+                          },
+                          "start": {
+                            "type": "number"
+                          },
+                          "end": {
+                            "type": "number"
+                          },
+                          "confidence": {
+                            "type": "number",
+                            "minimum": 0,
+                            "maximum": 1
+                          },
+                          "channel": {
+                            "type": "number"
+                          },
+                          "words": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "word": {
+                                  "type": "string"
+                                },
+                                "start": {
+                                  "type": "number"
+                                },
+                                "end": {
+                                  "type": "number"
+                                },
+                                "confidence": {
+                                  "type": "number",
+                                  "minimum": 0,
+                                  "maximum": 1
+                                }
+                              },
+                              "required": [
+                                "word",
+                                "start",
+                                "end",
+                                "confidence"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "speaker": {
+                            "description": "Gladia's numeric speaker ID (0, 1, 2, etc.)",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "text",
+                          "language",
+                          "start",
+                          "end",
+                          "confidence",
+                          "channel",
+                          "words",
+                          "speaker"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "error": {
+                      "description": "Error information if transcription failed"
+                    }
+                  },
+                  "required": [
+                    "languages",
+                    "utterances"
+                  ],
+                  "additionalProperties": false
+                },
+                "summarization": {
+                  "description": "AI-generated meeting summary",
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "translation": {
+                  "description": "Translated transcriptions by target language",
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "sentiment_analysis": {
+                  "description": "Sentiment scores for utterances",
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "named_entity_recognition": {
+                  "description": "Extracted entities (names, organizations, locations)",
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "audio_to_llm": {
+                  "description": "LLM prompt responses",
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "moderation": {
+                  "description": "Content moderation results",
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                },
+                "chapterization": {
+                  "description": "Automatic meeting chapters",
+                  "type": "object",
+                  "propertyNames": {
+                    "type": "string"
+                  },
+                  "additionalProperties": {}
+                }
+              },
+              "required": [
+                "metadata",
+                "transcription"
+              ],
+              "additionalProperties": {}
+            }
+          },
+          "created_at": {
+            "description": "ISO 8601 timestamp when the combined transcription was created",
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+          }
+        },
+        "required": [
+          "bot_id",
+          "transcriptions",
+          "created_at"
+        ],
+        "additionalProperties": false
       }
     }
   },
@@ -11891,11 +13162,70 @@
             }
           },
           "429": {
-            "description": "Too Many Requests - Daily bot cap reached",
+            "description": "Rate Limited - Exceeded rate limit",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -12153,6 +13483,75 @@
               }
             }
           },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal Server Error - Unexpected server error",
             "content": {
@@ -12200,6 +13599,75 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -12269,6 +13737,75 @@
               }
             }
           },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal Server Error - Unexpected server error",
             "content": {
@@ -12330,6 +13867,75 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -12429,6 +14035,75 @@
               }
             }
           },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal Server Error - Unexpected server error",
             "content": {
@@ -12500,6 +14175,75 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -12579,6 +14323,75 @@
               }
             }
           },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal Server Error - Unexpected server error",
             "content": {
@@ -12650,6 +14463,75 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -12738,6 +14620,268 @@
               }
             }
           },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error - Unexpected server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/bots/{bot_id}/update-config": {
+      "patch": {
+        "operationId": "updateBotConfig",
+        "summary": "Update bot configuration",
+        "tags": [
+          "Bots"
+        ],
+        "description": "Update bot configuration (currently only supports updating the extra parameter).\n    \n    Allows updating the `extra` metadata even while the bot is running. The updated extra will be reflected in subsequent webhooks and API responses. This is useful when your system evolves and you need to attach additional tracking information to a bot after it has started.\n    \n    **Merge Behavior:** The `extra` parameter performs a shallow merge with the existing extra object:\n    - New keys are added to the existing extra object\n    - Existing keys are overwritten with new values\n    - Keys not included in the update request remain unchanged\n    - Pass `null` to clear all extra data\n    \n    **Example Merge:**\n    - Current extra: `{ \"customer_id\": \"123\", \"session_id\": \"abc\" }`\n    - Update with: `{ \"session_id\": \"xyz\", \"order_id\": \"456\" }`\n    - Result: `{ \"customer_id\": \"123\", \"session_id\": \"xyz\", \"order_id\": \"456\" }`\n    \n    **Webhook Behavior:** After updating extra, all future webhooks (including status updates) will use the new value from the database. The updated extra is fetched in real-time for each webhook, ensuring consistency.\n    \n    **Works for Any Bot Status:** You can update extra for bots in any status (queued, recording, completed, failed). This allows you to add correlation metadata even after a bot has finished.\n    \n    **Use Cases:**\n    - Add tracking IDs after bot creation\n    - Update correlation metadata when your system state changes\n    - Fix incorrect tracking information\n    - Add additional context for completed bots\n    \n    Returns 404 if the bot is not found or does not belong to your team.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "extra": {
+                    "description": "Custom metadata to merge with existing extra data (shallow merge)",
+                    "example": {
+                      "foo": "bar"
+                    },
+                    "anyOf": [
+                      {
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {}
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "extra"
+                ]
+              }
+            }
+          },
+          "required": true
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "description": "The UUID of the bot to update configuration for."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "description": "Success message",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input or validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Bot not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal Server Error - Unexpected server error",
             "content": {
@@ -12785,6 +14929,75 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -13003,6 +15216,75 @@
               }
             }
           },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal Server Error - Unexpected server error",
             "content": {
@@ -13050,6 +15332,75 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -13115,6 +15466,75 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -13201,6 +15621,75 @@
               }
             }
           },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal Server Error - Unexpected server error",
             "content": {
@@ -13274,6 +15763,75 @@
               }
             }
           },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal Server Error - Unexpected server error",
             "content": {
@@ -13341,6 +15899,75 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -13417,11 +16044,70 @@
             }
           },
           "429": {
-            "description": "Too many requests - Calendar connection limit exceeded",
+            "description": "Rate Limited - Exceeded rate limit",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorResponse"
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -13563,6 +16249,75 @@
               }
             }
           },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal Server Error - Unexpected server error",
             "content": {
@@ -13628,6 +16383,75 @@
               }
             }
           },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal Server Error - Unexpected server error",
             "content": {
@@ -13687,6 +16511,75 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -13783,6 +16676,75 @@
               }
             }
           },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal Server Error - Unexpected server error",
             "content": {
@@ -13854,6 +16816,75 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -13939,6 +16970,75 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -14100,6 +17200,75 @@
               }
             }
           },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal Server Error - Unexpected server error",
             "content": {
@@ -14218,6 +17387,75 @@
               }
             }
           },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal Server Error - Unexpected server error",
             "content": {
@@ -14294,6 +17532,75 @@
               }
             }
           },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
           "500": {
             "description": "Internal Server Error - Unexpected server error",
             "content": {
@@ -14364,6 +17671,75 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -14446,6 +17822,75 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -14553,6 +17998,75 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }

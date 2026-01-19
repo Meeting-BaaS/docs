@@ -33,11 +33,11 @@ Bot Completed payload structure
     - **`event_id`** (string (uuid) | null) **Required**
       The UUID of the calendar event associated with this bot. Null for non-calendar bots
 
-    - **`participants`** (string[] | null) **Required**
-      List of participant names or identifiers who joined the meeting. Null if participant information is not available
+    - **`participants`** (object[]) **Required**
+      List of participants who joined the meeting with their names and metadata. Empty array if participant information is not available
 
-    - **`speakers`** (string[] | null) **Required**
-      List of speaker names or identifiers detected in the meeting. Null if speaker information is not available
+    - **`speakers`** (object[]) **Required**
+      List of speakers detected in the meeting with their names and metadata. Empty array if speaker information is not available
 
     - **`duration_seconds`** (integer | null) **Required**
 
