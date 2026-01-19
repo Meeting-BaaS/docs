@@ -28,7 +28,7 @@ export default function DocsPage(): React.ReactElement {
           <Icon className="api-v2">
             <WebhookIcon className="size-full" />
           </Icon>
-          <h2 className="mb-2 text-lg font-semibold">Meeting BaaS API v2 (Beta)</h2>
+          <h2 className="mb-2 text-lg font-semibold">Meeting BaaS API v2</h2>
           <p className="text-fd-muted-foreground text-sm">
             Next-generation API with enhanced features, better error handling, and comprehensive webhook documentation
           </p>

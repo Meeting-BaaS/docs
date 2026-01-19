@@ -16,19 +16,8 @@ const docsOptions: DocsLayoutProps = {
 
         const color = `var(--${meta.file.dirname}-color, var(--color-fd-foreground))`;
 
-        // Add Beta badge for api-v2 section
-        const isApiV2 = meta?.file?.dirname === 'api-v2';
-        const originalTitle = option.title;
-        const title = isApiV2 ? (
-          <span className="flex items-center gap-2">
-            {originalTitle}
-            <span className="text-xs font-medium text-fd-muted-foreground italic">(Beta)</span>
-          </span>
-        ) : originalTitle;
-
         return {
           ...option,
-          title,
           icon: (
             <div
               className="rounded-md p-1 shadow-lg ring-2 [&_svg]:size-5"
