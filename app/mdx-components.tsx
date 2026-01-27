@@ -34,9 +34,44 @@ import {
     Webhook
 } from 'lucide-react';
 import type { MDXComponents } from 'mdx/types';
+import { Children, isValidElement, type ReactNode } from 'react';
 
 // Create TypeScript generator for AutoTypeTable
 const generator = createGenerator();
+
+// Helper function to extract text content from React children
+function extractText(children: ReactNode): string {
+    return Children.toArray(children)
+        .map((child) => {
+            if (typeof child === 'string') return child;
+            if (isValidElement(child)) {
+                const props = child.props as { children?: ReactNode };
+                if (props.children) {
+                    return extractText(props.children);
+                }
+            }
+            return '';
+        })
+        .join('');
+}
+
+// Custom pre component that handles mermaid code blocks
+function Pre({ children, ...props }: React.ComponentProps<'pre'>) {
+    // Check if this is a mermaid code block
+    if (isValidElement(children)) {
+        const childProps = children.props as { className?: string; children?: ReactNode };
+        const className = childProps.className || '';
+
+        if (className.includes('language-mermaid')) {
+            // Extract the mermaid definition text
+            const chart = extractText(childProps.children);
+            return <Mermaid chart={chart} />;
+        }
+    }
+
+    // Otherwise use default pre rendering
+    return <pre {...props}>{children}</pre>;
+}
 
 // Create a safer way to handle icon components
 const safeIconComponents = {
@@ -63,6 +98,9 @@ const safeIconComponents = {
 export function useMDXComponents(components: MDXComponents): MDXComponents {
     return {
         ...components,
+        // Override pre to handle mermaid diagrams
+        pre: Pre,
+
         // Basic components
         Tabs: CustomTabs,
         Tab: Tab,
