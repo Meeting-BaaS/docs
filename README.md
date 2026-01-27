@@ -10,7 +10,7 @@ This is a Next.js application using Fumadocs for generating and maintaining Meet
 
 Found an issue in our production documentation? Please open a Pull Request on any content file directly -- we'll take care of the rest.
 
-You can simply edit one of the following files in the `/content/docs/api/reference/` directory:
+You can edit any of the following files in the `/content/docs/api/reference/` directory:
 
 - bots_with_metadata.mdx
 - delete_data.mdx
@@ -22,6 +22,7 @@ You can simply edit one of the following files in the `/content/docs/api/referen
 - webhooks/ (directory)
 - calendars/ (directory)
 
+And more!
 Your contributions - even small fixes for typos or unclear explanations - are greatly appreciated.
 
 ## What is Meeting BaaS?
