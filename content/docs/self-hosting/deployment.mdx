@@ -1,0 +1,377 @@
+---
+title: Deployment
+description: Deploy Meeting BaaS v2 to your Kubernetes cluster
+icon: Rocket
+---
+
+This guide walks you through deploying Meeting BaaS v2 to your Kubernetes cluster using the provided Helm charts and deployment scripts.
+
+## Pre-Deployment Checklist
+
+Before deploying, ensure:
+
+- [ ] Infrastructure is set up (Kubernetes, database, Redis, S3, SQS)
+- [ ] Repository structure is created with Helm charts submodule
+- [ ] Environment override files are configured
+- [ ] All secrets and config values are filled in
+- [ ] DNS records point to your ingress IP
+- [ ] Kubernetes cluster is accessible via `kubectl`
+- [ ] Container images are accessible (either from Meeting BaaS registry or your own)
+
+## Step 1: Apply Kubernetes Resources
+
+First, apply the certificate issuer and certificate:
+
+```bash
+# Apply cluster issuer
+kubectl apply -f k8s-resources/prod-certs/cluster-issuer.yaml
+
+# Apply certificate
+kubectl apply -f k8s-resources/prod-certs/cluster-certificate.yaml
+
+# Verify certificate is issued (may take a few minutes)
+kubectl get certificate -n services
+```
+
+## Step 2: Pull and Push Images (If Using Your Own Registry)
+
+If you're mirroring images to your own registry:
+
+```bash
+# Set image tag (provided by Meeting BaaS)
+export IMAGE_TAG=2026-01-27abc123def456...
+
+# Login to Meeting BaaS registry (credentials provided)
+docker login rg.fr-par.scw.cloud
+
+# Pull images
+docker pull rg.fr-par.scw.cloud/meeting-baas-prod-api-server/api-server-v2:$IMAGE_TAG
+docker pull rg.fr-par.scw.cloud/meeting-baas-prod-bots/zoom-bots-v2:$IMAGE_TAG
+docker pull rg.fr-par.scw.cloud/meeting-baas-prod-bots/meet-teams-bots-v2:$IMAGE_TAG
+docker pull rg.fr-par.scw.cloud/baas-bots-preprod/video-device-plugin:1.0.0
+
+# Tag for your registry
+docker tag rg.fr-par.scw.cloud/meeting-baas-prod-api-server/api-server-v2:$IMAGE_TAG \
+  YOUR_REGISTRY/api-server-v2:$IMAGE_TAG
+docker tag rg.fr-par.scw.cloud/meeting-baas-prod-bots/zoom-bots-v2:$IMAGE_TAG \
+  YOUR_REGISTRY/zoom-bots-v2:$IMAGE_TAG
+docker tag rg.fr-par.scw.cloud/meeting-baas-prod-bots/meet-teams-bots-v2:$IMAGE_TAG \
+  YOUR_REGISTRY/meet-teams-bots-v2:$IMAGE_TAG
+docker tag rg.fr-par.scw.cloud/baas-bots-preprod/video-device-plugin:1.0.0 \
+  YOUR_REGISTRY/video-device-plugin:1.0.0
+
+# Login to your registry
+docker login YOUR_REGISTRY
+
+# Push images
+docker push YOUR_REGISTRY/api-server-v2:$IMAGE_TAG
+docker push YOUR_REGISTRY/zoom-bots-v2:$IMAGE_TAG
+docker push YOUR_REGISTRY/meet-teams-bots-v2:$IMAGE_TAG
+docker push YOUR_REGISTRY/video-device-plugin:1.0.0
+```
+
+**Note**: If you have direct access to Meeting BaaS registry, you can skip this step and use the images directly.
+
+## Step 3: Set Up Deployment Script
+
+Make the deployment script executable:
+
+```bash
+chmod +x helm-charts/baas_controller.sh
+```
+
+Configure your environment:
+
+```bash
+# Set environment (prod or preprod)
+export ENVIRON=prod
+
+# Set image tag
+export IMAGE_TAG=2026-01-27abc123def456...
+```
+
+## Step 4: Deploy Video Device Plugin
+
+The video device plugin must be deployed first as it provides the video device resources that bot pods require:
+
+```bash
+cd helm-charts
+
+# Install video device plugin
+export ENVIRON=prod
+export IMAGE_TAG=1.0.0  # Video device plugin uses fixed version
+./baas_controller.sh video-device-plugin install
+```
+
+**Verify**:
+
+```bash
+kubectl get daemonset -n services video-device-plugin
+kubectl get nodes -o jsonpath='{.items[*].status.allocatable.meeting-baas\.io/video-devices}'
+```
+
+You should see video devices available on bot pool nodes.
+
+## Step 5: Deploy API Server
+
+Deploy the API server (this also sets up the database schema via migration job):
+
+```bash
+cd helm-charts
+
+export ENVIRON=prod
+export IMAGE_TAG=2026-01-27abc123def456...
+
+# Install API server
+./baas_controller.sh api-v2 install
+```
+
+**What Happens**:
+
+1. Helm creates a migration Job (pre-install hook)
+2. Migration Job runs database migrations
+3. Migration Job completes successfully
+4. Helm creates the API server Deployment
+5. API server starts and runs bootstrap operations:
+   - Creates self-hosted team (if `SELF_HOSTED=true` and `ENABLE_MULTI_TENANT=false`)
+   - Promotes master admin (if `ENABLE_DASHBOARD=true` and `MASTER_ADMIN_EMAIL` set)
+   - Syncs event types to SVIX (if `ENABLE_SVIX=true`)
+
+**Verify**:
+
+```bash
+# Check migration job
+kubectl get jobs -n services | grep migration
+
+# Check API server pods
+kubectl get pods -n services -l app.kubernetes.io/instance=api-server-v2
+
+# Check API server logs
+kubectl logs -n services -l app.kubernetes.io/instance=api-server-v2 --tail=50
+
+# Test health endpoint
+curl https://api.yourcompany.com/health
+```
+
+## Step 6: Deploy Background Jobs
+
+Deploy the background jobs (CronJobs):
+
+```bash
+cd helm-charts
+
+export ENVIRON=prod
+export IMAGE_TAG=2026-01-27abc123def456...  # Same as API server
+
+# Install jobs
+./baas_controller.sh job-v2 install
+```
+
+**Verify**:
+
+```bash
+# Check CronJobs
+kubectl get cronjobs -n services
+
+# Check which jobs are created (based on feature flags)
+kubectl get cronjobs -n services -o name
+
+# Should see:
+# - scheduled-bot-job (always)
+# - data-retention-deletion-job (always)
+# - calendar-bot-job (if ENABLE_CALENDAR=true)
+# - team-permanent-deletion-job (if ENABLE_MULTI_TENANT=true)
+# etc.
+```
+
+## Step 7: Deploy Bot Services
+
+Deploy the bot services (they scale to zero initially):
+
+```bash
+cd helm-charts
+
+export ENVIRON=prod
+export IMAGE_TAG=2026-01-27abc123def456...  # Same as API server
+
+# Install Zoom bots
+./baas_controller.sh zoom-bots-v2 install
+
+# Install Meet/Teams bots
+./baas_controller.sh meet-teams-bots-v2 install
+```
+
+**Verify**:
+
+```bash
+# Check ScaledJobs (KEDA)
+kubectl get scaledjobs -n services
+
+# Check bot pods (should be 0 initially)
+kubectl get pods -n services -l app.kubernetes.io/instance=zoom-bots-v2
+kubectl get pods -n services -l app.kubernetes.io/instance=meet-teams-bots-v2
+```
+
+## Step 8: Verify Deployment
+
+### Check All Services
+
+```bash
+# List all deployments
+kubectl get deployments -n services
+
+# List all CronJobs
+kubectl get cronjobs -n services
+
+# List all ScaledJobs
+kubectl get scaledjobs -n services
+
+# List DaemonSets
+kubectl get daemonsets -n services
+```
+
+### Test API Endpoints
+
+```bash
+# Health check
+curl https://api.yourcompany.com/health
+
+# Feature flags status
+curl https://api.yourcompany.com/status/features
+
+# Configuration endpoint (if dashboard enabled)
+curl https://api.yourcompany.com/v2-internal/configuration
+```
+
+### Check Logs
+
+```bash
+# API server logs
+kubectl logs -n services -l app.kubernetes.io/instance=api-server-v2 --tail=100
+
+# Check for bootstrap messages
+kubectl logs -n services -l app.kubernetes.io/instance=api-server-v2 | grep bootstrap
+
+# Check for errors
+kubectl logs -n services -l app.kubernetes.io/instance=api-server-v2 | grep -i error
+```
+
+### Test Bot Creation
+
+```bash
+# Test creating a bot (single-tenant mode)
+curl -X POST https://api.yourcompany.com/v2/bots \
+  -H "Content-Type: application/json" \
+  -H "x-meeting-baas-api-key: YOUR_STATIC_API_KEY" \
+  -d '{
+    "meeting_url": "https://meet.google.com/abc-defg-hij",
+    "bot_name": "Test Bot"
+  }'
+```
+
+**Expected Response**:
+
+```json
+{
+  "success": true,
+  "data": {
+    "bot_id": "...",
+    "status": "queued",
+    ...
+  }
+}
+```
+
+## Step 9: Monitor Initial Jobs
+
+Watch the first scheduled bot job run:
+
+```bash
+# Watch scheduled bot job
+kubectl get jobs -n services -w | grep scheduled-bot-job
+
+# Check job logs
+kubectl logs -n services -l cron=scheduled-bot-job --tail=50
+```
+
+## Common Deployment Issues
+
+### Migration Job Failed
+
+```bash
+# Check migration job logs
+kubectl logs -n services -l app.kubernetes.io/component=migration --tail=100
+
+# Common causes:
+# - Database connection issues
+# - Insufficient database permissions
+# - Network connectivity problems
+```
+
+### API Server Not Starting
+
+```bash
+# Check pod status
+kubectl describe pod -n services -l app.kubernetes.io/instance=api-server-v2
+
+# Check logs
+kubectl logs -n services -l app.kubernetes.io/instance=api-server-v2 --tail=100
+
+# Common causes:
+# - Missing secrets
+# - Invalid configuration values
+# - Database connection issues
+```
+
+### Ingress Not Working
+
+```bash
+# Check ingress
+kubectl get ingress -n services
+
+# Check ingress controller
+kubectl get pods -n ingress-nginx
+
+# Check certificate status
+kubectl describe certificate -n services api-meeting-baas-tls
+```
+
+## Post-Deployment
+
+### Enable Auto-Scaling (Optional)
+
+If you want the API server to auto-scale:
+
+```yaml
+# environment-overrides/api_server_v2_chart/prod.yaml
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 5
+  targetCPUUtilizationPercentage: 80
+```
+
+Then upgrade:
+
+```bash
+./baas_controller.sh api-v2 upgrade
+```
+
+### Set Up Monitoring (Optional)
+
+Consider setting up:
+- Prometheus for metrics
+- Grafana for dashboards
+- Alerting for critical issues
+
+### Set Up Log Aggregation (Optional)
+
+Consider setting up:
+- Centralized logging (Loki, ELK stack)
+- Log retention policies
+- Log analysis tools
+
+## Next Steps
+
+- [Upgrades](/docs/self-hosting/upgrades) - Learn how to upgrade your deployment
+- [Troubleshooting](/docs/self-hosting/troubleshooting) - Common issues and solutions

@@ -1,0 +1,94 @@
+---
+title: Self Hosting Overview
+description: Deploy Meeting BaaS v2 in your own infrastructure with full control
+icon: Server
+---
+
+Meeting BaaS v2 supports self-hosted deployments, allowing you to run the platform in your own infrastructure with configurable feature flags. This gives you full control over your deployment while maintaining compatibility with the SaaS version.
+
+## What You Get
+
+When you self-host Meeting BaaS v2, you receive:
+
+- **Container Images**: Pre-built Docker images for:
+  - API Server (used for both API server and background jobs)
+  - Zoom Bots (`zoom-bots-v2`)
+  - Meet/Teams Bots (`meet-teams-bots-v2`)
+  - Video Device Plugin (custom Kubernetes device plugin for v4l2 devices)
+
+- **Helm Charts**: Production-ready Kubernetes Helm charts via the `kubernetes-config` repository
+- **Deployment Scripts**: CLI tools for easy deployment and upgrades
+- **Documentation**: Complete setup and configuration guides
+
+## Deployment Architecture
+
+Meeting BaaS v2 is designed to run on Kubernetes with the following components:
+
+- **API Server**: Handles API requests, authentication, and business logic
+- **Background Jobs**: CronJobs for scheduled tasks (bot creation, data retention, calendar sync)
+- **Bot Pods**: Scalable pods that join meetings and record them
+- **Video Device Plugin**: DaemonSet that provisions virtual video devices (v4l2loopback) for bots
+
+## Feature Flags
+
+The platform uses feature flags to enable/disable functionality, making it easy to deploy only what you need:
+
+| Flag | Description |
+|------|-------------|
+| `SELF_HOSTED` | Enable self-hosted mode (simplified configuration) |
+| `ENABLE_STRIPE` | Enable Stripe billing and token system |
+| `ENABLE_SVIX` | Enable SVIX managed webhooks |
+| `ENABLE_CALENDAR` | Enable Google/Microsoft calendar integration |
+| `ENABLE_MULTI_TENANT` | Enable multi-tenant mode (teams, multiple users) |
+| `ENABLE_DASHBOARD` | Enable frontend dashboard (BFF and internal routes) |
+| `ENABLE_TRANSCRIPTION` | Enable Gladia transcription service |
+| `ENABLE_EMAIL` | Enable Resend email notifications |
+
+All flags default to `false`, making minimal deployments straightforward.
+
+## Deployment Modes
+
+### Single-Tenant (Simplest)
+
+Perfect for organizations that need a single team with unlimited usage:
+
+- Static API key authentication
+- No billing system
+- Direct webhook callbacks (no SVIX needed)
+- Single team with enterprise-level limits
+
+### Multi-Tenant
+
+For organizations that need multiple teams and user management:
+
+- Team-based access control
+- User invitations and management
+- Per-team rate limits and quotas
+- Optional Stripe billing integration
+
+### With Dashboard
+
+Add the frontend dashboard for a complete UI experience:
+
+- Web-based bot management
+- User authentication via OAuth
+- Team management interface
+- Usage analytics and monitoring
+
+## Quick Start
+
+1. **Review Prerequisites**: Ensure you have the required infrastructure
+2. **Set Up Repository**: Clone the Helm charts and create your environment overrides
+3. **Configure**: Set up environment variables and feature flags
+4. **Deploy**: Use the provided deployment scripts to install the platform
+5. **Upgrade**: Use CI/CD-friendly upgrade process for updates
+
+## Next Steps
+
+- [Prerequisites](/docs/self-hosting/prerequisites) - Infrastructure and requirements
+- [Infrastructure Setup](/docs/self-hosting/infrastructure-setup) - Set up your Kubernetes cluster and services
+- [Repository Setup](/docs/self-hosting/repository-setup) - Configure the Helm charts repository
+- [Configuration](/docs/self-hosting/configuration) - Configure feature flags and environment variables
+- [Deployment](/docs/self-hosting/deployment) - Deploy the platform
+- [Upgrades](/docs/self-hosting/upgrades) - Keep your deployment up to date
+- [Troubleshooting](/docs/self-hosting/troubleshooting) - Common issues and solutions

@@ -1,0 +1,352 @@
+---
+title: Infrastructure Setup
+description: Set up your Kubernetes cluster, databases, and services
+icon: Server
+---
+
+This guide walks you through setting up the infrastructure required for Meeting BaaS v2.
+
+## Kubernetes Cluster Setup
+
+### 1. Create Node Pools
+
+Create two node pools in your Kubernetes cluster:
+
+#### API Server Pool
+
+```bash
+# Example for Scaleway Kapsule
+scw k8s pool create \
+  cluster-id=YOUR_CLUSTER_ID \
+  name=api-server-pool \
+  node-type=GP1-XS \
+  size=2 \
+  autoscaling=true \
+  min-size=1 \
+  max-size=3
+```
+
+**Configuration**:
+- **Node Type**: General purpose (2-4 CPU, 4-8GB RAM)
+- **Initial Size**: 1-2 nodes
+- **Auto-scaling**: Enabled (min: 1, max: 3-5)
+- **Labels**: `k8s.scaleway.com/pool-name=api-server-pool`
+
+#### Bot Pool
+
+```bash
+scw k8s pool create \
+  cluster-id=YOUR_CLUSTER_ID \
+  name=bots-pool \
+  node-type=DEV1-L \
+  size=0 \
+  autoscaling=true \
+  min-size=0 \
+  max-size=10
+```
+
+**Configuration**:
+- **Node Type**: High-performance (16+ CPU, 32GB+ RAM)
+- **Initial Size**: 0 nodes (scales based on demand)
+- **Auto-scaling**: Enabled (min: 0, max: 10+)
+- **Labels**: `k8s.scaleway.com/pool-name=bots-pool`
+
+### 2. Install Ingress Controller
+
+Install NGINX Ingress Controller:
+
+```bash
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo update
+
+helm install ingress-nginx ingress-nginx/ingress-nginx \
+  --namespace ingress-nginx \
+  --create-namespace \
+  --set controller.service.type=LoadBalancer
+```
+
+### 3. Install cert-manager (for SSL/TLS)
+
+```bash
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+
+helm install cert-manager jetstack/cert-manager \
+  --namespace cert-manager \
+  --create-namespace \
+  --set installCRDs=true
+```
+
+### 4. Create Namespace
+
+```bash
+kubectl create namespace services
+```
+
+## Database Setup
+
+### PostgreSQL
+
+Create a PostgreSQL database (version 14+):
+
+**Required Databases**:
+- Main database for Meeting BaaS v2
+
+**Connection String Format**:
+```
+postgres://username:password@host:port/database_name
+```
+
+**Recommended Settings**:
+- **Encoding**: UTF8
+- **Timezone**: UTC
+- **Max Connections**: 100+ (adjust based on your API server replica count)
+- **Backup**: Enable automated backups
+
+**Security**:
+- Use strong passwords
+- Restrict network access to Kubernetes cluster IPs only
+- Enable SSL/TLS connections
+
+## Redis Setup
+
+Create a Redis instance:
+
+**Configuration**:
+- **Version**: 6.0+ or 7.0+
+- **Memory**: 1GB+ (adjust based on usage)
+- **Persistence**: Optional (AOF recommended for production)
+- **TLS**: Enable if available
+
+**Connection String Format**:
+```
+redis://username:password@host:port
+# Or with TLS
+rediss://username:password@host:port
+```
+
+**Security**:
+- Use strong passwords
+- Restrict network access to Kubernetes cluster IPs only
+- Enable TLS if supported
+
+## Object Storage (S3) Setup
+
+### Create Buckets
+
+Create the following buckets in your S3-compatible storage:
+
+```bash
+# Artifacts bucket (recordings)
+aws s3 mb s3://your-company-meeting-baas-artifacts
+
+# Logs bucket
+aws s3 mb s3://your-company-meeting-baas-logs
+
+# Audio chunks bucket (if transcription enabled)
+aws s3 mb s3://your-company-meeting-baas-audio-chunks
+
+# Logo bucket (optional)
+aws s3 mb s3://your-company-meeting-baas-logo
+
+# Support bucket (optional)
+aws s3 mb s3://your-company-meeting-baas-support
+```
+
+### Configure CORS
+
+Set up CORS for the artifacts bucket to allow direct downloads:
+
+```json
+[
+  {
+    "AllowedHeaders": ["*"],
+    "AllowedMethods": ["GET", "HEAD"],
+    "AllowedOrigins": ["*"],
+    "ExposeHeaders": ["Content-Length", "Content-Type"],
+    "MaxAgeSeconds": 3600
+  }
+]
+```
+
+### Create Access Keys
+
+Create IAM user or access keys with permissions:
+- `s3:GetObject` - Read artifacts
+- `s3:PutObject` - Upload recordings
+- `s3:DeleteObject` - Delete old data
+- `s3:ListBucket` - List objects
+
+## Message Queue (SQS) Setup
+
+### Create Queues
+
+Create two SQS queues:
+
+```bash
+# Zoom bots queue
+aws sqs create-queue \
+  --queue-name meeting-baas-zoom \
+  --attributes VisibilityTimeout=3600
+
+# Meet/Teams bots queue
+aws sqs create-queue \
+  --queue-name meeting-baas-meet-teams \
+  --attributes VisibilityTimeout=3600
+```
+
+**Queue Configuration**:
+- **Visibility Timeout**: 3600 seconds (1 hour) - matches bot recording duration
+- **Message Retention**: 14 days (default)
+- **Dead Letter Queue**: Recommended for failed messages
+
+### Create Access Keys
+
+Create IAM user or access keys with permissions:
+- `sqs:SendMessage` - Send bot jobs
+- `sqs:ReceiveMessage` - Receive bot jobs
+- `sqs:DeleteMessage` - Delete processed jobs
+- `sqs:GetQueueAttributes` - Check queue depth
+
+## Optional: EFS/NFS Server Setup
+
+### Option 1: AWS EFS
+
+```bash
+# Create EFS file system
+aws efs create-file-system \
+  --creation-token meeting-baas-efs \
+  --performance-mode generalPurpose \
+  --throughput-mode provisioned \
+  --provisioned-throughput-in-mibps 100
+
+# Create mount targets in each availability zone
+aws efs create-mount-target \
+  --file-system-id fs-xxxxx \
+  --subnet-id subnet-xxxxx \
+  --security-groups sg-xxxxx
+```
+
+### Option 2: NFS Server on Elastic Metal/VM
+
+Set up an NFS server:
+
+```bash
+# Install NFS server
+sudo apt-get install nfs-kernel-server
+
+# Create shared directory
+sudo mkdir -p /shared
+sudo chown nobody:nogroup /shared
+sudo chmod 777 /shared
+
+# Configure exports
+echo "/shared *(rw,sync,no_subtree_check)" | sudo tee -a /etc/exports
+sudo exportfs -a
+```
+
+**NFS Configuration**:
+- **Version**: NFSv4 recommended
+- **Options**: `vers=4,soft,timeo=30,retrans=3`
+- **Security**: Restrict access to Kubernetes cluster IPs
+
+## DNS Configuration
+
+### Create DNS Records
+
+Point your domain to the Kubernetes ingress:
+
+```bash
+# Get ingress IP
+kubectl get svc -n ingress-nginx ingress-nginx-controller
+
+# Create A record
+# api.yourcompany.com -> <INGRESS_IP>
+```
+
+### Verify DNS
+
+```bash
+dig api.yourcompany.com
+# Should return your ingress IP
+```
+
+## Video Device Plugin Requirements
+
+The video device plugin requires:
+
+- **Kernel modules**: `v4l2loopback` (loaded automatically by the plugin)
+- **Privileged access**: Plugin runs as DaemonSet with privileged security context
+- **Node labels**: Bot pool nodes must be labeled correctly
+
+The plugin automatically:
+- Loads `v4l2loopback` kernel module
+- Creates virtual video devices
+- Exposes them as Kubernetes resources (`meeting-baas.io/video-devices`)
+
+## Security Considerations
+
+### Network Security
+
+- **Database**: Restrict access to Kubernetes cluster IPs only
+- **Redis**: Restrict access to Kubernetes cluster IPs only
+- **S3**: Use IAM policies to restrict bucket access
+- **SQS**: Use IAM policies to restrict queue access
+
+### Secrets Management
+
+- Store sensitive credentials in Kubernetes Secrets (not in code)
+- Use external secret management (AWS Secrets Manager, HashiCorp Vault) if available
+- Rotate credentials regularly
+
+### Pod Security
+
+- Use Pod Security Standards (Restricted where possible)
+- Video device plugin requires privileged access (unavoidable for v4l2)
+- Bot pods require elevated capabilities for video device access
+
+## Resource Planning
+
+### API Server Pool
+
+**Per Node**:
+- CPU: 2-4 cores
+- Memory: 4-8GB
+- Storage: 20GB (for container images)
+
+**Total** (3 nodes):
+- CPU: 6-12 cores
+- Memory: 12-24GB
+
+### Bot Pool
+
+**Per Node**:
+- CPU: 16+ cores
+- Memory: 32GB+
+- Storage: 100GB+ (for container images and temporary files)
+
+**Scaling**:
+- Starts at 0 nodes
+- Scales up based on SQS queue depth
+- Each bot pod uses 1.5-4 CPU cores and 3-8GB RAM
+
+## Verification Checklist
+
+Before proceeding to repository setup, verify:
+
+- [ ] Kubernetes cluster is accessible via `kubectl`
+- [ ] Two node pools created (API server and bots)
+- [ ] Ingress controller installed and has external IP
+- [ ] cert-manager installed
+- [ ] PostgreSQL database created and accessible
+- [ ] Redis instance created and accessible
+- [ ] S3 buckets created with proper permissions
+- [ ] SQS queues created
+- [ ] DNS records pointing to ingress IP
+- [ ] EFS/NFS server set up (optional)
+- [ ] All credentials documented securely
+
+## Next Steps
+
+- [Repository Setup](/docs/self-hosting/repository-setup) - Clone Helm charts and create environment overrides
+- [Configuration](/docs/self-hosting/configuration) - Configure feature flags and environment variables
