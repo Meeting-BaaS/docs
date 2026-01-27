@@ -27,12 +27,50 @@ import type { MDXComponents } from 'mdx/types';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import {
+  Children,
+  isValidElement,
   type ComponentProps,
   type FC,
-  type ReactElement
+  type ReactElement,
+  type ReactNode
 } from 'react';
 
 const generator = createGenerator();
+
+// Helper function to extract text content from React children
+function extractText(children: ReactNode): string {
+  return Children.toArray(children)
+    .map((child) => {
+      if (typeof child === 'string') return child;
+      if (isValidElement(child)) {
+        const props = child.props as { children?: ReactNode };
+        if (props.children) {
+          return extractText(props.children);
+        }
+      }
+      return '';
+    })
+    .join('');
+}
+
+// Custom pre component that handles mermaid code blocks
+function Pre({ children, ...props }: ComponentProps<'pre'>) {
+  // Check if this is a mermaid code block
+  if (isValidElement(children)) {
+    const childProps = children.props as { className?: string; children?: ReactNode };
+    const className = childProps.className || '';
+
+    if (className.includes('language-mermaid')) {
+      // Extract the mermaid definition text
+      const chart = extractText(childProps.children);
+      return <Mermaid chart={chart} />;
+    }
+  }
+
+  // Otherwise use fumadocs default pre rendering (with syntax highlighting)
+  const FumadocsPre = defaultMdxComponents.pre;
+  return <FumadocsPre {...props}>{children}</FumadocsPre>;
+}
 
 export const revalidate = false;
 
@@ -58,6 +96,8 @@ export default async function Page(props: {
   const mdxComponents = {
     ...defaultMdxComponents,
     ...((await import('lucide-react')) as unknown as MDXComponents),
+    // Override pre to handle mermaid diagrams
+    pre: Pre,
     Popup,
     PopupContent,
     PopupTrigger,
