@@ -29,6 +29,55 @@ Meeting BaaS v2 is designed to run on Kubernetes with the following components:
 - **Bot Pods**: Scalable pods that join meetings and record them
 - **Video Device Plugin**: DaemonSet that provisions virtual video devices (v4l2loopback) for bots
 
+### Component Interaction
+
+The following diagram illustrates how the API server, bot pods, and video device plugin interact:
+
+<Mermaid
+  chart="
+graph TB
+    subgraph K8s[Kubernetes Cluster]
+        API[API Server]
+        Jobs[Background Jobs]
+        Bot[Bot Pods]
+        VDP[Video Device Plugin]
+    end
+    
+    SQS[SQS Queue]
+    S3[S3 Storage]
+    DB[(PostgreSQL)]
+    Redis[(Redis)]
+    Zoom[Zoom]
+    Meet[Google Meet]
+    Teams[Microsoft Teams]
+    
+    API -->|Creates jobs| SQS
+    API -->|Reads/Writes| DB
+    API -->|Locks| Redis
+    
+    Jobs -->|Scheduled jobs| SQS
+    Jobs -->|Data retention| DB
+    
+    SQS -->|Consumes| Bot
+    VDP -->|Provides devices| Bot
+    
+    Bot -->|Joins meetings| Zoom
+    Bot -->|Joins meetings| Meet
+    Bot -->|Joins meetings| Teams
+    Bot -->|Uploads| S3
+"
+/>
+
+**How It Works**:
+
+1. **API Server** receives bot creation requests and enqueues jobs to **SQS**
+2. **Background Jobs** (CronJobs) also create bot jobs in **SQS** for scheduled meetings
+3. **Bot Pods** (auto-scaled via KEDA) consume jobs from **SQS**
+4. **Video Device Plugin** (DaemonSet) runs on bot pool nodes and provisions virtual video devices (`/dev/video*`) that bot pods require
+5. **Bot Pods** use the video devices to join meetings on **Zoom**, **Google Meet**, or **Microsoft Teams**
+6. **Bot Pods** record meetings and upload recordings to **S3**
+7. **API Server** manages all metadata in **PostgreSQL** and uses **Redis** for deduplication
+
 ## Feature Flags
 
 The platform uses feature flags to enable/disable functionality, making it easy to deploy only what you need:

@@ -5,7 +5,7 @@ import { owner, repo } from '@/lib/github';
 import { createMetadata } from '@/lib/metadata';
 import { metadataImage } from '@/lib/metadata-image';
 import { openapi, source } from '@/lib/source';
-import { Mermaid } from '@theguild/remark-mermaid/mermaid';
+import { Mermaid } from '@/components/mdx/mermaid';
 import { Popup, PopupContent, PopupTrigger } from 'fumadocs-twoslash/ui';
 import { createGenerator } from 'fumadocs-typescript';
 import { AutoTypeTable } from 'fumadocs-typescript/ui';

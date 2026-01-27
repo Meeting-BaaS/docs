@@ -1,6 +1,7 @@
 import { Accordion, Accordions } from '@/components/fumadocs/accordion';
 import { Callout } from '@/components/fumadocs/callout';
 import { Tabs as CustomTabs, Tab } from '@/components/fumadocs/tabs';
+import { Mermaid } from '@/components/mdx/mermaid';
 import { ServiceIcon } from '@/components/ui/service-icon';
 import { ServiceCardSSR, ServicesCompactSSR, ServicesListSSR } from '@/components/ui/services-list-ssr';
 import { createGenerator } from 'fumadocs-typescript';
@@ -83,6 +84,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         TypeTable,
         ImageZoom,
         AutoTypeTable: (props) => <AutoTypeTable {...props} generator={generator} />,
+        Mermaid,
 
         // Our custom service components
         ServicesList: ServicesListSSR,
