@@ -55,14 +55,23 @@ function extractText(children: ReactNode): string {
 
 // Custom pre component that handles mermaid code blocks
 function Pre({ children, ...props }: ComponentProps<'pre'>) {
+  // Debug logging
+  console.log('Pre component called');
+  console.log('children:', children);
+  console.log('props:', props);
+
   // Check if this is a mermaid code block
   if (isValidElement(children)) {
     const childProps = children.props as { className?: string; children?: ReactNode };
     const className = childProps.className || '';
 
+    console.log('className:', className);
+    console.log('includes language-mermaid?', className.includes('language-mermaid'));
+
     if (className.includes('language-mermaid')) {
       // Extract the mermaid definition text
       const chart = extractText(childProps.children);
+      console.log('Rendering Mermaid chart:', chart.substring(0, 100));
       return <Mermaid chart={chart} />;
     }
   }
