@@ -77,4 +77,5 @@ pnpm enhance:updates --key=your_openrouter_api_key --date=2023-10-15
 - [Website](https://meetingbaas.com)
 - [Documentation](https://docs.meetingbaas.com)
 - [Join our Discord](https://discord.com/invite/dsvFgDTr6c)
+- [v2 Dashboard](https://dashboard.meetingbaas.com)
 ```
