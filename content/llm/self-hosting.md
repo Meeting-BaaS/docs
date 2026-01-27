@@ -798,6 +798,55 @@ Meeting BaaS v2 is designed to run on Kubernetes with the following components:
 - **Bot Pods**: Scalable pods that join meetings and record them
 - **Video Device Plugin**: DaemonSet that provisions virtual video devices (v4l2loopback) for bots
 
+### Component Interaction
+
+The following diagram illustrates how the API server, bot pods, and video device plugin interact:
+
+<Mermaid
+  chart="
+graph TB
+    subgraph K8s[Kubernetes Cluster]
+        API[API Server]
+        Jobs[Background Jobs]
+        Bot[Bot Pods]
+        VDP[Video Device Plugin]
+    end
+    
+    SQS[SQS Queue]
+    S3[S3 Storage]
+    DB[(PostgreSQL)]
+    Redis[(Redis)]
+    Zoom[Zoom]
+    Meet[Google Meet]
+    Teams[Microsoft Teams]
+    
+    API -->|Creates jobs| SQS
+    API -->|Reads/Writes| DB
+    API -->|Locks| Redis
+    
+    Jobs -->|Scheduled jobs| SQS
+    Jobs -->|Data retention| DB
+    
+    SQS -->|Consumes| Bot
+    VDP -->|Provides devices| Bot
+    
+    Bot -->|Joins meetings| Zoom
+    Bot -->|Joins meetings| Meet
+    Bot -->|Joins meetings| Teams
+    Bot -->|Uploads| S3
+"
+/>
+
+**How It Works**:
+
+1. **API Server** receives bot creation requests and enqueues jobs to **SQS**
+2. **Background Jobs** (CronJobs) also create bot jobs in **SQS** for scheduled meetings
+3. **Bot Pods** (auto-scaled via KEDA) consume jobs from **SQS**
+4. **Video Device Plugin** (DaemonSet) runs on bot pool nodes and provisions virtual video devices (`/dev/video*`) that bot pods require
+5. **Bot Pods** use the video devices to join meetings on **Zoom**, **Google Meet**, or **Microsoft Teams**
+6. **Bot Pods** record meetings and upload recordings to **S3**
+7. **API Server** manages all metadata in **PostgreSQL** and uses **Redis** for deduplication
+
 ## Feature Flags
 
 The platform uses feature flags to enable/disable functionality, making it easy to deploy only what you need:
@@ -873,6 +922,199 @@ Set up your Kubernetes cluster, databases, and services
 
 
 This guide walks you through setting up the infrastructure required for Meeting BaaS v2.
+
+## Architecture Overview
+
+The following diagram illustrates the complete infrastructure architecture for Meeting BaaS v2:
+
+```mermaid
+flowchart TB
+    subgraph Internet
+        Users[Users/API Clients]
+        MeetingPlatforms[Meeting Platforms<br/>Zoom, Google Meet, MS Teams]
+    end
+
+    subgraph DNS
+        Domain[api.yourcompany.com]
+    end
+
+    subgraph "Kubernetes Cluster"
+        subgraph Ingress["Ingress Layer"]
+            LB[LoadBalancer<br/>External IP]
+            NGINX[NGINX Ingress Controller]
+            CertManager[cert-manager<br/>Let's Encrypt SSL]
+        end
+
+        subgraph APIPool["API Server Node Pool<br/>(2-4 CPU, 4-8GB RAM, Auto-scale: 1-3 nodes)"]
+            API1[API Server Pod 1]
+            API2[API Server Pod 2]
+            API3[API Server Pod 3]
+
+            subgraph CronJobs["Background CronJobs"]
+                ScheduledBot[Scheduled Bot Job<br/>Every minute]
+                CalendarSync[Calendar Sync Job<br/>6 hours]
+                DataRetention[Data Retention Job<br/>Daily]
+                TeamCleanup[Team Cleanup Job<br/>Daily]
+            end
+        end
+
+        subgraph BotPool["Bot Node Pool<br/>(16+ CPU, 32GB+ RAM, Auto-scale: 0-10+ nodes)"]
+            VideoPlugin[Video Device Plugin<br/>DaemonSet]
+
+            subgraph ZoomBots["Zoom Bots<br/>(KEDA ScaledJob)"]
+                ZBot1[Zoom Bot Pod 1]
+                ZBot2[Zoom Bot Pod 2]
+                ZBotN[Zoom Bot Pod N]
+            end
+
+            subgraph MeetTeamsBots["Meet/Teams Bots<br/>(KEDA ScaledJob)"]
+                MTBot1[Meet/Teams Bot Pod 1]
+                MTBot2[Meet/Teams Bot Pod 2]
+                MTBotN[Meet/Teams Bot Pod N]
+            end
+        end
+    end
+
+    subgraph "External Services"
+        subgraph Database["PostgreSQL 14+"]
+            DB[(Main Database<br/>Users, Teams, Bots,<br/>API Keys, Configs)]
+        end
+
+        subgraph Cache["Redis 6.0+"]
+            Redis[(Session Store<br/>Locks, Cache)]
+        end
+
+        subgraph Storage["S3-Compatible Object Storage"]
+            S3Artifacts[artifacts bucket<br/>Recordings]
+            S3Logs[logs bucket<br/>Bot logs]
+            S3Audio[audio-chunks bucket<br/>Transcription]
+            S3Logo[logo bucket<br/>Team logos]
+        end
+
+        subgraph Queue["SQS-Compatible Message Queues"]
+            SQSZoom[zoom queue<br/>Zoom bot jobs]
+            SQSMeet[meet-teams queue<br/>Meet/Teams bot jobs]
+        end
+
+        subgraph Optional["Optional Services"]
+            EFS[EFS/NFS<br/>Redundant storage]
+            Gladia[Gladia API<br/>Transcription]
+            Stripe[Stripe<br/>Billing]
+            Email[Resend<br/>Email]
+        end
+    end
+
+    %% User flows
+    Users -->|HTTPS| Domain
+    Domain -->|DNS A Record| LB
+    LB --> NGINX
+    NGINX -->|TLS Termination| API1
+    NGINX --> API2
+    NGINX --> API3
+
+    %% SSL certificate management
+    CertManager -.->|Issues & Renews<br/>SSL Certs| NGINX
+
+    %% API Server connections
+    API1 <-->|Read/Write| DB
+    API2 <-->|Read/Write| DB
+    API3 <-->|Read/Write| DB
+
+    API1 <-->|Sessions/Locks| Redis
+    API2 <-->|Sessions/Locks| Redis
+    API3 <-->|Sessions/Locks| Redis
+
+    API1 -->|Send Jobs| SQSZoom
+    API1 -->|Send Jobs| SQSMeet
+    API2 -->|Send Jobs| SQSZoom
+    API2 -->|Send Jobs| SQSMeet
+    API3 -->|Send Jobs| SQSZoom
+    API3 -->|Send Jobs| SQSMeet
+
+    %% CronJob connections
+    ScheduledBot <-->|Create scheduled<br/>bot jobs| DB
+    ScheduledBot -->|Queue bot jobs| SQSZoom
+    ScheduledBot -->|Queue bot jobs| SQSMeet
+    CalendarSync <-->|Sync calendar events| DB
+    DataRetention <-->|Delete old data| DB
+    DataRetention -->|Delete old files| S3Artifacts
+    TeamCleanup <-->|Cleanup soft-deleted| DB
+
+    %% Bot scaling
+    SQSZoom -->|KEDA monitors<br/>queue depth| ZoomBots
+    SQSMeet -->|KEDA monitors<br/>queue depth| MeetTeamsBots
+
+    %% Video device plugin
+    VideoPlugin -.->|Provides virtual<br/>video devices| ZoomBots
+    VideoPlugin -.->|Provides virtual<br/>video devices| MeetTeamsBots
+
+    %% Bot operations
+    ZBot1 -->|Receive jobs| SQSZoom
+    ZBot2 -->|Receive jobs| SQSZoom
+    ZBotN -->|Receive jobs| SQSZoom
+
+    MTBot1 -->|Receive jobs| SQSMeet
+    MTBot2 -->|Receive jobs| SQSMeet
+    MTBotN -->|Receive jobs| SQSMeet
+
+    ZBot1 <-->|Join & Record| MeetingPlatforms
+    ZBot2 <-->|Join & Record| MeetingPlatforms
+    MTBot1 <-->|Join & Record| MeetingPlatforms
+    MTBot2 <-->|Join & Record| MeetingPlatforms
+
+    ZBot1 -->|Upload recordings| S3Artifacts
+    ZBot1 -->|Upload logs| S3Logs
+    ZBot2 -->|Upload recordings| S3Artifacts
+    MTBot1 -->|Upload recordings| S3Artifacts
+    MTBot1 -->|Upload logs| S3Logs
+    MTBot2 -->|Upload recordings| S3Artifacts
+
+    ZBot1 <-->|Store metadata| DB
+    ZBot2 <-->|Store metadata| DB
+    MTBot1 <-->|Store metadata| DB
+    MTBot2 <-->|Store metadata| DB
+
+    %% Optional services
+    ZBot1 -.->|Transcription| Gladia
+    MTBot1 -.->|Transcription| Gladia
+    API1 -.->|Billing| Stripe
+    API1 -.->|Notifications| Email
+    ZBot1 -.->|Backup storage| EFS
+    MTBot1 -.->|Backup storage| EFS
+
+    classDef kubernetes fill:#326ce5,stroke:#fff,stroke-width:2px,color:#fff
+    classDef external fill:#ff9900,stroke:#fff,stroke-width:2px,color:#fff
+    classDef optional fill:#888,stroke:#fff,stroke-width:2px,color:#fff
+    classDef ingress fill:#00758f,stroke:#fff,stroke-width:2px,color:#fff
+
+    class APIPool,BotPool,CronJobs,ZoomBots,MeetTeamsBots kubernetes
+    class Database,Cache,Storage,Queue external
+    class Optional,EFS,Gladia,Stripe,Email optional
+    class Ingress,LB,NGINX,CertManager ingress
+```
+
+### Key Architecture Components
+
+**Kubernetes Cluster**:
+- **API Server Pool**: Runs API servers and background CronJobs with horizontal pod autoscaling
+- **Bot Node Pool**: Runs bot pods that join and record meetings, scales from 0 to 10+ nodes based on demand
+- **Ingress Layer**: NGINX Ingress Controller with cert-manager for automatic SSL/TLS certificate management
+
+**External Services**:
+- **PostgreSQL**: Central database for all persistent data (users, teams, bots, configurations)
+- **Redis**: Session storage, distributed locks, and caching
+- **S3 Object Storage**: Stores recordings, logs, audio chunks, and assets
+- **SQS Message Queues**: Decouples API from bot execution, enables elastic auto-scaling
+
+**Data Flow**:
+1. Users make API requests via HTTPS to your domain
+2. DNS routes to the Kubernetes LoadBalancer
+3. NGINX Ingress terminates SSL and routes to API server pods
+4. API servers process requests, store data in PostgreSQL/Redis
+5. When a bot is needed, API servers send jobs to SQS queues
+6. KEDA monitors SQS queue depth and scales bot pods automatically
+7. Bot pods receive jobs, join meetings, record, and upload to S3
+8. Background CronJobs handle scheduled tasks, calendar sync, and data retention
 
 ## Kubernetes Cluster Setup
 
