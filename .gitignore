@@ -7,6 +7,10 @@
 .source
 content/llm/all.md
 all.md
+
+# Internal docs (generated at build time from private repo - NEVER COMMIT)
+content/docs/internal/
+content/llm/internal.md
 git_greppers/meeting-baas-git-diffs/
 git_greppers/**/*.log
 git_greppers/**/processing.log
