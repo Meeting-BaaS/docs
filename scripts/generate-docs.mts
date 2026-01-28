@@ -1,4 +1,5 @@
-import * as OpenAPI from 'fumadocs-openapi';
+import { generateFiles } from 'fumadocs-openapi';
+import { createOpenAPI } from 'fumadocs-openapi/server';
 import { rimraf } from 'rimraf';
 
 
@@ -24,10 +25,15 @@ export async function generateDocs() {
     },
   });
 
+  // Create OpenAPI servers for each spec
+  const apiV1 = createOpenAPI({ input: ['./openapi.json'] });
+  const apiV2 = createOpenAPI({ input: ['./openapi-v2.json'] });
+  const speakingBots = createOpenAPI({ input: ['./speaking-bots-openapi.json'] });
+
   await Promise.all([
     // Generate Meeting BaaS API v1 docs
-    OpenAPI.generateFiles({
-      input: ['./openapi.json'],
+    generateFiles({
+      input: apiV1,
       output: './content/docs/api/reference',
       per: 'operation',
       includeDescription: true,
@@ -35,8 +41,8 @@ export async function generateDocs() {
     }),
 
     // Generate Meeting BaaS API v2 docs
-    OpenAPI.generateFiles({
-      input: ['./openapi-v2.json'],
+    generateFiles({
+      input: apiV2,
       output: './content/docs/api-v2/reference',
       per: 'operation',
       includeDescription: true,
@@ -44,8 +50,8 @@ export async function generateDocs() {
     }),
 
     // Generate Speaking Bots API docs
-    OpenAPI.generateFiles({
-      input: ['./speaking-bots-openapi.json'],
+    generateFiles({
+      input: speakingBots,
       output: './content/docs/speaking-bots/reference',
       per: 'operation',
       includeDescription: true,

@@ -3,7 +3,6 @@ title: Schedule Record Event
 full: true
 _openapi:
   method: POST
-  route: /calendar_events/{uuid}/bot
   toc: []
   structuredData:
     headings: []
@@ -23,4 +22,4 @@ _openapi:
 
 Configures a bot to automatically join and record a specific calendar event at its scheduled time. The UUID in the request path is the event UUID. The request body contains detailed bot configuration, including recording options, streaming settings, and webhook notification URLs. For recurring events, the 'all_occurrences' parameter can be set to true to schedule recording for all instances of the recurring series, or false (default) to schedule only the specific instance. Returns the updated event(s) with the bot parameters attached.
 
-<APIPage document={"./openapi.json"} operations={[{"path":"/calendar_events/{uuid}/bot","method":"post"}]} webhooks={[]} hasHead={false} />
+<APIPage document={"./openapi.json"} operations={[{"path":"/calendar_events/{uuid}/bot","method":"post"}]} />

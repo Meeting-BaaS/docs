@@ -928,169 +928,112 @@ This guide walks you through setting up the infrastructure required for Meeting 
 The following diagram illustrates the complete infrastructure architecture for Meeting BaaS v2:
 
 ```mermaid
-flowchart TB
-    subgraph Internet
-        Users[Users/API Clients]
-        MeetingPlatforms[Meeting Platforms<br/>Zoom, Google Meet, MS Teams]
+flowchart TD
+    %% Entry point
+    Users[Users / API Clients]
+
+    Users -->|HTTPS| Domain[api.yourcompany.com]
+
+    Domain -->|DNS| LB[Load Balancer]
+
+    LB --> NGINX[NGINX Ingress Controller]
+
+    CertManager[cert-manager] -.->|SSL Certs| NGINX
+
+    %% API Layer
+    subgraph APIPool["API Server Pool"]
+        API[API Server Pods<br/>x2-3 replicas]
     end
 
-    subgraph DNS
-        Domain[api.yourcompany.com]
+    NGINX --> API
+
+    %% Data stores
+    subgraph DataStores["Data Layer"]
+        DB[(PostgreSQL)]
+        Redis[(Redis)]
     end
 
-    subgraph "Kubernetes Cluster"
-        subgraph Ingress["Ingress Layer"]
-            LB[LoadBalancer<br/>External IP]
-            NGINX[NGINX Ingress Controller]
-            CertManager[cert-manager<br/>Let's Encrypt SSL]
-        end
+    API <--> DB
+    API <--> Redis
 
-        subgraph APIPool["API Server Node Pool<br/>(2-4 CPU, 4-8GB RAM, Auto-scale: 1-3 nodes)"]
-            API1[API Server Pod 1]
-            API2[API Server Pod 2]
-            API3[API Server Pod 3]
-
-            subgraph CronJobs["Background CronJobs"]
-                ScheduledBot[Scheduled Bot Job<br/>Every minute]
-                CalendarSync[Calendar Sync Job<br/>6 hours]
-                DataRetention[Data Retention Job<br/>Daily]
-                TeamCleanup[Team Cleanup Job<br/>Daily]
-            end
-        end
-
-        subgraph BotPool["Bot Node Pool<br/>(16+ CPU, 32GB+ RAM, Auto-scale: 0-10+ nodes)"]
-            VideoPlugin[Video Device Plugin<br/>DaemonSet]
-
-            subgraph ZoomBots["Zoom Bots<br/>(KEDA ScaledJob)"]
-                ZBot1[Zoom Bot Pod 1]
-                ZBot2[Zoom Bot Pod 2]
-                ZBotN[Zoom Bot Pod N]
-            end
-
-            subgraph MeetTeamsBots["Meet/Teams Bots<br/>(KEDA ScaledJob)"]
-                MTBot1[Meet/Teams Bot Pod 1]
-                MTBot2[Meet/Teams Bot Pod 2]
-                MTBotN[Meet/Teams Bot Pod N]
-            end
-        end
+    %% Queues
+    subgraph Queues["Message Queues"]
+        SQSZoom[Zoom Queue]
+        SQSMeet[Meet/Teams Queue]
     end
 
-    subgraph "External Services"
-        subgraph Database["PostgreSQL 14+"]
-            DB[(Main Database<br/>Users, Teams, Bots,<br/>API Keys, Configs)]
+    API --> SQSZoom
+    API --> SQSMeet
+
+    %% Bot Pools
+    subgraph BotPool["Bot Node Pool"]
+        subgraph ZoomBots["Zoom Bots"]
+            ZBot[Zoom Bot Pods<br/>KEDA ScaledJob]
         end
 
-        subgraph Cache["Redis 6.0+"]
-            Redis[(Session Store<br/>Locks, Cache)]
+        subgraph MeetBots["Meet/Teams Bots"]
+            MTBot[Meet/Teams Bot Pods<br/>KEDA ScaledJob]
         end
 
-        subgraph Storage["S3-Compatible Object Storage"]
-            S3Artifacts[artifacts bucket<br/>Recordings]
-            S3Logs[logs bucket<br/>Bot logs]
-            S3Audio[audio-chunks bucket<br/>Transcription]
-            S3Logo[logo bucket<br/>Team logos]
-        end
-
-        subgraph Queue["SQS-Compatible Message Queues"]
-            SQSZoom[zoom queue<br/>Zoom bot jobs]
-            SQSMeet[meet-teams queue<br/>Meet/Teams bot jobs]
-        end
-
-        subgraph Optional["Optional Services"]
-            EFS[EFS/NFS<br/>Redundant storage]
-            Gladia[Gladia API<br/>Transcription]
-            Stripe[Stripe<br/>Billing]
-            Email[Resend<br/>Email]
-        end
+        VideoPlugin[Video Device Plugin]
     end
 
-    %% User flows
-    Users -->|HTTPS| Domain
-    Domain -->|DNS A Record| LB
-    LB --> NGINX
-    NGINX -->|TLS Termination| API1
-    NGINX --> API2
-    NGINX --> API3
+    SQSZoom --> ZBot
+    SQSMeet --> MTBot
+    VideoPlugin -.-> ZBot
+    VideoPlugin -.-> MTBot
 
-    %% SSL certificate management
-    CertManager -.->|Issues & Renews<br/>SSL Certs| NGINX
+    %% External connections
+    MeetingPlatforms[Meeting Platforms<br/>Zoom, Meet, Teams]
 
-    %% API Server connections
-    API1 <-->|Read/Write| DB
-    API2 <-->|Read/Write| DB
-    API3 <-->|Read/Write| DB
+    ZBot <--> MeetingPlatforms
+    MTBot <--> MeetingPlatforms
 
-    API1 <-->|Sessions/Locks| Redis
-    API2 <-->|Sessions/Locks| Redis
-    API3 <-->|Sessions/Locks| Redis
+    %% Storage
+    subgraph Storage["Object Storage"]
+        S3[S3 Buckets<br/>recordings, logs, audio]
+    end
 
-    API1 -->|Send Jobs| SQSZoom
-    API1 -->|Send Jobs| SQSMeet
-    API2 -->|Send Jobs| SQSZoom
-    API2 -->|Send Jobs| SQSMeet
-    API3 -->|Send Jobs| SQSZoom
-    API3 -->|Send Jobs| SQSMeet
+    ZBot --> S3
+    MTBot --> S3
+    ZBot <--> DB
+    MTBot <--> DB
 
-    %% CronJob connections
-    ScheduledBot <-->|Create scheduled<br/>bot jobs| DB
-    ScheduledBot -->|Queue bot jobs| SQSZoom
-    ScheduledBot -->|Queue bot jobs| SQSMeet
-    CalendarSync <-->|Sync calendar events| DB
-    DataRetention <-->|Delete old data| DB
-    DataRetention -->|Delete old files| S3Artifacts
-    TeamCleanup <-->|Cleanup soft-deleted| DB
+    %% CronJobs
+    subgraph CronJobs["Background Jobs"]
+        Cron[CronJobs<br/>Scheduler, Calendar, Cleanup]
+    end
 
-    %% Bot scaling
-    SQSZoom -->|KEDA monitors<br/>queue depth| ZoomBots
-    SQSMeet -->|KEDA monitors<br/>queue depth| MeetTeamsBots
+    Cron <--> DB
+    Cron --> SQSZoom
+    Cron --> SQSMeet
 
-    %% Video device plugin
-    VideoPlugin -.->|Provides virtual<br/>video devices| ZoomBots
-    VideoPlugin -.->|Provides virtual<br/>video devices| MeetTeamsBots
+    %% Optional
+    subgraph Optional["Optional Services"]
+        Gladia[Gladia<br/>Transcription]
+        Stripe[Stripe<br/>Billing]
+    end
 
-    %% Bot operations
-    ZBot1 -->|Receive jobs| SQSZoom
-    ZBot2 -->|Receive jobs| SQSZoom
-    ZBotN -->|Receive jobs| SQSZoom
+    ZBot -.-> Gladia
+    MTBot -.-> Gladia
+    API -.-> Stripe
 
-    MTBot1 -->|Receive jobs| SQSMeet
-    MTBot2 -->|Receive jobs| SQSMeet
-    MTBotN -->|Receive jobs| SQSMeet
+    %% Styling
+    classDef primary fill:#00dbc6,stroke:#0ea5a0,stroke-width:2px,color:#0f172a
+    classDef api fill:#3b82f6,stroke:#2563eb,stroke-width:2px,color:#fff
+    classDef bot fill:#8b5cf6,stroke:#7c3aed,stroke-width:2px,color:#fff
+    classDef storage fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#0f172a
+    classDef queue fill:#ec4899,stroke:#db2777,stroke-width:2px,color:#fff
+    classDef optional fill:#64748b,stroke:#475569,stroke-width:2px,color:#fff
+    classDef external fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f1f5f9
 
-    ZBot1 <-->|Join & Record| MeetingPlatforms
-    ZBot2 <-->|Join & Record| MeetingPlatforms
-    MTBot1 <-->|Join & Record| MeetingPlatforms
-    MTBot2 <-->|Join & Record| MeetingPlatforms
-
-    ZBot1 -->|Upload recordings| S3Artifacts
-    ZBot1 -->|Upload logs| S3Logs
-    ZBot2 -->|Upload recordings| S3Artifacts
-    MTBot1 -->|Upload recordings| S3Artifacts
-    MTBot1 -->|Upload logs| S3Logs
-    MTBot2 -->|Upload recordings| S3Artifacts
-
-    ZBot1 <-->|Store metadata| DB
-    ZBot2 <-->|Store metadata| DB
-    MTBot1 <-->|Store metadata| DB
-    MTBot2 <-->|Store metadata| DB
-
-    %% Optional services
-    ZBot1 -.->|Transcription| Gladia
-    MTBot1 -.->|Transcription| Gladia
-    API1 -.->|Billing| Stripe
-    API1 -.->|Notifications| Email
-    ZBot1 -.->|Backup storage| EFS
-    MTBot1 -.->|Backup storage| EFS
-
-    classDef kubernetes fill:#326ce5,stroke:#fff,stroke-width:2px,color:#fff
-    classDef external fill:#ff9900,stroke:#fff,stroke-width:2px,color:#fff
-    classDef optional fill:#888,stroke:#fff,stroke-width:2px,color:#fff
-    classDef ingress fill:#00758f,stroke:#fff,stroke-width:2px,color:#fff
-
-    class APIPool,BotPool,CronJobs,ZoomBots,MeetTeamsBots kubernetes
-    class Database,Cache,Storage,Queue external
-    class Optional,EFS,Gladia,Stripe,Email optional
-    class Ingress,LB,NGINX,CertManager ingress
+    class Users,Domain,LB,NGINX,CertManager primary
+    class API,APIPool,Cron,CronJobs api
+    class ZBot,MTBot,ZoomBots,MeetBots,BotPool,VideoPlugin bot
+    class DB,Redis,DataStores,S3,Storage storage
+    class SQSZoom,SQSMeet,Queues queue
+    class Gladia,Stripe,Optional optional
+    class MeetingPlatforms external
 ```
 
 ### Key Architecture Components

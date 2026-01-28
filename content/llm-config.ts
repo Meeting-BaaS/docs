@@ -49,6 +49,13 @@ export const categoryConfig: CategoryConfigMap = {
       "./content/docs/api-v2/reference/calendars/**/*.mdx"
     ]
   },
+  "api/unknown": {
+    "title": "unknown api Reference",
+    "description": "Reference documentation for unknown in api.",
+    "patterns": [
+      "./content/docs/api/reference/unknown/**/*.mdx"
+    ]
+  },
   "api/webhooks": {
     "title": "webhooks api Reference",
     "description": "Reference documentation for webhooks in api.",
@@ -204,6 +211,11 @@ export const knownTxtPaths: string[][] = [
   [
     "llms",
     "calendars"
+  ],
+  [
+    "llms",
+    "api",
+    "unknown"
   ],
   [
     "llms",

@@ -21,15 +21,22 @@ function extractText(children: ReactNode): string {
 
 // Custom pre component that handles mermaid code blocks
 function Pre({ children, ...props }: React.ComponentProps<'pre'>) {
-  // Check if this is a mermaid code block
-  if (isValidElement(children)) {
-    const childProps = children.props as { className?: string; children?: ReactNode };
-    const className = childProps.className || '';
+  // Check if this is a mermaid code block via data-language on pre element
+  const preProps = props as { 'data-language'?: string };
+  if (preProps['data-language'] === 'mermaid') {
+    const chart = extractText(children);
+    return <Mermaid chart={chart} className="my-4" />;
+  }
 
-    if (className.includes('language-mermaid')) {
-      // Extract the mermaid definition text
+  // Check if this is a mermaid code block via className on code child
+  if (isValidElement(children)) {
+    const childProps = children.props as { className?: string; children?: ReactNode; 'data-language'?: string };
+    const className = childProps.className || '';
+    const dataLang = childProps['data-language'] || '';
+
+    if (className.includes('language-mermaid') || dataLang === 'mermaid') {
       const chart = extractText(childProps.children);
-      return <Mermaid chart={chart} />;
+      return <Mermaid chart={chart} className="my-4" />;
     }
   }
 
