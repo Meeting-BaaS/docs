@@ -5,7 +5,7 @@ import { owner, repo } from '@/lib/github';
 import { createMetadata } from '@/lib/metadata';
 import { metadataImage } from '@/lib/metadata-image';
 import { openapi, source } from '@/lib/source';
-import { Mermaid } from '@/components/mdx/mermaid';
+import { useMDXComponents } from '@/mdx-components';
 import { Popup, PopupContent, PopupTrigger } from 'fumadocs-twoslash/ui';
 import { createGenerator } from 'fumadocs-typescript';
 import { AutoTypeTable } from 'fumadocs-typescript/ui';
@@ -15,7 +15,6 @@ import { ImageZoom } from 'fumadocs-ui/components/image-zoom';
 import { Step, Steps } from 'fumadocs-ui/components/steps';
 import { Tab, Tabs } from 'fumadocs-ui/components/tabs';
 import { TypeTable } from 'fumadocs-ui/components/type-table';
-import defaultMdxComponents from 'fumadocs-ui/mdx';
 import {
   DocsBody,
   DocsCategory,
@@ -27,64 +26,12 @@ import type { MDXComponents } from 'mdx/types';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import {
-  Children,
-  isValidElement,
   type ComponentProps,
   type FC,
-  type ReactElement,
-  type ReactNode
+  type ReactElement
 } from 'react';
 
 const generator = createGenerator();
-
-// Helper function to extract text content from React children
-function extractText(children: ReactNode): string {
-  return Children.toArray(children)
-    .map((child) => {
-      if (typeof child === 'string') return child;
-      if (isValidElement(child)) {
-        const props = child.props as { children?: ReactNode };
-        if (props.children) {
-          return extractText(props.children);
-        }
-      }
-      return '';
-    })
-    .join('');
-}
-
-// Custom pre component that handles mermaid code blocks
-function Pre({ children, ...props }: ComponentProps<'pre'>) {
-  // Debug logging
-  console.log('Pre component called');
-  console.log('children:', children);
-  console.log('props:', props);
-
-  // Check if this is a mermaid code block
-  if (isValidElement(children)) {
-    const childProps = children.props as { className?: string; children?: ReactNode };
-    const className = childProps.className || '';
-
-    console.log('className:', className);
-    console.log('includes language-mermaid?', className.includes('language-mermaid'));
-
-    if (className.includes('language-mermaid')) {
-      // Extract the mermaid definition text
-      const chart = extractText(childProps.children);
-      console.log('Rendering Mermaid chart:', chart.substring(0, 100));
-      // Wrap in a consistent div with suppressHydrationWarning to prevent mismatch
-      return (
-        <div className="my-6" suppressHydrationWarning>
-          <Mermaid chart={chart} />
-        </div>
-      );
-    }
-  }
-
-  // Otherwise use fumadocs default pre rendering (with syntax highlighting)
-  const FumadocsPre = defaultMdxComponents.pre;
-  return <FumadocsPre {...props}>{children}</FumadocsPre>;
-}
 
 export const revalidate = false;
 
@@ -106,18 +53,14 @@ export default async function Page(props: {
   const isUpdatesPage = params.slug && params.slug.length === 1 && params.slug[0] === 'updates';
   console.log("Current page slug:", params.slug, "Is updates page:", isUpdatesPage);
 
-  // Create the MDX components object with enhanced logging
-  const mdxComponents = {
-    ...defaultMdxComponents,
+  // Use useMDXComponents and merge with page-specific components
+  const mdxComponents = useMDXComponents({
     ...((await import('lucide-react')) as unknown as MDXComponents),
-    // Override pre to handle mermaid diagrams
-    pre: Pre,
     Popup,
     PopupContent,
     PopupTrigger,
     Tabs,
     Tab,
-    Mermaid,
     TypeTable,
     AutoTypeTable: (props: any) => (
       <AutoTypeTable generator={generator} {...props} />
@@ -138,7 +81,7 @@ export default async function Page(props: {
     ImageZoom,
     // Custom components for services
     ServicesListSSR,
-    ServicesList: ServicesListSSR, // Add this extra mapping just in case
+    ServicesList: ServicesListSSR,
     ServicesCompactSSR,
     ServicesCompact: ServicesCompactSSR,
     ServiceCardSSR,
@@ -147,10 +90,7 @@ export default async function Page(props: {
     ...(await import(
       '@/content/docs/api/community-and-support.client'
     )),
-  };
-
-  // Log the available components for debugging
-  console.log("Available MDX components:", Object.keys(mdxComponents));
+  });
 
   return (
     <DocsPage
