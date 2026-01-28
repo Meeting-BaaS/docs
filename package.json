@@ -6,7 +6,8 @@
   "scripts": {
     "build": "pnpm transpile && pnpm build:pre && next build && pnpm build:post",
     "transpile": "node scripts/transpile-scripts.js",
-    "build:pre": "tsx scripts/pre-build.mts",
+    "build:pre": "node scripts/generate-growth-diagram.cjs && tsx scripts/pre-build.mts",
+    "generate:growth": "node scripts/generate-growth-diagram.cjs",
     "build:post": "node scripts-dist/post-build.mjs",
     "clean": "rimraf .next scripts-dist",
     "clean:updates": "node scripts/cleanup.js",
