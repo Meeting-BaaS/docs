@@ -1,7 +1,44 @@
 import { generateFiles } from 'fumadocs-openapi';
 import { createOpenAPI } from 'fumadocs-openapi/server';
 import { rimraf } from 'rimraf';
+import fs from 'fs';
+import path from 'path';
 
+/**
+ * Move files from 'unknown' subfolder to parent folder.
+ * OpenAPI endpoints without tags get grouped into 'unknown/' by fumadocs-openapi.
+ * We want them at the root reference level instead.
+ */
+async function flattenUnknownFolder(referenceDir: string) {
+  const unknownDir = path.join(referenceDir, 'unknown');
+
+  if (!fs.existsSync(unknownDir)) {
+    return;
+  }
+
+  const files = fs.readdirSync(unknownDir);
+
+  for (const file of files) {
+    const srcPath = path.join(unknownDir, file);
+    const destPath = path.join(referenceDir, file);
+
+    // Skip if destination already exists
+    if (fs.existsSync(destPath)) {
+      console.log(`  Skipping ${file} (already exists)`);
+      continue;
+    }
+
+    fs.renameSync(srcPath, destPath);
+    console.log(`  Moved ${file} from unknown/ to reference root`);
+  }
+
+  // Remove empty unknown directory
+  const remaining = fs.readdirSync(unknownDir);
+  if (remaining.length === 0) {
+    fs.rmdirSync(unknownDir);
+    console.log('  Removed empty unknown/ directory');
+  }
+}
 
 export async function generateDocs() {
   // Clean up Meeting BaaS API reference directory
@@ -58,4 +95,10 @@ export async function generateDocs() {
       groupBy: 'tag',
     }),
   ]);
+
+  // Move untagged endpoints from 'unknown/' to reference root
+  console.log('Flattening unknown folders...');
+  await flattenUnknownFolder('./content/docs/api/reference');
+  await flattenUnknownFolder('./content/docs/api-v2/reference');
+  await flattenUnknownFolder('./content/docs/speaking-bots/reference');
 }
