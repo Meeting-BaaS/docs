@@ -1,0 +1,20 @@
+{
+  "title": "Playbooks",
+  "icon": "BookOpen",
+  "pages": [
+    "index",
+    "failure-recovery",
+    "calendar---sync-error",
+    "onboarding---api-no-bot",
+    "onboarding",
+    "artifacts-reminder",
+    "webhooks-adoption",
+    "webhooks---stop-polling",
+    "calendar-expansion",
+    "calendar---no-bots",
+    "activation",
+    "activation---bot-created",
+    "winback-3-day",
+    "winback-7-day"
+  ]
+}

@@ -1,0 +1,103 @@
+---
+title: "Winback 3-Day"
+description: "No API activity for 3 days"
+icon: Mail
+---
+
+# Winback 3-Day
+
+<Callout type="info">
+  **Priority:** 5 | **Emails:** 2 | **Cooldown:** 14 days
+</Callout>
+
+> No API activity for 3 days
+
+## Sequence Diagram
+
+<Mermaid chart={`sequenceDiagram
+    participant U as User
+    participant S as System
+    participant E as Email
+
+    Note over S: Trigger: No API activity for 3 days
+
+    Note over U: Immediately
+    S->>E: Send winback-3d
+    E-->>U: Email delivered
+
+    Note over U: +3 days
+    S->>E: Send winback-3d-followup
+    E-->>U: Email delivered
+
+    alt Stop Condition Met
+        U->>S: API activity resumes
+    else
+        U->>S: User replies to email
+        Note over S: Playbook stops
+    end`} />
+
+## Email Steps
+
+| Step | Delay | Template |
+|------|-------|----------|
+| d0 | Immediately | `winback-3d` |
+| d3 | 3 days | `winback-3d-followup` |
+
+## Stop Conditions
+
+- API activity resumes
+- User replies to email
+
+---
+
+## Email Templates
+
+### 1. winback-3d
+
+**Sent:** Immediately after trigger
+
+<Callout type="info">
+**Email Preview**
+
+**Hi {\{firstName\\}\},**
+
+Building something cool? Here's a quick refresher to pick up where you left off.
+
+Deploy a bot (2 fields)
+
+What's Next?
+
+> **Pro Tip:** Pass custom metadata via the
+
+**[Launch Test Bot]** *(button)*
+
+```
+POST /v2/bots { "bot_name": "Notetaker", "meeting_url": "https://meet.google.com/..." }
+```
+</Callout>
+
+### 2. winback-3d-followup
+
+**Sent:** 3 days after previous email
+
+<Callout type="info">
+**Email Preview**
+
+**Hi {\{firstName\\}\},**
+
+Quick check-in: Is there anything blocking your integration? We're here to help.
+
+Common Reasons Developers Pause
+
+Power User Tip
+
+- Waiting for a feature (which one?)
+- Hit a technical blocker
+- Project deprioritized
+- Evaluating alternatives
+
+> **Pro Tip:** Reply with your blocker. I can share code samples for your stack (Node, Python, Go, etc.) or hop on a quick call to debug together.
+
+**[Documentation]** *(button)*
+</Callout>
+

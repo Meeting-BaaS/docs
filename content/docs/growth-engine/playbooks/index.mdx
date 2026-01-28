@@ -1,0 +1,61 @@
+---
+title: Email Playbooks
+description: Automated email sequences for user engagement
+icon: BookOpen
+---
+
+# Email Playbooks
+
+<Callout type="info">
+  Auto-generated: 2026-01-28T17:09:16.080Z
+</Callout>
+
+Each playbook is an automated email sequence triggered by specific user behaviors. Higher priority playbooks can interrupt lower priority ones.
+
+## All Playbooks
+
+| Playbook | Priority | Emails | Cooldown | Description |
+|----------|----------|--------|----------|-------------|
+| [Failure Recovery](./playbooks/failure-recovery) | 100 | 1 | 1 days | Bot failed, help user recover |
+| [Calendar - Sync Error](./playbooks/calendar---sync-error) | 50 | 1 | 7 days | Calendar connection has sync issues |
+| [Onboarding - API No Bot](./playbooks/onboarding---api-no-bot) | 11 | 1 | 14 days | API calls detected but no bot created |
+| [Onboarding](./playbooks/onboarding) | 10 | 3 | 30 days | New account created, no bot created yet |
+| [Artifacts Reminder](./playbooks/artifacts-reminder) | 9 | 1 | 7 days | Bot completed but recording/transcript not fetched |
+| [Webhooks Adoption](./playbooks/webhooks-adoption) | 8 | 2 | 7 days | Bot completed but no webhooks/callbacks configured |
+| [Webhooks - Stop Polling](./playbooks/webhooks---stop-polling) | 8 | 1 | 30 days | Heavy polling detected, suggest webhooks |
+| [Calendar Expansion](./playbooks/calendar-expansion) | 7 | 2 | 30 days | Recurring usage or scheduled bots, but no calendar integration |
+| [Calendar - No Bots](./playbooks/calendar---no-bots) | 7 | 1 | 14 days | Calendar connected but no calendar bots created |
+| [Activation](./playbooks/activation) | 6 | 1 | 365 days | First bot completed successfully |
+| [Activation - Bot Created](./playbooks/activation---bot-created) | 6 | 1 | 365 days | First bot created, explain what happens next |
+| [Winback 3-Day](./playbooks/winback-3-day) | 5 | 2 | 14 days | No API activity for 3 days |
+| [Winback 7-Day](./playbooks/winback-7-day) | 4 | 1 | 30 days | No API activity for 7 days |
+
+## Priority System
+
+<Callout type="warning">
+  Higher priority playbooks interrupt lower priority ones. The `failure_recovery` playbook (priority 100) will always take precedence.
+</Callout>
+
+```
+100: failure_recovery
+ 50: calendar_sync_error
+ 11: onboarding_api_no_bot
+ 10: onboarding
+  9: artifacts_reminder
+  8: webhooks_adoption
+  8: webhooks_polling
+  7: calendar_expansion
+  7: calendar_no_bots
+  6: activation
+  6: activation_bot_created
+  5: winback_3d
+  4: winback_7d
+```
+
+## Stop Conditions
+
+All playbooks stop when:
+- User **replies** to any growth email
+- User **takes the suggested action** (creates bot, configures webhook, etc.)
+- A **higher priority playbook** starts
+- **Cooldown period** hasn't elapsed since last run

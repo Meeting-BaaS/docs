@@ -1,0 +1,69 @@
+---
+title: "Activation - Bot Created"
+description: "First bot created, explain what happens next"
+icon: Mail
+---
+
+# Activation - Bot Created
+
+<Callout type="info">
+  **Priority:** 6 | **Emails:** 1 | **Cooldown:** 365 days
+</Callout>
+
+> First bot created, explain what happens next
+
+## Sequence Diagram
+
+<Mermaid chart={`sequenceDiagram
+    participant U as User
+    participant S as System
+    participant E as Email
+
+    Note over S: Trigger: First bot created, explain what happens next
+
+    Note over U: 30 minutes
+    S->>E: Send activation-bot-created
+    E-->>U: Email delivered
+
+    alt Stop Condition Met
+        U->>S: Bot completes successfully
+    else
+        U->>S: User replies to email
+        Note over S: Playbook stops
+    end`} />
+
+## Email Steps
+
+| Step | Delay | Template |
+|------|-------|----------|
+| d0 | 30 minutes | `activation-bot-created` |
+
+## Stop Conditions
+
+- Bot completes successfully
+- User replies to email
+
+---
+
+## Email Templates
+
+### 1. activation-bot-created
+
+**Sent:** 30 minutes after trigger
+
+<Callout type="info">
+**Email Preview**
+
+**Hi {\{firstName\\}\},**
+
+Bot deployed. It's joining the meeting now with low-latency connect.
+
+Status Lifecycle
+
+queued → joining_call → in_waiting_room → in_call_recording → call_ended → completed
+
+> **Pro Tip:** Poll
+
+**[View Bot Status]** *(button)*
+</Callout>
+

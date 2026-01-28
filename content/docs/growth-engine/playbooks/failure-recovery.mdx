@@ -1,0 +1,55 @@
+---
+title: "Failure Recovery"
+description: "Bot failed, help user recover"
+icon: Mail
+---
+
+# Failure Recovery
+
+<Callout type="info">
+  **Priority:** 100 | **Emails:** 1 | **Cooldown:** 1 days
+</Callout>
+
+> Bot failed, help user recover
+
+## Sequence Diagram
+
+<Mermaid chart={`sequenceDiagram
+    participant U as User
+    participant S as System
+    participant E as Email
+
+    Note over S: Trigger: Bot failed, help user recover
+
+    Note over U: Immediately
+    S->>E: Send dynamic
+    E-->>U: Email delivered
+
+    alt Stop Condition Met
+        U->>S: User creates a bot
+    else
+        U->>S: User replies to email
+        Note over S: Playbook stops
+    end`} />
+
+## Email Steps
+
+| Step | Delay | Template |
+|------|-------|----------|
+| immediate | Immediately | `dynamic` |
+
+## Stop Conditions
+
+- User creates a bot
+- User replies to email
+
+---
+
+## Email Templates
+
+### 1. dynamic
+
+**Sent:** Immediately after trigger
+
+*Template preview not available*
+

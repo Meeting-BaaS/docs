@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 /**
  * Generates detailed documentation for each Growth Engine playbook
- * including sequence diagrams and email template content.
+ * including sequence diagrams and email template previews.
  *
  * Run: node scripts/generate-growth-playbook-docs.cjs
- * Output: content/docs/growth-engine/playbooks.mdx
+ * Output: content/docs/growth-engine/playbooks/
  */
 
 const fs = require("fs");
@@ -17,7 +17,7 @@ const TEMPLATES_DIR = path.join(API_SERVER_ROOT, "templates/content/growth");
 
 // Output: baas-docs
 const DOCS_ROOT = path.join(__dirname, "..");
-const OUTPUT_FILE = path.join(DOCS_ROOT, "content/docs/growth-engine/playbooks.mdx");
+const OUTPUT_DIR = path.join(DOCS_ROOT, "content/docs/growth-engine/playbooks");
 
 // ============================================================================
 // Playbook Parser
@@ -32,33 +32,98 @@ function parsePlaybooks() {
   const content = fs.readFileSync(PLAYBOOKS_FILE, "utf-8");
   const playbooks = [];
 
-  // Extract each playbook block
-  const playbookRegex = /(\w+):\s*\{\s*key:\s*["'](\w+)["'],\s*name:\s*["']([^"']+)["'],\s*description:\s*["']([^"']+)["'],\s*priority:\s*(\d+),\s*cooldownHours:\s*([^,]+),/g;
+  const playbookKeys = [
+    'onboarding', 'winback_3d', 'winback_7d', 'failure_recovery',
+    'webhooks_adoption', 'calendar_expansion', 'artifacts_reminder',
+    'activation', 'onboarding_api_no_bot', 'activation_bot_created',
+    'webhooks_polling', 'calendar_no_bots', 'calendar_sync_error'
+  ];
 
-  let match;
-  while ((match = playbookRegex.exec(content)) !== null) {
-    const key = match[2];
+  playbookKeys.forEach(key => {
+    const varPattern = new RegExp(`(\\w+):\\s*\\{\\s*key:\\s*["']${key}["']`, 'm');
+    const varMatch = content.match(varPattern);
+    if (!varMatch) return;
 
-    // Extract steps for this playbook
-    const stepsMatch = content.match(new RegExp(`${match[1]}:\\s*\\{[^}]*steps:\\s*\\[([\\s\\S]*?)\\]`, 'm'));
+    const varName = varMatch[1];
+    const startIdx = content.indexOf(varMatch[0]);
+    if (startIdx === -1) return;
+
+    // Extract block by counting braces
+    let braceCount = 0;
+    let blockStart = -1;
+    let blockEnd = -1;
+
+    for (let i = startIdx; i < content.length; i++) {
+      if (content[i] === '{') {
+        if (blockStart === -1) blockStart = i;
+        braceCount++;
+      } else if (content[i] === '}') {
+        braceCount--;
+        if (braceCount === 0) {
+          blockEnd = i + 1;
+          break;
+        }
+      }
+    }
+
+    if (blockStart === -1 || blockEnd === -1) return;
+    const block = content.slice(blockStart, blockEnd);
+
+    const nameMatch = block.match(/name:\s*["']([^"']+)["']/);
+    const descMatch = block.match(/description:\s*["']([^"']+)["']/);
+    const priorityMatch = block.match(/priority:\s*(\d+)/);
+    const cooldownMatch = block.match(/cooldownHours:\s*([^,\n]+)/);
+
+    // Extract steps
+    const stepsStart = block.indexOf('steps:');
     const steps = [];
 
-    if (stepsMatch) {
-      const stepsContent = stepsMatch[1];
-      const stepRegex = /\{\s*key:\s*["']([^"']+)["'],\s*delayHours:\s*([^,]+),\s*kind:\s*["']?([^"',\n}]+)/g;
-      let stepMatch;
-      while ((stepMatch = stepRegex.exec(stepsContent)) !== null) {
-        steps.push({
-          key: stepMatch[1],
-          delayHours: parseFloat(stepMatch[2]) || 0,
-          kind: stepMatch[3].replace(/["']/g, '').trim()
-        });
+    if (stepsStart !== -1) {
+      const arrayStart = block.indexOf('[', stepsStart);
+      let arrayBraceCount = 0;
+      let arrayEnd = -1;
+
+      for (let i = arrayStart; i < block.length; i++) {
+        if (block[i] === '[') arrayBraceCount++;
+        else if (block[i] === ']') {
+          arrayBraceCount--;
+          if (arrayBraceCount === 0) {
+            arrayEnd = i + 1;
+            break;
+          }
+        }
+      }
+
+      if (arrayEnd !== -1) {
+        const stepsBlock = block.slice(arrayStart, arrayEnd);
+        const stepRegex = /\{\s*key:\s*["']([^"']+)["'][^}]*delayHours:\s*([0-9.]+)[^}]*kind:\s*["']([^"']+)["']/g;
+        let stepMatch;
+        while ((stepMatch = stepRegex.exec(stepsBlock)) !== null) {
+          steps.push({
+            key: stepMatch[1],
+            delayHours: parseFloat(stepMatch[2]) || 0,
+            kind: stepMatch[3]
+          });
+        }
+
+        if (steps.length === 0) {
+          const altRegex = /\{\s*key:\s*["']([^"']+)["'][^}]*delayHours:\s*([0-9.]+)/g;
+          while ((stepMatch = altRegex.exec(stepsBlock)) !== null) {
+            const kindMatch = stepsBlock.slice(stepMatch.index).match(/kind:\s*["']([^"']+)["']/);
+            const dynamicKind = stepsBlock.slice(stepMatch.index).match(/kind:\s*\(ctx\)/);
+            steps.push({
+              key: stepMatch[1],
+              delayHours: parseFloat(stepMatch[2]) || 0,
+              kind: kindMatch ? kindMatch[1] : (dynamicKind ? 'dynamic' : 'unknown')
+            });
+          }
+        }
       }
     }
 
     // Extract stop conditions
     const stopConditions = [];
-    const stopMatch = content.match(new RegExp(`${match[1]}:[\\s\\S]*?stopConditions:\\s*\\[([\\s\\S]*?)\\]`, 'm'));
+    const stopMatch = block.match(/stopConditions:\s*\[([\s\S]*?)\]/);
     if (stopMatch) {
       const conditions = stopMatch[1].match(/reason:\s*STOP_REASONS\.(\w+)/g);
       if (conditions) {
@@ -70,16 +135,16 @@ function parsePlaybooks() {
     }
 
     playbooks.push({
-      varName: match[1],
+      varName,
       key,
-      name: match[3],
-      description: match[4],
-      priority: parseInt(match[5], 10),
-      cooldownHours: match[6].trim(),
+      name: nameMatch ? nameMatch[1] : key,
+      description: descMatch ? descMatch[1] : '',
+      priority: priorityMatch ? parseInt(priorityMatch[1], 10) : 0,
+      cooldownHours: cooldownMatch ? cooldownMatch[1].trim() : '24',
       steps,
       stopConditions
     });
-  }
+  });
 
   return playbooks.sort((a, b) => b.priority - a.priority);
 }
@@ -120,7 +185,7 @@ function formatCooldown(cooldown) {
 }
 
 // ============================================================================
-// Template Parser
+// Template Parser - Enhanced for Email Preview
 // ============================================================================
 
 function parseTemplate(kind) {
@@ -131,40 +196,115 @@ function parseTemplate(kind) {
     return null;
   }
 
-  const content = fs.readFileSync(filepath, "utf-8");
+  const rawHtml = fs.readFileSync(filepath, "utf-8");
 
-  // Extract text content from HTML
-  let text = content
-    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/\s+/g, ' ')
-    .trim();
+  // Extract structured content from HTML
+  const sections = [];
 
-  // Extract key sections
-  const greeting = text.match(/Hi \{\{firstName\}\},?\s*([^.!]+[.!])/);
-  const mainMessage = greeting ? greeting[1].trim() : text.substring(0, 100);
+  // Extract greeting
+  const greetingMatch = rawHtml.match(/Hi \{\{firstName\}\},?/);
+  if (greetingMatch) {
+    sections.push({ type: 'greeting', content: 'Hi {{firstName}},' });
+  }
 
-  // Extract CTA button text
-  const ctaMatch = content.match(/<a[^>]*>([^<]+)<\/a>\s*<\/td>\s*<\/tr>\s*<\/tbody>\s*<\/table>\s*$/);
-  const cta = ctaMatch ? ctaMatch[1].trim() : null;
+  // Extract main paragraphs (first few <p> tags after greeting)
+  const paragraphs = [];
+  const pRegex = /<p[^>]*>([^<]+(?:<[^p][^>]*>[^<]*<\/[^p]+>)*[^<]*)<\/p>/gi;
+  let pMatch;
+  while ((pMatch = pRegex.exec(rawHtml)) !== null) {
+    let text = pMatch[1]
+      .replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (text && text.length > 10 && !text.startsWith('Hi {{')) {
+      paragraphs.push(text);
+    }
+  }
+  if (paragraphs.length > 0) {
+    sections.push({ type: 'body', content: paragraphs.slice(0, 3) });
+  }
 
-  // Extract tips/highlights
-  const tipMatch = content.match(/Power User Tip<\/p>\s*<p[^>]*>([^<]+)/);
-  const tip = tipMatch ? tipMatch[1].trim() : null;
+  // Extract list items (key points)
+  const listItems = [];
+  const liRegex = /<li[^>]*>([^<]+(?:<[^/][^>]*>[^<]*<\/[^l]+>)*[^<]*)<\/li>/gi;
+  let liMatch;
+  while ((liMatch = liRegex.exec(rawHtml)) !== null) {
+    let text = liMatch[1]
+      .replace(/<[^>]+>/g, '')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (text && text.length > 5) {
+      listItems.push(text);
+    }
+  }
+  if (listItems.length > 0) {
+    sections.push({ type: 'list', content: listItems.slice(0, 5) });
+  }
+
+  // Extract highlighted boxes (tips, warnings)
+  const tipMatch = rawHtml.match(/Power User Tip<\/p>\s*<p[^>]*>([^<]+)/);
+  if (tipMatch) {
+    sections.push({ type: 'tip', content: tipMatch[1].trim() });
+  }
+
+  // Extract CTA button
+  const ctaMatch = rawHtml.match(/<a[^>]*style="[^"]*background-color[^"]*"[^>]*>([^<]+)<\/a>/);
+  if (ctaMatch) {
+    sections.push({ type: 'cta', content: ctaMatch[1].trim() });
+  }
+
+  // Extract code snippets
+  const codeMatch = rawHtml.match(/<pre[^>]*>([^<]+)<\/pre>/);
+  if (codeMatch) {
+    sections.push({ type: 'code', content: codeMatch[1].trim() });
+  }
 
   return {
     kind,
     filename,
-    mainMessage,
-    cta,
-    tip,
-    rawLength: content.length
+    sections,
+    rawLength: rawHtml.length
   };
+}
+
+function renderEmailPreview(template) {
+  if (!template || !template.sections || template.sections.length === 0) {
+    return '*Template preview not available*';
+  }
+
+  let preview = '';
+
+  template.sections.forEach(section => {
+    switch (section.type) {
+      case 'greeting':
+        preview += `**${escapeMdx(section.content)}**\n\n`;
+        break;
+      case 'body':
+        section.content.forEach(p => {
+          preview += `${escapeMdx(p)}\n\n`;
+        });
+        break;
+      case 'list':
+        section.content.forEach(item => {
+          preview += `- ${escapeMdx(item)}\n`;
+        });
+        preview += '\n';
+        break;
+      case 'tip':
+        preview += `> **Pro Tip:** ${escapeMdx(section.content)}\n\n`;
+        break;
+      case 'code':
+        preview += `\`\`\`\n${section.content}\n\`\`\`\n\n`;
+        break;
+      case 'cta':
+        preview += `**[${escapeMdx(section.content)}]** *(button)*\n\n`;
+        break;
+    }
+  });
+
+  return preview.trim();
 }
 
 // ============================================================================
@@ -178,12 +318,9 @@ function generateSequenceDiagram(playbook) {
   lines.push('    participant S as System');
   lines.push('    participant E as Email');
   lines.push('');
-
-  // Add trigger note
   lines.push(`    Note over S: Trigger: ${playbook.description}`);
   lines.push('');
 
-  // Add steps
   playbook.steps.forEach((step, i) => {
     const delay = formatDelay(step.delayHours);
     const templateName = step.kind.replace(/_/g, '-');
@@ -199,7 +336,6 @@ function generateSequenceDiagram(playbook) {
     lines.push(`    E-->>U: Email delivered`);
   });
 
-  // Add stop conditions
   if (playbook.stopConditions.length > 0) {
     lines.push('');
     lines.push('    alt Stop Condition Met');
@@ -219,137 +355,145 @@ function generateSequenceDiagram(playbook) {
 }
 
 // ============================================================================
-// MDX Generator
+// MDX Helpers
 // ============================================================================
 
-/**
- * Escape curly braces for MDX (JSX) - prevents parsing as expressions
- */
 function escapeMdx(text) {
   if (!text) return text;
-  // Escape single braces that aren't part of template literals
   return text
     .replace(/\{([^{])/g, '\\{$1')
     .replace(/([^}])\}/g, '$1\\}')
-    // Handle double braces (template variables) - escape both
     .replace(/\{\{/g, '\\{\\{')
     .replace(/\}\}/g, '\\}\\}');
 }
 
-function generateMdx(playbooks, templates) {
+function slugify(name) {
+  return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+}
+
+// ============================================================================
+// MDX Generators
+// ============================================================================
+
+function generateIndexMdx(playbooks) {
   const generatedAt = new Date().toISOString();
 
-  let mdx = `---
+  return `---
 title: Email Playbooks
-description: Detailed documentation for each Growth Engine email sequence
+description: Automated email sequences for user engagement
 icon: BookOpen
 ---
 
 # Email Playbooks
 
 <Callout type="info">
-  Auto-generated: ${generatedAt}. Run \`node scripts/generate-growth-playbook-docs.cjs\` to update.
+  Auto-generated: ${generatedAt}
 </Callout>
 
 Each playbook is an automated email sequence triggered by specific user behaviors. Higher priority playbooks can interrupt lower priority ones.
 
-## Quick Reference
+## All Playbooks
 
-| Playbook | Priority | Emails | Cooldown |
-|----------|----------|--------|----------|
-${playbooks.map(p => `| [${p.name}](#${p.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')}) | ${p.priority} | ${p.steps.length} | ${formatCooldown(p.cooldownHours)} |`).join('\n')}
+| Playbook | Priority | Emails | Cooldown | Description |
+|----------|----------|--------|----------|-------------|
+${playbooks.map(p => `| [${p.name}](./playbooks/${slugify(p.name)}) | ${p.priority} | ${p.steps.length} | ${formatCooldown(p.cooldownHours)} | ${p.description} |`).join('\n')}
 
+## Priority System
+
+<Callout type="warning">
+  Higher priority playbooks interrupt lower priority ones. The \`failure_recovery\` playbook (priority 100) will always take precedence.
+</Callout>
+
+\`\`\`
+${playbooks.map(p => `${String(p.priority).padStart(3, ' ')}: ${p.key}`).join('\n')}
+\`\`\`
+
+## Stop Conditions
+
+All playbooks stop when:
+- User **replies** to any growth email
+- User **takes the suggested action** (creates bot, configures webhook, etc.)
+- A **higher priority playbook** starts
+- **Cooldown period** hasn't elapsed since last run
+`;
+}
+
+function generatePlaybookMdx(playbook, templates) {
+  const generatedAt = new Date().toISOString();
+
+  let mdx = `---
+title: "${playbook.name}"
+description: "${playbook.description}"
+icon: Mail
 ---
 
-`;
+# ${playbook.name}
 
-  // Generate section for each playbook
-  playbooks.forEach(playbook => {
-    mdx += `## ${playbook.name}
-
-**Key:** \`${playbook.key}\`
-**Priority:** ${playbook.priority}
-**Cooldown:** ${formatCooldown(playbook.cooldownHours)}
+<Callout type="info">
+  **Priority:** ${playbook.priority} | **Emails:** ${playbook.steps.length} | **Cooldown:** ${formatCooldown(playbook.cooldownHours)}
+</Callout>
 
 > ${playbook.description}
 
-### Sequence
+## Sequence Diagram
 
 <Mermaid chart={\`${generateSequenceDiagram(playbook)}\`} />
 
-### Email Steps
+## Email Steps
 
 | Step | Delay | Template |
 |------|-------|----------|
 ${playbook.steps.map(s => `| ${s.key} | ${formatDelay(s.delayHours)} | \`${s.kind.replace(/_/g, '-')}\` |`).join('\n')}
 
-### Stop Conditions
+## Stop Conditions
 
 ${playbook.stopConditions.length > 0
   ? playbook.stopConditions.map(c => `- ${c}`).join('\n')
   : '- User replies to email'}
 
-### Templates
+---
+
+## Email Templates
 
 `;
 
-    // Add template details
-    playbook.steps.forEach(step => {
-      const template = templates[step.kind];
-      const templateName = step.kind.replace(/_/g, '-');
+  // Add each template with preview
+  playbook.steps.forEach((step, i) => {
+    const template = templates[step.kind];
+    const templateName = step.kind.replace(/_/g, '-');
 
-      mdx += `#### ${templateName}
+    mdx += `### ${i + 1}. ${templateName}
 
-`;
-
-      if (template) {
-        mdx += `**Summary:** ${escapeMdx(template.mainMessage)}
+**Sent:** ${formatDelay(step.delayHours)} after ${i === 0 ? 'trigger' : 'previous email'}
 
 `;
-        if (template.cta) {
-          mdx += `**CTA:** ${escapeMdx(template.cta)}
 
-`;
-        }
-        if (template.tip) {
-          mdx += `<Callout type="info">
-  **Power User Tip:** ${escapeMdx(template.tip)}
+    if (template) {
+      mdx += `<Callout type="info">
+**Email Preview**
+
+${renderEmailPreview(template)}
 </Callout>
 
 `;
-        }
-      } else {
-        mdx += `*Template content not found*
+    } else {
+      mdx += `*Template preview not available*
 
 `;
-      }
-    });
-
-    mdx += `---
-
-`;
+    }
   });
 
-  // Add variables reference
-  mdx += `## Template Variables
-
-These variables are available in all email templates:
-
-| Variable | Description |
-|----------|-------------|
-| \`\\{\\{firstName\\}\\}\` | User's first name |
-| \`\\{\\{teamName\\}\\}\` | Team/company name |
-| \`\\{\\{email\\}\\}\` | User's email address |
-| \`\\{\\{dashboardUrl\\}\\}\` | Link to dashboard |
-| \`\\{\\{docsUrl\\}\\}\` | Link to documentation |
-| \`\\{\\{botId\\}\\}\` | Bot ID (for failure emails) |
-| \`\\{\\{errorCode\\}\\}\` | Error code (for failure emails) |
-| \`\\{\\{errorMessage\\}\\}\` | Error description |
-| \`\\{\\{meetingUrl\\}\\}\` | Meeting link |
-| \`\\{\\{unsubscribeUrl\\}\\}\` | Unsubscribe link |
-`;
-
   return mdx;
+}
+
+function generateMetaJson(playbooks) {
+  const pages = ['index', ...playbooks.map(p => slugify(p.name))];
+
+  return JSON.stringify({
+    title: 'Playbooks',
+    icon: 'BookOpen',
+    pages
+  }, null, 2);
 }
 
 // ============================================================================
@@ -378,17 +522,41 @@ function main() {
   });
   console.log(`  Parsed ${templateCount} templates`);
 
-  console.log("Generating MDX...");
-  const mdx = generateMdx(playbooks, templates);
-
-  // Ensure directory exists
-  const outputDir = path.dirname(OUTPUT_FILE);
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
+  // Ensure output directory exists
+  if (!fs.existsSync(OUTPUT_DIR)) {
+    fs.mkdirSync(OUTPUT_DIR, { recursive: true });
   }
 
-  fs.writeFileSync(OUTPUT_FILE, mdx);
-  console.log(`\nGenerated: ${OUTPUT_FILE}`);
+  // Generate index
+  console.log("Generating index...");
+  fs.writeFileSync(
+    path.join(OUTPUT_DIR, 'index.mdx'),
+    generateIndexMdx(playbooks)
+  );
+
+  // Generate individual playbook pages
+  console.log("Generating playbook pages...");
+  playbooks.forEach(playbook => {
+    const filename = `${slugify(playbook.name)}.mdx`;
+    fs.writeFileSync(
+      path.join(OUTPUT_DIR, filename),
+      generatePlaybookMdx(playbook, templates)
+    );
+  });
+
+  // Generate meta.json
+  fs.writeFileSync(
+    path.join(OUTPUT_DIR, 'meta.json'),
+    generateMetaJson(playbooks)
+  );
+
+  console.log(`\nGenerated ${playbooks.length + 1} files in: ${OUTPUT_DIR}`);
+  console.log("Files:");
+  console.log("  - index.mdx (overview)");
+  playbooks.forEach(p => {
+    console.log(`  - ${slugify(p.name)}.mdx`);
+  });
+  console.log("  - meta.json");
 }
 
 main();
