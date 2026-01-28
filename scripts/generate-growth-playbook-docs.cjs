@@ -360,11 +360,10 @@ function generateSequenceDiagram(playbook) {
 
 function escapeMdx(text) {
   if (!text) return text;
+  // Escape ALL curly braces for MDX - simple and consistent
   return text
-    .replace(/\{([^{])/g, '\\{$1')
-    .replace(/([^}])\}/g, '$1\\}')
-    .replace(/\{\{/g, '\\{\\{')
-    .replace(/\}\}/g, '\\}\\}');
+    .replace(/\{/g, '\\{')
+    .replace(/\}/g, '\\}');
 }
 
 function slugify(name) {
