@@ -1,5 +1,5 @@
 import { cn } from '@/lib/cn';
-import { BotIcon, CaptionsIcon, MonitorUp, Server, ServerCog, Settings, WebhookIcon } from 'lucide-react';
+import { BotIcon, CaptionsIcon, Mail, MonitorUp, Server, ServerCog, Settings, WebhookIcon } from 'lucide-react';
 import type { LinkProps } from 'next/link';
 import Link from 'next/link';
 
@@ -91,6 +91,16 @@ export default function DocsPage(): React.ReactElement {
           <h2 className="mb-2 text-lg font-semibold">Self Hosting</h2>
           <p className="text-fd-muted-foreground text-sm">
             Deploy Meeting BaaS v2 in your own infrastructure with full control
+          </p>
+        </Item>
+
+        <Item href="/growth-engine">
+          <Icon className="growth-engine">
+            <Mail className="size-full" />
+          </Icon>
+          <h2 className="mb-2 text-lg font-semibold">Growth Engine</h2>
+          <p className="text-fd-muted-foreground text-sm">
+            Product-driven email automation for adaptive user engagement sequences
           </p>
         </Item>
       </div>

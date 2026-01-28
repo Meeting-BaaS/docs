@@ -94,6 +94,13 @@ export const categoryConfig = {
       "./content/docs/api-v2/reference/webhooks/**/*.mdx"
     ]
   },
+  "growth-engine": {
+    "title": "growth-engine Documentation",
+    "description": "Documentation for growth-engine.",
+    "patterns": [
+      "./content/docs/growth-engine/**/*.mdx"
+    ]
+  },
   "mcp-servers": {
     "title": "mcp-servers Documentation",
     "description": "Documentation for mcp-servers.",
@@ -231,6 +238,10 @@ export const knownTxtPaths = [
     "llms",
     "api-v2",
     "webhooks"
+  ],
+  [
+    "llms",
+    "growth-engine"
   ],
   [
     "llms",

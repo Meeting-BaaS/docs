@@ -2,6 +2,7 @@
   "title": "Growth Engine",
   "icon": "Mail",
   "pages": [
-    "index"
+    "index",
+    "playbooks"
   ]
 }

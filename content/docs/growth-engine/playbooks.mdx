@@ -1,0 +1,528 @@
+---
+title: Email Playbooks
+description: Detailed documentation for each Growth Engine email sequence
+icon: BookOpen
+---
+
+# Email Playbooks
+
+<Callout type="info">
+  Auto-generated: 2026-01-28T17:01:40.508Z. Run `node scripts/generate-growth-playbook-docs.cjs` to update.
+</Callout>
+
+Each playbook is an automated email sequence triggered by specific user behaviors. Higher priority playbooks can interrupt lower priority ones.
+
+## Quick Reference
+
+| Playbook | Priority | Emails | Cooldown |
+|----------|----------|--------|----------|
+| [Onboarding](#onboarding) | 10 | 3 | 30 days |
+| [Webhooks Adoption](#webhooks-adoption) | 8 | 0 | 7 days |
+| [Webhooks - Stop Polling](#webhooks---stop-polling) | 8 | 1 | 30 days |
+| [Calendar Expansion](#calendar-expansion) | 7 | 2 | 30 days |
+| [Calendar - No Bots](#calendar---no-bots) | 7 | 0 | 14 days |
+| [Activation](#activation) | 6 | 0 | 365 days |
+| [Activation - Bot Created](#activation---bot-created) | 6 | 0 | 365 days |
+| [Winback 3-Day](#winback-3-day) | 5 | 2 | 14 days |
+| [Winback 7-Day](#winback-7-day) | 4 | 1 | 30 days |
+
+---
+
+## Onboarding
+
+**Key:** `onboarding`
+**Priority:** 10
+**Cooldown:** 30 days
+
+> New account created, no bot created yet
+
+### Sequence
+
+<Mermaid chart={`sequenceDiagram
+    participant U as User
+    participant S as System
+    participant E as Email
+
+    Note over S: Trigger: New account created, no bot created yet
+
+    Note over U: Immediately
+    S->>E: Send onboarding-d0
+    E-->>U: Email delivered
+
+    Note over U: +2 days
+    S->>E: Send onboarding-d2
+    E-->>U: Email delivered
+
+    Note over U: +5 days
+    S->>E: Send onboarding-d5
+    E-->>U: Email delivered
+
+    alt Stop Condition Met
+        U->>S: User creates a bot
+    else
+        U->>S: User replies to email
+        Note over S: Playbook stops
+    end`} />
+
+### Email Steps
+
+| Step | Delay | Template |
+|------|-------|----------|
+| d0 | Immediately | `onboarding-d0` |
+| d2 | 2 days | `onboarding-d2` |
+| d5 | 5 days | `onboarding-d5` |
+
+### Stop Conditions
+
+- User creates a bot
+- User replies to email
+
+### Templates
+
+#### onboarding-d0
+
+**Summary:** Welcome to Meeting BaaS — the infrastructure layer for meeting intelligence.
+
+**CTA:** Read API Documentation
+
+<Callout type="info">
+  **Power User Tip:** Pass custom metadata via the
+</Callout>
+
+#### onboarding-d2
+
+**Summary:** Deploy your first bot in under 60 seconds.
+
+**CTA:** Launch Test Bot
+
+<Callout type="info">
+  **Power User Tip:** Artifact URLs are presigned with 4h TTL. Call
+</Callout>
+
+#### onboarding-d5
+
+**Summary:** Teams ship faster with Meeting BaaS.
+
+**CTA:** Explore API Reference
+
+<Callout type="info">
+  **Power User Tip:** Use
+</Callout>
+
+---
+
+## Webhooks Adoption
+
+**Key:** `webhooks_adoption`
+**Priority:** 8
+**Cooldown:** 7 days
+
+> Bot completed but no webhooks/callbacks configured
+
+### Sequence
+
+<Mermaid chart={`sequenceDiagram
+    participant U as User
+    participant S as System
+    participant E as Email
+
+    Note over S: Trigger: Bot completed but no webhooks/callbacks configured
+
+
+    alt Stop Condition Met
+        U->>S: Webhook or callback configured
+    else
+        U->>S: User replies to email
+        Note over S: Playbook stops
+    end`} />
+
+### Email Steps
+
+| Step | Delay | Template |
+|------|-------|----------|
+
+
+### Stop Conditions
+
+- Webhook or callback configured
+- User replies to email
+
+### Templates
+
+---
+
+## Webhooks - Stop Polling
+
+**Key:** `webhooks_polling`
+**Priority:** 8
+**Cooldown:** 30 days
+
+> Heavy polling detected, suggest webhooks
+
+### Sequence
+
+<Mermaid chart={`sequenceDiagram
+    participant U as User
+    participant S as System
+    participant E as Email
+
+    Note over S: Trigger: Heavy polling detected, suggest webhooks
+
+    Note over U: Immediately
+    S->>E: Send webhooks-stop-polling
+    E-->>U: Email delivered
+
+    alt Stop Condition Met
+        U->>S: Webhook or callback configured
+    else
+        U->>S: User replies to email
+        Note over S: Playbook stops
+    end`} />
+
+### Email Steps
+
+| Step | Delay | Template |
+|------|-------|----------|
+| d0 | Immediately | `webhooks-stop-polling` |
+
+### Stop Conditions
+
+- Webhook or callback configured
+- User replies to email
+
+### Templates
+
+#### webhooks-stop-polling
+
+**Summary:** We detected heavy polling on GET /v2/bots/\{id\} .
+
+**CTA:** Configure Webhooks
+
+<Callout type="info">
+  **Power User Tip:** Migration in 3 steps:
+</Callout>
+
+---
+
+## Calendar Expansion
+
+**Key:** `calendar_expansion`
+**Priority:** 7
+**Cooldown:** 30 days
+
+> Recurring usage or scheduled bots, but no calendar integration
+
+### Sequence
+
+<Mermaid chart={`sequenceDiagram
+    participant U as User
+    participant S as System
+    participant E as Email
+
+    Note over S: Trigger: Recurring usage or scheduled bots, but no calendar integration
+
+    Note over U: Immediately
+    S->>E: Send calendar-expansion
+    E-->>U: Email delivered
+
+    Note over U: +3 days
+    S->>E: Send calendar-expansion-followup
+    E-->>U: Email delivered
+
+    alt Stop Condition Met
+        U->>S: Calendar connected
+    else
+        U->>S: User replies to email
+        Note over S: Playbook stops
+    end`} />
+
+### Email Steps
+
+| Step | Delay | Template |
+|------|-------|----------|
+| d0 | Immediately | `calendar-expansion` |
+| d3 | 3 days | `calendar-expansion-followup` |
+
+### Stop Conditions
+
+- Calendar connected
+- User replies to email
+
+### Templates
+
+#### calendar-expansion
+
+**Summary:** You're scheduling bots manually.
+
+**CTA:** Connect Calendar
+
+<Callout type="info">
+  **Power User Tip:** Use
+</Callout>
+
+#### calendar-expansion-followup
+
+**Summary:** Following up on calendar integration.
+
+**CTA:** View Calendar API
+
+<Callout type="info">
+  **Power User Tip:** Handle
+</Callout>
+
+---
+
+## Calendar - No Bots
+
+**Key:** `calendar_no_bots`
+**Priority:** 7
+**Cooldown:** 14 days
+
+> Calendar connected but no calendar bots created
+
+### Sequence
+
+<Mermaid chart={`sequenceDiagram
+    participant U as User
+    participant S as System
+    participant E as Email
+
+    Note over S: Trigger: Calendar connected but no calendar bots created
+
+
+    alt Stop Condition Met
+        U->>S: User creates a bot
+    else
+        U->>S: User replies to email
+        Note over S: Playbook stops
+    end`} />
+
+### Email Steps
+
+| Step | Delay | Template |
+|------|-------|----------|
+
+
+### Stop Conditions
+
+- User creates a bot
+- User replies to email
+
+### Templates
+
+---
+
+## Activation
+
+**Key:** `activation`
+**Priority:** 6
+**Cooldown:** 365 days
+
+> First bot completed successfully
+
+### Sequence
+
+<Mermaid chart={`sequenceDiagram
+    participant U as User
+    participant S as System
+    participant E as Email
+
+    Note over S: Trigger: First bot completed successfully
+
+
+    alt Stop Condition Met
+        U->>S: User replies to email
+        Note over S: Playbook stops
+    end`} />
+
+### Email Steps
+
+| Step | Delay | Template |
+|------|-------|----------|
+
+
+### Stop Conditions
+
+- User replies to email
+
+### Templates
+
+---
+
+## Activation - Bot Created
+
+**Key:** `activation_bot_created`
+**Priority:** 6
+**Cooldown:** 365 days
+
+> First bot created, explain what happens next
+
+### Sequence
+
+<Mermaid chart={`sequenceDiagram
+    participant U as User
+    participant S as System
+    participant E as Email
+
+    Note over S: Trigger: First bot created, explain what happens next
+
+
+    alt Stop Condition Met
+        U->>S: Bot completes successfully
+    else
+        U->>S: User replies to email
+        Note over S: Playbook stops
+    end`} />
+
+### Email Steps
+
+| Step | Delay | Template |
+|------|-------|----------|
+
+
+### Stop Conditions
+
+- Bot completes successfully
+- User replies to email
+
+### Templates
+
+---
+
+## Winback 3-Day
+
+**Key:** `winback_3d`
+**Priority:** 5
+**Cooldown:** 14 days
+
+> No API activity for 3 days
+
+### Sequence
+
+<Mermaid chart={`sequenceDiagram
+    participant U as User
+    participant S as System
+    participant E as Email
+
+    Note over S: Trigger: No API activity for 3 days
+
+    Note over U: Immediately
+    S->>E: Send winback-3d
+    E-->>U: Email delivered
+
+    Note over U: +3 days
+    S->>E: Send winback-3d-followup
+    E-->>U: Email delivered
+
+    alt Stop Condition Met
+        U->>S: API activity resumes
+    else
+        U->>S: User replies to email
+        Note over S: Playbook stops
+    end`} />
+
+### Email Steps
+
+| Step | Delay | Template |
+|------|-------|----------|
+| d0 | Immediately | `winback-3d` |
+| d3 | 3 days | `winback-3d-followup` |
+
+### Stop Conditions
+
+- API activity resumes
+- User replies to email
+
+### Templates
+
+#### winback-3d
+
+**Summary:** Building something cool? Here's a quick refresher to pick up where you left off.
+
+**CTA:** Launch Test Bot
+
+<Callout type="info">
+  **Power User Tip:** Pass custom metadata via the
+</Callout>
+
+#### winback-3d-followup
+
+**Summary:** Quick check-in: Is there anything blocking your integration? We're here to help.
+
+**CTA:** Documentation
+
+<Callout type="info">
+  **Power User Tip:** Reply with your blocker. I can share code samples for your stack (Node, Python, Go, etc.) or hop on a quick call to debug together.
+</Callout>
+
+---
+
+## Winback 7-Day
+
+**Key:** `winback_7d`
+**Priority:** 4
+**Cooldown:** 30 days
+
+> No API activity for 7 days
+
+### Sequence
+
+<Mermaid chart={`sequenceDiagram
+    participant U as User
+    participant S as System
+    participant E as Email
+
+    Note over S: Trigger: No API activity for 7 days
+
+    Note over U: Immediately
+    S->>E: Send winback-3d
+    E-->>U: Email delivered
+
+    alt Stop Condition Met
+        U->>S: API activity resumes
+    else
+        U->>S: User replies to email
+        Note over S: Playbook stops
+    end`} />
+
+### Email Steps
+
+| Step | Delay | Template |
+|------|-------|----------|
+| d0 | Immediately | `winback-3d` |
+
+### Stop Conditions
+
+- API activity resumes
+- User replies to email
+
+### Templates
+
+#### winback-3d
+
+**Summary:** Building something cool? Here's a quick refresher to pick up where you left off.
+
+**CTA:** Launch Test Bot
+
+<Callout type="info">
+  **Power User Tip:** Pass custom metadata via the
+</Callout>
+
+---
+
+## Template Variables
+
+These variables are available in all email templates:
+
+| Variable | Description |
+|----------|-------------|
+| `\{\{firstName\}\}` | User's first name |
+| `\{\{teamName\}\}` | Team/company name |
+| `\{\{email\}\}` | User's email address |
+| `\{\{dashboardUrl\}\}` | Link to dashboard |
+| `\{\{docsUrl\}\}` | Link to documentation |
+| `\{\{botId\}\}` | Bot ID (for failure emails) |
+| `\{\{errorCode\}\}` | Error code (for failure emails) |
+| `\{\{errorMessage\}\}` | Error description |
+| `\{\{meetingUrl\}\}` | Meeting link |
+| `\{\{unsubscribeUrl\}\}` | Unsubscribe link |

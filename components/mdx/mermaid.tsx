@@ -27,7 +27,7 @@ export function Mermaid({ chart, className }: MermaidProps) {
       fontFamily: 'inherit',
       themeVariables: isDark
         ? {
-            // Dark theme
+            // Dark theme - Flowchart
             primaryColor: '#00dbc6',
             primaryTextColor: '#0f172a',
             primaryBorderColor: '#00dbc6',
@@ -46,9 +46,26 @@ export function Mermaid({ chart, className }: MermaidProps) {
             titleColor: '#f1f5f9',
             edgeLabelBackground: '#1e293b',
             nodeTextColor: '#f1f5f9',
+            // Dark theme - Sequence diagrams
+            actorBkg: '#1e293b',
+            actorBorder: '#00dbc6',
+            actorTextColor: '#f1f5f9',
+            actorLineColor: '#64748b',
+            signalColor: '#f1f5f9',
+            signalTextColor: '#f1f5f9',
+            labelBoxBkgColor: '#1e293b',
+            labelBoxBorderColor: '#334155',
+            labelTextColor: '#f1f5f9',
+            loopTextColor: '#f1f5f9',
+            noteBkgColor: '#334155',
+            noteBorderColor: '#475569',
+            noteTextColor: '#f1f5f9',
+            activationBkgColor: '#00dbc6',
+            activationBorderColor: '#00a89a',
+            sequenceNumberColor: '#0f172a',
           }
         : {
-            // Light theme
+            // Light theme - Flowchart
             primaryColor: '#00dbc6',
             primaryTextColor: '#1e293b',
             primaryBorderColor: '#00dbc6',
@@ -67,6 +84,23 @@ export function Mermaid({ chart, className }: MermaidProps) {
             titleColor: '#1e293b',
             edgeLabelBackground: '#ffffff',
             nodeTextColor: '#1e293b',
+            // Light theme - Sequence diagrams
+            actorBkg: '#f8fafc',
+            actorBorder: '#00dbc6',
+            actorTextColor: '#1e293b',
+            actorLineColor: '#94a3b8',
+            signalColor: '#1e293b',
+            signalTextColor: '#1e293b',
+            labelBoxBkgColor: '#f8fafc',
+            labelBoxBorderColor: '#e2e8f0',
+            labelTextColor: '#1e293b',
+            loopTextColor: '#1e293b',
+            noteBkgColor: '#fef3c7',
+            noteBorderColor: '#fcd34d',
+            noteTextColor: '#1e293b',
+            activationBkgColor: '#00dbc6',
+            activationBorderColor: '#00a89a',
+            sequenceNumberColor: '#1e293b',
           },
       flowchart: {
         rankSpacing: 60,
@@ -75,6 +109,21 @@ export function Mermaid({ chart, className }: MermaidProps) {
         padding: 15,
         htmlLabels: true,
         useMaxWidth: true,
+      },
+      sequence: {
+        diagramMarginX: 20,
+        diagramMarginY: 20,
+        actorMargin: 80,
+        width: 180,
+        height: 50,
+        boxMargin: 10,
+        boxTextMargin: 5,
+        noteMargin: 10,
+        messageMargin: 40,
+        mirrorActors: true,
+        useMaxWidth: true,
+        rightAngles: false,
+        showSequenceNumbers: false,
       },
     });
 
