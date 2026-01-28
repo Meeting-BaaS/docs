@@ -7,7 +7,8 @@ export function Mermaid({ chart }: { chart: string }) {
   useEffect(() => {
     setMounted(true);
   }, []);
-  if (!mounted) return null;
+  // Suppress hydration warning since content differs between server and client
+  if (!mounted) return <div suppressHydrationWarning />;
   return <MermaidContent chart={chart} />;
 }
 

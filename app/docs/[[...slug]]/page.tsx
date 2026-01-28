@@ -72,7 +72,12 @@ function Pre({ children, ...props }: ComponentProps<'pre'>) {
       // Extract the mermaid definition text
       const chart = extractText(childProps.children);
       console.log('Rendering Mermaid chart:', chart.substring(0, 100));
-      return <Mermaid chart={chart} />;
+      // Wrap in a consistent div with suppressHydrationWarning to prevent mismatch
+      return (
+        <div className="my-6" suppressHydrationWarning>
+          <Mermaid chart={chart} />
+        </div>
+      );
     }
   }
 
