@@ -1,0 +1,16 @@
+{
+  "title": "Self Hosting",
+  "icon": "Server",
+  "description": "Deploy Meeting BaaS v2 in your own infrastructure",
+  "root": true,
+  "pages": [
+    "index",
+    "prerequisites",
+    "infrastructure-setup",
+    "repository-setup",
+    "configuration",
+    "deployment",
+    "upgrades",
+    "troubleshooting"
+  ]
+}

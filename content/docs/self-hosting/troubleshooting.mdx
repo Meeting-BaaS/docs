@@ -1,0 +1,560 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for self-hosted deployments
+icon: Wrench
+---
+
+This guide covers common issues you might encounter when self-hosting Meeting BaaS v2 and how to resolve them.
+
+## Checking Deployment Status
+
+### Verify All Services
+
+```bash
+# Check all deployments
+kubectl get deployments -n services
+
+# Check all pods
+kubectl get pods -n services
+
+# Check CronJobs
+kubectl get cronjobs -n services
+
+# Check ScaledJobs (KEDA)
+kubectl get scaledjobs -n services
+
+# Check DaemonSets
+kubectl get daemonsets -n services
+```
+
+### Check Service Logs
+
+```bash
+# API server logs
+kubectl logs -n services -l app.kubernetes.io/instance=api-server-v2 --tail=100
+
+# Job logs (latest execution)
+kubectl logs -n services -l cron=scheduled-bot-job --tail=100
+
+# Bot pod logs (if any running)
+kubectl logs -n services -l app.kubernetes.io/instance=zoom-bots-v2 --tail=100
+```
+
+### Check Feature Flags
+
+```bash
+# Public endpoint (no auth)
+curl https://api.yourcompany.com/status/features
+
+# Should return:
+# {
+#   "selfHosted": true,
+#   "features": {
+#     "stripe": false,
+#     "svix": false,
+#     "calendar": false,
+#     "multitenant": false,
+#     "dashboard": false,
+#     "transcription": false,
+#     "email": false
+#   }
+# }
+```
+
+## Common Issues
+
+### API Server Not Starting
+
+#### Symptoms
+
+- Pods stuck in `CrashLoopBackOff` or `Pending` state
+- Health endpoint not responding
+
+#### Diagnosis
+
+```bash
+# Check pod status
+kubectl describe pod -n services -l app.kubernetes.io/instance=api-server-v2
+
+# Check logs
+kubectl logs -n services -l app.kubernetes.io/instance=api-server-v2 --tail=100
+
+# Check events
+kubectl get events -n services --sort-by='.lastTimestamp'
+```
+
+#### Common Causes and Solutions
+
+**1. Missing or Invalid Secrets**
+
+```bash
+# Check if secrets exist
+kubectl get secrets -n services api-server-v2
+
+# Verify secret keys
+kubectl get secret -n services api-server-v2 -o jsonpath='{.data}' | jq 'keys'
+
+# Common missing secrets:
+# - DATABASE_URL
+# - REDIS_URL
+# - STATIC_API_KEY (if single-tenant)
+```
+
+**Solution**: Ensure all required secrets are set in `environment-overrides/api_server_v2_chart/prod.yaml`
+
+**2. Database Connection Issues**
+
+```bash
+# Test database connection from pod
+kubectl run -it --rm --restart=Never db-test \
+  --image=postgres:14 \
+  --env="PGPASSWORD=password" \
+  -- psql -h YOUR_DB_HOST -U username -d database_name
+```
+
+**Solution**: 
+- Verify `DATABASE_URL` is correct
+- Check database firewall rules allow Kubernetes cluster IPs
+- Verify database credentials are correct
+
+**3. Invalid Configuration Values**
+
+```bash
+# Check ConfigMap
+kubectl get configmap -n services api-server-v2 -o yaml
+
+# Look for invalid values like:
+# - Empty required fields
+# - Invalid URLs
+# - Wrong data types
+```
+
+**Solution**: Review `environment-overrides/api_server_v2_chart/prod.yaml` configmap section
+
+**4. Image Pull Errors**
+
+```bash
+# Check pod events
+kubectl describe pod -n services -l app.kubernetes.io/instance=api-server-v2 | grep -A 5 Events
+
+# Common errors:
+# - ImagePullBackOff: Cannot pull image
+# - ErrImagePull: Authentication failed
+```
+
+**Solution**:
+- Verify image registry credentials in `imagePullSecrets`
+- Check image tag exists: `docker pull YOUR_REGISTRY/api-server-v2:$IMAGE_TAG`
+- Verify network connectivity to registry
+
+### Migration Job Failed
+
+#### Symptoms
+
+- Upgrade stuck waiting for migration
+- Migration job in `Failed` state
+
+#### Diagnosis
+
+```bash
+# Check migration job
+kubectl get jobs -n services | grep migration
+
+# Check migration logs
+kubectl logs -n services -l app.kubernetes.io/component=migration --tail=100
+
+# Check job details
+kubectl describe job -n services api-server-v2-migration
+```
+
+#### Common Causes and Solutions
+
+**1. Database Connection Issues**
+
+**Solution**: Same as API server database connection issues above
+
+**2. Migration Conflicts**
+
+**Solution**: 
+- Check if manual schema changes conflict with migrations
+- Review migration logs for specific errors
+- Contact Meeting BaaS support if migrations are incompatible
+
+**3. Insufficient Permissions**
+
+**Solution**: Ensure database user has permissions to:
+- Create tables
+- Alter tables
+- Create indexes
+- Create sequences
+
+**4. Migration Timeout**
+
+**Solution**: Increase timeout in `api_server_v2_chart/values.yaml`:
+
+```yaml
+migration:
+  activeDeadlineSeconds: 600  # Increase from 300 to 600 seconds
+```
+
+### Bots Not Starting
+
+#### Symptoms
+
+- No bot pods running
+- SQS queue has messages but no bots processing them
+
+#### Diagnosis
+
+```bash
+# Check ScaledJob status
+kubectl get scaledjobs -n services
+
+# Check KEDA operator
+kubectl get pods -n keda-system
+
+# Check SQS queue depth
+# (Use AWS CLI or your SQS provider's tool)
+
+# Check bot pod events
+kubectl get events -n services --field-selector involvedObject.kind=Pod
+```
+
+#### Common Causes and Solutions
+
+**1. KEDA Not Installed**
+
+```bash
+# Check if KEDA is installed
+kubectl get pods -n keda-system
+
+# Install KEDA if missing
+helm repo add kedacore https://kedacore.github.io/charts
+helm install keda kedacore/keda --namespace keda-system --create-namespace
+```
+
+**2. SQS Credentials Invalid**
+
+**Solution**: Verify SQS credentials in bot chart secrets:
+- `AWS_ACCESS_KEY_ID_SQS`
+- `AWS_SECRET_ACCESS_KEY_SQS`
+- `SQS_QUEUE_URL_ZOOM` or `SQS_QUEUE_URL_MEET_TEAMS`
+
+**3. Video Device Plugin Not Running**
+
+```bash
+# Check video device plugin
+kubectl get daemonset -n services video-device-plugin
+
+# Check if devices are available
+kubectl get nodes -o jsonpath='{.items[*].status.allocatable.meeting-baas\.io/video-devices}'
+```
+
+**Solution**: Ensure video device plugin is deployed and running on bot pool nodes
+
+**4. Insufficient Node Resources**
+
+```bash
+# Check node resources
+kubectl describe nodes | grep -A 5 "Allocated resources"
+
+# Check if nodes can schedule pods
+kubectl get nodes
+```
+
+**Solution**: 
+- Add more nodes to bot pool
+- Increase node resources
+- Check resource requests/limits in bot chart
+
+### Health Checks Failing
+
+#### Symptoms
+
+- Pods restarting frequently
+- `kubectl get pods` shows `CrashLoopBackOff`
+
+#### Diagnosis
+
+```bash
+# Check liveness probe
+kubectl describe pod -n services -l app.kubernetes.io/instance=api-server-v2 | grep -A 10 Liveness
+
+# Test endpoints manually
+kubectl port-forward -n services svc/api-server-v2 3001:3001
+# In another terminal:
+curl http://localhost:3001/health
+curl http://localhost:3001/liveness
+```
+
+#### Common Causes and Solutions
+
+**1. Application Not Ready**
+
+**Solution**: Check application logs for startup errors
+
+**2. Port Mismatch**
+
+**Solution**: Verify `configmap.port` matches container port (default: 3001)
+
+**3. Slow Startup**
+
+**Solution**: Increase initial delay in deployment:
+
+```yaml
+# In api_server_v2_chart/values.yaml or deployment template
+livenessProbe:
+  initialDelaySeconds: 30  # Increase from 20
+readinessProbe:
+  initialDelaySeconds: 15   # Increase from 10
+```
+
+### Feature Flags Not Working
+
+#### Symptoms
+
+- Features enabled but not available
+- Routes returning 404 or 501
+
+#### Diagnosis
+
+```bash
+# Check feature flags
+curl https://api.yourcompany.com/status/features
+
+# Check ConfigMap
+kubectl get configmap -n services api-server-v2 -o yaml | grep ENABLE_
+
+# Check if routes are registered
+kubectl logs -n services -l app.kubernetes.io/instance=api-server-v2 | grep "Starting API server"
+```
+
+#### Common Causes and Solutions
+
+**1. Feature Flags Not Set in ConfigMap**
+
+**Solution**: Verify feature flags in `environment-overrides/api_server_v2_chart/prod.yaml`:
+
+```yaml
+featureFlags:
+  enableCalendar: true  # Must be true (not "true" string)
+```
+
+**2. Job Chart Flags Don't Match**
+
+**Solution**: Ensure `job_v2_chart/prod.yaml` feature flags match `api_server_v2_chart/prod.yaml`
+
+**3. Routes Not Registered**
+
+**Solution**: Check API server logs for route registration messages. Routes are conditionally registered based on feature flags.
+
+### Database Connection Errors
+
+#### Symptoms
+
+- API server logs show database connection errors
+- Migrations failing
+
+#### Diagnosis
+
+```bash
+# Test database connection
+kubectl run -it --rm --restart=Never db-test \
+  --image=postgres:14 \
+  --env="PGPASSWORD=password" \
+  -- psql -h YOUR_DB_HOST -U username -d database_name -c "SELECT 1"
+```
+
+#### Common Causes and Solutions
+
+**1. Firewall Rules**
+
+**Solution**: Ensure database firewall allows connections from Kubernetes cluster IPs
+
+**2. SSL/TLS Issues**
+
+**Solution**: 
+- Verify `DATABASE_URL` includes SSL parameters if required
+- Check if `?sslmode=require` is needed
+- Verify CA certificates if using custom certificates
+
+**3. Connection Pool Exhausted**
+
+**Solution**: 
+- Increase database `max_connections`
+- Reduce API server replica count
+- Check for connection leaks in application
+
+### S3 Upload Failures
+
+#### Symptoms
+
+- Recordings not appearing in S3
+- Bot logs show upload errors
+
+#### Diagnosis
+
+```bash
+# Check bot logs
+kubectl logs -n services -l app.kubernetes.io/instance=zoom-bots-v2 --tail=100 | grep -i s3
+
+# Test S3 access
+kubectl run -it --rm --restart=Never s3-test \
+  --image=amazon/aws-cli \
+  --env="AWS_ACCESS_KEY_ID=..." \
+  --env="AWS_SECRET_ACCESS_KEY=..." \
+  --env="AWS_ENDPOINT_URL=..." \
+  -- s3 ls s3://your-bucket-name
+```
+
+#### Common Causes and Solutions
+
+**1. Invalid Credentials**
+
+**Solution**: Verify S3 access keys and secret keys
+
+**2. Bucket Not Found**
+
+**Solution**: Verify bucket names match exactly (case-sensitive)
+
+**3. Permissions Issues**
+
+**Solution**: Ensure IAM user/keys have:
+- `s3:PutObject` permission
+- `s3:GetObject` permission (for retries)
+- `s3:ListBucket` permission
+
+**4. Endpoint URL Incorrect**
+
+**Solution**: Verify `AWS_ENDPOINT_URL` matches your S3 provider:
+- AWS: `https://s3.region.amazonaws.com`
+- Scaleway: `https://s3.region.scw.cloud`
+- MinIO: `http://minio-host:9000`
+
+### Webhook Callbacks Not Working
+
+#### Symptoms
+
+- Bots complete but callbacks not received
+- Callback logs show errors
+
+#### Diagnosis
+
+```bash
+# Check API server logs for callback attempts
+kubectl logs -n services -l app.kubernetes.io/instance=api-server-v2 | grep -i callback
+
+# Test callback endpoint manually
+curl -X POST https://your-callback-url.com/webhook \
+  -H "Content-Type: application/json" \
+  -d '{"test": "data"}'
+```
+
+#### Common Causes and Solutions
+
+**1. Callback URL Not Accessible**
+
+**Solution**: 
+- Verify callback URL is publicly accessible
+- Check firewall rules
+- Verify SSL certificate is valid
+
+**2. Callback Secret Mismatch**
+
+**Solution**: Verify `callback_config.secret` matches what your server expects
+
+**3. Network Timeout**
+
+**Solution**: 
+- Increase callback timeout in bot configuration
+- Check network connectivity from Kubernetes cluster
+- Verify DNS resolution for callback URL
+
+### Background Jobs Not Running
+
+#### Symptoms
+
+- CronJobs exist but not executing
+- No job pods created
+
+#### Diagnosis
+
+```bash
+# Check CronJob status
+kubectl get cronjobs -n services
+
+# Check CronJob details
+kubectl describe cronjob -n services scheduled-bot-job
+
+# Check if jobs are being created
+kubectl get jobs -n services
+
+# Check job logs
+kubectl logs -n services -l cron=scheduled-bot-job --tail=100
+```
+
+#### Common Causes and Solutions
+
+**1. CronJob Not Created**
+
+**Solution**: Check if feature flags allow the job to be created:
+- Calendar jobs require `ENABLE_CALENDAR=true`
+- Team deletion job requires `ENABLE_MULTI_TENANT=true`
+
+**2. Job Failing Immediately**
+
+**Solution**: Check job logs for errors (database connection, missing secrets, etc.)
+
+**3. Cron Schedule Not Met**
+
+**Solution**: 
+- Verify CronJob schedule is correct
+- Check Kubernetes cluster time is synchronized
+- Wait for next scheduled time
+
+## Getting Help
+
+### Information to Provide
+
+When seeking help, provide:
+
+1. **Kubernetes Version**: `kubectl version`
+2. **Helm Version**: `helm version`
+3. **Feature Flags**: Output of `curl https://api.yourcompany.com/status/features`
+4. **Pod Status**: `kubectl get pods -n services`
+5. **Recent Logs**: `kubectl logs -n services -l app.kubernetes.io/instance=api-server-v2 --tail=100`
+6. **Events**: `kubectl get events -n services --sort-by='.lastTimestamp'`
+7. **Configuration**: Feature flags and relevant environment variables (redact secrets)
+
+### Contact Support
+
+- **Email**: support@meetingbaas.com
+- **Documentation**: Check this troubleshooting guide first
+- **Logs**: Always include relevant logs when reporting issues
+
+## Prevention Tips
+
+### Regular Monitoring
+
+- Set up monitoring for pod health
+- Monitor database connections
+- Track SQS queue depth
+- Monitor S3 upload success rates
+
+### Regular Backups
+
+- Backup database regularly
+- Keep configuration files in version control
+- Document any custom changes
+
+### Stay Updated
+
+- Keep Helm charts updated
+- Apply security patches promptly
+- Review release notes before upgrading
+
+## Next Steps
+
+- Review [Configuration Guide](/docs/self-hosting/configuration) for feature flag setup
+- Check [Deployment Guide](/docs/self-hosting/deployment) for deployment steps
+- Review [Upgrades Guide](/docs/self-hosting/upgrades) for upgrade procedures

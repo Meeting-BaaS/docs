@@ -3,7 +3,6 @@ title: Delete Calendar
 full: true
 _openapi:
   method: DELETE
-  route: /calendars/{uuid}
   toc: []
   structuredData:
     headings: []
@@ -22,4 +21,4 @@ _openapi:
 
 Permanently removes a calendar integration by its UUID, including all associated events and bot configurations. This operation cancels any active subscriptions with the calendar provider, stops all webhook notifications, and unschedules any pending recordings. All related resources are cleaned up in the database. This action cannot be undone, and subsequent requests to this calendar's UUID will return 404 Not Found errors.
 
-<APIPage document={"./openapi.json"} operations={[{"path":"/calendars/{uuid}","method":"delete"}]} webhooks={[]} hasHead={false} />
+<APIPage document={"./openapi.json"} operations={[{"path":"/calendars/{uuid}","method":"delete"}]} />

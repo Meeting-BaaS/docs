@@ -1,0 +1,279 @@
+---
+title: Prerequisites
+description: Infrastructure and requirements for self-hosting Meeting BaaS v2
+icon: CircleCheck
+---
+
+Before deploying Meeting BaaS v2, ensure you have the following infrastructure and tools in place.
+
+## Infrastructure Requirements
+
+### Kubernetes Cluster
+
+You need a Kubernetes cluster (1.24+) with at least **2 node pools**:
+
+#### API Server Pool
+- **Purpose**: Runs API server pods and background job CronJobs
+- **Recommended**: 1-3 nodes
+- **Node Type**: General purpose (2-4 CPU, 4-8GB RAM per node)
+- **Scaling**: Can use Horizontal Pod Autoscaler (HPA) for auto-scaling
+
+#### Bot Pool
+- **Purpose**: Runs bot pods that join and record meetings
+- **Recommended**: 0-10+ nodes (scales based on demand)
+- **Node Type**: High-performance (16+ CPU, 32GB+ RAM per node)
+- **Scaling**: Uses KEDA for auto-scaling based on SQS queue depth
+- **Special Requirements**: Requires video device plugin for v4l2 devices
+
+### Database
+
+**PostgreSQL 14+** database for storing:
+- User accounts and authentication
+- Team and organization data
+- Bot configurations and metadata
+- API keys and permissions
+- Calendar connections (if enabled)
+- Webhook configurations (if SVIX enabled)
+
+**Recommended**: Managed PostgreSQL service (AWS RDS, Scaleway RDB, etc.)
+
+### Object Storage
+
+**S3-compatible object storage** for:
+- Recorded video/audio files
+- Bot logs and artifacts
+- Team logos
+- Support attachments
+
+**Required Buckets**:
+- `artifacts` - Recorded videos and audio
+- `logs` - Bot execution logs
+- `audio-chunks` - Temporary audio chunks (if transcription enabled)
+- `logo` - Team logos (optional)
+- `support` - Support ticket attachments (optional)
+
+**Recommended**: AWS S3, Scaleway Object Storage, or any S3-compatible service
+
+### Message Queue
+
+**SQS-compatible message queue** for bot orchestration:
+- Bot creation requests
+- Job scheduling
+- Event processing
+
+**Required Queues**:
+- `zoom` - Zoom bot jobs
+- `meet-teams` - Google Meet and Microsoft Teams bot jobs
+
+**Recommended**: AWS SQS, Scaleway Message Queue (MNQ), or any SQS-compatible service
+
+### Redis
+
+**Redis instance** for:
+- Deduplication locks
+- Session storage (if dashboard enabled)
+- Caching
+
+**Recommended**: Managed Redis service (AWS ElastiCache, Scaleway Redis Cloud, etc.)
+
+### Optional: EFS/NFS Server
+
+**Network File System** for bot data persistence:
+- Acts as redundancy layer if S3 upload fails
+- Temporary storage for recordings before upload
+- Debug artifact collection
+
+**Note**: This is optional but recommended for production deployments.
+
+## Container Registry
+
+You'll need access to:
+- **Meeting BaaS Container Registry**: To pull images (we provide access)
+- **Your Own Container Registry**: To push images if you want to mirror them
+
+Images provided:
+- `api-server-v2` - API server and jobs
+- `zoom-bots-v2` - Zoom meeting bots
+- `meet-teams-bots-v2` - Google Meet and Microsoft Teams bots
+- `video-device-plugin` - Kubernetes device plugin
+
+## Domain and DNS
+
+- **Domain name** for your API endpoint (e.g., `api.yourcompany.com`)
+- **DNS access** to create A/CNAME records pointing to your Kubernetes ingress
+- **SSL/TLS certificates** (handled automatically via cert-manager and Let's Encrypt)
+
+## Tools Required
+
+### kubectl
+
+Kubernetes command-line tool:
+
+```bash
+# macOS
+brew install kubectl
+
+# Linux
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+```
+
+### Helm
+
+Package manager for Kubernetes:
+
+```bash
+# macOS
+brew install helm
+
+# Linux
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+```
+
+### Docker (Optional)
+
+Only needed if you want to pull and push images to your own registry:
+
+```bash
+# macOS
+brew install docker
+
+# Linux
+# Follow Docker installation guide for your distribution
+```
+
+### Git
+
+For cloning the Helm charts repository:
+
+```bash
+# macOS
+brew install git
+
+# Linux
+sudo apt-get install git  # Ubuntu/Debian
+sudo dnf install git      # Fedora/RHEL
+```
+
+## Access Requirements
+
+### Kubernetes Access
+
+- **kubeconfig file** for your cluster
+- **Cluster admin permissions** (or sufficient permissions to create namespaces, deployments, services, etc.)
+- **Ingress controller** installed (NGINX recommended)
+
+### Container Registry Access
+
+- **Read access** to Meeting BaaS container registry (provided by us)
+- **Write access** to your own container registry (if mirroring images)
+
+### Service Credentials
+
+You'll need credentials for:
+- Database connection string
+- Redis connection string
+- S3 access keys and bucket names
+- SQS access keys and queue URLs
+- OAuth client IDs/secrets (if dashboard enabled)
+- API keys for optional services (Stripe, SVIX, Gladia, Resend)
+
+## Feature Flag Considerations
+
+Before deployment, decide which features you need:
+
+### Minimal Deployment (Single-Tenant)
+
+- `SELF_HOSTED=true`
+- `ENABLE_MULTI_TENANT=false`
+- All other flags `false`
+
+**Requires**: Database, Redis, S3, SQS, Kubernetes cluster
+
+### With Dashboard
+
+- `SELF_HOSTED=true`
+- `ENABLE_DASHBOARD=true`
+- `ENABLE_MULTI_TENANT=false` (or `true` for multi-tenant)
+
+**Requires**: Everything above + OAuth credentials (Google/GitHub)
+
+### With Calendar Integration
+
+- `ENABLE_CALENDAR=true`
+
+**Requires**: Google/Microsoft OAuth credentials, calendar encryption key
+
+### With Transcription
+
+- `ENABLE_TRANSCRIPTION=true`
+
+**Requires**: Gladia API key, audio chunks S3 bucket
+
+### With Email Notifications
+
+- `ENABLE_EMAIL=true`
+
+**Requires**: Resend API key
+
+### With Managed Webhooks (SVIX)
+
+- `ENABLE_SVIX=true`
+
+**Requires**: SVIX instance URL and JWT secret
+
+### With Billing (Stripe)
+
+- `ENABLE_STRIPE=true`
+
+**Requires**: Stripe account, webhook secret, product/price IDs
+
+## Network Requirements
+
+### Ingress
+
+- **Port 443** (HTTPS) exposed to the internet
+- **Port 80** (HTTP) for Let's Encrypt ACME challenges
+- **Ingress controller** (NGINX recommended)
+
+### Internal Communication
+
+- **Pod-to-pod communication** within the cluster
+- **Service discovery** via Kubernetes DNS
+- **SQS endpoint** accessible from pods
+
+### External Services
+
+- **Database** accessible from Kubernetes pods
+- **Redis** accessible from Kubernetes pods
+- **S3 endpoint** accessible from Kubernetes pods
+- **SQS endpoint** accessible from Kubernetes pods
+
+## Resource Estimates
+
+### API Server Pool
+
+- **CPU**: 0.5-1.5 cores per pod (2-5 pods recommended)
+- **Memory**: 1-5GB per pod
+- **Storage**: Minimal (no persistent volumes needed)
+
+### Bot Pool
+
+- **CPU**: 1.5-4 cores per bot pod
+- **Memory**: 3-8GB per bot pod
+- **Storage**: Optional EFS/NFS mount for temporary files
+- **Video Devices**: 1 device per bot pod (managed by video device plugin)
+
+### Background Jobs
+
+- **CPU**: 0.1-0.5 cores per job
+- **Memory**: 200MB-1GB per job
+- **Frequency**: Varies by job (see [Background Jobs](/docs/self-hosting/configuration#background-jobs))
+
+## Next Steps
+
+Once you have all prerequisites in place:
+
+1. [Set up your infrastructure](/docs/self-hosting/infrastructure-setup) - Configure Kubernetes, databases, and services
+2. [Set up the repository](/docs/self-hosting/repository-setup) - Clone Helm charts and create environment overrides
+3. [Configure the platform](/docs/self-hosting/configuration) - Set feature flags and environment variables

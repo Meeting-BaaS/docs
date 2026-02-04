@@ -1,17 +1,27 @@
-import { metadataImage } from '@/lib/metadata-image';
+import { source } from '@/lib/source';
 import { generateOGImage } from 'fumadocs-ui/og';
+import { notFound } from 'next/navigation';
 
-export const GET = metadataImage.createAPI((page) => {
+export async function GET(
+  _: unknown,
+  { params }: { params: Promise<{ slug: string[] }> }
+) {
+  const { slug } = await params;
+  const page = source.getPage(slug);
+
+  if (!page) notFound();
+
   return generateOGImage({
     title: page.data.title,
     description: page.data.description,
     site: 'Meeting BaaS',
-    // 176 100% 43% - replace the hex codes too
     primaryColor: '#13c9bd',
     primaryTextColor: '#13c9bd',
   });
-});
+}
 
 export function generateStaticParams() {
-  return metadataImage.generateParams();
+  return source.getPages().map((page) => ({
+    slug: page.slugs,
+  }));
 }

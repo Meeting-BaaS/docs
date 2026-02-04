@@ -1,0 +1,359 @@
+---
+title: Repository Setup
+description: Set up the Helm charts repository and environment overrides
+icon: FolderTree
+---
+
+This guide explains how to set up the Helm charts repository and create your environment-specific configuration files.
+
+## Overview
+
+Meeting BaaS provides Helm charts via a separate repository (`kubernetes-config`). You'll create your own repository that includes these charts as a git submodule and add your environment-specific overrides.
+
+## Repository Structure
+
+Create the following structure:
+
+```text
+your-company-meeting-baas-config/
+├── helm-charts/                 # Git submodule (kubernetes-config repo)
+│   ├── api_server_v2_chart/
+│   ├── job_v2_chart/
+│   ├── zoom_bots_v2_chart/
+│   ├── meet_teams_bots_v2_chart/
+│   ├── video_device_plugin_chart/
+│   └── baas_controller.sh
+├── environment-overrides/       # Your environment-specific configs
+│   ├── api_server_v2_chart/
+│   │   └── prod.yaml
+│   ├── job_v2_chart/
+│   │   └── prod.yaml
+│   ├── zoom_bots_v2_chart/
+│   │   └── prod.yaml
+│   ├── meet_teams_bots_v2_chart/
+│   │   └── prod.yaml
+│   └── video_device_plugin_chart/
+│       └── prod.yaml
+├── k8s-resources/              # Kubernetes resources (certificates, etc.)
+│   └── prod-certs/
+│       ├── cluster-issuer.yaml
+│       └── cluster-certificate.yaml
+└── kubeconfig.yaml             # Your Kubernetes config (gitignored)
+```
+
+## Step 1: Create Your Repository
+
+```bash
+# Create new directory
+mkdir your-company-meeting-baas-config
+cd your-company-meeting-baas-config
+
+# Initialize git repository
+git init
+```
+
+## Step 2: Add Helm Charts as Submodule
+
+Add the Meeting BaaS kubernetes-config repository as a git submodule:
+
+```bash
+# Add submodule
+git submodule add https://github.com/Meeting-BaaS/kubernetes-config.git helm-charts
+
+# Initialize and update submodule
+git submodule update --init --recursive
+```
+
+**Note**: You'll need access to the `kubernetes-config` repository. Contact your Meeting BaaS representative for access.
+
+## Step 3: Create Environment Overrides Directory
+
+```bash
+# Create directory structure
+mkdir -p environment-overrides/{api_server_v2_chart,job_v2_chart,zoom_bots_v2_chart,meet_teams_bots_v2_chart,video_device_plugin_chart}
+
+# Create k8s-resources directory
+mkdir -p k8s-resources/prod-certs
+```
+
+## Step 4: Create .gitignore
+
+Create a `.gitignore` file to exclude sensitive files:
+
+```text
+# Kubernetes config (contains credentials)
+kubeconfig.yaml
+kubeconfig-*.yaml
+
+# Environment overrides (may contain secrets)
+# Uncomment if you want to keep them private:
+# environment-overrides/**/*.yaml
+
+# Git submodule tracking
+.git/modules/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+```
+
+## Step 5: Create Environment Override Files
+
+You'll receive template `prod.yaml` files from Meeting BaaS. Create these files in your `environment-overrides` directory:
+
+### api_server_v2_chart/prod.yaml
+
+```yaml
+image:
+  repository: YOUR_REGISTRY/api-server-v2  # Update to your registry
+  pullPolicy: Always
+
+# Feature flags - customize based on your needs
+featureFlags:
+  selfHosted: true
+  enableStripe: false
+  enableSvix: false
+  enableCalendar: false
+  enableMultitenant: false
+  enableDashboard: false
+  enableTranscription: false
+  enableEmail: false
+
+# Self-hosted configuration
+selfHosted:
+  staticApiKey: "your-secret-api-key"  # Generate a secure key
+  staticTeamId: "your-team-id"         # Choose a team identifier
+
+# Node selector - update with your pool name
+nodeSelector:
+  k8s.scaleway.com/pool-name: YOUR_API_POOL_NAME
+
+# Secrets - fill in your values
+secret:
+  database_url: "postgres://..."
+  redis_url: "redis://..."
+  # ... other secrets
+
+# ConfigMap - update with your values
+configmap:
+  api_server_baseurl: "https://api.yourcompany.com"
+  frontend_baseurl: "https://dashboard.yourcompany.com"
+  # ... other config values
+```
+
+### job_v2_chart/prod.yaml
+
+```yaml
+image:
+  repository: YOUR_REGISTRY/api-server-v2  # Same as API server
+  pullPolicy: Always
+
+# Feature flags - should match api_server_v2_chart
+featureFlags:
+  enableCalendar: false
+  enableMultitenant: false
+  enableTranscription: false
+  enableEmail: false
+
+# Node selector - update with your pool name
+nodeSelector:
+  k8s.scaleway.com/pool-name: YOUR_API_POOL_NAME
+
+# Secrets - fill in your values
+secret:
+  database_url: "postgres://..."
+  # ... other secrets
+```
+
+### zoom_bots_v2_chart/prod.yaml
+
+```yaml
+image:
+  repository: YOUR_REGISTRY/zoom-bots-v2  # Update to your registry
+  pullPolicy: Always
+
+# Node selector - update with your bots pool name
+nodeSelector:
+  k8s.scaleway.com/pool-name: YOUR_BOTS_POOL_NAME
+
+# Secrets - fill in your values
+secrets:
+  sqs_queue_url: "https://sqs..."
+  # ... other secrets
+```
+
+### meet_teams_bots_v2_chart/prod.yaml
+
+```yaml
+image:
+  repository: YOUR_REGISTRY/meet-teams-bots-v2  # Update to your registry
+  pullPolicy: Always
+
+# Node selector - update with your bots pool name
+nodeSelector:
+  k8s.scaleway.com/pool-name: YOUR_BOTS_POOL_NAME
+
+# Secrets - fill in your values
+secrets:
+  sqs_queue_url: "https://sqs..."
+  # ... other secrets
+```
+
+### video_device_plugin_chart/prod.yaml
+
+```yaml
+image:
+  repository: YOUR_REGISTRY/video-device-plugin  # Update to your registry
+  pullPolicy: IfNotPresent
+  tag: "1.0.0"
+
+# Node selector - update with your bots pool name
+nodeSelector:
+  k8s.scaleway.com/pool-name: YOUR_BOTS_POOL_NAME
+```
+
+## Step 6: Update baas_controller.sh
+
+The `baas_controller.sh` script needs to know your Kubernetes context. Update it:
+
+```bash
+# Find your kubectl context name
+kubectl config get-contexts
+
+# Edit baas_controller.sh
+# Replace 'admin@meeting-baas-prod-k8' with your context name
+# Or update the context switching logic to match your setup
+```
+
+**Note**: The script automatically detects if you're running from the root directory or `helm-charts` directory.
+
+## Step 7: Configure Kubernetes Resources
+
+### Cluster Issuer (cert-manager)
+
+Create `k8s-resources/prod-certs/cluster-issuer.yaml`:
+
+```yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-cluster-issuer
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: your-email@yourcompany.com  # Update with your email
+    privateKeySecretRef:
+      name: letsencrypt-cluster-issuer-key
+    solvers:
+      - http01:
+          ingress:
+            class: nginx
+```
+
+### Certificate
+
+Create `k8s-resources/prod-certs/cluster-certificate.yaml`:
+
+```yaml
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: api-meeting-baas-tls
+  namespace: services
+spec:
+  secretName: api-meeting-baas-tls
+  issuerRef:
+    name: letsencrypt-cluster-issuer
+    kind: ClusterIssuer
+  dnsNames:
+    - api.yourcompany.com  # Update with your domain
+```
+
+## Step 8: Add kubeconfig
+
+Download your Kubernetes config file:
+
+```bash
+# For Scaleway Kapsule
+scw k8s kubeconfig get YOUR_CLUSTER_ID > kubeconfig.yaml
+
+# Or download from your cloud provider's console
+```
+
+**Important**: Add `kubeconfig.yaml` to `.gitignore` (already done above).
+
+## Step 9: Verify Setup
+
+```bash
+# Verify kubectl can connect
+kubectl --kubeconfig=kubeconfig.yaml get nodes
+
+# Verify Helm charts are accessible
+ls helm-charts/api_server_v2_chart/
+
+# Verify environment overrides exist
+ls environment-overrides/api_server_v2_chart/prod.yaml
+```
+
+## Step 10: Commit to Git (Optional)
+
+If you want to version control your configuration:
+
+```bash
+# Add files (excluding secrets)
+git add helm-charts/
+git add environment-overrides/  # Only if not gitignored
+git add k8s-resources/
+git add .gitignore
+git add .gitmodules
+
+# Commit
+git commit -m "Initial Meeting BaaS v2 configuration"
+
+# Push to your repository
+git remote add origin YOUR_REPO_URL
+git push -u origin main
+```
+
+**Security Note**: Consider keeping `environment-overrides` in a private repository or using a secrets management tool.
+
+## Updating Helm Charts
+
+When Meeting BaaS updates the Helm charts:
+
+```bash
+# Update submodule to latest
+cd helm-charts
+git pull origin main
+cd ..
+
+# Review changes
+git diff helm-charts
+
+# Commit the update
+git add helm-charts
+git commit -m "Update Helm charts to latest version"
+```
+
+## Customizing Charts
+
+If you need to customize the Helm charts:
+
+1. **Fork the repository**: Create your own fork of `kubernetes-config`
+2. **Use your fork**: Update the submodule to point to your fork
+3. **Make changes**: Modify charts as needed
+4. **Keep in sync**: Periodically merge updates from the upstream repository
+
+**Note**: Customizing charts makes upgrades more complex. Prefer using environment overrides when possible.
+
+## Next Steps
+
+- [Configuration](/docs/self-hosting/configuration) - Configure feature flags and environment variables
+- [Deployment](/docs/self-hosting/deployment) - Deploy the platform to your cluster

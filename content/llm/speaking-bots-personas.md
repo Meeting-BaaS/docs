@@ -11,7 +11,7 @@ Reference documentation for personas in speaking-bots.
 
 Generate an image for a persona using Replicate.
 
-<APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/personas/generate-image","method":"post"}]} webhooks={[]} hasHead={false} />
+<APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/personas/generate-image","method":"post"}]} />
 
 ---
 
