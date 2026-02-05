@@ -3,6 +3,7 @@ title: Patch Bot
 full: true
 _openapi:
   method: PATCH
+  route: /calendar_events/{uuid}/bot
   toc: []
   structuredData:
     headings: []
@@ -21,4 +22,4 @@ _openapi:
 
 Updates the configuration of a bot already scheduled to record an event. Allows modification of recording settings, webhook URLs, and other bot parameters without canceling and recreating the scheduled recording. For recurring events, the 'all_occurrences' parameter determines whether changes apply to all instances or just the specific occurrence. Returns the updated event(s) with the modified bot parameters.
 
-<APIPage document={"./openapi.json"} operations={[{"path":"/calendar_events/{uuid}/bot","method":"patch"}]} />
+<APIPage document={"./openapi.json"} operations={[{"path":"/calendar_events/{uuid}/bot","method":"patch"}]} webhooks={[]} hasHead={false} />

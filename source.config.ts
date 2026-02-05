@@ -37,10 +37,12 @@ export const docs = defineDocs({
 });
 
 export default defineConfig({
+  lastModifiedTime: 'git',
   mdxOptions: {
     rehypeCodeOptions: {
       lazy: true,
-      langs: ['ts', 'js', 'html', 'tsx', 'mdx', 'mermaid'],
+      experimentalJSEngine: true,
+      langs: ['ts', 'js', 'html', 'tsx', 'mdx'],
       inline: 'tailing-curly-colon',
       themes: {
         light: 'catppuccin-latte',

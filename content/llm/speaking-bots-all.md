@@ -14,7 +14,7 @@ Create and deploy a speaking bot in a meeting.
 Launches an AI-powered bot that joins a video meeting through MeetingBaas
 and processes audio using Pipecat's voice AI framework.
 
-<APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/bots","method":"post"}]} />
+<APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/bots","method":"post"}]} webhooks={[]} hasHead={false} />
 
 ---
 
@@ -32,16 +32,13 @@ This will:
 2. Close WebSocket connections if they exist
 3. Terminate the associated Pipecat process
 
-<APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/bots/{bot_id}","method":"delete"}]} />
+<APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/bots/{bot_id}","method":"delete"}]} webhooks={[]} hasHead={false} />
 
 ---
 
-## Speaking Bots API Reference
-
-API reference documentation for Speaking Bots
+## index
 
 ### Source: ./content/docs/speaking-bots/reference/index.mdx
-
 
 # Speaking Bots API Reference
 
@@ -77,7 +74,7 @@ Use the navigation to explore the available endpoints.
 
 Generate an image for a persona using Replicate.
 
-<APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/personas/generate-image","method":"post"}]} />
+<APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/personas/generate-image","method":"post"}]} webhooks={[]} hasHead={false} />
 
 ---
 
@@ -90,7 +87,7 @@ Generate an image for a persona using Replicate.
 
 Health check endpoint
 
-<APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/health","method":"get"}]} />
+<APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/health","method":"get"}]} webhooks={[]} hasHead={false} />
 
 ---
 

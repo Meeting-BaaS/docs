@@ -3,6 +3,7 @@ title: List Events
 full: true
 _openapi:
   method: GET
+  route: /calendar_events/
   toc: []
   structuredData:
     headings: []
@@ -21,4 +22,4 @@ _openapi:
 
 Retrieves a paginated list of calendar events with comprehensive filtering options. Supports filtering by organizer email, attendee email, date ranges (start_date_gte, start_date_lte), and event status. Results can be limited to upcoming events (default), past events, or all events. Each event includes full details such as meeting links, participants, and recording status. The response includes a 'next' pagination cursor for retrieving additional results.
 
-<APIPage document={"./openapi.json"} operations={[{"path":"/calendar_events/","method":"get"}]} />
+<APIPage document={"./openapi.json"} operations={[{"path":"/calendar_events/","method":"get"}]} webhooks={[]} hasHead={false} />

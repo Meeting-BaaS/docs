@@ -1,32 +1,31 @@
-import { docs } from '@/.source/server';
+import { docs } from '@/.source';
 import type { InferMetaType, InferPageType } from 'fumadocs-core/source';
 import { loader } from 'fumadocs-core/source';
-import { openapiPlugin, createOpenAPI } from 'fumadocs-openapi/server';
-import { createAPIPage } from 'fumadocs-openapi/ui';
-import { lucideIconsPlugin } from 'fumadocs-core/source/lucide-icons';
+import { attachFile, createOpenAPI } from 'fumadocs-openapi/server';
+import { icons } from 'lucide-react';
+import { createElement } from 'react';
 
 export const source = loader({
   baseUrl: '/',
+  icon(icon) {
+    if (icon && icon in icons)
+      return createElement(icons[icon as keyof typeof icons]);
+  },
   source: docs.toFumadocsSource(),
-  plugins: [lucideIconsPlugin(), openapiPlugin()],
+  pageTree: {
+    attachFile,
+  },
 });
 
-const openapiServer = createOpenAPI({
+export const openapi = createOpenAPI({
   proxyUrl: 'https://proxy.meetingbaas.com/api/',
-});
-
-export const openapi = {
-  server: openapiServer,
-  createProxy: openapiServer.createProxy,
-  APIPage: createAPIPage(openapiServer, {
-    shikiOptions: {
-      themes: {
-        dark: 'vesper',
-        light: 'vitesse-light',
-      },
+  shikiOptions: {
+    themes: {
+      dark: 'vesper',
+      light: 'vitesse-light',
     },
-  }),
-};
+  },
+});
 
 export type Page = InferPageType<typeof source>;
 export type Meta = InferMetaType<typeof source>;

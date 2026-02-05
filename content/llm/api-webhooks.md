@@ -135,7 +135,7 @@ Sent when transcription is completed separately from recording.
 
 For security, always validate the API key in the `x-meeting-baas-api-key` header matches your API key.
 
-<APIPage document={"./openapi.json"} operations={[{"path":"/bots/webhooks/bot","method":"get"}]} />
+<APIPage document={"./openapi.json"} operations={[{"path":"/bots/webhooks/bot","method":"get"}]} webhooks={[]} hasHead={false} />
 
 ---
 
@@ -203,7 +203,7 @@ After receiving a calendar webhook event, you can:
 
 For security, always validate the API key in the `x-meeting-baas-api-key` header matches your API key.
 
-<APIPage document={"./openapi.json"} operations={[{"path":"/bots/webhooks/calendar","method":"get"}]} />
+<APIPage document={"./openapi.json"} operations={[{"path":"/bots/webhooks/calendar","method":"get"}]} webhooks={[]} hasHead={false} />
 
 ---
 
@@ -369,7 +369,7 @@ If your endpoint fails to respond or returns an error, the system will attempt t
 
 For security, always validate the API key in the `x-meeting-baas-api-key` header matches your API key.
 
-<APIPage document={"./openapi.json"} operations={[{"path":"/bots/webhooks","method":"get"}]} />
+<APIPage document={"./openapi.json"} operations={[{"path":"/bots/webhooks","method":"get"}]} webhooks={[]} hasHead={false} />
 
 ---
 

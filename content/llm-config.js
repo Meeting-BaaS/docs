@@ -101,13 +101,6 @@ export const categoryConfig = {
       "./content/docs/mcp-servers/**/*.mdx"
     ]
   },
-  "self-hosting": {
-    "title": "self-hosting Documentation",
-    "description": "Documentation for self-hosting.",
-    "patterns": [
-      "./content/docs/self-hosting/**/*.mdx"
-    ]
-  },
   "speaking-bots": {
     "title": "Speaking Bots, the Pipecat-powered bots",
     "description": "Documentation for Speaking Bots powered by Pipecat.",
@@ -235,10 +228,6 @@ export const knownTxtPaths = [
   [
     "llms",
     "mcp-servers"
-  ],
-  [
-    "llms",
-    "self-hosting"
   ],
   [
     "llms",

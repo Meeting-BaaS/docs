@@ -6,7 +6,6 @@
     "typescript-sdk",
     "mcp-servers",
     "speaking-bots",
-    "transcript-seeker",
-    "self-hosting"
+    "transcript-seeker"
   ]
 }

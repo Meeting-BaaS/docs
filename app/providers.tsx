@@ -1,5 +1,5 @@
 'use client';
-import { RootProvider } from 'fumadocs-ui/provider/next';
+import { RootProvider } from 'fumadocs-ui/provider';
 import dynamic from 'next/dynamic';
 import type { ReactNode } from 'react';
 

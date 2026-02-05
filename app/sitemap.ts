@@ -21,8 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   for (const page of pages) {
     try {
       console.log(`Processing sitemap for: ${page.url}`);
-      const loaded = await (page.data as any).load();
-      const lastModified = loaded?.lastModified;
+      const { lastModified } = await page.data.load();
       sitemap.push({
         url: url(page.url),
         lastModified: lastModified ? new Date(lastModified) : undefined,

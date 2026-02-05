@@ -2,11 +2,7 @@
   "compilerOptions": {
     "baseUrl": ".",
     "target": "ESNext",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -17,12 +13,10 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react-jsx",
+    "jsx": "preserve",
     "incremental": true,
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"]
     },
     "plugins": [
       {
@@ -38,11 +32,7 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "next.config.js",
-    "tailwind.config.js",
-    ".next/dev/types/**/*.ts"
+    "tailwind.config.js"
   ],
-  "exclude": [
-    "node_modules",
-    "eslint.config.ts"
-  ]
+  "exclude": ["node_modules", "eslint.config.ts"]
 }
