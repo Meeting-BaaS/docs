@@ -1,0 +1,132 @@
+---
+title: Zoom Integration
+description: Configure Zoom bots with SDK credentials, OBF tokens, and secure credential management in v2
+icon: Video
+---
+
+# Zoom Integration
+
+Meeting BaaS v2 provides enhanced Zoom integration with secure credential management, improved OBF token handling, and better error tracking.
+
+<Callout type="warn">
+**March 2, 2026 Deadline:** Zoom requires OBF tokens for bots joining external meetings. If your bots join meetings hosted by external Zoom accounts, you must implement OBF tokens before this date. See [OBF Token Support](/docs/api-v2/getting-started/zoom/obf-tokens) for details.
+</Callout>
+
+## What's New in v2
+
+The v2 API introduces several improvements for Zoom integration:
+
+| Feature | v1 | v2 |
+|---------|----|----|
+| **Credential Storage** | Separate OAuth connection endpoint | Unified `/v2/zoom-credentials` API |
+| **SDK Credentials** | Passed with each bot request | Store once, reference by ID |
+| **Encryption** | Basic | AES-256-GCM for secrets and tokens |
+| **Credential Types** | OAuth only | App-only (SDK) and User (OAuth) |
+| **State Tracking** | Limited | Active/Invalid with error tracking |
+| **Configuration** | Multiple top-level params | Single `zoom_config` object |
+
+## Two Approaches
+
+How you integrate with Zoom depends on whose meetings your bots join:
+
+<Cards>
+  <Card title="Internal Meetings" href="/docs/api-v2/getting-started/zoom/credentials#app-only-credentials">
+    Bots join meetings within your Zoom organization. Store SDK credentials once and reference them in bot requests.
+  </Card>
+  <Card title="External Meetings" href="/docs/api-v2/getting-started/zoom/obf-tokens">
+    Bots join meetings hosted by external accounts. OBF tokens required after March 2, 2026.
+  </Card>
+</Cards>
+
+## Quick Decision Guide
+
+| Your Use Case | What You Need | Documentation |
+|---------------|---------------|---------------|
+| Recording your team's meetings | App-only credentials | [Zoom Credentials](/docs/api-v2/getting-started/zoom/credentials) |
+| Building a product for customers | User credentials with OBF | [OBF Token Support](/docs/api-v2/getting-started/zoom/obf-tokens) |
+| Joining meetings hosted by others | OBF tokens | [OBF Token Support](/docs/api-v2/getting-started/zoom/obf-tokens) |
+| Already managing OAuth yourself | Direct token or Token URL | [OBF Token Support](/docs/api-v2/getting-started/zoom/obf-tokens) |
+
+## The `zoom_config` Object
+
+In v2, all Zoom-specific configuration is passed in a single `zoom_config` object:
+
+```json
+{
+  "bot_name": "Recording Bot",
+  "meeting_url": "https://zoom.us/j/123456789",
+  "zoom_config": {
+    "credential_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  }
+}
+```
+
+Available options within `zoom_config`:
+
+| Parameter | Description |
+|-----------|-------------|
+| `credential_id` | UUID of a stored credential (recommended for most use cases) |
+| `credential_user_id` | Look up stored credential by Zoom user ID |
+| `obf_token` | Direct OBF token for one-off joins |
+| `obf_token_url` | URL that returns an OBF token at join time |
+| `zak_token_url` | URL that returns a ZAK token for host-level access |
+
+## Pages in This Section
+
+<Cards>
+  <Card title="Zoom Credentials" href="/docs/api-v2/getting-started/zoom/credentials">
+    Store and manage Zoom app credentials and OAuth tokens with the credentials API.
+  </Card>
+  <Card title="OBF Token Support" href="/docs/api-v2/getting-started/zoom/obf-tokens">
+    Implement OBF tokens for external meetings. Covers all integration options.
+  </Card>
+  <Card title="OAuth Consent Flow" href="/docs/api-v2/getting-started/zoom/oauth-consent-flow">
+    Build an OAuth consent flow for your users to authorize your Zoom app.
+  </Card>
+</Cards>
+
+## Key Concepts
+
+### Credential Types
+
+**App-only credentials** store your Zoom app's SDK credentials (client ID and secret). Use these when your bots only join internal meetings.
+
+**User credentials** store OAuth tokens for a specific Zoom user who authorized your app. These enable OBF token support for joining external meetings.
+
+### Credential States
+
+v2 tracks credential health:
+
+- **active**: Credential is working and can be used
+- **invalid**: Credential has failed (e.g., tokens revoked, refresh failed)
+
+When a credential becomes invalid, `last_error_message` and `last_error_at` provide debugging information.
+
+### Security
+
+All credentials are encrypted at rest using AES-256-GCM. Client secrets and OAuth tokens are never returned in API responses—only credential IDs and metadata.
+
+## FAQ
+
+**Q: Can I migrate my v1 Zoom OAuth connections to v2?**
+
+Yes, but you'll need to create new credentials in v2 using the `/v2/zoom-credentials` endpoint. We recommend having users re-authorize to ensure fresh tokens.
+
+**Q: Do I need to change my Zoom app configuration?**
+
+No, your existing Zoom app works with v2. The scopes and settings remain the same.
+
+**Q: What happens if a credential becomes invalid?**
+
+Bots using that credential will fail to join meetings. You'll see the error in the credential's `last_error_message` field and in the bot's failure webhook.
+
+**Q: Can I use both v1 and v2 APIs simultaneously?**
+
+Yes, during migration you can use both APIs. However, credentials are not shared between v1 and v2—you'll need to set them up separately.
+
+## Related Resources
+
+- [Zoom App Setup](/docs/api/getting-started/zoom/app-setup) — Create a Zoom app in the Marketplace (same for v1 and v2)
+- [Sending a Bot](/docs/api-v2/getting-started/sending-a-bot) — Basic bot creation in v2
+- [Zoom's OBF Blog Post](https://developers.zoom.us/blog/transition-to-obf-token-meetingsdk-apps/) — Official announcement
+- [Zoom's OBF FAQ](https://developers.zoom.us/docs/meeting-sdk/obf-faq/) — Detailed Q&A from Zoom

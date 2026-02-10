@@ -111,8 +111,12 @@ These codes indicate the bot process crashed:
 These errors are specific to Zoom meetings:
 
 ### `WAITING_FOR_HOST_TIMEOUT`
-**Title:** Waiting for Host Timeout  
+**Title:** Waiting for Host Timeout
 **Description:** The bot timed out while waiting for the meeting host to join the meeting.
+
+**OBF Context:** When using OBF tokens, this error also occurs if the **authorized user** (the Zoom user who authorized your app) does not join the meeting within the timeout period. The bot retries joining every few seconds, but if the authorized user never appears, this timeout is triggered.
+
+**Resolution:** Ensure the authorized user joins the meeting before or shortly after the bot. You can increase the timeout via `timeout_config.waiting_room_timeout`.
 
 ### `RECORDING_RIGHTS_NOT_GRANTED`
 **Title:** Recording Rights Not Granted  
@@ -143,8 +147,31 @@ These errors are specific to Zoom meetings:
 **Description:** Zoom SDK authentication failed with the provided credentials.
 
 ### `ZOOM_ACCESS_TOKEN_ERROR`
-**Title:** Zoom Access Token Error  
-**Description:** An error occurred while obtaining the Zoom access token.
+**Title:** Zoom Access Token Error
+**Description:** An error occurred while obtaining the Zoom access token (ZAK token). This can happen when using `zak_token_url` and the endpoint fails to return a valid token.
+
+### `ZOOM_OBF_TOKEN_ERROR`
+**Title:** Zoom OBF Token Error
+**Description:** An error occurred while obtaining or using the OBF (On Behalf Of) token. This can happen when:
+
+- The `obf_token` provided is invalid or expired
+- The `obf_token_url` endpoint fails to return a valid token
+- The stored credential (`credential_id`) has invalid or expired OAuth tokens
+- Token refresh fails for managed OAuth credentials
+
+**Resolution:** Check your OBF token configuration. If using stored credentials, verify the credential state is "active" via `GET /v2/zoom-credentials/{id}`. If the credential is invalid, prompt the user to re-authorize.
+
+### `RECORDING_START_TIMEOUT`
+**Title:** Recording Start Timeout
+**Description:** Recording privilege was granted by the host, but the recording never started within the expected time. This may indicate an issue with the meeting platform's recording system.
+
+**Token Charging:** Recording tokens are charged based on the time spent waiting.
+
+### `HOST_CLIENT_CANNOT_GRANT_PERMISSION`
+**Title:** Host Client Cannot Grant Permission
+**Description:** The meeting host is using a Zoom client (such as Zoom Rooms) that cannot display the recording permission dialog. The bot cannot record this meeting.
+
+**Resolution:** This is a limitation of certain Zoom clients. The host would need to join from a standard Zoom desktop or mobile client to grant recording permission.
 
 ## System Errors
 

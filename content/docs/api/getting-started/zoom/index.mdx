@@ -1,0 +1,76 @@
+---
+title: Zoom Integration
+description: Overview of Zoom integration options for Meeting BaaS bots
+icon: Video
+---
+
+# Zoom Integration
+
+Meeting BaaS supports Zoom through the Zoom Meeting SDK. This section covers everything you need to set up and configure Zoom bots.
+
+<Callout type="warn">
+**Important Deadline:** Starting March 2, 2026, Zoom requires OBF tokens for bots joining external meetings. See [OBF Token Support](/docs/api/getting-started/zoom/obf-tokens) for details.
+</Callout>
+
+## Two Approaches
+
+How you integrate with Zoom depends on whose meetings your bots join:
+
+<Cards>
+  <Card title="Internal Meetings Only" href="/docs/api/getting-started/zoom/app-setup#using-sdk-credentials">
+    Your bots join meetings within your own Zoom organization. Use SDK credentials to make all meetings "internal." No OBF tokens needed.
+  </Card>
+  <Card title="External Meetings" href="/docs/api/getting-started/zoom/obf-tokens">
+    Your bots join meetings hosted by external accounts. OBF tokens are required after March 2, 2026.
+  </Card>
+</Cards>
+
+## Quick Decision Guide
+
+| Your Use Case | What You Need | Guide |
+|---------------|---------------|-------|
+| Recording your own team's meetings | SDK credentials | [App Setup](/docs/api/getting-started/zoom/app-setup) |
+| Building a product for customers | OBF tokens | [OBF Token Support](/docs/api/getting-started/zoom/obf-tokens) |
+| Joining meetings hosted by others | OBF tokens | [OBF Token Support](/docs/api/getting-started/zoom/obf-tokens) |
+
+## Pages in This Section
+
+<Cards>
+  <Card title="Zoom App Setup" href="/docs/api/getting-started/zoom/app-setup">
+    Create a Zoom app on the Marketplace, enable Meeting SDK, get credentials, and submit for approval.
+  </Card>
+  <Card title="OBF Token Support" href="/docs/api/getting-started/zoom/obf-tokens">
+    Implement OBF tokens for external meetings. Covers all three integration options.
+  </Card>
+  <Card title="Building OAuth Consent Flow" href="/docs/api/getting-started/zoom/oauth-consent-flow">
+    Step-by-step guide for implementing the OAuth consent flow in your application.
+  </Card>
+</Cards>
+
+## Key Concepts
+
+### SDK Credentials vs OBF Tokens
+
+**SDK credentials** (`zoom_sdk_id` and `zoom_sdk_pwd`) authenticate your Zoom app itself. When you use your own SDK credentials, meetings joined by your bots are considered "internal" to your Zoom account.
+
+**OBF tokens** authenticate on behalf of a specific Zoom user. They are required when joining meetings hosted by accounts outside your organization.
+
+### The March 2026 Deadline
+
+Zoom is enforcing OBF tokens starting March 2, 2026. After this date:
+
+- Bots joining external meetings without OBF tokens will fail
+- Bots joining internal meetings (with SDK credentials) are unaffected
+- Google Meet and Microsoft Teams bots are unaffected
+
+### Authorized User Presence
+
+When using OBF tokens, the Zoom user who authorized your app must be present in the meeting. If they leave, the bot disconnects. This is a Zoom platform requirement.
+
+For continuous recording scenarios, Zoom is developing RTMS (Real-Time Media Streams) as an alternative. We are working on RTMS support.
+
+## Related Resources
+
+- [Sending a Bot](/docs/api/getting-started/sending-a-bot) — Basic bot creation guide
+- [Zoom's OBF Blog Post](https://developers.zoom.us/blog/transition-to-obf-token-meetingsdk-apps/) — Official announcement
+- [Zoom's OBF FAQ](https://developers.zoom.us/docs/meeting-sdk/obf-faq/) — Detailed Q&A
