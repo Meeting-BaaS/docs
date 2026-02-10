@@ -1232,8 +1232,12 @@ These codes indicate the bot process crashed:
 These errors are specific to Zoom meetings:
 
 ### `WAITING_FOR_HOST_TIMEOUT`
-**Title:** Waiting for Host Timeout  
+**Title:** Waiting for Host Timeout
 **Description:** The bot timed out while waiting for the meeting host to join the meeting.
+
+**OBF Context:** When using OBF tokens, this error also occurs if the **authorized user** (the Zoom user who authorized your app) does not join the meeting within the timeout period. The bot retries joining every few seconds, but if the authorized user never appears, this timeout is triggered.
+
+**Resolution:** Ensure the authorized user joins the meeting before or shortly after the bot. You can increase the timeout via `timeout_config.waiting_room_timeout`.
 
 ### `RECORDING_RIGHTS_NOT_GRANTED`
 **Title:** Recording Rights Not Granted  
@@ -1264,8 +1268,31 @@ These errors are specific to Zoom meetings:
 **Description:** Zoom SDK authentication failed with the provided credentials.
 
 ### `ZOOM_ACCESS_TOKEN_ERROR`
-**Title:** Zoom Access Token Error  
-**Description:** An error occurred while obtaining the Zoom access token.
+**Title:** Zoom Access Token Error
+**Description:** An error occurred while obtaining the Zoom access token (ZAK token). This can happen when using `zak_token_url` and the endpoint fails to return a valid token.
+
+### `ZOOM_OBF_TOKEN_ERROR`
+**Title:** Zoom OBF Token Error
+**Description:** An error occurred while obtaining or using the OBF (On Behalf Of) token. This can happen when:
+
+- The `obf_token` provided is invalid or expired
+- The `obf_token_url` endpoint fails to return a valid token
+- The stored credential (`credential_id`) has invalid or expired OAuth tokens
+- Token refresh fails for managed OAuth credentials
+
+**Resolution:** Check your OBF token configuration. If using stored credentials, verify the credential state is "active" via `GET /v2/zoom-credentials/{id}`. If the credential is invalid, prompt the user to re-authorize.
+
+### `RECORDING_START_TIMEOUT`
+**Title:** Recording Start Timeout
+**Description:** Recording privilege was granted by the host, but the recording never started within the expected time. This may indicate an issue with the meeting platform's recording system.
+
+**Token Charging:** Recording tokens are charged based on the time spent waiting.
+
+### `HOST_CLIENT_CANNOT_GRANT_PERMISSION`
+**Title:** Host Client Cannot Grant Permission
+**Description:** The meeting host is using a Zoom client (such as Zoom Rooms) that cannot display the recording permission dialog. The bot cannot record this meeting.
+
+**Resolution:** This is a limitation of certain Zoom clients. The host would need to join from a standard Zoom desktop or mobile client to grant recording permission.
 
 ## System Errors
 
@@ -2183,6 +2210,1825 @@ In addition to account-level webhooks, you can also configure **callbacks** per-
 
 See the [Webhooks documentation](/docs/api-v2/webhooks) for more details on callbacks.
 
+
+
+---
+
+## Zoom Credentials
+
+Store and manage Zoom SDK credentials and OAuth tokens securely with the v2 Credentials API
+
+### Source: ./content/docs/api-v2/getting-started/zoom/credentials.mdx
+
+
+# Zoom Credentials API
+
+The v2 Credentials API provides secure storage for your Zoom app credentials and OAuth tokens. Instead of passing SDK credentials with every bot request, you can store them once and reference them by ID.
+
+## Overview
+
+The `/v2/zoom-credentials` endpoint lets you:
+
+- Store Zoom app credentials (SDK client ID and secret)
+- Exchange OAuth authorization codes for tokens
+- Manage multiple credentials for different Zoom users
+- Track credential health with state and error tracking
+
+All credentials are encrypted at rest using **AES-256-GCM**. Secrets and tokens are never returned in API responses.
+
+## Credential Types
+
+### App-Only Credentials
+
+Store your Zoom app's SDK credentials. Use these when your bots only join meetings within your own Zoom organization (internal meetings).
+
+**What's stored:**
+- Client ID (SDK Key)
+- Client Secret (SDK Secret)
+
+**Use case:** Recording your team's meetings without OBF tokens.
+
+### User Credentials
+
+Store OAuth tokens for a specific Zoom user who authorized your app. Use these for OBF (On Behalf Of) token support when joining external meetings.
+
+**What's stored:**
+- Client ID and Secret
+- Access token (encrypted)
+- Refresh token (encrypted)
+- Zoom user ID and account ID
+- Granted scopes
+
+**Use case:** Building a product where customers authorize your bot to join their meetings.
+
+## Creating Credentials
+
+### App-Only Credentials
+
+Store SDK credentials for internal meeting access:
+
+<Tabs items={['cURL', 'Python', 'JavaScript']}>
+  <Tab value="cURL">
+    ```bash
+    curl -X POST "https://api.meetingbaas.com/v2/zoom-credentials" \
+         -H "Content-Type: application/json" \
+         -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+         -d '{
+               "name": "Production Zoom App",
+               "client_id": "YOUR_ZOOM_CLIENT_ID",
+               "client_secret": "YOUR_ZOOM_CLIENT_SECRET"
+             }'
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    import requests
+
+    response = requests.post(
+        "https://api.meetingbaas.com/v2/zoom-credentials",
+        headers={
+            "Content-Type": "application/json",
+            "x-meeting-baas-api-key": "YOUR-API-KEY",
+        },
+        json={
+            "name": "Production Zoom App",
+            "client_id": "YOUR_ZOOM_CLIENT_ID",
+            "client_secret": "YOUR_ZOOM_CLIENT_SECRET"
+        }
+    )
+    print(response.json())
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript
+    const response = await fetch("https://api.meetingbaas.com/v2/zoom-credentials", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+      },
+      body: JSON.stringify({
+        name: "Production Zoom App",
+        client_id: "YOUR_ZOOM_CLIENT_ID",
+        client_secret: "YOUR_ZOOM_CLIENT_SECRET",
+      }),
+    });
+    console.log(await response.json());
+    ```
+  </Tab>
+</Tabs>
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "credential_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "name": "Production Zoom App",
+    "credential_type": "app",
+    "zoom_user_id": null,
+    "zoom_account_id": null,
+    "scopes": null,
+    "state": "active",
+    "last_error_message": null,
+    "last_error_at": null,
+    "created_at": "2026-02-10T10:00:00Z",
+    "updated_at": "2026-02-10T10:00:00Z"
+  }
+}
+```
+
+Save the `credential_id` — you'll use it when creating bots.
+
+### User Credentials (with OAuth)
+
+After a user completes the OAuth consent flow, exchange the authorization code for tokens:
+
+<Tabs items={['cURL', 'Python', 'JavaScript']}>
+  <Tab value="cURL">
+    ```bash
+    curl -X POST "https://api.meetingbaas.com/v2/zoom-credentials" \
+         -H "Content-Type: application/json" \
+         -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+         -d '{
+               "name": "John Doe - Acme Corp",
+               "client_id": "YOUR_ZOOM_CLIENT_ID",
+               "client_secret": "YOUR_ZOOM_CLIENT_SECRET",
+               "authorization_code": "AUTHORIZATION_CODE_FROM_ZOOM",
+               "redirect_uri": "https://your-app.com/oauth/callback"
+             }'
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    import requests
+
+    response = requests.post(
+        "https://api.meetingbaas.com/v2/zoom-credentials",
+        headers={
+            "Content-Type": "application/json",
+            "x-meeting-baas-api-key": "YOUR-API-KEY",
+        },
+        json={
+            "name": "John Doe - Acme Corp",
+            "client_id": "YOUR_ZOOM_CLIENT_ID",
+            "client_secret": "YOUR_ZOOM_CLIENT_SECRET",
+            "authorization_code": "AUTHORIZATION_CODE_FROM_ZOOM",
+            "redirect_uri": "https://your-app.com/oauth/callback"
+        }
+    )
+    print(response.json())
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript
+    const response = await fetch("https://api.meetingbaas.com/v2/zoom-credentials", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+      },
+      body: JSON.stringify({
+        name: "John Doe - Acme Corp",
+        client_id: "YOUR_ZOOM_CLIENT_ID",
+        client_secret: "YOUR_ZOOM_CLIENT_SECRET",
+        authorization_code: "AUTHORIZATION_CODE_FROM_ZOOM",
+        redirect_uri: "https://your-app.com/oauth/callback",
+      }),
+    });
+    console.log(await response.json());
+    ```
+  </Tab>
+</Tabs>
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "credential_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "name": "John Doe - Acme Corp",
+    "credential_type": "user",
+    "zoom_user_id": "SeJwoMGwTCu52501SbDC0Q",
+    "zoom_account_id": "AplWZ5oMSouJOw9zu0cmKQ",
+    "scopes": "user:read:token,user:read:user,user:read:zak",
+    "state": "active",
+    "last_error_message": null,
+    "last_error_at": null,
+    "created_at": "2026-02-10T10:00:00Z",
+    "updated_at": "2026-02-10T10:00:00Z"
+  }
+}
+```
+
+<Callout>
+**Important:** The `redirect_uri` must exactly match the URI registered in your Zoom app and used in the OAuth authorization URL.
+</Callout>
+
+## Using Credentials with Bots
+
+### By Credential ID (Recommended)
+
+Reference the stored credential directly:
+
+```json
+{
+  "bot_name": "Recording Bot",
+  "meeting_url": "https://zoom.us/j/123456789",
+  "zoom_config": {
+    "credential_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901"
+  }
+}
+```
+
+### By Zoom User ID
+
+Look up a credential by the Zoom user ID:
+
+```json
+{
+  "bot_name": "Recording Bot",
+  "meeting_url": "https://zoom.us/j/123456789",
+  "zoom_config": {
+    "credential_user_id": "SeJwoMGwTCu52501SbDC0Q"
+  }
+}
+```
+
+This is useful when you store the Zoom user ID in your database and want to find the matching credential automatically.
+
+## Listing Credentials
+
+Get all credentials for your team:
+
+<Tabs items={['cURL', 'Python', 'JavaScript']}>
+  <Tab value="cURL">
+    ```bash
+    curl "https://api.meetingbaas.com/v2/zoom-credentials" \
+         -H "x-meeting-baas-api-key: YOUR-API-KEY"
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    import requests
+
+    response = requests.get(
+        "https://api.meetingbaas.com/v2/zoom-credentials",
+        headers={"x-meeting-baas-api-key": "YOUR-API-KEY"}
+    )
+    for cred in response.json()["data"]:
+        print(f"{cred['name']}: {cred['credential_type']} ({cred['state']})")
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript
+    const response = await fetch("https://api.meetingbaas.com/v2/zoom-credentials", {
+      headers: { "x-meeting-baas-api-key": "YOUR-API-KEY" },
+    });
+    const { data } = await response.json();
+    data.forEach(cred => {
+      console.log(`${cred.name}: ${cred.credential_type} (${cred.state})`);
+    });
+    ```
+  </Tab>
+</Tabs>
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "credential_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "Production Zoom App",
+      "credential_type": "app",
+      "zoom_user_id": null,
+      "state": "active",
+      ...
+    },
+    {
+      "credential_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+      "name": "John Doe - Acme Corp",
+      "credential_type": "user",
+      "zoom_user_id": "SeJwoMGwTCu52501SbDC0Q",
+      "state": "active",
+      ...
+    }
+  ]
+}
+```
+
+## Getting a Single Credential
+
+Retrieve details for a specific credential:
+
+```bash
+curl "https://api.meetingbaas.com/v2/zoom-credentials/b2c3d4e5-f6a7-8901-bcde-f12345678901" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY"
+```
+
+## Updating Credentials
+
+Update an existing credential's name, SDK credentials, or re-authorize with new OAuth tokens.
+
+### Update Name
+
+```bash
+curl -X PATCH "https://api.meetingbaas.com/v2/zoom-credentials/b2c3d4e5-f6a7-8901-bcde-f12345678901" \
+     -H "Content-Type: application/json" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+     -d '{
+           "name": "Jane Doe - Acme Corp"
+         }'
+```
+
+### Update SDK Credentials
+
+Update both client ID and secret together:
+
+```bash
+curl -X PATCH "https://api.meetingbaas.com/v2/zoom-credentials/a1b2c3d4-e5f6-7890-abcd-ef1234567890" \
+     -H "Content-Type: application/json" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+     -d '{
+           "client_id": "NEW_ZOOM_CLIENT_ID",
+           "client_secret": "NEW_ZOOM_CLIENT_SECRET"
+         }'
+```
+
+### Re-authorize with New OAuth Tokens
+
+If a credential becomes invalid (user revoked access, tokens expired), you can re-authorize by providing a new authorization code. This resets the credential state to "active" and clears any error messages:
+
+```bash
+curl -X PATCH "https://api.meetingbaas.com/v2/zoom-credentials/b2c3d4e5-f6a7-8901-bcde-f12345678901" \
+     -H "Content-Type: application/json" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+     -d '{
+           "client_id": "YOUR_ZOOM_CLIENT_ID",
+           "client_secret": "YOUR_ZOOM_CLIENT_SECRET",
+           "authorization_code": "NEW_AUTHORIZATION_CODE",
+           "redirect_uri": "https://your-app.com/oauth/callback"
+         }'
+```
+
+<Callout>
+Re-authorizing is useful when a credential becomes invalid. Instead of deleting and recreating, update the existing credential to preserve the same `credential_id` in your system.
+</Callout>
+
+## Deleting Credentials
+
+Remove a credential and its stored tokens:
+
+```bash
+curl -X DELETE "https://api.meetingbaas.com/v2/zoom-credentials/b2c3d4e5-f6a7-8901-bcde-f12345678901" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY"
+```
+
+<Callout type="warn">
+Deleting a credential removes all stored tokens. Bots using this credential will fail to join meetings. The Zoom user would need to re-authorize your app to create a new credential.
+</Callout>
+
+## Credential States
+
+### Active
+
+The credential is working and can be used to join meetings.
+
+### Invalid
+
+The credential has failed. Common reasons:
+
+- User revoked app access in Zoom settings
+- OAuth token refresh failed
+- Zoom account was deactivated
+- Required scopes were removed from the app
+
+When a credential becomes invalid:
+
+1. Check `last_error_message` for details
+2. Prompt the user to re-authorize your app
+3. Update the existing credential with the new authorization code using `PATCH /v2/zoom-credentials/{id}` (this preserves the credential ID and resets the state to "active")
+
+**Example invalid credential:**
+
+```json
+{
+  "credential_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+  "name": "John Doe - Acme Corp",
+  "credential_type": "user",
+  "state": "invalid",
+  "last_error_message": "Token refresh failed: invalid_grant",
+  "last_error_at": "2026-02-09T15:30:00Z",
+  ...
+}
+```
+
+## Security
+
+### Encryption
+
+All sensitive data is encrypted at rest:
+
+- **Client secrets**: AES-256-GCM encrypted
+- **Access tokens**: AES-256-GCM encrypted
+- **Refresh tokens**: AES-256-GCM encrypted
+
+### What's Never Returned
+
+API responses never include:
+
+- Client secrets
+- Access tokens
+- Refresh tokens
+- Encryption keys
+
+You only receive metadata (IDs, names, states, timestamps).
+
+### Access Control
+
+Credentials are scoped to your team (API key). One team cannot access another team's credentials.
+
+## Error Handling
+
+### Creation Errors
+
+| Status | Meaning |
+|--------|---------|
+| `400 Bad Request` | Missing required fields or invalid input |
+| `400 Bad Request` | `redirect_uri` missing when `authorization_code` provided |
+| `400 Bad Request` | Authorization code exchange failed (invalid code or URI mismatch) |
+
+### Common OAuth Exchange Failures
+
+**"invalid_grant"**: The authorization code has expired (valid for ~10 minutes) or was already used. Start a new OAuth flow.
+
+**"redirect_uri_mismatch"**: The `redirect_uri` doesn't match what was used in the authorization URL. Ensure exact match including trailing slashes.
+
+**"invalid_client"**: The client ID or secret is incorrect. Verify your Zoom app credentials.
+
+## Best Practices
+
+### Naming Conventions
+
+Use descriptive names that help you identify credentials:
+
+- **App credentials**: Include environment (e.g., "Production Zoom App", "Staging Bot")
+- **User credentials**: Include user identifier (e.g., "John Doe - Acme Corp", "user@company.com")
+
+### Monitoring Credential Health
+
+Periodically check for invalid credentials:
+
+```python
+import requests
+
+response = requests.get(
+    "https://api.meetingbaas.com/v2/zoom-credentials",
+    headers={"x-meeting-baas-api-key": "YOUR-API-KEY"}
+)
+
+for cred in response.json()["data"]:
+    if cred["state"] == "invalid":
+        print(f"Invalid credential: {cred['name']}")
+        print(f"  Error: {cred['last_error_message']}")
+        print(f"  Since: {cred['last_error_at']}")
+        # Notify user to re-authorize
+```
+
+### Handle Revocations
+
+Users can revoke your app's access in their Zoom settings. When this happens:
+
+1. The credential state becomes `invalid`
+2. Bots using this credential will fail
+3. Prompt the user to re-authorize
+4. Create a new credential and delete the old one
+
+## FAQ
+
+**Q: How many credentials can I store?**
+
+There's no hard limit. Store as many as you need for your users.
+
+**Q: What can I update on an existing credential?**
+
+You can update the name, SDK credentials (client ID and secret together), or re-authorize with new OAuth tokens using `PATCH /v2/zoom-credentials/{id}`. Re-authorizing is useful when a credential becomes invalid.
+
+**Q: What happens to bots when a credential becomes invalid?**
+
+Bots created with that credential will fail to join with a `ZOOM_ACCESS_TOKEN_ERROR` or similar error. Already-running bots are not affected.
+
+**Q: How long are OAuth tokens valid?**
+
+Zoom access tokens expire after 1 hour. Meeting BaaS automatically refreshes them using the refresh token. If refresh fails, the credential becomes invalid.
+
+**Q: Do I need separate credentials for SDK and OBF?**
+
+For internal meetings: App-only credentials are sufficient.
+For external meetings: You need user credentials (with OAuth) for OBF token support.
+
+## Next Steps
+
+- [OBF Token Support](/docs/api-v2/getting-started/zoom/obf-tokens) — Use credentials for external meetings
+- [OAuth Consent Flow](/docs/api-v2/getting-started/zoom/oauth-consent-flow) — Build the user authorization flow
+- [Zoom App Setup](/docs/api/getting-started/zoom/app-setup) — Create or configure your Zoom app
+
+
+---
+
+## Zoom Integration
+
+Configure Zoom bots with SDK credentials, OBF tokens, and secure credential management in v2
+
+### Source: ./content/docs/api-v2/getting-started/zoom/index.mdx
+
+
+# Zoom Integration
+
+Meeting BaaS v2 provides enhanced Zoom integration with secure credential management, improved OBF token handling, and better error tracking.
+
+<Callout type="warn">
+**March 2, 2026 Deadline:** Zoom requires OBF tokens for bots joining external meetings. If your bots join meetings hosted by external Zoom accounts, you must implement OBF tokens before this date. See [OBF Token Support](/docs/api-v2/getting-started/zoom/obf-tokens) for details and [Zoom's official announcement](https://developers.zoom.us/blog/transition-to-obf-token-meetingsdk-apps/).
+</Callout>
+
+## What's New in v2
+
+The v2 API introduces several improvements for Zoom integration:
+
+| Feature | v1 | v2 |
+|---------|----|----|
+| **Credential Storage** | Separate OAuth connection endpoint | Unified `/v2/zoom-credentials` API |
+| **SDK Credentials** | Passed with each bot request | Store once, reference by ID |
+| **Encryption** | Basic | AES-256-GCM for secrets and tokens |
+| **Credential Types** | OAuth only | App-only (SDK) and User (OAuth) |
+| **State Tracking** | Limited | Active/Invalid with error tracking |
+| **Configuration** | Multiple top-level params | Single `zoom_config` object |
+
+## Two Approaches
+
+How you integrate with Zoom depends on whose meetings your bots join:
+
+<Cards>
+  <Card title="Internal Meetings" href="/docs/api-v2/getting-started/zoom/credentials#app-only-credentials">
+    Bots join meetings within your Zoom organization. Store SDK credentials once and reference them in bot requests.
+  </Card>
+  <Card title="External Meetings" href="/docs/api-v2/getting-started/zoom/obf-tokens">
+    Bots join meetings hosted by external accounts. OBF tokens required after March 2, 2026.
+  </Card>
+</Cards>
+
+## Quick Decision Guide
+
+| Your Use Case | What You Need | Documentation |
+|---------------|---------------|---------------|
+| Recording your team's meetings | App-only credentials | [Zoom Credentials](/docs/api-v2/getting-started/zoom/credentials) |
+| Building a product for customers | User credentials with OBF | [OBF Token Support](/docs/api-v2/getting-started/zoom/obf-tokens) |
+| Joining meetings hosted by others | OBF tokens | [OBF Token Support](/docs/api-v2/getting-started/zoom/obf-tokens) |
+| Already managing OAuth yourself | Direct token or Token URL | [OBF Token Support](/docs/api-v2/getting-started/zoom/obf-tokens) |
+
+## The `zoom_config` Object
+
+In v2, all Zoom-specific configuration is passed in a single `zoom_config` object:
+
+```json
+{
+  "bot_name": "Recording Bot",
+  "meeting_url": "https://zoom.us/j/123456789",
+  "zoom_config": {
+    "credential_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  }
+}
+```
+
+Available options within `zoom_config`:
+
+| Parameter | Description |
+|-----------|-------------|
+| `credential_id` | UUID of a stored credential (recommended for most use cases) |
+| `credential_user_id` | Look up stored credential by Zoom user ID |
+| `obf_token` | Direct OBF token for one-off joins |
+| `obf_token_url` | URL that returns an OBF token at join time |
+| `zak_token_url` | URL that returns a ZAK token for host-level access |
+
+## Pages in This Section
+
+<Cards>
+  <Card title="Zoom Credentials" href="/docs/api-v2/getting-started/zoom/credentials">
+    Store and manage Zoom app credentials and OAuth tokens with the credentials API.
+  </Card>
+  <Card title="OBF Token Support" href="/docs/api-v2/getting-started/zoom/obf-tokens">
+    Implement OBF tokens for external meetings. Covers all integration options.
+  </Card>
+  <Card title="OAuth Consent Flow" href="/docs/api-v2/getting-started/zoom/oauth-consent-flow">
+    Build an OAuth consent flow for your users to authorize your Zoom app.
+  </Card>
+</Cards>
+
+## Key Concepts
+
+### Credential Types
+
+**App-only credentials** store your Zoom app's SDK credentials (client ID and secret). Use these when your bots only join internal meetings.
+
+**User credentials** store OAuth tokens for a specific Zoom user who authorized your app. These enable OBF token support for joining external meetings.
+
+### Credential States
+
+v2 tracks credential health:
+
+- **active**: Credential is working and can be used
+- **invalid**: Credential has failed (e.g., tokens revoked, refresh failed)
+
+When a credential becomes invalid, `last_error_message` and `last_error_at` provide debugging information.
+
+### Security
+
+All credentials are encrypted at rest using AES-256-GCM. Client secrets and OAuth tokens are never returned in API responses—only credential IDs and metadata.
+
+## FAQ
+
+**Q: Can I migrate my v1 Zoom OAuth connections to v2?**
+
+Yes, but you'll need to create new credentials in v2 using the `/v2/zoom-credentials` endpoint. We recommend having users re-authorize to ensure fresh tokens.
+
+**Q: Do I need to change my Zoom app configuration?**
+
+No, your existing Zoom app works with v2. The scopes and settings remain the same.
+
+**Q: What happens if a credential becomes invalid?**
+
+Bots using that credential will fail to join meetings. You'll see the error in the credential's `last_error_message` field and in the bot's failure webhook.
+
+**Q: Can I use both v1 and v2 APIs simultaneously?**
+
+Yes, during migration you can use both APIs. However, credentials are not shared between v1 and v2—you'll need to set them up separately.
+
+## Related Resources
+
+- [Zoom App Setup](/docs/api/getting-started/zoom/app-setup) — Create a Zoom app in the Marketplace (same for v1 and v2)
+- [Sending a Bot](/docs/api-v2/getting-started/sending-a-bot) — Basic bot creation in v2
+- [Zoom's OBF Blog Post](https://developers.zoom.us/blog/transition-to-obf-token-meetingsdk-apps/) — Official announcement
+- [Zoom's OBF FAQ](https://developers.zoom.us/docs/meeting-sdk/obf-faq/) — Detailed Q&A from Zoom
+
+
+---
+
+## Building OAuth Consent Flow
+
+Step-by-step guide for implementing Zoom OAuth consent in your application for v2
+
+### Source: ./content/docs/api-v2/getting-started/zoom/oauth-consent-flow.mdx
+
+
+# Building OAuth Consent Flow
+
+To use OBF tokens with the v2 Credentials API, your users need to authorize your Zoom app. This guide walks through implementing the OAuth consent flow in your application.
+
+## Overview
+
+The OAuth flow has three steps:
+
+```
+User clicks "Connect Zoom" → Redirected to Zoom → Authorizes → Redirected back with code → You exchange code for credential
+```
+
+In v2, you exchange the authorization code directly via the Credentials API, which handles token exchange and secure storage.
+
+## Prerequisites
+
+Before implementing the OAuth flow:
+
+1. Create a Zoom app with OAuth enabled (see [Zoom App Setup](/docs/api/getting-started/zoom/app-setup))
+2. Add the required scopes: `user:read:token`, `user:read:user`, `user:read:zak`
+3. Configure a redirect URI in your Zoom app settings
+4. Have your Zoom Client ID and Client Secret ready
+
+## Step 1: Build the Authorization URL
+
+Create a link that sends users to Zoom's authorization page:
+
+```
+https://zoom.us/oauth/authorize?response_type=code&client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}
+```
+
+### Required Parameters
+
+| Parameter | Description |
+|-----------|-------------|
+| `response_type` | Always `code` |
+| `client_id` | Your Zoom app's Client ID |
+| `redirect_uri` | Where Zoom sends the user after authorization (must match your app settings exactly) |
+
+### Optional Parameters
+
+| Parameter | Description |
+|-----------|-------------|
+| `state` | Random string to prevent CSRF attacks. Verify this matches when the user returns. |
+
+### Example Implementation
+
+<Tabs items={['React', 'Next.js', 'Node.js']}>
+  <Tab value="React">
+    ```jsx title="ConnectZoomButton.jsx"
+    function ConnectZoomButton() {
+      const handleConnect = () => {
+        const params = new URLSearchParams({
+          response_type: "code",
+          client_id: process.env.REACT_APP_ZOOM_CLIENT_ID,
+          redirect_uri: `${window.location.origin}/oauth/zoom/callback`,
+          state: crypto.randomUUID(), // Store this to verify later
+        });
+
+        window.location.href = `https://zoom.us/oauth/authorize?${params}`;
+      };
+
+      return (
+        <button onClick={handleConnect}>
+          Connect Zoom Account
+        </button>
+      );
+    }
+    ```
+  </Tab>
+  <Tab value="Next.js">
+    ```tsx title="app/connect-zoom/page.tsx"
+    import { redirect } from "next/navigation";
+    import { cookies } from "next/headers";
+
+    export default function ConnectZoomPage() {
+      async function connectZoom() {
+        "use server";
+
+        const state = crypto.randomUUID();
+
+        // Store state in cookie for verification
+        cookies().set("zoom_oauth_state", state, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "lax",
+          maxAge: 600, // 10 minutes
+        });
+
+        const params = new URLSearchParams({
+          response_type: "code",
+          client_id: process.env.ZOOM_CLIENT_ID!,
+          redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/oauth/zoom/callback`,
+          state,
+        });
+
+        redirect(`https://zoom.us/oauth/authorize?${params}`);
+      }
+
+      return (
+        <form action={connectZoom}>
+          <button type="submit">Connect Zoom Account</button>
+        </form>
+      );
+    }
+    ```
+  </Tab>
+  <Tab value="Node.js">
+    ```javascript title="routes/zoom.js"
+    const express = require("express");
+    const crypto = require("crypto");
+    const router = express.Router();
+
+    router.get("/connect", (req, res) => {
+      const state = crypto.randomUUID();
+
+      // Store state in session for verification
+      req.session.zoomOAuthState = state;
+
+      const params = new URLSearchParams({
+        response_type: "code",
+        client_id: process.env.ZOOM_CLIENT_ID,
+        redirect_uri: `${process.env.APP_URL}/oauth/zoom/callback`,
+        state,
+      });
+
+      res.redirect(`https://zoom.us/oauth/authorize?${params}`);
+    });
+
+    module.exports = router;
+    ```
+  </Tab>
+</Tabs>
+
+## Step 2: Handle the Callback
+
+After the user authorizes (or denies), Zoom redirects to your redirect URI with query parameters:
+
+**Success:**
+```
+https://your-app.com/oauth/zoom/callback?code=AUTHORIZATION_CODE&state=YOUR_STATE
+```
+
+**User Denied:**
+```
+https://your-app.com/oauth/zoom/callback?error=access_denied
+```
+
+### Callback Handler
+
+<Tabs items={['Next.js', 'Express', 'Python']}>
+  <Tab value="Next.js">
+    ```tsx title="app/oauth/zoom/callback/route.ts"
+    import { cookies } from "next/headers";
+    import { redirect } from "next/navigation";
+    import { NextRequest } from "next/server";
+
+    export async function GET(request: NextRequest) {
+      const searchParams = request.nextUrl.searchParams;
+      const code = searchParams.get("code");
+      const state = searchParams.get("state");
+      const error = searchParams.get("error");
+
+      // Handle user denial
+      if (error) {
+        redirect("/settings?error=zoom_denied");
+      }
+
+      // Verify state to prevent CSRF
+      const storedState = cookies().get("zoom_oauth_state")?.value;
+      if (state !== storedState) {
+        redirect("/settings?error=invalid_state");
+      }
+
+      // Clear the state cookie
+      cookies().delete("zoom_oauth_state");
+
+      // Exchange code for credential via Meeting BaaS
+      const response = await fetch("https://api.meetingbaas.com/v2/zoom-credentials", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-meeting-baas-api-key": process.env.MEETING_BAAS_API_KEY!,
+        },
+        body: JSON.stringify({
+          name: `User ${userId}`, // Get from your session
+          client_id: process.env.ZOOM_CLIENT_ID,
+          client_secret: process.env.ZOOM_CLIENT_SECRET,
+          authorization_code: code,
+          redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/oauth/zoom/callback`,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("Failed to create credential:", await response.text());
+        redirect("/settings?error=zoom_exchange_failed");
+      }
+
+      const { data } = await response.json();
+
+      // Store the credential_id and zoom_user_id in your database
+      await saveZoomCredential(userId, {
+        credentialId: data.credential_id,
+        zoomUserId: data.zoom_user_id,
+      });
+
+      redirect("/settings?success=zoom_connected");
+    }
+    ```
+  </Tab>
+  <Tab value="Express">
+    ```javascript title="routes/zoom.js"
+    router.get("/callback", async (req, res) => {
+      const { code, state, error } = req.query;
+
+      // Handle user denial
+      if (error) {
+        return res.redirect("/settings?error=zoom_denied");
+      }
+
+      // Verify state
+      if (state !== req.session.zoomOAuthState) {
+        return res.redirect("/settings?error=invalid_state");
+      }
+
+      delete req.session.zoomOAuthState;
+
+      try {
+        // Exchange code for credential via Meeting BaaS
+        const response = await fetch("https://api.meetingbaas.com/v2/zoom-credentials", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-meeting-baas-api-key": process.env.MEETING_BAAS_API_KEY,
+          },
+          body: JSON.stringify({
+            name: `User ${req.user.id}`,
+            client_id: process.env.ZOOM_CLIENT_ID,
+            client_secret: process.env.ZOOM_CLIENT_SECRET,
+            authorization_code: code,
+            redirect_uri: `${process.env.APP_URL}/oauth/zoom/callback`,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+
+        const { data } = await response.json();
+
+        // Save to your database
+        await db.user.update({
+          where: { id: req.user.id },
+          data: {
+            zoomCredentialId: data.credential_id,
+            zoomUserId: data.zoom_user_id,
+          },
+        });
+
+        res.redirect("/settings?success=zoom_connected");
+      } catch (err) {
+        console.error("Zoom OAuth error:", err);
+        res.redirect("/settings?error=zoom_exchange_failed");
+      }
+    });
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python title="routes/zoom.py"
+    from flask import Flask, request, redirect, session
+    import requests
+
+    @app.route("/oauth/zoom/callback")
+    def zoom_callback():
+        code = request.args.get("code")
+        state = request.args.get("state")
+        error = request.args.get("error")
+
+        # Handle user denial
+        if error:
+            return redirect("/settings?error=zoom_denied")
+
+        # Verify state
+        if state != session.get("zoom_oauth_state"):
+            return redirect("/settings?error=invalid_state")
+
+        del session["zoom_oauth_state"]
+
+        # Exchange code for credential via Meeting BaaS
+        response = requests.post(
+            "https://api.meetingbaas.com/v2/zoom-credentials",
+            headers={
+                "Content-Type": "application/json",
+                "x-meeting-baas-api-key": os.environ["MEETING_BAAS_API_KEY"],
+            },
+            json={
+                "name": f"User {current_user.id}",
+                "client_id": os.environ["ZOOM_CLIENT_ID"],
+                "client_secret": os.environ["ZOOM_CLIENT_SECRET"],
+                "authorization_code": code,
+                "redirect_uri": f"{os.environ['APP_URL']}/oauth/zoom/callback",
+            },
+        )
+
+        if not response.ok:
+            print(f"Zoom OAuth error: {response.text}")
+            return redirect("/settings?error=zoom_exchange_failed")
+
+        data = response.json()["data"]
+
+        # Save to your database
+        current_user.zoom_credential_id = data["credential_id"]
+        current_user.zoom_user_id = data["zoom_user_id"]
+        db.session.commit()
+
+        return redirect("/settings?success=zoom_connected")
+    ```
+  </Tab>
+</Tabs>
+
+## Step 3: Use the Credential
+
+Once saved, use the `credential_id` when creating bots:
+
+```python
+response = requests.post(
+    "https://api.meetingbaas.com/v2/bots",
+    headers={
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+    },
+    json={
+        "bot_name": "Recording Bot",
+        "meeting_url": meeting_url,
+        "zoom_config": {
+            "credential_id": user.zoom_credential_id
+        }
+    }
+)
+```
+
+## Complete Example: Express.js
+
+Here's a full working example:
+
+```javascript title="server.js"
+const express = require("express");
+const session = require("express-session");
+const crypto = require("crypto");
+
+const app = express();
+
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+}));
+
+// Start OAuth flow
+app.get("/connect-zoom", (req, res) => {
+  if (!req.user) {
+    return res.redirect("/login");
+  }
+
+  const state = crypto.randomUUID();
+  req.session.zoomOAuthState = state;
+
+  const params = new URLSearchParams({
+    response_type: "code",
+    client_id: process.env.ZOOM_CLIENT_ID,
+    redirect_uri: `${process.env.APP_URL}/oauth/zoom/callback`,
+    state,
+  });
+
+  res.redirect(`https://zoom.us/oauth/authorize?${params}`);
+});
+
+// Handle callback
+app.get("/oauth/zoom/callback", async (req, res) => {
+  const { code, state, error } = req.query;
+
+  if (error) {
+    return res.redirect("/settings?error=zoom_denied");
+  }
+
+  if (!req.session.zoomOAuthState || state !== req.session.zoomOAuthState) {
+    return res.redirect("/settings?error=invalid_state");
+  }
+
+  delete req.session.zoomOAuthState;
+
+  try {
+    const response = await fetch("https://api.meetingbaas.com/v2/zoom-credentials", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": process.env.MEETING_BAAS_API_KEY,
+      },
+      body: JSON.stringify({
+        name: `${req.user.email} - Zoom`,
+        client_id: process.env.ZOOM_CLIENT_ID,
+        client_secret: process.env.ZOOM_CLIENT_SECRET,
+        authorization_code: code,
+        redirect_uri: `${process.env.APP_URL}/oauth/zoom/callback`,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Meeting BaaS error:", errorText);
+      return res.redirect("/settings?error=exchange_failed");
+    }
+
+    const { data } = await response.json();
+
+    // Save credential info to your database
+    await updateUser(req.user.id, {
+      zoomCredentialId: data.credential_id,
+      zoomUserId: data.zoom_user_id,
+      zoomConnected: true,
+    });
+
+    res.redirect("/settings?success=zoom_connected");
+  } catch (err) {
+    console.error("OAuth error:", err);
+    res.redirect("/settings?error=unknown");
+  }
+});
+
+// Disconnect Zoom
+app.post("/disconnect-zoom", async (req, res) => {
+  if (!req.user?.zoomCredentialId) {
+    return res.redirect("/settings");
+  }
+
+  try {
+    await fetch(
+      `https://api.meetingbaas.com/v2/zoom-credentials/${req.user.zoomCredentialId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "x-meeting-baas-api-key": process.env.MEETING_BAAS_API_KEY,
+        },
+      }
+    );
+
+    await updateUser(req.user.id, {
+      zoomCredentialId: null,
+      zoomUserId: null,
+      zoomConnected: false,
+    });
+
+    res.redirect("/settings?success=zoom_disconnected");
+  } catch (err) {
+    console.error("Disconnect error:", err);
+    res.redirect("/settings?error=disconnect_failed");
+  }
+});
+
+app.listen(3000);
+```
+
+## UI Recommendations
+
+### Connect Button States
+
+Show different UI based on connection status:
+
+```jsx
+function ZoomConnection({ user }) {
+  if (user.zoomConnected) {
+    return (
+      <div className="connection-card connected">
+        <ZoomIcon />
+        <div>
+          <h3>Zoom Connected</h3>
+          <p>Connected as {user.zoomEmail}</p>
+        </div>
+        <form action="/disconnect-zoom" method="POST">
+          <button type="submit" className="btn-secondary">
+            Disconnect
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  return (
+    <div className="connection-card">
+      <ZoomIcon />
+      <div>
+        <h3>Connect Zoom</h3>
+        <p>Allow recording bots to join your Zoom meetings</p>
+      </div>
+      <a href="/connect-zoom" className="btn-primary">
+        Connect
+      </a>
+    </div>
+  );
+}
+```
+
+### Error Messages
+
+Show user-friendly messages for common errors:
+
+| Error | User Message |
+|-------|--------------|
+| `zoom_denied` | "You declined to connect your Zoom account. You can try again anytime." |
+| `invalid_state` | "Something went wrong. Please try connecting again." |
+| `exchange_failed` | "We couldn't complete the connection. Please try again or contact support." |
+
+### Credential Health
+
+Monitor credential state and prompt re-authorization when needed:
+
+```jsx
+function ZoomConnectionStatus({ credential }) {
+  if (credential.state === "invalid") {
+    return (
+      <div className="alert warning">
+        <p>
+          Your Zoom connection needs to be refreshed.
+          <a href="/connect-zoom">Reconnect</a>
+        </p>
+        <small>Error: {credential.lastErrorMessage}</small>
+      </div>
+    );
+  }
+
+  return <p className="text-success">Connected and working</p>;
+}
+```
+
+## Security Best Practices
+
+### State Parameter
+
+Always use the `state` parameter to prevent CSRF attacks:
+
+1. Generate a random string before redirecting to Zoom
+2. Store it in the session (server-side)
+3. Verify it matches when the user returns
+4. Reject the callback if it doesn't match
+
+### Secure Cookie Settings
+
+When storing state in cookies:
+
+```javascript
+cookies().set("zoom_oauth_state", state, {
+  httpOnly: true,     // Not accessible via JavaScript
+  secure: true,       // HTTPS only
+  sameSite: "lax",    // CSRF protection
+  maxAge: 600,        // 10 minute expiry
+});
+```
+
+### Redirect URI Validation
+
+The `redirect_uri` must exactly match what's registered in your Zoom app, including:
+- Protocol (https://)
+- Domain
+- Port (if non-standard)
+- Path
+- Trailing slash (or lack thereof)
+
+## Error Handling
+
+### Authorization Code Expired
+
+Authorization codes are valid for approximately 10 minutes. If the exchange fails with "invalid_grant", the code has expired. Prompt the user to try again.
+
+### Redirect URI Mismatch
+
+If you see "redirect_uri_mismatch", verify:
+1. The URI in your code matches your Zoom app settings
+2. No trailing slash differences
+3. No http vs https differences
+
+### User Revoked Access
+
+If a user revokes your app in their Zoom settings, the credential becomes invalid. Handle this gracefully:
+
+1. Check credential state before creating bots
+2. If invalid, prompt re-authorization
+3. Delete the old credential after successful re-auth
+
+## FAQ
+
+**Q: Can I use the same redirect URI for development and production?**
+
+No, use environment-specific URIs. Add both to your Zoom app's allowed redirect URIs.
+
+**Q: What if the user has multiple Zoom accounts?**
+
+They'll authorize with whichever account they're logged into. Consider showing the connected email in your UI so they can verify.
+
+**Q: How do I handle re-authorization?**
+
+When creating a new credential for an existing Zoom user, the old credential becomes orphaned. Delete it after successful re-auth to avoid confusion.
+
+**Q: Can I customize what users see on Zoom's authorization page?**
+
+Limited customization is available in your Zoom app settings (app name, icon, description).
+
+## Next Steps
+
+- [Zoom Credentials API](/docs/api-v2/getting-started/zoom/credentials) — Manage stored credentials
+- [OBF Token Support](/docs/api-v2/getting-started/zoom/obf-tokens) — Use credentials for external meetings
+- [Sending a Bot](/docs/api-v2/getting-started/sending-a-bot) — Create bots with Zoom credentials
+
+
+---
+
+## OBF Token Support
+
+Configure OBF (On Behalf Of) tokens for Zoom bots joining external meetings in v2
+
+### Source: ./content/docs/api-v2/getting-started/zoom/obf-tokens.mdx
+
+
+# Zoom OBF Token Support
+
+Starting **March 2, 2026**, Zoom requires Meeting SDK applications to use On Behalf Of (OBF) tokens when joining meetings they did not create. This page explains what OBF tokens are, who needs them, and how to implement them with the v2 API.
+
+<Callout type="warn">
+**Deadline:** March 2, 2026. After this date, bots joining external Zoom meetings without OBF tokens will fail to join. See [Zoom's official announcement](https://developers.zoom.us/blog/transition-to-obf-token-meetingsdk-apps/).
+</Callout>
+
+## What is an OBF Token?
+
+An OBF (On Behalf Of) token is a Zoom authorization token that proves a specific Zoom user has authorized your bot to join meetings on their behalf.
+
+**Key characteristics:**
+
+- **User-specific**: Each token is tied to a particular Zoom user who authorized your app
+- **Short-lived**: Tokens should be fetched close to when they are needed
+- **Meeting SDK only**: Zoom web SDK, iOS SDK, Android SDK, Windows SDK, Linux SDK—all require OBF
+- **Authorized user presence**: The user who authorized the token must be present in the meeting
+
+<Callout>
+**Authorized User Presence:** When using OBF tokens, the Zoom user who authorized your app must be in the meeting. If they leave, the bot is disconnected. This is a Zoom platform requirement.
+</Callout>
+
+## Who Needs OBF Tokens?
+
+### You NEED OBF tokens if:
+
+- Your bots join Zoom meetings created by people **outside** your Zoom organization
+- You're building a product where customers request meeting recordings
+- You use Meeting BaaS as infrastructure for a service where end users have their own Zoom accounts
+- Any scenario where the meeting host is not part of your Zoom account
+
+### You do NOT need OBF tokens if:
+
+- Your bots only join meetings **within** your own Zoom account/organization
+- You use your own [SDK credentials](/docs/api-v2/getting-started/zoom/credentials#app-only-credentials) (makes all meetings "internal")
+- You only use Google Meet or Microsoft Teams bots
+
+## Four Integration Options
+
+The v2 API supports four ways to provide OBF tokens via the `zoom_config` object:
+
+| Option | Parameter | Best For |
+|--------|-----------|----------|
+| **Stored Credential** | `credential_id` | Most users—set up once, fully managed |
+| **User ID Lookup** | `credential_user_id` | When you store Zoom user IDs in your system |
+| **Direct Token** | `obf_token` | Testing, or existing OAuth infrastructure |
+| **Token URL** | `obf_token_url` | Keep credentials on your infrastructure |
+
+---
+
+## Option 1: Stored Credential (Recommended)
+
+Store the user's OAuth tokens via the [Credentials API](/docs/api-v2/getting-started/zoom/credentials), then reference the credential when creating bots.
+
+**How it works:**
+1. User completes OAuth consent flow → you receive authorization code
+2. Create a credential with the authorization code → Meeting BaaS stores encrypted tokens
+3. When creating bots, pass `credential_id` → we fetch fresh OBF token automatically
+
+### Step 1: Create OAuth Credential
+
+After the user authorizes your app:
+
+```bash
+curl -X POST "https://api.meetingbaas.com/v2/zoom-credentials" \
+     -H "Content-Type: application/json" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+     -d '{
+           "name": "John Doe - Acme Corp",
+           "client_id": "YOUR_ZOOM_CLIENT_ID",
+           "client_secret": "YOUR_ZOOM_CLIENT_SECRET",
+           "authorization_code": "AUTHORIZATION_CODE_FROM_ZOOM",
+           "redirect_uri": "https://your-app.com/oauth/callback"
+         }'
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "credential_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+    "zoom_user_id": "SeJwoMGwTCu52501SbDC0Q",
+    "credential_type": "user",
+    "state": "active",
+    ...
+  }
+}
+```
+
+### Step 2: Create Bots with Credential
+
+<Tabs items={['cURL', 'Python', 'JavaScript']}>
+  <Tab value="cURL">
+    ```bash
+    curl -X POST "https://api.meetingbaas.com/v2/bots" \
+         -H "Content-Type: application/json" \
+         -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+         -d '{
+               "bot_name": "Recording Bot",
+               "meeting_url": "https://zoom.us/j/123456789",
+               "zoom_config": {
+                 "credential_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901"
+               }
+             }'
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    import requests
+
+    response = requests.post(
+        "https://api.meetingbaas.com/v2/bots",
+        headers={
+            "Content-Type": "application/json",
+            "x-meeting-baas-api-key": "YOUR-API-KEY",
+        },
+        json={
+            "bot_name": "Recording Bot",
+            "meeting_url": "https://zoom.us/j/123456789",
+            "zoom_config": {
+                "credential_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901"
+            }
+        }
+    )
+    print(response.json())
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript
+    const response = await fetch("https://api.meetingbaas.com/v2/bots", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+      },
+      body: JSON.stringify({
+        bot_name: "Recording Bot",
+        meeting_url: "https://zoom.us/j/123456789",
+        zoom_config: {
+          credential_id: "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+        },
+      }),
+    });
+    console.log(await response.json());
+    ```
+  </Tab>
+</Tabs>
+
+**What happens:**
+1. Bot is queued to join
+2. At join time, we fetch a fresh OBF token using the stored OAuth tokens
+3. Bot joins the meeting on behalf of the authorized user
+
+**Pros:**
+- Fully automated after initial setup
+- Token always fresh (fetched at join time)
+- Automatic token refresh handling
+- Error tracking via credential state
+
+**Cons:**
+- Requires building OAuth consent flow for users
+- OAuth credentials stored in Meeting BaaS
+
+---
+
+## Option 2: User ID Lookup
+
+If you store Zoom user IDs in your database, you can look up credentials by user ID instead of credential ID.
+
+```json
+{
+  "bot_name": "Recording Bot",
+  "meeting_url": "https://zoom.us/j/123456789",
+  "zoom_config": {
+    "credential_user_id": "SeJwoMGwTCu52501SbDC0Q"
+  }
+}
+```
+
+Meeting BaaS finds the stored credential matching this Zoom user ID and uses it to fetch the OBF token.
+
+**Pros:**
+- Simpler integration if you already track Zoom user IDs
+- No need to store credential UUIDs
+
+**Cons:**
+- Slightly slower (lookup required)
+- Fails if multiple credentials exist for the same Zoom user ID
+
+---
+
+## Option 3: Direct Token
+
+Fetch the OBF token yourself and pass it directly.
+
+<Tabs items={['cURL', 'Python', 'JavaScript']}>
+  <Tab value="cURL">
+    ```bash
+    # First, get the OBF token from Zoom
+    OBF_TOKEN=$(curl -s "https://api.zoom.us/v2/users/me/token?type=onbehalf" \
+         -H "Authorization: Bearer YOUR_USER_ACCESS_TOKEN" | jq -r .token)
+
+    # Then, create bot with the token
+    curl -X POST "https://api.meetingbaas.com/v2/bots" \
+         -H "Content-Type: application/json" \
+         -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+         -d '{
+               "bot_name": "Recording Bot",
+               "meeting_url": "https://zoom.us/j/123456789",
+               "zoom_config": {
+                 "obf_token": "'"$OBF_TOKEN"'"
+               }
+             }'
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    import requests
+
+    # First, fetch OBF token from Zoom
+    zoom_response = requests.get(
+        "https://api.zoom.us/v2/users/me/token?type=onbehalf",
+        headers={"Authorization": f"Bearer {user_access_token}"}
+    )
+    obf_token = zoom_response.json()["token"]
+
+    # Then, create bot with the token
+    response = requests.post(
+        "https://api.meetingbaas.com/v2/bots",
+        headers={
+            "Content-Type": "application/json",
+            "x-meeting-baas-api-key": "YOUR-API-KEY",
+        },
+        json={
+            "bot_name": "Recording Bot",
+            "meeting_url": "https://zoom.us/j/123456789",
+            "zoom_config": {
+                "obf_token": obf_token
+            }
+        }
+    )
+    print(response.json())
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript
+    // First, fetch OBF token from Zoom
+    const zoomResponse = await fetch(
+      "https://api.zoom.us/v2/users/me/token?type=onbehalf",
+      { headers: { Authorization: `Bearer ${userAccessToken}` } }
+    );
+    const { token: obfToken } = await zoomResponse.json();
+
+    // Then, create bot with the token
+    const response = await fetch("https://api.meetingbaas.com/v2/bots", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+      },
+      body: JSON.stringify({
+        bot_name: "Recording Bot",
+        meeting_url: "https://zoom.us/j/123456789",
+        zoom_config: {
+          obf_token: obfToken,
+        },
+      }),
+    });
+    console.log(await response.json());
+    ```
+  </Tab>
+</Tabs>
+
+**Pros:**
+- Full control over token lifecycle
+- No credentials stored in Meeting BaaS
+
+**Cons:**
+- You manage OAuth token storage and refresh
+- Token may expire if there's delay before bot joins
+- Must fetch fresh token for each request
+
+**Best for:** Testing, debugging, or when you already have Zoom OAuth infrastructure.
+
+---
+
+## Option 4: Token URL
+
+Host an endpoint that returns OBF tokens. The bot calls your endpoint at join time.
+
+```json
+{
+  "bot_name": "Recording Bot",
+  "meeting_url": "https://zoom.us/j/123456789",
+  "zoom_config": {
+    "obf_token_url": "https://your-api.com/zoom/obf-token"
+  }
+}
+```
+
+### Parameters Passed to Your Endpoint
+
+When the bot calls your endpoint, it appends query parameters:
+
+| Parameter | Description |
+|-----------|-------------|
+| `bot_id` | The Meeting BaaS bot ID (UUID) |
+| `extra` | URL-encoded JSON of the `extra` data from the bot request |
+
+**Example request to your endpoint:**
+
+```
+GET https://your-api.com/zoom/obf-token?bot_id=abc-123-def&extra=%7B%22user_id%22%3A%22usr_456%22%7D
+```
+
+### Your Endpoint Requirements
+
+- Accept GET requests
+- Return the OBF token as plain text (ASCII, not JSON)
+- Respond within 15 seconds (timeout)
+- Handle OAuth token refresh internally
+
+### Example Endpoint Implementation
+
+```python title="your_endpoint.py"
+from flask import Flask, request
+import requests
+import json
+
+app = Flask(__name__)
+
+@app.route("/zoom/obf-token")
+def get_obf_token():
+    # Parse identifiers from query params
+    bot_id = request.args.get("bot_id")
+    extra_str = request.args.get("extra", "{}")
+    extra = json.loads(extra_str)
+    user_id = extra.get("user_id")
+
+    # Look up stored OAuth credentials for this user
+    access_token = get_stored_access_token(user_id)
+
+    # Refresh if expired
+    if is_expired(access_token):
+        access_token = refresh_access_token(user_id)
+
+    # Fetch OBF token from Zoom
+    response = requests.get(
+        "https://api.zoom.us/v2/users/me/token?type=onbehalf",
+        headers={"Authorization": f"Bearer {access_token}"}
+    )
+
+    # Return raw token (not JSON)
+    return response.json()["token"]
+```
+
+**Pros:**
+- Token always fresh (fetched at join time)
+- Credentials stay on your infrastructure
+
+**Cons:**
+- You must host and maintain an endpoint
+- You must implement OAuth token storage and refresh
+
+---
+
+## Bot Behavior with OBF Tokens
+
+### Authorized User Not Yet in Meeting
+
+When the bot joins with an OBF token and the authorized user hasn't joined yet:
+
+1. Bot attempts to join
+2. Zoom returns "authorized user not in meeting"
+3. Bot retries every 3 seconds
+4. Once the user joins, bot enters successfully
+5. If user doesn't join within timeout, bot exits with error
+
+Configure the timeout:
+
+```json
+{
+  "bot_name": "Recording Bot",
+  "meeting_url": "https://zoom.us/j/123456789",
+  "zoom_config": {
+    "credential_id": "..."
+  },
+  "timeout_config": {
+    "waiting_room_timeout": 300
+  }
+}
+```
+
+### Authorized User Leaves Meeting
+
+If the authorized user leaves while the bot is active:
+
+1. Zoom terminates the SDK session
+2. Bot stops recording
+3. Bot uploads any recorded content
+4. Completion webhook is sent
+5. Bot exits
+
+This is a Zoom requirement and cannot be changed.
+
+## Error Codes
+
+| Error Code | Meaning | Resolution |
+|------------|---------|------------|
+| `ZOOM_ACCESS_TOKEN_ERROR` | Failed to fetch or use OBF token | Check credential state, verify OAuth tokens |
+| `SDK_AUTH_FAILED` | SDK authentication failed | Verify SDK credentials or OBF token validity |
+| `WAITING_FOR_HOST_TIMEOUT` | Authorized user didn't join in time | Increase timeout or ensure user joins promptly |
+| `CANNOT_JOIN_MEETING` | Generic join failure | Could be invalid token, meeting ended, or meeting doesn't exist |
+
+### Credential-Specific Errors
+
+When using stored credentials, check the credential's error state:
+
+```bash
+curl "https://api.meetingbaas.com/v2/zoom-credentials/b2c3d4e5-f6a7-8901-bcde-f12345678901" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY"
+```
+
+If `state` is `invalid`, the `last_error_message` explains what went wrong.
+
+## Required Scopes
+
+Your Zoom app needs these scopes for OBF tokens:
+
+| Scope | Purpose | Required? |
+|-------|---------|-----------|
+| `user:read:zak` | Auto-added when enabling Meeting SDK | Yes (auto) |
+| `user:read:token` | Fetch OBF tokens | Yes |
+| `user:read:user` | Get Zoom user profile | Yes (for stored credentials) |
+
+See [Zoom App Setup](/docs/api/getting-started/zoom/app-setup) for adding scopes.
+
+## Migration Checklist
+
+<Steps>
+<Step>
+### Determine if You Need OBF Tokens
+
+Do your bots join meetings hosted by external Zoom accounts? If yes, you need OBF tokens. If only internal meetings, use [app-only credentials](/docs/api-v2/getting-started/zoom/credentials#app-only-credentials).
+
+</Step>
+
+<Step>
+### Configure Your Zoom App
+
+Ensure your Zoom app has `user:read:token` and `user:read:user` scopes. See [Zoom App Setup](/docs/api/getting-started/zoom/app-setup).
+
+</Step>
+
+<Step>
+### Choose an Integration Option
+
+- **Option 1 (Stored Credential)**: Recommended for most users
+- **Option 2 (User ID Lookup)**: If you track Zoom user IDs
+- **Option 3 (Direct Token)**: For testing or existing OAuth
+- **Option 4 (Token URL)**: Keep credentials on your infrastructure
+
+</Step>
+
+<Step>
+### Implement OAuth Consent Flow
+
+Build a "Connect Zoom" button for your users. See [OAuth Consent Flow](/docs/api-v2/getting-started/zoom/oauth-consent-flow).
+
+</Step>
+
+<Step>
+### Update Bot Creation Requests
+
+Add `zoom_config` with your chosen option to bot requests.
+
+</Step>
+
+<Step>
+### Test Before March 2, 2026
+
+Test with real Zoom meetings before the enforcement date.
+
+</Step>
+</Steps>
+
+## FAQ
+
+**Q: What happens if I don't implement OBF tokens by March 2, 2026?**
+
+Bots joining external Zoom meetings will fail. You'll receive a join failure error. Internal meetings with SDK credentials are not affected.
+
+**Q: Can one OBF token be used for multiple meetings?**
+
+Yes, OBF tokens are not meeting-specific when fetched without specifying a meeting number.
+
+**Q: Do Google Meet and Teams bots need OBF tokens?**
+
+No, OBF tokens are Zoom-specific.
+
+**Q: What if the authorized user's Zoom account is deactivated?**
+
+The stored credential becomes invalid. The user would need to re-authorize your app.
+
+**Q: Is there an alternative for continuous recording without user presence?**
+
+Zoom is developing Real-Time Media Streams (RTMS) for this use case. We're working on RTMS support, but it has different constraints and capabilities.
+
+**Q: How does v2 differ from v1 for OBF tokens?**
+
+v2 introduces the Credentials API for secure token storage, the `zoom_config` object for cleaner configuration, and better error tracking with credential states.
+
+## Resources
+
+- [Zoom Credentials API](/docs/api-v2/getting-started/zoom/credentials) — Store and manage credentials
+- [OAuth Consent Flow](/docs/api-v2/getting-started/zoom/oauth-consent-flow) — Build user authorization
+- [Zoom App Setup](/docs/api/getting-started/zoom/app-setup) — Create your Zoom app
+- [Zoom's OBF Blog Post](https://developers.zoom.us/blog/transition-to-obf-token-meetingsdk-apps/) — Official announcement
+- [Zoom's OBF FAQ](https://developers.zoom.us/docs/meeting-sdk/obf-faq/) — Detailed Q&A from Zoom
+- [Zoom Token API](https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userToken) — Zoom's token endpoint
 
 
 ---
@@ -5051,6 +6897,124 @@ This section contains reference documentation for all webhook payload structures
 - [Calendar Webhook Event Updated](/docs/api-v2/reference/webhooks/calendarwebhookeventupdated)
 - [Calendar Webhook Event Cancelled](/docs/api-v2/reference/webhooks/calendarwebhookeventcancelled)
 
+
+---
+
+## Create a Zoom credential
+
+### Source: ./content/docs/api-v2/reference/zoom--credentials/create-zoom-credential.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Create a new Zoom credential for your team.
+
+    Zoom credentials store your Zoom OAuth App credentials (client_id and client_secret) securely encrypted. You can create two types of credentials:
+
+    **App-only credentials:** Provide only `name`, `client_id`, and `client_secret`. These credentials can be used for SDK authentication when bots join meetings.
+
+    **User-authorized credentials:** Additionally provide `authorization_code` and `redirect_uri`. The API will exchange the authorization code for OAuth tokens, enabling OBF (On-Behalf-Of) token support. OBF tokens allow bots to join meetings on behalf of a specific Zoom user.
+
+    **Security:** All credentials are encrypted at rest using AES-256-GCM. Client secrets and OAuth tokens are never returned in API responses.
+
+    **OAuth Flow:** To obtain an authorization code, redirect users to Zoom's OAuth authorization endpoint and capture the code from the callback. Ensure your redirect URI exactly matches the one registered in your Zoom OAuth App.
+
+    **Error Scenarios:**
+    - `400 Bad Request`: Invalid input or missing redirect_uri when authorization_code is provided
+    - `400 Bad Request`: Failed to exchange authorization code (invalid code or redirect_uri mismatch)
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/zoom-credentials","method":"post"}]} webhooks={[]} hasHead={false} />
+
+---
+
+## Delete a Zoom credential
+
+### Source: ./content/docs/api-v2/reference/zoom--credentials/delete-zoom-credential.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Delete a Zoom credential (soft delete).
+
+    The credential is marked as deleted and will no longer appear in list responses. Bots currently using this credential will fail to fetch OBF tokens.
+
+    **Impact on Bots:** If bots are configured to use this credential (via `zoom_config.credential_id`), they will fail with an error when trying to fetch OBF tokens. Make sure to update any bot configurations before deleting a credential.
+
+    **Soft Delete:** The credential is soft-deleted and can potentially be restored by support if needed. All associated encrypted data remains in the database.
+
+    Returns 404 if the credential is not found or does not belong to your team.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/zoom-credentials/{id}","method":"delete"}]} webhooks={[]} hasHead={false} />
+
+---
+
+## Get a Zoom credential
+
+### Source: ./content/docs/api-v2/reference/zoom--credentials/get-zoom-credential.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Get detailed information about a specific Zoom credential.
+
+    Returns the credential's metadata including its current state and any recent errors. Sensitive fields (client_secret, OAuth tokens) are never included.
+
+    **Error Tracking:** The `last_error_message` and `last_error_at` fields show the most recent OBF token fetch failure. Check these fields if bots using this credential are failing to join meetings.
+
+    Returns 404 if the credential is not found or does not belong to your team.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/zoom-credentials/{id}","method":"get"}]} webhooks={[]} hasHead={false} />
+
+---
+
+## List Zoom credentials
+
+### Source: ./content/docs/api-v2/reference/zoom--credentials/list-zoom-credentials.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+List all Zoom credentials for your team.
+
+    Returns all non-deleted credentials with their metadata. Sensitive fields (client_secret, OAuth tokens) are never included in responses.
+
+    **Response Fields:**
+    - `credential_id`: UUID to reference this credential in bot requests
+    - `name`: User-friendly name for identification
+    - `credential_type`: "app" (SDK only) or "user" (with OAuth tokens)
+    - `zoom_user_id`: The Zoom user ID (only for "user" type)
+    - `state`: "active" or "invalid"
+    - `last_error_message`: Last OBF token fetch error (if any)
+
+    **Error Tracking:** If bots fail to fetch OBF tokens using a credential, the error is recorded in `last_error_message` and `last_error_at`. These fields are cleared on successful OBF token fetch.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/zoom-credentials","method":"get"}]} webhooks={[]} hasHead={false} />
+
+---
+
+## Update a Zoom credential
+
+### Source: ./content/docs/api-v2/reference/zoom--credentials/update-zoom-credential.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Update an existing Zoom credential.
+
+    You can update the credential name, SDK credentials (client_id/client_secret), or re-authorize with new OAuth tokens.
+
+    **Updating Name:** Provide only `name` to rename the credential.
+
+    **Updating SDK Credentials:** Provide both `client_id` and `client_secret` together to update the SDK credentials.
+
+    **Re-authorizing:** Provide `authorization_code`, `redirect_uri`, `client_id`, and `client_secret` to exchange a new authorization code for fresh OAuth tokens. This also resets the credential state to "active" and clears any error messages.
+
+    **Error Scenarios:**
+    - `400 Bad Request`: Missing redirect_uri when authorization_code is provided
+    - `400 Bad Request`: Failed to exchange authorization code
+    - `404 Not Found`: Credential not found or does not belong to your team
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/zoom-credentials/{id}","method":"patch"}]} webhooks={[]} hasHead={false} />
 
 ---
 

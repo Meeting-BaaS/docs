@@ -1,0 +1,10 @@
+{
+    "title": "Zoom Credentials",
+    "pages": [
+        "list-zoom-credentials",
+        "create-zoom-credential",
+        "get-zoom-credential",
+        "update-zoom-credential",
+        "delete-zoom-credential"
+    ]
+}

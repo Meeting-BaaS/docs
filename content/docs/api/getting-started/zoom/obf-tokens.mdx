@@ -493,10 +493,10 @@ This is a Zoom requirement and cannot be changed.
 
 The following endpoints manage Zoom OAuth connections for the managed OBF flow:
 
-- **POST /zoom_oauth_connections** — Create a new connection by exchanging an authorization code
-- **GET /zoom_oauth_connections** — List all connections for your account
-- **GET /zoom_oauth_connections/{uuid}** — Get a specific connection
-- **DELETE /zoom_oauth_connections/{uuid}** — Delete a connection and remove stored tokens
+- `POST /zoom_oauth_connections` — Create a new connection by exchanging an authorization code
+- `GET /zoom_oauth_connections` — List all connections for your account
+- `GET /zoom_oauth_connections/:uuid` — Get a specific connection
+- `DELETE /zoom_oauth_connections/:uuid` — Delete a connection and remove stored tokens
 
 See the [API Reference](/docs/api/reference) for full endpoint documentation.
 

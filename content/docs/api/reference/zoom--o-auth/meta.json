@@ -1,0 +1,9 @@
+{
+    "title": "Zoom OAuth",
+    "pages": [
+        "create_zoom_oauth_connection",
+        "list_zoom_oauth_connections",
+        "get_zoom_oauth_connection",
+        "delete_zoom_oauth_connection"
+    ]
+}

@@ -9,7 +9,7 @@ icon: Shield
 Starting **March 2, 2026**, Zoom requires Meeting SDK applications to use On Behalf Of (OBF) tokens when joining meetings they did not create. This page explains what OBF tokens are, who needs them, and how to implement them with the v2 API.
 
 <Callout type="warn">
-**Deadline:** March 2, 2026. After this date, bots joining external Zoom meetings without OBF tokens will fail to join.
+**Deadline:** March 2, 2026. After this date, bots joining external Zoom meetings without OBF tokens will fail to join. See [Zoom's official announcement](https://developers.zoom.us/blog/transition-to-obf-token-meetingsdk-apps/).
 </Callout>
 
 ## What is an OBF Token?
@@ -313,13 +313,13 @@ When the bot calls your endpoint, it appends query parameters:
 
 | Parameter | Description |
 |-----------|-------------|
-| `bot_uuid` | The Meeting BaaS bot UUID |
+| `bot_id` | The Meeting BaaS bot ID (UUID) |
 | `extra` | URL-encoded JSON of the `extra` data from the bot request |
 
 **Example request to your endpoint:**
 
 ```
-GET https://your-api.com/zoom/obf-token?bot_uuid=abc-123-def&extra=%7B%22user_id%22%3A%22usr_456%22%7D
+GET https://your-api.com/zoom/obf-token?bot_id=abc-123-def&extra=%7B%22user_id%22%3A%22usr_456%22%7D
 ```
 
 ### Your Endpoint Requirements
@@ -341,7 +341,7 @@ app = Flask(__name__)
 @app.route("/zoom/obf-token")
 def get_obf_token():
     # Parse identifiers from query params
-    bot_uuid = request.args.get("bot_uuid")
+    bot_id = request.args.get("bot_id")
     extra_str = request.args.get("extra", "{}")
     extra = json.loads(extra_str)
     user_id = extra.get("user_id")

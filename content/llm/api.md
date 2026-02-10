@@ -1430,6 +1430,1602 @@ This modular approach allows you to implement each component at your own pace an
 
 ---
 
+## Zoom App Setup
+
+Create and configure a Zoom app for use with Meeting BaaS, including Marketplace approval
+
+### Source: ./content/docs/api/getting-started/zoom/app-setup.mdx
+
+
+# Setting Up a Zoom App
+
+This guide walks through creating a Zoom app on the Zoom App Marketplace. You will use this app to either:
+
+- Use SDK credentials for internal meetings (no OBF tokens needed)
+- Implement OAuth for OBF tokens when joining external meetings
+
+## Prerequisites
+
+- A Zoom account (free or paid works)
+- Access to the [Zoom App Marketplace](https://marketplace.zoom.us/)
+
+## Creating Your Zoom App
+
+<Steps>
+<Step>
+### Go to the Zoom App Marketplace
+
+Navigate to [marketplace.zoom.us](https://marketplace.zoom.us/) and sign in. Click **Develop** in the top navigation, then **Build App**.
+
+</Step>
+
+<Step>
+### Select General App
+
+Choose **General App** as the app type. This is the unified app type that supports both OAuth and Meeting SDK.
+
+Give your app a descriptive name (e.g., "Acme Recording Bot").
+
+</Step>
+
+<Step>
+### Configure Basic Information
+
+Fill out the **Basic Information** section:
+
+| Field | Description |
+|-------|-------------|
+| App Name | Your app's display name |
+| Short Description | Brief description of what your app does |
+| Long Description | Detailed description (required for Marketplace listing) |
+| Company Name | Your organization name |
+| Developer Name | Primary contact name |
+| Developer Email | Primary contact email |
+
+**OAuth Redirect URL:** Enter the URL where you will handle OAuth callbacks. If you are only using SDK credentials without OAuth, you can set this to your app's home page (e.g., `https://yourapp.com/dashboard`).
+
+</Step>
+
+<Step>
+### Enable Meeting SDK
+
+Navigate to **Features** → **Embed** in the sidebar.
+
+Toggle **Meeting SDK** to **On**.
+
+This enables your app to join meetings using the Zoom Meeting SDK.
+
+</Step>
+
+<Step>
+### Configure Scopes
+
+Navigate to **Scopes** in the sidebar.
+
+**Default scope:** When you enable Meeting SDK, Zoom automatically adds `user:read:zak`. This is required by the Meeting SDK toggle.
+
+**Additional scopes:** Depending on your integration, you may need to add more scopes. Use this matrix to determine what you need:
+
+| Integration Type | `user:read:zak` | `user:read:token` | `user:read:user` |
+|------------------|-----------------|-------------------|------------------|
+| **SDK credentials only** (internal meetings) | ✓ Auto-added | Not needed | Not needed |
+| **OBF: Direct token** (you fetch tokens yourself) | ✓ Auto-added | You add to your app | You add to your app |
+| **OBF: Token URL** (you host an endpoint) | ✓ Auto-added | You add to your app | You add to your app |
+| **OBF: Managed OAuth** (Meeting BaaS stores tokens) | ✓ Auto-added | ✓ Required | ✓ Required |
+
+<Callout>
+**Which integration type should I use?**
+- **Internal meetings only:** Use SDK credentials. No additional scopes needed.
+- **External meetings, you manage OAuth:** Use Direct token or Token URL. Add scopes to your Zoom app.
+- **External meetings, we manage OAuth:** Use Managed OAuth. Add both `user:read:token` and `user:read:user`.
+
+See [OBF Token Support](/docs/api/getting-started/zoom/obf-tokens) for details on each option.
+</Callout>
+
+To add scopes, click **Add Scopes**, search for the scope name, and add it.
+
+</Step>
+
+<Step>
+### Get Your Credentials
+
+**OAuth credentials** (for OBF tokens):
+
+Navigate to **Basic Information** to find:
+- **Client ID** — Used in OAuth authorization URL
+- **Client Secret** — Used when exchanging authorization codes
+
+**SDK credentials** (for internal meetings):
+
+Navigate to **Features** → **Embed** → **Meeting SDK** section to find:
+- **SDK Key** (Client ID) — Use as `zoom_sdk_id`
+- **SDK Secret** — Use as `zoom_sdk_pwd`
+
+</Step>
+</Steps>
+
+## Using SDK Credentials
+
+If your bots only join meetings within your own Zoom organization, pass SDK credentials when creating bots:
+
+<Tabs items={['Bash', 'Python', 'JavaScript']}>
+  <Tab value="Bash">
+    ```bash
+    curl -X POST "https://api.meetingbaas.com/bots" \
+         -H "Content-Type: application/json" \
+         -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+         -d '{
+               "meeting_url": "https://zoom.us/j/123456789",
+               "bot_name": "Recording Bot",
+               "zoom_sdk_id": "YOUR_SDK_KEY",
+               "zoom_sdk_pwd": "YOUR_SDK_SECRET"
+             }'
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    import requests
+
+    response = requests.post(
+        "https://api.meetingbaas.com/bots",
+        headers={
+            "Content-Type": "application/json",
+            "x-meeting-baas-api-key": "YOUR-API-KEY",
+        },
+        json={
+            "meeting_url": "https://zoom.us/j/123456789",
+            "bot_name": "Recording Bot",
+            "zoom_sdk_id": "YOUR_SDK_KEY",
+            "zoom_sdk_pwd": "YOUR_SDK_SECRET"
+        }
+    )
+    print(response.json())
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript
+    const response = await fetch("https://api.meetingbaas.com/bots", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+      },
+      body: JSON.stringify({
+        meeting_url: "https://zoom.us/j/123456789",
+        bot_name: "Recording Bot",
+        zoom_sdk_id: "YOUR_SDK_KEY",
+        zoom_sdk_pwd: "YOUR_SDK_SECRET",
+      }),
+    });
+    console.log(await response.json());
+    ```
+  </Tab>
+</Tabs>
+
+<Callout type="warn">
+SDK credentials only work for meetings within your Zoom account. For external meetings, you need OBF tokens. See [OBF Token Support](/docs/api/getting-started/zoom/obf-tokens).
+</Callout>
+
+## Advanced: ZAK Token URL
+
+If you need the bot to join as a specific Zoom user (not just as an anonymous participant), you can provide a ZAK (Zoom Access Key) token via the `zoom_access_token_url` parameter.
+
+```json
+{
+  "meeting_url": "https://zoom.us/j/123456789",
+  "bot_name": "Recording Bot",
+  "zoom_access_token_url": "https://your-api.com/zoom/zak-token"
+}
+```
+
+When the bot calls your endpoint, it appends `bot_uuid` and `extra` as query parameters (same as with OBF token URLs). This lets you identify which ZAK token to return:
+
+```
+GET https://your-api.com/zoom/zak-token?bot_uuid=abc-123&extra={"user_id":"usr_456"}
+```
+
+Your endpoint should return the raw ZAK token as plain text (not JSON).
+
+<Callout>
+ZAK tokens are different from OBF tokens. ZAK tokens let the bot join **as** a specific user. OBF tokens let the bot join **on behalf of** a user (as an assistant). For most recording use cases, OBF tokens are the right choice.
+</Callout>
+
+## Submitting for Marketplace Approval
+
+Your app does not need to be listed on the Zoom Marketplace for Meeting BaaS to work. However, approval is required if:
+
+- You want a public listing for users to discover your app
+- You want the "approved" badge for trust
+- You are using OAuth and want external users to authorize your app
+
+### App Listing Section
+
+Fill out the **App Listing** section:
+
+| Field | What to Enter |
+|-------|---------------|
+| Category | Choose the most relevant category (e.g., "Productivity") |
+| Screenshots | At least 3 screenshots showing your app in action |
+| Icon | 256x256 PNG with transparent background |
+| Banner | 1280x640 PNG for the listing header |
+| Support URL | Link to your support/help page |
+| Privacy Policy URL | Link to your privacy policy |
+| Terms of Use URL | Link to your terms of service |
+
+### Technical Design Section
+
+Zoom requires details about your app's architecture. Here is what to include:
+
+**Technology Stack:**
+
+You can keep this high-level. Example:
+
+```
+Frontend: React, TailwindCSS
+Backend: Python/Node.js
+Auth: OAuth 2.0 (your provider)
+Database: PostgreSQL
+Hosting: AWS/GCP/Azure
+Zoom Integration: Zoom Meeting SDK via Meeting BaaS API
+```
+
+**Architecture Diagram:**
+
+Include a simple diagram showing:
+- Your application
+- Meeting BaaS API
+- Zoom SDK integration
+
+This does not need to be complex. A basic flow diagram works.
+
+### Application Development Section
+
+| Question | Answer | Hint |
+|----------|--------|------|
+| Do you have a SSDLC? | **Yes** | Describe your secure development practices: code reviews, secrets management, dependency scanning, etc. Even informal practices count. |
+| Does your app undergo SAST? | **Yes** (recommended) | Mention static analysis tools you use (CodeQL, Snyk, SonarQube, etc.). If you use GitHub, CodeQL is free and easy to set up. |
+| Does your app undergo DAST? | **Optional** | Dynamic application security testing. Answer based on your practices. Not required for basic approval. |
+| Third-party security testing? | **Optional** | Penetration testing or security audits. Not required but helps if you have them. |
+
+<Callout>
+**Small teams:** You do not need enterprise-grade security tooling. Basic practices like code reviews, dependency updates, and using a static analysis tool (even free ones like CodeQL) are sufficient for approval.
+</Callout>
+
+If you have security certifications (SOC 2, ISO 27001), upload them. They are not required but help with approval.
+
+### Security Section
+
+| Question | Answer | Hint |
+|----------|--------|------|
+| Does your app use TLS 1.2 or above? | **Yes** | Meeting BaaS uses TLS 1.2+. If you have your own backend, ensure it also uses TLS 1.2+. |
+| Does your app use verification/secret tokens? | **No** (if Meeting BaaS only) | If you are only using this app with Meeting BaaS, select No. We do not use Zoom webhooks. If you have your own Zoom webhook integration, select Yes and describe your verification approach. |
+| Does your app collect, store, or log user data? | **Depends** | If using Meeting BaaS only: We store meeting recordings and transcripts on your behalf. If you have additional data collection, describe it honestly. |
+
+<Callout>
+**Meeting BaaS users:** For most security questions, you can reference that your Zoom integration uses Meeting BaaS, which handles the SDK integration securely. You are responsible for your own application's security practices.
+</Callout>
+
+### Privacy Section
+
+| Question | Answer | Hint |
+|----------|--------|------|
+| Does your app collect info from users under 16? | **No** | Unless your app specifically targets minors, answer No. Include age restrictions in your Terms of Service. |
+| Is your app intended for education, healthcare, or government? | **Depends** | Answer based on your target market. If yes, you may need additional compliance documentation (FERPA, HIPAA, etc.). |
+| Does your app share data with third parties? | **Depends** | If using Meeting BaaS: Yes, we use Meeting BaaS for recording infrastructure. Describe this in your privacy policy. |
+
+Provide excerpts from your privacy policy covering:
+- What data you collect
+- How you use the data
+- User data access rights
+- How users can exercise those rights
+
+<Callout>
+**Privacy policy tip:** If you use Meeting BaaS, mention that recordings are processed by a third-party service (Meeting BaaS) and link to our privacy policy. Example: "Meeting recordings are processed by Meeting BaaS. See their privacy policy at meetingbaas.com/privacy."
+</Callout>
+
+### Submitting for Review
+
+<Steps>
+<Step>
+### Verify Your Domain
+
+Zoom requires domain verification. Follow the instructions in the **Domain Verification** section.
+
+</Step>
+
+<Step>
+### Provide Test Credentials
+
+Create a test account that Zoom reviewers can use to test your app. Include:
+- Login credentials
+- Any setup instructions
+- Sample meeting URLs they can test with
+
+</Step>
+
+<Step>
+### Submit
+
+Click **Submit** to enter the review queue.
+
+</Step>
+</Steps>
+
+### Review Process
+
+**Usability Review:**
+- A Zoom reviewer logs into your app using the test credentials
+- They test the meeting recording/transcription flow
+- If issues are found, you will receive a "more information required" request
+
+**Security Review:**
+- Zoom tests for common vulnerabilities
+- They may use tools like Burp Suite to check for issues
+- Ensure server-side validation for all sensitive operations
+
+**Timeline:** Expect 1-2 weeks for review. You can request expedited review for urgent cases.
+
+<Callout>
+**Tip:** If you receive a "more information required" request, ask for a call. A 30-minute meeting with the reviewer often resolves issues faster than back-and-forth emails.
+</Callout>
+
+## Scopes Reference
+
+| Scope | Purpose | When Needed |
+|-------|---------|-------------|
+| `user:read:zak` | ZAK token access | Auto-added when you enable Meeting SDK. Required for the SDK to function. |
+| `user:read:token` | OBF token access | Required for fetching OBF tokens. Add this for external meetings. |
+| `user:read:user` | User profile information | Required for managed OAuth. We use this to get the `zoom_user_id` when creating connections. |
+
+<Callout>
+**For Meeting BaaS users:**
+- **SDK credentials only:** No additional scopes needed beyond the auto-added `user:read:zak`
+- **OBF tokens (managed OAuth):** Add both `user:read:token` and `user:read:user`
+- **Existing Zoom app:** If you already have a Zoom app with other scopes, you can reuse it. Just enable Meeting SDK and add any missing scopes.
+</Callout>
+
+## Troubleshooting
+
+### SDK Authentication Failed
+
+If you receive `ZOOM_SDK_AUTH_FAILED`:
+
+1. Verify SDK Key and Secret are correct
+2. Ensure Meeting SDK is enabled in your app
+3. Check that your app is activated (not in draft status)
+4. Confirm you are using the SDK credentials, not OAuth credentials
+
+### OAuth Token Exchange Failed
+
+If the authorization code exchange fails:
+
+1. Verify the redirect URI matches exactly (including trailing slashes)
+2. Check that the authorization code has not expired (~10 minutes)
+3. Ensure all required scopes are added to your app
+4. Verify Client ID and Secret are correct
+
+### App Rejected During Review
+
+Common rejection reasons:
+
+- Missing or broken test credentials
+- Privacy policy does not cover required topics
+- Security vulnerabilities found (check for XSS, CSRF, etc.)
+- Screenshots do not match actual app functionality
+
+## Next Steps
+
+- [OBF Token Support](/docs/api/getting-started/zoom/obf-tokens) — If joining external meetings
+- [Building OAuth Consent Flow](/docs/api/getting-started/zoom/oauth-consent-flow) — Implementing user authorization
+- [Sending a Bot](/docs/api/getting-started/sending-a-bot) — Basic bot creation
+
+
+---
+
+## Zoom Integration
+
+Overview of Zoom integration options for Meeting BaaS bots
+
+### Source: ./content/docs/api/getting-started/zoom/index.mdx
+
+
+# Zoom Integration
+
+Meeting BaaS supports Zoom through the Zoom Meeting SDK. This section covers everything you need to set up and configure Zoom bots.
+
+<Callout type="warn">
+**Important Deadline:** Starting March 2, 2026, Zoom requires OBF tokens for bots joining external meetings. See [OBF Token Support](/docs/api/getting-started/zoom/obf-tokens) for details and [Zoom's official announcement](https://developers.zoom.us/blog/transition-to-obf-token-meetingsdk-apps/).
+</Callout>
+
+## Two Approaches
+
+How you integrate with Zoom depends on whose meetings your bots join:
+
+<Cards>
+  <Card title="Internal Meetings Only" href="/docs/api/getting-started/zoom/app-setup#using-sdk-credentials">
+    Your bots join meetings within your own Zoom organization. Use SDK credentials to make all meetings "internal." No OBF tokens needed.
+  </Card>
+  <Card title="External Meetings" href="/docs/api/getting-started/zoom/obf-tokens">
+    Your bots join meetings hosted by external accounts. OBF tokens are required after March 2, 2026.
+  </Card>
+</Cards>
+
+## Quick Decision Guide
+
+| Your Use Case | What You Need | Guide |
+|---------------|---------------|-------|
+| Recording your own team's meetings | SDK credentials | [App Setup](/docs/api/getting-started/zoom/app-setup) |
+| Building a product for customers | OBF tokens | [OBF Token Support](/docs/api/getting-started/zoom/obf-tokens) |
+| Joining meetings hosted by others | OBF tokens | [OBF Token Support](/docs/api/getting-started/zoom/obf-tokens) |
+
+## Pages in This Section
+
+<Cards>
+  <Card title="Zoom App Setup" href="/docs/api/getting-started/zoom/app-setup">
+    Create a Zoom app on the Marketplace, enable Meeting SDK, get credentials, and submit for approval.
+  </Card>
+  <Card title="OBF Token Support" href="/docs/api/getting-started/zoom/obf-tokens">
+    Implement OBF tokens for external meetings. Covers all three integration options.
+  </Card>
+  <Card title="Building OAuth Consent Flow" href="/docs/api/getting-started/zoom/oauth-consent-flow">
+    Step-by-step guide for implementing the OAuth consent flow in your application.
+  </Card>
+</Cards>
+
+## Key Concepts
+
+### SDK Credentials vs OBF Tokens
+
+**SDK credentials** (`zoom_sdk_id` and `zoom_sdk_pwd`) authenticate your Zoom app itself. When you use your own SDK credentials, meetings joined by your bots are considered "internal" to your Zoom account.
+
+**OBF tokens** authenticate on behalf of a specific Zoom user. They are required when joining meetings hosted by accounts outside your organization.
+
+### The March 2026 Deadline
+
+Zoom is enforcing OBF tokens starting March 2, 2026. After this date:
+
+- Bots joining external meetings without OBF tokens will fail
+- Bots joining internal meetings (with SDK credentials) are unaffected
+- Google Meet and Microsoft Teams bots are unaffected
+
+### Authorized User Presence
+
+When using OBF tokens, the Zoom user who authorized your app must be present in the meeting. If they leave, the bot disconnects. This is a Zoom platform requirement.
+
+For continuous recording scenarios, Zoom is developing RTMS (Real-Time Media Streams) as an alternative. We are working on RTMS support.
+
+## Related Resources
+
+- [Sending a Bot](/docs/api/getting-started/sending-a-bot) — Basic bot creation guide
+- [Zoom's OBF Blog Post](https://developers.zoom.us/blog/transition-to-obf-token-meetingsdk-apps/) — Official announcement
+- [Zoom's OBF FAQ](https://developers.zoom.us/docs/meeting-sdk/obf-faq/) — Detailed Q&A
+
+
+---
+
+## Building OAuth Consent Flow
+
+Implement the Zoom OAuth consent flow in your application for OBF token support
+
+### Source: ./content/docs/api/getting-started/zoom/oauth-consent-flow.mdx
+
+
+# Building an OAuth Consent Flow for Zoom
+
+This guide walks through implementing the OAuth consent flow in your application. You need this if you are using the [Managed OAuth](/docs/api/getting-started/zoom/obf-tokens#option-3-managed-oauth-zoom_obf_token_user_id) option for OBF tokens.
+
+## Overview
+
+The flow works like this:
+
+1. User clicks "Connect Zoom" in your app
+2. User is redirected to Zoom's authorization page
+3. User authorizes your app
+4. Zoom redirects back to your app with an authorization code
+5. You send the code to Meeting BaaS
+6. Meeting BaaS stores the tokens
+7. Future bot requests use the stored connection
+
+## Prerequisites
+
+- A Zoom app with Meeting SDK enabled ([see App Setup](/docs/api/getting-started/zoom/app-setup))
+- The `user:read:token` and `user:read:user` scopes added to your app
+- A callback URL configured in your Zoom app
+
+## Step 1: Create the Authorization URL
+
+Build the Zoom OAuth authorization URL:
+
+```
+https://zoom.us/oauth/authorize?response_type=code&client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}
+```
+
+| Parameter | Description |
+|-----------|-------------|
+| `client_id` | Your Zoom app's Client ID |
+| `redirect_uri` | URL-encoded redirect URI (must match your Zoom app config) |
+
+<Tabs items={['JavaScript', 'Python']}>
+  <Tab value="JavaScript">
+    ```javascript
+    function getZoomAuthUrl() {
+      const clientId = process.env.ZOOM_CLIENT_ID;
+      const redirectUri = encodeURIComponent('https://yourapp.com/zoom/callback');
+
+      return `https://zoom.us/oauth/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}`;
+    }
+
+    // In your route handler
+    app.get('/connect-zoom', (req, res) => {
+      res.redirect(getZoomAuthUrl());
+    });
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    from urllib.parse import urlencode
+    from flask import redirect
+
+    def get_zoom_auth_url():
+        client_id = os.environ['ZOOM_CLIENT_ID']
+        redirect_uri = 'https://yourapp.com/zoom/callback'
+
+        params = urlencode({
+            'response_type': 'code',
+            'client_id': client_id,
+            'redirect_uri': redirect_uri
+        })
+
+        return f'https://zoom.us/oauth/authorize?{params}'
+
+    @app.route('/connect-zoom')
+    def connect_zoom():
+        return redirect(get_zoom_auth_url())
+    ```
+  </Tab>
+</Tabs>
+
+### Adding State Parameter (Recommended)
+
+Include a `state` parameter to prevent CSRF attacks and track user context:
+
+```javascript
+function getZoomAuthUrl(userId) {
+  const clientId = process.env.ZOOM_CLIENT_ID;
+  const redirectUri = encodeURIComponent('https://yourapp.com/zoom/callback');
+
+  // State contains user ID and random token for CSRF protection
+  const state = Buffer.from(JSON.stringify({
+    userId: userId,
+    csrf: crypto.randomBytes(16).toString('hex')
+  })).toString('base64');
+
+  // Store CSRF token in session for verification
+  req.session.zoomCsrf = state;
+
+  return `https://zoom.us/oauth/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}`;
+}
+```
+
+## Step 2: Handle the Callback
+
+After the user authorizes, Zoom redirects to your callback URL with an authorization code:
+
+```
+https://yourapp.com/zoom/callback?code=AUTHORIZATION_CODE
+```
+
+<Tabs items={['JavaScript', 'Python']}>
+  <Tab value="JavaScript">
+    ```javascript
+    app.get('/zoom/callback', async (req, res) => {
+      const { code, state } = req.query;
+
+      if (!code) {
+        return res.status(400).send('Missing authorization code');
+      }
+
+      // Verify state if you used it
+      if (state !== req.session.zoomCsrf) {
+        return res.status(403).send('Invalid state parameter');
+      }
+
+      try {
+        // Send to Meeting BaaS
+        const connection = await createZoomConnection(code);
+
+        // Store the zoom_user_id with your user
+        await saveZoomConnection(req.user.id, connection.zoom_user_id);
+
+        res.redirect('/dashboard?zoom_connected=true');
+      } catch (error) {
+        console.error('Zoom OAuth error:', error);
+        res.redirect('/dashboard?zoom_error=true');
+      }
+    });
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    @app.route('/zoom/callback')
+    def zoom_callback():
+        code = request.args.get('code')
+        state = request.args.get('state')
+
+        if not code:
+            return 'Missing authorization code', 400
+
+        # Verify state if you used it
+        if state != session.get('zoom_csrf'):
+            return 'Invalid state parameter', 403
+
+        try:
+            # Send to Meeting BaaS
+            connection = create_zoom_connection(code)
+
+            # Store the zoom_user_id with your user
+            save_zoom_connection(current_user.id, connection['zoom_user_id'])
+
+            return redirect('/dashboard?zoom_connected=true')
+        except Exception as e:
+            print(f'Zoom OAuth error: {e}')
+            return redirect('/dashboard?zoom_error=true')
+    ```
+  </Tab>
+</Tabs>
+
+## Step 3: Create the Zoom OAuth Connection
+
+Send the authorization code to Meeting BaaS to exchange it for tokens:
+
+<Tabs items={['JavaScript', 'Python']}>
+  <Tab value="JavaScript">
+    ```javascript
+    async function createZoomConnection(authorizationCode) {
+      const response = await fetch('https://api.meetingbaas.com/zoom_oauth_connections', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-meeting-baas-api-key': process.env.MEETING_BAAS_API_KEY,
+        },
+        body: JSON.stringify({
+          authorization_code: authorizationCode,
+          redirect_uri: 'https://yourapp.com/zoom/callback',
+          zoom_client_id: process.env.ZOOM_CLIENT_ID,
+          zoom_client_secret: process.env.ZOOM_CLIENT_SECRET,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(`Failed to create connection: ${error.message}`);
+      }
+
+      return response.json();
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    import requests
+
+    def create_zoom_connection(authorization_code):
+        response = requests.post(
+            'https://api.meetingbaas.com/zoom_oauth_connections',
+            headers={
+                'Content-Type': 'application/json',
+                'x-meeting-baas-api-key': os.environ['MEETING_BAAS_API_KEY'],
+            },
+            json={
+                'authorization_code': authorization_code,
+                'redirect_uri': 'https://yourapp.com/zoom/callback',
+                'zoom_client_id': os.environ['ZOOM_CLIENT_ID'],
+                'zoom_client_secret': os.environ['ZOOM_CLIENT_SECRET'],
+            }
+        )
+
+        response.raise_for_status()
+        return response.json()
+    ```
+  </Tab>
+</Tabs>
+
+**Response:**
+
+```json
+{
+  "uuid": "550e8400-e29b-41d4-a716-446655440000",
+  "zoom_user_id": "SeJwoMGwTCu52501SbDC0Q",
+  "zoom_account_id": "AplWZ5oMSouJOw9zu0cmKQ",
+  "state": "connected",
+  "scopes": "user:read:token user:read:user",
+  "created_at": "2026-02-08T16:00:00",
+  "updated_at": "2026-02-08T16:00:00"
+}
+```
+
+Store the `zoom_user_id` associated with your user. You will use this when creating bots.
+
+## Step 4: Create Bots with the Connection
+
+When creating a bot for a user who has connected their Zoom account:
+
+<Tabs items={['JavaScript', 'Python']}>
+  <Tab value="JavaScript">
+    ```javascript
+    async function createBot(meetingUrl, userId) {
+      // Look up the user's zoom_user_id
+      const zoomUserId = await getZoomUserIdForUser(userId);
+
+      const response = await fetch('https://api.meetingbaas.com/bots', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-meeting-baas-api-key': process.env.MEETING_BAAS_API_KEY,
+        },
+        body: JSON.stringify({
+          meeting_url: meetingUrl,
+          bot_name: 'Recording Bot',
+          zoom_obf_token_user_id: zoomUserId,
+        }),
+      });
+
+      return response.json();
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def create_bot(meeting_url, user_id):
+        # Look up the user's zoom_user_id
+        zoom_user_id = get_zoom_user_id_for_user(user_id)
+
+        response = requests.post(
+            'https://api.meetingbaas.com/bots',
+            headers={
+                'Content-Type': 'application/json',
+                'x-meeting-baas-api-key': os.environ['MEETING_BAAS_API_KEY'],
+            },
+            json={
+                'meeting_url': meeting_url,
+                'bot_name': 'Recording Bot',
+                'zoom_obf_token_user_id': zoom_user_id,
+            }
+        )
+
+        return response.json()
+    ```
+  </Tab>
+</Tabs>
+
+## Handling Disconnections
+
+Users may revoke your app's access through Zoom's settings. You should:
+
+1. Check the connection state before creating bots
+2. Prompt users to reconnect if needed
+
+<Tabs items={['JavaScript', 'Python']}>
+  <Tab value="JavaScript">
+    ```javascript
+    async function getConnectionState(zoomUserId) {
+      const connections = await fetch(
+        'https://api.meetingbaas.com/zoom_oauth_connections',
+        {
+          headers: {
+            'x-meeting-baas-api-key': process.env.MEETING_BAAS_API_KEY,
+          },
+        }
+      ).then(r => r.json());
+
+      const connection = connections.find(c => c.zoom_user_id === zoomUserId);
+      return connection?.state || 'not_found';
+    }
+
+    // Before creating a bot
+    const state = await getConnectionState(user.zoomUserId);
+    if (state !== 'connected') {
+      // Prompt user to reconnect
+      return res.redirect('/connect-zoom');
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def get_connection_state(zoom_user_id):
+        response = requests.get(
+            'https://api.meetingbaas.com/zoom_oauth_connections',
+            headers={
+                'x-meeting-baas-api-key': os.environ['MEETING_BAAS_API_KEY'],
+            }
+        )
+
+        connections = response.json()
+        connection = next(
+            (c for c in connections if c['zoom_user_id'] == zoom_user_id),
+            None
+        )
+        return connection['state'] if connection else 'not_found'
+
+    # Before creating a bot
+    state = get_connection_state(user.zoom_user_id)
+    if state != 'connected':
+        # Prompt user to reconnect
+        return redirect('/connect-zoom')
+    ```
+  </Tab>
+</Tabs>
+
+## UI Recommendations
+
+### Connect Button
+
+Show a clear "Connect Zoom" button for users who have not connected:
+
+```jsx
+function ZoomConnectionStatus({ isConnected, onConnect }) {
+  if (isConnected) {
+    return (
+      <div className="flex items-center gap-2">
+        <CheckIcon className="text-green-500" />
+        <span>Zoom connected</span>
+      </div>
+    );
+  }
+
+  return (
+    <button onClick={onConnect} className="btn btn-primary">
+      Connect Zoom Account
+    </button>
+  );
+}
+```
+
+### Error States
+
+Handle common error scenarios:
+
+| Error | User Message |
+|-------|-------------|
+| Authorization cancelled | "You cancelled the Zoom connection. Try again when ready." |
+| Code expired | "The authorization expired. Please try connecting again." |
+| Connection already exists | "Your Zoom account is already connected." |
+| Invalid credentials | "There was a problem connecting to Zoom. Please contact support." |
+
+### Reconnection Flow
+
+When a connection becomes invalid:
+
+```jsx
+function ZoomReconnectBanner({ onReconnect }) {
+  return (
+    <div className="bg-yellow-50 border border-yellow-200 p-4 rounded">
+      <p>Your Zoom connection needs to be renewed.</p>
+      <button onClick={onReconnect} className="btn btn-secondary mt-2">
+        Reconnect Zoom
+      </button>
+    </div>
+  );
+}
+```
+
+## Complete Example
+
+Here is a complete Express.js implementation:
+
+```javascript
+const express = require('express');
+const crypto = require('crypto');
+
+const app = express();
+
+// Environment variables
+const {
+  ZOOM_CLIENT_ID,
+  ZOOM_CLIENT_SECRET,
+  MEETING_BAAS_API_KEY,
+  APP_URL
+} = process.env;
+
+const REDIRECT_URI = `${APP_URL}/zoom/callback`;
+
+// Start OAuth flow
+app.get('/connect-zoom', (req, res) => {
+  const state = crypto.randomBytes(16).toString('hex');
+  req.session.zoomState = state;
+
+  const authUrl = new URL('https://zoom.us/oauth/authorize');
+  authUrl.searchParams.set('response_type', 'code');
+  authUrl.searchParams.set('client_id', ZOOM_CLIENT_ID);
+  authUrl.searchParams.set('redirect_uri', REDIRECT_URI);
+  authUrl.searchParams.set('state', state);
+
+  res.redirect(authUrl.toString());
+});
+
+// Handle callback
+app.get('/zoom/callback', async (req, res) => {
+  const { code, state, error } = req.query;
+
+  // Handle user cancellation
+  if (error) {
+    return res.redirect('/settings?zoom_error=cancelled');
+  }
+
+  // Verify state
+  if (state !== req.session.zoomState) {
+    return res.status(403).send('Invalid state');
+  }
+
+  try {
+    // Create connection in Meeting BaaS
+    const response = await fetch(
+      'https://api.meetingbaas.com/zoom_oauth_connections',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-meeting-baas-api-key': MEETING_BAAS_API_KEY,
+        },
+        body: JSON.stringify({
+          authorization_code: code,
+          redirect_uri: REDIRECT_URI,
+          zoom_client_id: ZOOM_CLIENT_ID,
+          zoom_client_secret: ZOOM_CLIENT_SECRET,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to create connection');
+    }
+
+    const connection = await response.json();
+
+    // Store zoom_user_id with your user
+    await db.users.update(req.user.id, {
+      zoom_user_id: connection.zoom_user_id,
+      zoom_connected: true,
+    });
+
+    res.redirect('/settings?zoom_connected=true');
+  } catch (error) {
+    console.error('Zoom OAuth error:', error);
+    res.redirect('/settings?zoom_error=failed');
+  }
+});
+
+// Create a bot
+app.post('/api/bots', async (req, res) => {
+  const { meetingUrl } = req.body;
+  const user = req.user;
+
+  if (!user.zoom_connected) {
+    return res.status(400).json({
+      error: 'Please connect your Zoom account first'
+    });
+  }
+
+  const response = await fetch('https://api.meetingbaas.com/bots', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-meeting-baas-api-key': MEETING_BAAS_API_KEY,
+    },
+    body: JSON.stringify({
+      meeting_url: meetingUrl,
+      bot_name: 'Recording Bot',
+      zoom_obf_token_user_id: user.zoom_user_id,
+    }),
+  });
+
+  res.json(await response.json());
+});
+```
+
+## Next Steps
+
+- [OBF Token Support](/docs/api/getting-started/zoom/obf-tokens) — Full OBF documentation
+- [Zoom App Setup](/docs/api/getting-started/zoom/app-setup) — Creating your Zoom app
+- [Sending a Bot](/docs/api/getting-started/sending-a-bot) — Bot creation basics
+
+
+---
+
+## Zoom OBF Token Support
+
+Configure OBF (On Behalf Of) tokens for Zoom bots joining external meetings after March 2, 2026
+
+### Source: ./content/docs/api/getting-started/zoom/obf-tokens.mdx
+
+
+# Zoom OBF Token Support
+
+Starting **March 2, 2026**, Zoom requires Meeting SDK applications to use On Behalf Of (OBF) tokens when joining meetings they did not create. This page explains what OBF tokens are, who is affected, and how to implement them with Meeting BaaS.
+
+## What is an OBF Token?
+
+An OBF (On Behalf Of) token is a Zoom authorization token that proves a specific Zoom user has authorized your bot to join meetings on their behalf. It is:
+
+- **User-specific**: Each token is tied to a particular Zoom user who authorized your app
+- **Short-lived**: Tokens should be fetched close to when they are needed
+- **Required for external meetings**: After March 2, 2026, bots cannot join meetings hosted by external accounts without an OBF token
+
+<Callout>
+OBF tokens require the authorized user to be present in the meeting. If they leave, the bot is disconnected. This is a Zoom requirement.
+</Callout>
+
+## Who Needs OBF Tokens?
+
+### You need OBF tokens if:
+
+- Your bots join Zoom meetings created by people **outside** your Zoom organization
+- You are building a product where your customers request meeting recordings
+- You use Meeting BaaS as infrastructure for a service where end users have their own Zoom accounts
+
+### You do NOT need OBF tokens if:
+
+- Your bots only join meetings **within** your own Zoom account or organization
+- You use your own [SDK credentials](/docs/api/getting-started/zoom/app-setup) (which makes all meetings "internal")
+- You only use Google Meet or Microsoft Teams bots
+
+## Three Integration Options
+
+Meeting BaaS supports three ways to provide OBF tokens, from most manual to fully automated:
+
+### Option 1: Direct Token (`zoom_obf_token`)
+
+You fetch the OBF token yourself using Zoom's API and pass it directly when creating a bot.
+
+**How it works:**
+1. Your backend calls Zoom's API to get an OBF token
+2. You pass the token in the bot creation request
+3. The bot uses this token when joining
+
+<Tabs items={['Bash', 'Python', 'JavaScript']}>
+  <Tab value="Bash">
+    ```bash title="direct_obf_token.sh"
+    curl -X POST "https://api.meetingbaas.com/bots" \
+         -H "Content-Type: application/json" \
+         -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+         -d '{
+               "meeting_url": "https://zoom.us/j/123456789",
+               "bot_name": "Recording Bot",
+               "zoom_obf_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9..."
+             }'
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python title="direct_obf_token.py"
+    import requests
+
+    # First, fetch OBF token from Zoom using your stored access token
+    zoom_headers = {"Authorization": f"Bearer {user_access_token}"}
+    obf_response = requests.get(
+        "https://api.zoom.us/v2/users/me/token?type=onbehalf",
+        headers=zoom_headers
+    )
+    obf_token = obf_response.json()["token"]
+
+    # Then, create bot with the OBF token
+    url = "https://api.meetingbaas.com/bots"
+    headers = {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+    }
+    config = {
+        "meeting_url": "https://zoom.us/j/123456789",
+        "bot_name": "Recording Bot",
+        "zoom_obf_token": obf_token
+    }
+    response = requests.post(url, json=config, headers=headers)
+    print(response.json())
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript title="direct_obf_token.js"
+    // First, fetch OBF token from Zoom using your stored access token
+    const obfResponse = await fetch(
+      "https://api.zoom.us/v2/users/me/token?type=onbehalf",
+      {
+        headers: { Authorization: `Bearer ${userAccessToken}` },
+      }
+    );
+    const { token: obfToken } = await obfResponse.json();
+
+    // Then, create bot with the OBF token
+    const response = await fetch("https://api.meetingbaas.com/bots", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+      },
+      body: JSON.stringify({
+        meeting_url: "https://zoom.us/j/123456789",
+        bot_name: "Recording Bot",
+        zoom_obf_token: obfToken,
+      }),
+    });
+    console.log(await response.json());
+    ```
+  </Tab>
+</Tabs>
+
+**Pros:**
+- Full control over token lifecycle
+- No credentials stored in Meeting BaaS
+
+**Cons:**
+- You must implement OAuth token storage and refresh
+- Token may expire if there is delay between fetching and bot joining
+- Must fetch a fresh token for each bot request
+
+**Best for:** Testing, debugging, or customers who already have Zoom OAuth infrastructure.
+
+---
+
+### Option 2: Token URL (`zoom_obf_token_url`)
+
+You provide a URL that returns an OBF token. The bot calls this URL at join time to fetch a fresh token.
+
+**How it works:**
+1. You host an endpoint that returns OBF tokens
+2. You pass the endpoint URL when creating a bot
+3. The bot calls your endpoint at join time and receives the token
+
+<Tabs items={['Bash', 'Python', 'JavaScript']}>
+  <Tab value="Bash">
+    ```bash title="token_url.sh"
+    curl -X POST "https://api.meetingbaas.com/bots" \
+         -H "Content-Type: application/json" \
+         -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+         -d '{
+               "meeting_url": "https://zoom.us/j/123456789",
+               "bot_name": "Recording Bot",
+               "zoom_obf_token_url": "https://your-api.com/zoom/obf-token?user_id=abc123"
+             }'
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python title="token_url.py"
+    import requests
+
+    url = "https://api.meetingbaas.com/bots"
+    headers = {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+    }
+    config = {
+        "meeting_url": "https://zoom.us/j/123456789",
+        "bot_name": "Recording Bot",
+        "zoom_obf_token_url": "https://your-api.com/zoom/obf-token?user_id=abc123"
+    }
+    response = requests.post(url, json=config, headers=headers)
+    print(response.json())
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript title="token_url.js"
+    fetch("https://api.meetingbaas.com/bots", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+      },
+      body: JSON.stringify({
+        meeting_url: "https://zoom.us/j/123456789",
+        bot_name: "Recording Bot",
+        zoom_obf_token_url: "https://your-api.com/zoom/obf-token?user_id=abc123",
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log(data));
+    ```
+  </Tab>
+</Tabs>
+
+**Your endpoint must:**
+- Accept a GET request
+- Return the raw OBF token as the response body (plain text, not JSON)
+- Handle OAuth token refresh internally
+- Be accessible from Meeting BaaS infrastructure
+
+**Parameters passed to your endpoint:**
+
+When the bot calls your endpoint, it appends these query parameters:
+
+| Parameter | Description |
+|-----------|-------------|
+| `bot_uuid` | The Meeting BaaS bot UUID for this request |
+| `extra` | JSON string of any `extra` data you passed when creating the bot |
+
+For example, if you create a bot with:
+```json
+{
+  "meeting_url": "https://zoom.us/j/123456789",
+  "bot_name": "Recording Bot",
+  "zoom_obf_token_url": "https://your-api.com/zoom/obf-token",
+  "extra": {"user_id": "usr_456", "org_id": "org_789"}
+}
+```
+
+Your endpoint will receive:
+```
+GET https://your-api.com/zoom/obf-token?bot_uuid=abc-123-def&extra={"user_id":"usr_456","org_id":"org_789"}
+```
+
+This lets you use either our `bot_uuid` or your own identifiers in `extra` to look up which token to return.
+
+**Example endpoint implementation:**
+
+```python title="your_endpoint.py"
+from flask import Flask, request
+import requests
+import json
+
+app = Flask(__name__)
+
+@app.route("/zoom/obf-token")
+def get_obf_token():
+    # Option 1: Use bot_uuid to look up the user
+    bot_uuid = request.args.get("bot_uuid")
+
+    # Option 2: Use your own identifiers from extra
+    extra_str = request.args.get("extra")
+    if extra_str:
+        extra = json.loads(extra_str)
+        user_id = extra.get("user_id")
+
+    # Look up stored OAuth credentials for this user
+    access_token = get_stored_access_token(user_id)
+
+    # Refresh if expired
+    if is_expired(access_token):
+        access_token = refresh_access_token(user_id)
+
+    # Fetch OBF token from Zoom
+    response = requests.get(
+        "https://api.zoom.us/v2/users/me/token?type=onbehalf",
+        headers={"Authorization": f"Bearer {access_token}"}
+    )
+
+    return response.json()["token"]
+```
+
+**Pros:**
+- Token is always fresh (fetched at join time)
+- You maintain full control of OAuth credentials
+
+**Cons:**
+- You must host and maintain an endpoint
+- You must implement OAuth token storage and refresh
+
+**Best for:** Customers who want to keep Zoom credentials on their own infrastructure.
+
+---
+
+### Option 3: Managed OAuth (`zoom_obf_token_user_id`)
+
+Meeting BaaS stores the OAuth credentials and handles token refresh automatically. This is the recommended option for most customers.
+
+**How it works:**
+1. Your Zoom user goes through OAuth consent flow
+2. You send the authorization code to Meeting BaaS
+3. Meeting BaaS stores the tokens and refreshes them automatically
+4. When creating a bot, you just specify the Zoom user ID
+5. Meeting BaaS fetches a fresh OBF token at join time
+
+#### Step 1: Set Up OAuth Consent Flow
+
+Direct your Zoom user to the OAuth authorization URL:
+
+```
+https://zoom.us/oauth/authorize?response_type=code&client_id={YOUR_CLIENT_ID}&redirect_uri={YOUR_REDIRECT_URI}
+```
+
+After the user authorizes, Zoom redirects to your redirect URI with an authorization code:
+
+```
+{YOUR_REDIRECT_URI}?code=AUTHORIZATION_CODE
+```
+
+#### Step 2: Create Zoom OAuth Connection
+
+Send the authorization code to Meeting BaaS:
+
+<Tabs items={['Bash', 'Python', 'JavaScript']}>
+  <Tab value="Bash">
+    ```bash title="create_connection.sh"
+    curl -X POST "https://api.meetingbaas.com/zoom_oauth_connections" \
+         -H "Content-Type: application/json" \
+         -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+         -d '{
+               "authorization_code": "AUTHORIZATION_CODE_FROM_ZOOM",
+               "redirect_uri": "https://your-app.com/oauth/callback",
+               "zoom_client_id": "YOUR_ZOOM_CLIENT_ID",
+               "zoom_client_secret": "YOUR_ZOOM_CLIENT_SECRET"
+             }'
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python title="create_connection.py"
+    import requests
+
+    url = "https://api.meetingbaas.com/zoom_oauth_connections"
+    headers = {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+    }
+    data = {
+        "authorization_code": "AUTHORIZATION_CODE_FROM_ZOOM",
+        "redirect_uri": "https://your-app.com/oauth/callback",
+        "zoom_client_id": "YOUR_ZOOM_CLIENT_ID",
+        "zoom_client_secret": "YOUR_ZOOM_CLIENT_SECRET"
+    }
+    response = requests.post(url, json=data, headers=headers)
+    print(response.json())
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript title="create_connection.js"
+    const response = await fetch(
+      "https://api.meetingbaas.com/zoom_oauth_connections",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-meeting-baas-api-key": "YOUR-API-KEY",
+        },
+        body: JSON.stringify({
+          authorization_code: "AUTHORIZATION_CODE_FROM_ZOOM",
+          redirect_uri: "https://your-app.com/oauth/callback",
+          zoom_client_id: "YOUR_ZOOM_CLIENT_ID",
+          zoom_client_secret: "YOUR_ZOOM_CLIENT_SECRET",
+        }),
+      }
+    );
+    const connection = await response.json();
+    console.log(connection);
+    // { uuid: "...", zoom_user_id: "SeJwoMGwTCu52501SbDC0Q", state: "connected", ... }
+    ```
+  </Tab>
+</Tabs>
+
+**Response:**
+
+```json
+{
+  "uuid": "550e8400-e29b-41d4-a716-446655440000",
+  "zoom_user_id": "SeJwoMGwTCu52501SbDC0Q",
+  "zoom_account_id": "AplWZ5oMSouJOw9zu0cmKQ",
+  "state": "connected",
+  "scopes": "user:read:token user:read:user",
+  "created_at": "2026-02-08T16:00:00",
+  "updated_at": "2026-02-08T16:00:00"
+}
+```
+
+Save the `zoom_user_id` from the response. You will use this when creating bots.
+
+#### Step 3: Create Bots with Managed OBF
+
+<Tabs items={['Bash', 'Python', 'JavaScript']}>
+  <Tab value="Bash">
+    ```bash title="managed_obf.sh"
+    curl -X POST "https://api.meetingbaas.com/bots" \
+         -H "Content-Type: application/json" \
+         -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+         -d '{
+               "meeting_url": "https://zoom.us/j/123456789",
+               "bot_name": "Recording Bot",
+               "zoom_obf_token_user_id": "SeJwoMGwTCu52501SbDC0Q"
+             }'
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python title="managed_obf.py"
+    import requests
+
+    url = "https://api.meetingbaas.com/bots"
+    headers = {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+    }
+    config = {
+        "meeting_url": "https://zoom.us/j/123456789",
+        "bot_name": "Recording Bot",
+        "zoom_obf_token_user_id": "SeJwoMGwTCu52501SbDC0Q"
+    }
+    response = requests.post(url, json=config, headers=headers)
+    print(response.json())
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript title="managed_obf.js"
+    fetch("https://api.meetingbaas.com/bots", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+      },
+      body: JSON.stringify({
+        meeting_url: "https://zoom.us/j/123456789",
+        bot_name: "Recording Bot",
+        zoom_obf_token_user_id: "SeJwoMGwTCu52501SbDC0Q",
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log(data));
+    ```
+  </Tab>
+</Tabs>
+
+Meeting BaaS will automatically:
+1. Look up the stored OAuth connection for this Zoom user
+2. Refresh the access token if expired
+3. Fetch a fresh OBF token from Zoom's API
+4. Pass it to the bot at join time
+
+**Pros:**
+- Fully automated after initial setup
+- No need to manage tokens yourself
+- Token is always fresh
+- Handles refresh automatically
+
+**Cons:**
+- Zoom OAuth credentials must be shared with Meeting BaaS
+- Requires building an OAuth consent UI for your users
+
+**Best for:** Most customers, especially those building products for end users.
+
+## Bot Behavior with OBF Tokens
+
+### Authorized User Not in Meeting
+
+When the bot joins with an OBF token and the authorized user is not yet in the meeting:
+
+1. Bot attempts to join
+2. Zoom returns "Authorized user not in meeting" error
+3. Bot retries every 3 seconds
+4. Once the authorized user joins, the bot successfully enters
+5. If the user does not join within the timeout period, the bot exits with error
+
+The timeout is controlled by `automatic_leave.waiting_room_timeout` (default: 200 seconds).
+
+```json
+{
+  "meeting_url": "https://zoom.us/j/123456789",
+  "bot_name": "Recording Bot",
+  "zoom_obf_token_user_id": "SeJwoMGwTCu52501SbDC0Q",
+  "automatic_leave": {
+    "waiting_room_timeout": 300
+  }
+}
+```
+
+### Authorized User Leaves
+
+If the authorized user leaves the meeting while the bot is active, Zoom ends the SDK session. The bot will:
+
+1. Stop recording
+2. Upload any recorded content
+3. Send completion webhook
+4. Exit the meeting
+
+This is a Zoom requirement and cannot be changed.
+
+## Error Codes
+
+| Error Code | Meaning |
+|------------|---------|
+| `WaitingForHostTimeout` | The authorized user did not join the meeting within the timeout period |
+| `CannotJoinMeeting` | Generic join failure. With OBF, this could mean an invalid or expired token |
+| `ZOOM_SDK_AUTH_FAILED` | SDK authentication failed. Check SDK credentials or OBF token validity |
+
+## API Reference
+
+### Zoom OAuth Connections
+
+The following endpoints manage Zoom OAuth connections for the managed OBF flow:
+
+- `POST /zoom_oauth_connections` — Create a new connection by exchanging an authorization code
+- `GET /zoom_oauth_connections` — List all connections for your account
+- `GET /zoom_oauth_connections/:uuid` — Get a specific connection
+- `DELETE /zoom_oauth_connections/:uuid` — Delete a connection and remove stored tokens
+
+See the [API Reference](/docs/api/reference) for full endpoint documentation.
+
+### Bot Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `zoom_obf_token` | string | Raw OBF token (Option 1) |
+| `zoom_obf_token_url` | string | URL that returns an OBF token (Option 2) |
+| `zoom_obf_token_user_id` | string | Zoom user ID from a stored OAuth connection (Option 3) |
+
+Only provide **one** of these parameters. If multiple are provided, precedence is: `zoom_obf_token` > `zoom_obf_token_url` > `zoom_obf_token_user_id`.
+
+## Migration Checklist
+
+<Steps>
+<Step>
+### Determine if You Need OBF Tokens
+
+Do your bots join meetings hosted by external Zoom accounts? If yes, you need OBF tokens. If your bots only join meetings within your own Zoom organization, consider using [SDK credentials](/docs/api/getting-started/zoom/app-setup) instead.
+
+</Step>
+
+<Step>
+### Create or Update Your Zoom App
+
+Ensure your Zoom app has the `user:read:token` and `user:read:user` scopes. See [Zoom App Setup](/docs/api/getting-started/zoom/app-setup).
+
+</Step>
+
+<Step>
+### Choose an Integration Option
+
+- **Option 1 (Direct Token)**: For testing or if you already have OAuth infrastructure
+- **Option 2 (Token URL)**: If you want to keep credentials on your infrastructure
+- **Option 3 (Managed OAuth)**: Recommended for most customers
+
+</Step>
+
+<Step>
+### Implement OAuth Consent Flow
+
+For Options 2 and 3, you need to implement a way for Zoom users to authorize your app (e.g. a "Connect Zoom" button). For Option 1 (Direct Token), you still need a way to obtain a Zoom access token—for example, a one-time OAuth flow or script—so you can call Zoom's token API to fetch the OBF token.
+
+</Step>
+
+<Step>
+### Update Bot Creation Requests
+
+Add the appropriate OBF parameter (`zoom_obf_token`, `zoom_obf_token_url`, or `zoom_obf_token_user_id`) to your bot creation requests.
+
+</Step>
+
+<Step>
+### Test Before March 2, 2026
+
+Test your integration with real Zoom meetings before the enforcement date.
+
+</Step>
+</Steps>
+
+## FAQ
+
+**Q: What happens if I do not implement OBF tokens by March 2, 2026?**
+
+Your bots will fail to join external Zoom meetings. They will receive a join failure error.
+
+**Q: Can I use one OBF token for multiple meetings?**
+
+Yes, OBF tokens are not meeting-specific by default. When fetched via the API without specifying a meeting number, the token is valid for all meetings.
+
+**Q: Do I need OBF tokens for Google Meet or Microsoft Teams?**
+
+No, OBF tokens are a Zoom-specific requirement.
+
+**Q: What if the authorized user's Zoom account is deactivated?**
+
+The OAuth connection will become invalid. The user would need to re-authorize your app.
+
+**Q: Is there an alternative to OBF tokens for continuous recording?**
+
+Zoom is developing Real-Time Media Streams (RTMS) for continuous recording use cases. We are working on RTMS support, but it has different constraints (runs as an app inside the meeting, no bidirectional streaming support yet).
+
+## Resources
+
+- [Zoom App Setup Guide](/docs/api/getting-started/zoom/app-setup)
+- [Sending a Bot](/docs/api/getting-started/sending-a-bot)
+- [Zoom's Official OBF Blog Post](https://developers.zoom.us/blog/transition-to-obf-token-meetingsdk-apps/)
+- [Zoom's OBF FAQ](https://developers.zoom.us/docs/meeting-sdk/obf-faq/)
+- [Zoom Token API Reference](https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userToken)
+
+
+---
+
 ## Introduction
 
 Get started with the Meeting BaaS API
@@ -1758,8 +3354,8 @@ Sent when a bot successfully completes recording a meeting.
       }
     ],
     \"speakers\": [
-      \"Jane Smith\",
-      \"John Doe\"
+      \"John Doe\",
+      \"Jane Smith\"
     ],
     \"mp4\": \"https://storage.example.com/recordings/video123.mp4?token=abc\",
     \"audio\": \"https://storage.example.com/recordings/audio123.wav?token=abc\",
@@ -2084,6 +3680,58 @@ If your endpoint fails to respond or returns an error, the system will attempt t
 For security, always validate the API key in the `x-meeting-baas-api-key` header matches your API key.
 
 <APIPage document={"./openapi.json"} operations={[{"path":"/bots/webhooks","method":"get"}]} webhooks={[]} hasHead={false} />
+
+---
+
+## Create Zoom OAuth Connection
+
+### Source: ./content/docs/api/reference/zoom--o-auth/create_zoom_oauth_connection.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Exchanges a Zoom OAuth authorization code for access and refresh tokens, retrieves the Zoom user's profile, and stores the connection for managed OBF token generation. The authorization code is obtained by directing a Zoom user through the OAuth consent flow for your Zoom OAuth app. Once stored, you can reference this connection's `zoom_user_id` as the `zoom_obf_token_user_id` parameter when creating a bot, and the system will automatically fetch a fresh OBF token at join time. Note: the authorization code is single-use and expires in approximately 10 minutes.
+
+<APIPage document={"./openapi.json"} operations={[{"path":"/zoom_oauth_connections/","method":"post"}]} webhooks={[]} hasHead={false} />
+
+---
+
+## Delete Zoom OAuth Connection
+
+### Source: ./content/docs/api/reference/zoom--o-auth/delete_zoom_oauth_connection.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Permanently deletes a Zoom OAuth connection by its UUID, removing all stored tokens. After deletion, bots using this connection's `zoom_user_id` as `zoom_obf_token_user_id` will no longer be able to automatically fetch OBF tokens. The Zoom user would need to re-authorize to create a new connection.
+
+<APIPage document={"./openapi.json"} operations={[{"path":"/zoom_oauth_connections/{uuid}","method":"delete"}]} webhooks={[]} hasHead={false} />
+
+---
+
+## Get Zoom OAuth Connection
+
+### Source: ./content/docs/api/reference/zoom--o-auth/get_zoom_oauth_connection.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Retrieves a specific Zoom OAuth connection by its UUID. Returns the connection details including the Zoom user ID, account ID, connection state, and granted scopes. Sensitive token data is never included in the response.
+
+<APIPage document={"./openapi.json"} operations={[{"path":"/zoom_oauth_connections/{uuid}","method":"get"}]} webhooks={[]} hasHead={false} />
+
+---
+
+## List Zoom OAuth Connections
+
+### Source: ./content/docs/api/reference/zoom--o-auth/list_zoom_oauth_connections.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Retrieves all Zoom OAuth connections associated with the authenticated account. Each connection represents a Zoom user who has authorized your app via OAuth. Use this to display connected users or to find the `zoom_user_id` needed for the `zoom_obf_token_user_id` bot parameter. Sensitive token data is never included in the response.
+
+<APIPage document={"./openapi.json"} operations={[{"path":"/zoom_oauth_connections/","method":"get"}]} webhooks={[]} hasHead={false} />
 
 ---
 
