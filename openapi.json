@@ -990,6 +990,148 @@
           }
         }
       }
+    },
+    "/zoom_oauth_connections/": {
+      "get": {
+        "tags": [
+          "Zoom OAuth"
+        ],
+        "summary": "List Zoom OAuth Connections",
+        "description": "Retrieves all Zoom OAuth connections associated with the authenticated account. Each connection represents a Zoom user who has authorized your app via OAuth. Use this to display connected users or to find the `zoom_user_id` needed for the `zoom_obf_token_user_id` bot parameter. Sensitive token data is never included in the response.",
+        "operationId": "list_zoom_oauth_connections",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ZoomOAuthConnectionResponse"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Zoom OAuth"
+        ],
+        "summary": "Create Zoom OAuth Connection",
+        "description": "Exchanges a Zoom OAuth authorization code for access and refresh tokens, retrieves the Zoom user's profile, and stores the connection for managed OBF token generation. The authorization code is obtained by directing a Zoom user through the OAuth consent flow for your Zoom OAuth app. Once stored, you can reference this connection's `zoom_user_id` as the `zoom_obf_token_user_id` parameter when creating a bot, and the system will automatically fetch a fresh OBF token at join time. Note: the authorization code is single-use and expires in approximately 10 minutes.",
+        "operationId": "create_zoom_oauth_connection",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateConnectionRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Error response"
+          },
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ZoomOAuthConnectionResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
+    },
+    "/zoom_oauth_connections/{uuid}": {
+      "get": {
+        "tags": [
+          "Zoom OAuth"
+        ],
+        "summary": "Get Zoom OAuth Connection",
+        "description": "Retrieves a specific Zoom OAuth connection by its UUID. Returns the connection details including the Zoom user ID, account ID, connection state, and granted scopes. Sensitive token data is never included in the response.",
+        "operationId": "get_zoom_oauth_connection",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "uuid",
+            "description": "The UUID identifier",
+            "required": true,
+            "schema": {
+              "description": "The UUID identifier",
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ZoomOAuthConnectionResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Zoom OAuth"
+        ],
+        "summary": "Delete Zoom OAuth Connection",
+        "description": "Permanently deletes a Zoom OAuth connection by its UUID, removing all stored tokens. After deletion, bots using this connection's `zoom_user_id` as `zoom_obf_token_user_id` will no longer be able to automatically fetch OBF tokens. The Zoom user would need to re-authorize to create a new connection.",
+        "operationId": "delete_zoom_oauth_connection",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "uuid",
+            "description": "The UUID identifier",
+            "required": true,
+            "schema": {
+              "description": "The UUID identifier",
+              "type": "string"
+            },
+            "style": "simple"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Error response"
+          },
+          "204": {
+            "description": "no content"
+          }
+        },
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ]
+      }
     }
   },
   "components": {
@@ -1431,6 +1573,24 @@
               "null"
             ]
           },
+          "zoom_obf_token": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zoom_obf_token_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zoom_obf_token_user_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "zoom_sdk_id": {
             "type": [
               "string",
@@ -1550,6 +1710,24 @@
             ]
           },
           "zoom_access_token_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zoom_obf_token": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zoom_obf_token_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zoom_obf_token_user_id": {
             "type": [
               "string",
               "null"
@@ -1697,6 +1875,27 @@
             ]
           },
           "zoom_access_token_url": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zoom_obf_token": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zoom_obf_token_url": {
+            "default": null,
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zoom_obf_token_user_id": {
             "default": null,
             "type": [
               "string",
@@ -1963,6 +2162,24 @@
               "null"
             ]
           },
+          "zoom_obf_token": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zoom_obf_token_url": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zoom_obf_token_user_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "zoom_sdk_id": {
             "type": [
               "string",
@@ -2223,6 +2440,33 @@
           }
         }
       },
+      "CreateConnectionRequest": {
+        "type": "object",
+        "required": [
+          "authorization_code",
+          "redirect_uri",
+          "zoom_client_id",
+          "zoom_client_secret"
+        ],
+        "properties": {
+          "authorization_code": {
+            "description": "The OAuth authorization code received from Zoom after user consent. This is a single-use code that expires in approximately 10 minutes.",
+            "type": "string"
+          },
+          "redirect_uri": {
+            "description": "The redirect URI that was used in the OAuth authorization request. Must match exactly what was configured in your Zoom OAuth app.",
+            "type": "string"
+          },
+          "zoom_client_id": {
+            "description": "Your Zoom OAuth app's Client ID, found in the Zoom App Marketplace under your app's credentials.",
+            "type": "string"
+          },
+          "zoom_client_secret": {
+            "description": "Your Zoom OAuth app's Client Secret, found in the Zoom App Marketplace under your app's credentials.",
+            "type": "string"
+          }
+        }
+      },
       "DailyTokenConsumption": {
         "type": "object",
         "required": [
@@ -2341,6 +2585,16 @@
           },
           "diarization_v2": {
             "type": "boolean"
+          },
+          "ended_at": {
+            "description": "Optional Unix timestamp (seconds, no ms) for when the meeting actually ended. When provided (e.g. for manual replay), used instead of server time for bot.ended_at.",
+            "default": null,
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "uint64",
+            "minimum": 0
           },
           "files_generated": {
             "anyOf": [
@@ -2468,6 +2722,16 @@
           "message"
         ],
         "properties": {
+          "ended_at": {
+            "description": "Optional Unix timestamp (seconds, no ms) for when the bot actually ended. When provided (e.g. for manual replay), used instead of server time to avoid incorrect billing.",
+            "default": null,
+            "type": [
+              "integer",
+              "null"
+            ],
+            "format": "uint64",
+            "minimum": 0
+          },
           "error_code": {
             "default": null,
             "type": [
@@ -2902,6 +3166,27 @@
               "null"
             ]
           },
+          "zoom_obf_token": {
+            "description": "A raw Zoom On Behalf Of (OBF) token for joining external Zoom meetings. Required for meetings that enforce authenticated join after March 2, 2026.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zoom_obf_token_url": {
+            "description": "URL that returns a Zoom OBF token. The bot will fetch the token from this URL at join time.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zoom_obf_token_user_id": {
+            "description": "The Zoom user ID associated with a stored OAuth connection. When set, the system will automatically fetch an OBF token using the managed OAuth credentials.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
           "zoom_sdk_id": {
             "description": "For the Own Zoom Credentials feature, we need your zoom sdk id.",
             "type": [
@@ -3125,7 +3410,7 @@
           },
           "last_updated": {
             "description": "Timestamp of when this data was generated (in ISO-8601 format)\n\nThis field is maintained for backwards compatibility. It is automatically set to the current time when the response is created.",
-            "default": "2025-11-28T02:53:00.148058416+00:00",
+            "default": "2026-02-15T12:57:58.007290999+00:00",
             "type": "string",
             "format": "date-time"
           },
@@ -3227,6 +3512,23 @@
           "speaker_diarization_file_network": {
             "description": "URL to access the network speaker detection log file. Contains speaker observation observed through network (not UI changes). Will be an empty string if the file doesn't exist in S3.",
             "type": "string"
+          }
+        }
+      },
+      "ObfTokenQuery": {
+        "type": "object",
+        "required": [
+          "bot_uuid"
+        ],
+        "properties": {
+          "bot_uuid": {
+            "type": "string"
+          },
+          "zoom_user_id": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       },
@@ -4266,6 +4568,56 @@
               "null"
             ],
             "format": "int32"
+          }
+        }
+      },
+      "ZoomOAuthConnectionResponse": {
+        "description": "A stored Zoom OAuth connection. Tokens are managed server-side and never exposed.",
+        "type": "object",
+        "required": [
+          "created_at",
+          "state",
+          "updated_at",
+          "uuid",
+          "zoom_user_id"
+        ],
+        "properties": {
+          "created_at": {
+            "description": "Timestamp when the connection was first created.",
+            "type": "string",
+            "format": "partial-date-time"
+          },
+          "scopes": {
+            "description": "OAuth scopes granted by the user during authorization (e.g. `user:read:user`).",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "state": {
+            "description": "Connection state. `connected` means tokens are valid; `disconnected` means the user needs to re-authorize.",
+            "type": "string"
+          },
+          "updated_at": {
+            "description": "Timestamp when the connection was last updated (e.g. token refresh).",
+            "type": "string",
+            "format": "partial-date-time"
+          },
+          "uuid": {
+            "description": "Unique identifier for this connection.",
+            "type": "string",
+            "format": "uuid"
+          },
+          "zoom_account_id": {
+            "description": "The Zoom account ID that the connected user belongs to.",
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "zoom_user_id": {
+            "description": "The Zoom user ID of the connected user. Use this value as `zoom_obf_token_user_id` when creating a bot to have the system automatically fetch an OBF token for this user.",
+            "type": "string"
           }
         }
       }

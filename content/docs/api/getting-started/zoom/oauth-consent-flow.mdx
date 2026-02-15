@@ -1,0 +1,524 @@
+---
+title: Building OAuth Consent Flow
+description: Implement the Zoom OAuth consent flow in your application for OBF token support
+icon: UserCheck
+---
+
+# Building an OAuth Consent Flow for Zoom
+
+This guide walks through implementing the OAuth consent flow in your application. You need this if you are using the [Managed OAuth](/docs/api/getting-started/zoom/obf-tokens#option-3-managed-oauth-zoom_obf_token_user_id) option for OBF tokens.
+
+## Overview
+
+The flow works like this:
+
+1. User clicks "Connect Zoom" in your app
+2. User is redirected to Zoom's authorization page
+3. User authorizes your app
+4. Zoom redirects back to your app with an authorization code
+5. You send the code to Meeting BaaS
+6. Meeting BaaS stores the tokens
+7. Future bot requests use the stored connection
+
+## Prerequisites
+
+- A Zoom app with Meeting SDK enabled ([see App Setup](/docs/api/getting-started/zoom/app-setup))
+- The `user:read:token` and `user:read:user` scopes added to your app
+- A callback URL configured in your Zoom app
+
+## Step 1: Create the Authorization URL
+
+Build the Zoom OAuth authorization URL:
+
+```
+https://zoom.us/oauth/authorize?response_type=code&client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}
+```
+
+| Parameter | Description |
+|-----------|-------------|
+| `client_id` | Your Zoom app's Client ID |
+| `redirect_uri` | URL-encoded redirect URI (must match your Zoom app config) |
+
+<Tabs items={['JavaScript', 'Python']}>
+  <Tab value="JavaScript">
+    ```javascript
+    function getZoomAuthUrl() {
+      const clientId = process.env.ZOOM_CLIENT_ID;
+      const redirectUri = encodeURIComponent('https://yourapp.com/zoom/callback');
+
+      return `https://zoom.us/oauth/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}`;
+    }
+
+    // In your route handler
+    app.get('/connect-zoom', (req, res) => {
+      res.redirect(getZoomAuthUrl());
+    });
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    from urllib.parse import urlencode
+    from flask import redirect
+
+    def get_zoom_auth_url():
+        client_id = os.environ['ZOOM_CLIENT_ID']
+        redirect_uri = 'https://yourapp.com/zoom/callback'
+
+        params = urlencode({
+            'response_type': 'code',
+            'client_id': client_id,
+            'redirect_uri': redirect_uri
+        })
+
+        return f'https://zoom.us/oauth/authorize?{params}'
+
+    @app.route('/connect-zoom')
+    def connect_zoom():
+        return redirect(get_zoom_auth_url())
+    ```
+  </Tab>
+</Tabs>
+
+### Adding State Parameter (Recommended)
+
+Include a `state` parameter to prevent CSRF attacks and track user context:
+
+```javascript
+function getZoomAuthUrl(userId) {
+  const clientId = process.env.ZOOM_CLIENT_ID;
+  const redirectUri = encodeURIComponent('https://yourapp.com/zoom/callback');
+
+  // State contains user ID and random token for CSRF protection
+  const state = Buffer.from(JSON.stringify({
+    userId: userId,
+    csrf: crypto.randomBytes(16).toString('hex')
+  })).toString('base64');
+
+  // Store CSRF token in session for verification
+  req.session.zoomCsrf = state;
+
+  return `https://zoom.us/oauth/authorize?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&state=${state}`;
+}
+```
+
+## Step 2: Handle the Callback
+
+After the user authorizes, Zoom redirects to your callback URL with an authorization code:
+
+```
+https://yourapp.com/zoom/callback?code=AUTHORIZATION_CODE
+```
+
+<Tabs items={['JavaScript', 'Python']}>
+  <Tab value="JavaScript">
+    ```javascript
+    app.get('/zoom/callback', async (req, res) => {
+      const { code, state } = req.query;
+
+      if (!code) {
+        return res.status(400).send('Missing authorization code');
+      }
+
+      // Verify state if you used it
+      if (state !== req.session.zoomCsrf) {
+        return res.status(403).send('Invalid state parameter');
+      }
+
+      try {
+        // Send to Meeting BaaS
+        const connection = await createZoomConnection(code);
+
+        // Store the zoom_user_id with your user
+        await saveZoomConnection(req.user.id, connection.zoom_user_id);
+
+        res.redirect('/dashboard?zoom_connected=true');
+      } catch (error) {
+        console.error('Zoom OAuth error:', error);
+        res.redirect('/dashboard?zoom_error=true');
+      }
+    });
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    @app.route('/zoom/callback')
+    def zoom_callback():
+        code = request.args.get('code')
+        state = request.args.get('state')
+
+        if not code:
+            return 'Missing authorization code', 400
+
+        # Verify state if you used it
+        if state != session.get('zoom_csrf'):
+            return 'Invalid state parameter', 403
+
+        try:
+            # Send to Meeting BaaS
+            connection = create_zoom_connection(code)
+
+            # Store the zoom_user_id with your user
+            save_zoom_connection(current_user.id, connection['zoom_user_id'])
+
+            return redirect('/dashboard?zoom_connected=true')
+        except Exception as e:
+            print(f'Zoom OAuth error: {e}')
+            return redirect('/dashboard?zoom_error=true')
+    ```
+  </Tab>
+</Tabs>
+
+## Step 3: Create the Zoom OAuth Connection
+
+Send the authorization code to Meeting BaaS to exchange it for tokens:
+
+<Tabs items={['JavaScript', 'Python']}>
+  <Tab value="JavaScript">
+    ```javascript
+    async function createZoomConnection(authorizationCode) {
+      const response = await fetch('https://api.meetingbaas.com/zoom_oauth_connections', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-meeting-baas-api-key': process.env.MEETING_BAAS_API_KEY,
+        },
+        body: JSON.stringify({
+          authorization_code: authorizationCode,
+          redirect_uri: 'https://yourapp.com/zoom/callback',
+          zoom_client_id: process.env.ZOOM_CLIENT_ID,
+          zoom_client_secret: process.env.ZOOM_CLIENT_SECRET,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(`Failed to create connection: ${error.message}`);
+      }
+
+      return response.json();
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    import requests
+
+    def create_zoom_connection(authorization_code):
+        response = requests.post(
+            'https://api.meetingbaas.com/zoom_oauth_connections',
+            headers={
+                'Content-Type': 'application/json',
+                'x-meeting-baas-api-key': os.environ['MEETING_BAAS_API_KEY'],
+            },
+            json={
+                'authorization_code': authorization_code,
+                'redirect_uri': 'https://yourapp.com/zoom/callback',
+                'zoom_client_id': os.environ['ZOOM_CLIENT_ID'],
+                'zoom_client_secret': os.environ['ZOOM_CLIENT_SECRET'],
+            }
+        )
+
+        response.raise_for_status()
+        return response.json()
+    ```
+  </Tab>
+</Tabs>
+
+**Response:**
+
+```json
+{
+  "uuid": "550e8400-e29b-41d4-a716-446655440000",
+  "zoom_user_id": "SeJwoMGwTCu52501SbDC0Q",
+  "zoom_account_id": "AplWZ5oMSouJOw9zu0cmKQ",
+  "state": "connected",
+  "scopes": "user:read:token user:read:user",
+  "created_at": "2026-02-08T16:00:00",
+  "updated_at": "2026-02-08T16:00:00"
+}
+```
+
+Store the `zoom_user_id` associated with your user. You will use this when creating bots.
+
+## Step 4: Create Bots with the Connection
+
+When creating a bot for a user who has connected their Zoom account:
+
+<Tabs items={['JavaScript', 'Python']}>
+  <Tab value="JavaScript">
+    ```javascript
+    async function createBot(meetingUrl, userId) {
+      // Look up the user's zoom_user_id
+      const zoomUserId = await getZoomUserIdForUser(userId);
+
+      const response = await fetch('https://api.meetingbaas.com/bots', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-meeting-baas-api-key': process.env.MEETING_BAAS_API_KEY,
+        },
+        body: JSON.stringify({
+          meeting_url: meetingUrl,
+          bot_name: 'Recording Bot',
+          zoom_obf_token_user_id: zoomUserId,
+        }),
+      });
+
+      return response.json();
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def create_bot(meeting_url, user_id):
+        # Look up the user's zoom_user_id
+        zoom_user_id = get_zoom_user_id_for_user(user_id)
+
+        response = requests.post(
+            'https://api.meetingbaas.com/bots',
+            headers={
+                'Content-Type': 'application/json',
+                'x-meeting-baas-api-key': os.environ['MEETING_BAAS_API_KEY'],
+            },
+            json={
+                'meeting_url': meeting_url,
+                'bot_name': 'Recording Bot',
+                'zoom_obf_token_user_id': zoom_user_id,
+            }
+        )
+
+        return response.json()
+    ```
+  </Tab>
+</Tabs>
+
+## Handling Disconnections
+
+Users may revoke your app's access through Zoom's settings. You should:
+
+1. Check the connection state before creating bots
+2. Prompt users to reconnect if needed
+
+<Tabs items={['JavaScript', 'Python']}>
+  <Tab value="JavaScript">
+    ```javascript
+    async function getConnectionState(zoomUserId) {
+      const connections = await fetch(
+        'https://api.meetingbaas.com/zoom_oauth_connections',
+        {
+          headers: {
+            'x-meeting-baas-api-key': process.env.MEETING_BAAS_API_KEY,
+          },
+        }
+      ).then(r => r.json());
+
+      const connection = connections.find(c => c.zoom_user_id === zoomUserId);
+      return connection?.state || 'not_found';
+    }
+
+    // Before creating a bot
+    const state = await getConnectionState(user.zoomUserId);
+    if (state !== 'connected') {
+      // Prompt user to reconnect
+      return res.redirect('/connect-zoom');
+    }
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    def get_connection_state(zoom_user_id):
+        response = requests.get(
+            'https://api.meetingbaas.com/zoom_oauth_connections',
+            headers={
+                'x-meeting-baas-api-key': os.environ['MEETING_BAAS_API_KEY'],
+            }
+        )
+
+        connections = response.json()
+        connection = next(
+            (c for c in connections if c['zoom_user_id'] == zoom_user_id),
+            None
+        )
+        return connection['state'] if connection else 'not_found'
+
+    # Before creating a bot
+    state = get_connection_state(user.zoom_user_id)
+    if state != 'connected':
+        # Prompt user to reconnect
+        return redirect('/connect-zoom')
+    ```
+  </Tab>
+</Tabs>
+
+## UI Recommendations
+
+### Connect Button
+
+Show a clear "Connect Zoom" button for users who have not connected:
+
+```jsx
+function ZoomConnectionStatus({ isConnected, onConnect }) {
+  if (isConnected) {
+    return (
+      <div className="flex items-center gap-2">
+        <CheckIcon className="text-green-500" />
+        <span>Zoom connected</span>
+      </div>
+    );
+  }
+
+  return (
+    <button onClick={onConnect} className="btn btn-primary">
+      Connect Zoom Account
+    </button>
+  );
+}
+```
+
+### Error States
+
+Handle common error scenarios:
+
+| Error | User Message |
+|-------|-------------|
+| Authorization cancelled | "You cancelled the Zoom connection. Try again when ready." |
+| Code expired | "The authorization expired. Please try connecting again." |
+| Connection already exists | "Your Zoom account is already connected." |
+| Invalid credentials | "There was a problem connecting to Zoom. Please contact support." |
+
+### Reconnection Flow
+
+When a connection becomes invalid:
+
+```jsx
+function ZoomReconnectBanner({ onReconnect }) {
+  return (
+    <div className="bg-yellow-50 border border-yellow-200 p-4 rounded">
+      <p>Your Zoom connection needs to be renewed.</p>
+      <button onClick={onReconnect} className="btn btn-secondary mt-2">
+        Reconnect Zoom
+      </button>
+    </div>
+  );
+}
+```
+
+## Complete Example
+
+Here is a complete Express.js implementation:
+
+```javascript
+const express = require('express');
+const crypto = require('crypto');
+
+const app = express();
+
+// Environment variables
+const {
+  ZOOM_CLIENT_ID,
+  ZOOM_CLIENT_SECRET,
+  MEETING_BAAS_API_KEY,
+  APP_URL
+} = process.env;
+
+const REDIRECT_URI = `${APP_URL}/zoom/callback`;
+
+// Start OAuth flow
+app.get('/connect-zoom', (req, res) => {
+  const state = crypto.randomBytes(16).toString('hex');
+  req.session.zoomState = state;
+
+  const authUrl = new URL('https://zoom.us/oauth/authorize');
+  authUrl.searchParams.set('response_type', 'code');
+  authUrl.searchParams.set('client_id', ZOOM_CLIENT_ID);
+  authUrl.searchParams.set('redirect_uri', REDIRECT_URI);
+  authUrl.searchParams.set('state', state);
+
+  res.redirect(authUrl.toString());
+});
+
+// Handle callback
+app.get('/zoom/callback', async (req, res) => {
+  const { code, state, error } = req.query;
+
+  // Handle user cancellation
+  if (error) {
+    return res.redirect('/settings?zoom_error=cancelled');
+  }
+
+  // Verify state
+  if (state !== req.session.zoomState) {
+    return res.status(403).send('Invalid state');
+  }
+
+  try {
+    // Create connection in Meeting BaaS
+    const response = await fetch(
+      'https://api.meetingbaas.com/zoom_oauth_connections',
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-meeting-baas-api-key': MEETING_BAAS_API_KEY,
+        },
+        body: JSON.stringify({
+          authorization_code: code,
+          redirect_uri: REDIRECT_URI,
+          zoom_client_id: ZOOM_CLIENT_ID,
+          zoom_client_secret: ZOOM_CLIENT_SECRET,
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to create connection');
+    }
+
+    const connection = await response.json();
+
+    // Store zoom_user_id with your user
+    await db.users.update(req.user.id, {
+      zoom_user_id: connection.zoom_user_id,
+      zoom_connected: true,
+    });
+
+    res.redirect('/settings?zoom_connected=true');
+  } catch (error) {
+    console.error('Zoom OAuth error:', error);
+    res.redirect('/settings?zoom_error=failed');
+  }
+});
+
+// Create a bot
+app.post('/api/bots', async (req, res) => {
+  const { meetingUrl } = req.body;
+  const user = req.user;
+
+  if (!user.zoom_connected) {
+    return res.status(400).json({
+      error: 'Please connect your Zoom account first'
+    });
+  }
+
+  const response = await fetch('https://api.meetingbaas.com/bots', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-meeting-baas-api-key': MEETING_BAAS_API_KEY,
+    },
+    body: JSON.stringify({
+      meeting_url: meetingUrl,
+      bot_name: 'Recording Bot',
+      zoom_obf_token_user_id: user.zoom_user_id,
+    }),
+  });
+
+  res.json(await response.json());
+});
+```
+
+## Next Steps
+
+- [OBF Token Support](/docs/api/getting-started/zoom/obf-tokens) — Full OBF documentation
+- [Zoom App Setup](/docs/api/getting-started/zoom/app-setup) — Creating your Zoom app
+- [Sending a Bot](/docs/api/getting-started/sending-a-bot) — Bot creation basics

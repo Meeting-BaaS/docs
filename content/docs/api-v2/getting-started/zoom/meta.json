@@ -1,0 +1,9 @@
+{
+    "title": "Zoom Integration",
+    "icon": "Video",
+    "pages": [
+        "credentials",
+        "obf-tokens",
+        "oauth-consent-flow"
+    ]
+}

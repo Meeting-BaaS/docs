@@ -1,0 +1,617 @@
+---
+title: Building OAuth Consent Flow
+description: Step-by-step guide for implementing Zoom OAuth consent in your application for v2
+icon: Lock
+---
+
+# Building OAuth Consent Flow
+
+To use OBF tokens with the v2 Credentials API, your users need to authorize your Zoom app. This guide walks through implementing the OAuth consent flow in your application.
+
+## Overview
+
+The OAuth flow has three steps:
+
+```
+User clicks "Connect Zoom" → Redirected to Zoom → Authorizes → Redirected back with code → You exchange code for credential
+```
+
+In v2, you exchange the authorization code directly via the Credentials API, which handles token exchange and secure storage.
+
+## Prerequisites
+
+Before implementing the OAuth flow:
+
+1. Create a Zoom app with OAuth enabled (see [Zoom App Setup](/docs/api/getting-started/zoom/app-setup))
+2. Add the required scopes: `user:read:token`, `user:read:user`, `user:read:zak`
+3. Configure a redirect URI in your Zoom app settings
+4. Have your Zoom Client ID and Client Secret ready
+
+## Step 1: Build the Authorization URL
+
+Create a link that sends users to Zoom's authorization page:
+
+```
+https://zoom.us/oauth/authorize?response_type=code&client_id={CLIENT_ID}&redirect_uri={REDIRECT_URI}
+```
+
+### Required Parameters
+
+| Parameter | Description |
+|-----------|-------------|
+| `response_type` | Always `code` |
+| `client_id` | Your Zoom app's Client ID |
+| `redirect_uri` | Where Zoom sends the user after authorization (must match your app settings exactly) |
+
+### Optional Parameters
+
+| Parameter | Description |
+|-----------|-------------|
+| `state` | Random string to prevent CSRF attacks. Verify this matches when the user returns. |
+
+### Example Implementation
+
+<Tabs items={['React', 'Next.js', 'Node.js']}>
+  <Tab value="React">
+    ```jsx title="ConnectZoomButton.jsx"
+    function ConnectZoomButton() {
+      const handleConnect = () => {
+        const params = new URLSearchParams({
+          response_type: "code",
+          client_id: process.env.REACT_APP_ZOOM_CLIENT_ID,
+          redirect_uri: `${window.location.origin}/oauth/zoom/callback`,
+          state: crypto.randomUUID(), // Store this to verify later
+        });
+
+        window.location.href = `https://zoom.us/oauth/authorize?${params}`;
+      };
+
+      return (
+        <button onClick={handleConnect}>
+          Connect Zoom Account
+        </button>
+      );
+    }
+    ```
+  </Tab>
+  <Tab value="Next.js">
+    ```tsx title="app/connect-zoom/page.tsx"
+    import { redirect } from "next/navigation";
+    import { cookies } from "next/headers";
+
+    export default function ConnectZoomPage() {
+      async function connectZoom() {
+        "use server";
+
+        const state = crypto.randomUUID();
+
+        // Store state in cookie for verification
+        cookies().set("zoom_oauth_state", state, {
+          httpOnly: true,
+          secure: true,
+          sameSite: "lax",
+          maxAge: 600, // 10 minutes
+        });
+
+        const params = new URLSearchParams({
+          response_type: "code",
+          client_id: process.env.ZOOM_CLIENT_ID!,
+          redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/oauth/zoom/callback`,
+          state,
+        });
+
+        redirect(`https://zoom.us/oauth/authorize?${params}`);
+      }
+
+      return (
+        <form action={connectZoom}>
+          <button type="submit">Connect Zoom Account</button>
+        </form>
+      );
+    }
+    ```
+  </Tab>
+  <Tab value="Node.js">
+    ```javascript title="routes/zoom.js"
+    const express = require("express");
+    const crypto = require("crypto");
+    const router = express.Router();
+
+    router.get("/connect", (req, res) => {
+      const state = crypto.randomUUID();
+
+      // Store state in session for verification
+      req.session.zoomOAuthState = state;
+
+      const params = new URLSearchParams({
+        response_type: "code",
+        client_id: process.env.ZOOM_CLIENT_ID,
+        redirect_uri: `${process.env.APP_URL}/oauth/zoom/callback`,
+        state,
+      });
+
+      res.redirect(`https://zoom.us/oauth/authorize?${params}`);
+    });
+
+    module.exports = router;
+    ```
+  </Tab>
+</Tabs>
+
+## Step 2: Handle the Callback
+
+After the user authorizes (or denies), Zoom redirects to your redirect URI with query parameters:
+
+**Success:**
+```
+https://your-app.com/oauth/zoom/callback?code=AUTHORIZATION_CODE&state=YOUR_STATE
+```
+
+**User Denied:**
+```
+https://your-app.com/oauth/zoom/callback?error=access_denied
+```
+
+### Callback Handler
+
+<Tabs items={['Next.js', 'Express', 'Python']}>
+  <Tab value="Next.js">
+    ```tsx title="app/oauth/zoom/callback/route.ts"
+    import { cookies } from "next/headers";
+    import { redirect } from "next/navigation";
+    import { NextRequest } from "next/server";
+
+    export async function GET(request: NextRequest) {
+      const searchParams = request.nextUrl.searchParams;
+      const code = searchParams.get("code");
+      const state = searchParams.get("state");
+      const error = searchParams.get("error");
+
+      // Handle user denial
+      if (error) {
+        redirect("/settings?error=zoom_denied");
+      }
+
+      // Verify state to prevent CSRF
+      const storedState = cookies().get("zoom_oauth_state")?.value;
+      if (state !== storedState) {
+        redirect("/settings?error=invalid_state");
+      }
+
+      // Clear the state cookie
+      cookies().delete("zoom_oauth_state");
+
+      // Exchange code for credential via Meeting BaaS
+      const response = await fetch("https://api.meetingbaas.com/v2/zoom-credentials", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-meeting-baas-api-key": process.env.MEETING_BAAS_API_KEY!,
+        },
+        body: JSON.stringify({
+          name: `User ${userId}`, // Get from your session
+          client_id: process.env.ZOOM_CLIENT_ID,
+          client_secret: process.env.ZOOM_CLIENT_SECRET,
+          authorization_code: code,
+          redirect_uri: `${process.env.NEXT_PUBLIC_APP_URL}/oauth/zoom/callback`,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("Failed to create credential:", await response.text());
+        redirect("/settings?error=zoom_exchange_failed");
+      }
+
+      const { data } = await response.json();
+
+      // Store the credential_id and zoom_user_id in your database
+      await saveZoomCredential(userId, {
+        credentialId: data.credential_id,
+        zoomUserId: data.zoom_user_id,
+      });
+
+      redirect("/settings?success=zoom_connected");
+    }
+    ```
+  </Tab>
+  <Tab value="Express">
+    ```javascript title="routes/zoom.js"
+    router.get("/callback", async (req, res) => {
+      const { code, state, error } = req.query;
+
+      // Handle user denial
+      if (error) {
+        return res.redirect("/settings?error=zoom_denied");
+      }
+
+      // Verify state
+      if (state !== req.session.zoomOAuthState) {
+        return res.redirect("/settings?error=invalid_state");
+      }
+
+      delete req.session.zoomOAuthState;
+
+      try {
+        // Exchange code for credential via Meeting BaaS
+        const response = await fetch("https://api.meetingbaas.com/v2/zoom-credentials", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-meeting-baas-api-key": process.env.MEETING_BAAS_API_KEY,
+          },
+          body: JSON.stringify({
+            name: `User ${req.user.id}`,
+            client_id: process.env.ZOOM_CLIENT_ID,
+            client_secret: process.env.ZOOM_CLIENT_SECRET,
+            authorization_code: code,
+            redirect_uri: `${process.env.APP_URL}/oauth/zoom/callback`,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(await response.text());
+        }
+
+        const { data } = await response.json();
+
+        // Save to your database
+        await db.user.update({
+          where: { id: req.user.id },
+          data: {
+            zoomCredentialId: data.credential_id,
+            zoomUserId: data.zoom_user_id,
+          },
+        });
+
+        res.redirect("/settings?success=zoom_connected");
+      } catch (err) {
+        console.error("Zoom OAuth error:", err);
+        res.redirect("/settings?error=zoom_exchange_failed");
+      }
+    });
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python title="routes/zoom.py"
+    from flask import Flask, request, redirect, session
+    import requests
+
+    @app.route("/oauth/zoom/callback")
+    def zoom_callback():
+        code = request.args.get("code")
+        state = request.args.get("state")
+        error = request.args.get("error")
+
+        # Handle user denial
+        if error:
+            return redirect("/settings?error=zoom_denied")
+
+        # Verify state
+        if state != session.get("zoom_oauth_state"):
+            return redirect("/settings?error=invalid_state")
+
+        del session["zoom_oauth_state"]
+
+        # Exchange code for credential via Meeting BaaS
+        response = requests.post(
+            "https://api.meetingbaas.com/v2/zoom-credentials",
+            headers={
+                "Content-Type": "application/json",
+                "x-meeting-baas-api-key": os.environ["MEETING_BAAS_API_KEY"],
+            },
+            json={
+                "name": f"User {current_user.id}",
+                "client_id": os.environ["ZOOM_CLIENT_ID"],
+                "client_secret": os.environ["ZOOM_CLIENT_SECRET"],
+                "authorization_code": code,
+                "redirect_uri": f"{os.environ['APP_URL']}/oauth/zoom/callback",
+            },
+        )
+
+        if not response.ok:
+            print(f"Zoom OAuth error: {response.text}")
+            return redirect("/settings?error=zoom_exchange_failed")
+
+        data = response.json()["data"]
+
+        # Save to your database
+        current_user.zoom_credential_id = data["credential_id"]
+        current_user.zoom_user_id = data["zoom_user_id"]
+        db.session.commit()
+
+        return redirect("/settings?success=zoom_connected")
+    ```
+  </Tab>
+</Tabs>
+
+## Step 3: Use the Credential
+
+Once saved, use the `credential_id` when creating bots:
+
+```python
+response = requests.post(
+    "https://api.meetingbaas.com/v2/bots",
+    headers={
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+    },
+    json={
+        "bot_name": "Recording Bot",
+        "meeting_url": meeting_url,
+        "zoom_config": {
+            "credential_id": user.zoom_credential_id
+        }
+    }
+)
+```
+
+## Complete Example: Express.js
+
+Here's a full working example:
+
+```javascript title="server.js"
+const express = require("express");
+const session = require("express-session");
+const crypto = require("crypto");
+
+const app = express();
+
+app.use(session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+}));
+
+// Start OAuth flow
+app.get("/connect-zoom", (req, res) => {
+  if (!req.user) {
+    return res.redirect("/login");
+  }
+
+  const state = crypto.randomUUID();
+  req.session.zoomOAuthState = state;
+
+  const params = new URLSearchParams({
+    response_type: "code",
+    client_id: process.env.ZOOM_CLIENT_ID,
+    redirect_uri: `${process.env.APP_URL}/oauth/zoom/callback`,
+    state,
+  });
+
+  res.redirect(`https://zoom.us/oauth/authorize?${params}`);
+});
+
+// Handle callback
+app.get("/oauth/zoom/callback", async (req, res) => {
+  const { code, state, error } = req.query;
+
+  if (error) {
+    return res.redirect("/settings?error=zoom_denied");
+  }
+
+  if (!req.session.zoomOAuthState || state !== req.session.zoomOAuthState) {
+    return res.redirect("/settings?error=invalid_state");
+  }
+
+  delete req.session.zoomOAuthState;
+
+  try {
+    const response = await fetch("https://api.meetingbaas.com/v2/zoom-credentials", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": process.env.MEETING_BAAS_API_KEY,
+      },
+      body: JSON.stringify({
+        name: `${req.user.email} - Zoom`,
+        client_id: process.env.ZOOM_CLIENT_ID,
+        client_secret: process.env.ZOOM_CLIENT_SECRET,
+        authorization_code: code,
+        redirect_uri: `${process.env.APP_URL}/oauth/zoom/callback`,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Meeting BaaS error:", errorText);
+      return res.redirect("/settings?error=exchange_failed");
+    }
+
+    const { data } = await response.json();
+
+    // Save credential info to your database
+    await updateUser(req.user.id, {
+      zoomCredentialId: data.credential_id,
+      zoomUserId: data.zoom_user_id,
+      zoomConnected: true,
+    });
+
+    res.redirect("/settings?success=zoom_connected");
+  } catch (err) {
+    console.error("OAuth error:", err);
+    res.redirect("/settings?error=unknown");
+  }
+});
+
+// Disconnect Zoom
+app.post("/disconnect-zoom", async (req, res) => {
+  if (!req.user?.zoomCredentialId) {
+    return res.redirect("/settings");
+  }
+
+  try {
+    await fetch(
+      `https://api.meetingbaas.com/v2/zoom-credentials/${req.user.zoomCredentialId}`,
+      {
+        method: "DELETE",
+        headers: {
+          "x-meeting-baas-api-key": process.env.MEETING_BAAS_API_KEY,
+        },
+      }
+    );
+
+    await updateUser(req.user.id, {
+      zoomCredentialId: null,
+      zoomUserId: null,
+      zoomConnected: false,
+    });
+
+    res.redirect("/settings?success=zoom_disconnected");
+  } catch (err) {
+    console.error("Disconnect error:", err);
+    res.redirect("/settings?error=disconnect_failed");
+  }
+});
+
+app.listen(3000);
+```
+
+## UI Recommendations
+
+### Connect Button States
+
+Show different UI based on connection status:
+
+```jsx
+function ZoomConnection({ user }) {
+  if (user.zoomConnected) {
+    return (
+      <div className="connection-card connected">
+        <ZoomIcon />
+        <div>
+          <h3>Zoom Connected</h3>
+          <p>Connected as {user.zoomEmail}</p>
+        </div>
+        <form action="/disconnect-zoom" method="POST">
+          <button type="submit" className="btn-secondary">
+            Disconnect
+          </button>
+        </form>
+      </div>
+    );
+  }
+
+  return (
+    <div className="connection-card">
+      <ZoomIcon />
+      <div>
+        <h3>Connect Zoom</h3>
+        <p>Allow recording bots to join your Zoom meetings</p>
+      </div>
+      <a href="/connect-zoom" className="btn-primary">
+        Connect
+      </a>
+    </div>
+  );
+}
+```
+
+### Error Messages
+
+Show user-friendly messages for common errors:
+
+| Error | User Message |
+|-------|--------------|
+| `zoom_denied` | "You declined to connect your Zoom account. You can try again anytime." |
+| `invalid_state` | "Something went wrong. Please try connecting again." |
+| `exchange_failed` | "We couldn't complete the connection. Please try again or contact support." |
+
+### Credential Health
+
+Monitor credential state and prompt re-authorization when needed:
+
+```jsx
+function ZoomConnectionStatus({ credential }) {
+  if (credential.state === "invalid") {
+    return (
+      <div className="alert warning">
+        <p>
+          Your Zoom connection needs to be refreshed.
+          <a href="/connect-zoom">Reconnect</a>
+        </p>
+        <small>Error: {credential.lastErrorMessage}</small>
+      </div>
+    );
+  }
+
+  return <p className="text-success">Connected and working</p>;
+}
+```
+
+## Security Best Practices
+
+### State Parameter
+
+Always use the `state` parameter to prevent CSRF attacks:
+
+1. Generate a random string before redirecting to Zoom
+2. Store it in the session (server-side)
+3. Verify it matches when the user returns
+4. Reject the callback if it doesn't match
+
+### Secure Cookie Settings
+
+When storing state in cookies:
+
+```javascript
+cookies().set("zoom_oauth_state", state, {
+  httpOnly: true,     // Not accessible via JavaScript
+  secure: true,       // HTTPS only
+  sameSite: "lax",    // CSRF protection
+  maxAge: 600,        // 10 minute expiry
+});
+```
+
+### Redirect URI Validation
+
+The `redirect_uri` must exactly match what's registered in your Zoom app, including:
+- Protocol (https://)
+- Domain
+- Port (if non-standard)
+- Path
+- Trailing slash (or lack thereof)
+
+## Error Handling
+
+### Authorization Code Expired
+
+Authorization codes are valid for approximately 10 minutes. If the exchange fails with "invalid_grant", the code has expired. Prompt the user to try again.
+
+### Redirect URI Mismatch
+
+If you see "redirect_uri_mismatch", verify:
+1. The URI in your code matches your Zoom app settings
+2. No trailing slash differences
+3. No http vs https differences
+
+### User Revoked Access
+
+If a user revokes your app in their Zoom settings, the credential becomes invalid. Handle this gracefully:
+
+1. Check credential state before creating bots
+2. If invalid, prompt re-authorization
+3. Delete the old credential after successful re-auth
+
+## FAQ
+
+**Q: Can I use the same redirect URI for development and production?**
+
+No, use environment-specific URIs. Add both to your Zoom app's allowed redirect URIs.
+
+**Q: What if the user has multiple Zoom accounts?**
+
+They'll authorize with whichever account they're logged into. Consider showing the connected email in your UI so they can verify.
+
+**Q: How do I handle re-authorization?**
+
+When creating a new credential for an existing Zoom user, the old credential becomes orphaned. Delete it after successful re-auth to avoid confusion.
+
+**Q: Can I customize what users see on Zoom's authorization page?**
+
+Limited customization is available in your Zoom app settings (app name, icon, description).
+
+## Next Steps
+
+- [Zoom Credentials API](/docs/api-v2/getting-started/zoom/credentials) — Manage stored credentials
+- [OBF Token Support](/docs/api-v2/getting-started/zoom/obf-tokens) — Use credentials for external meetings
+- [Sending a Bot](/docs/api-v2/getting-started/sending-a-bot) — Create bots with Zoom credentials

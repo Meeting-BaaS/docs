@@ -63,6 +63,13 @@ export const categoryConfig: CategoryConfigMap = {
       "./content/docs/api-v2/reference/webhooks/**/*.mdx"
     ]
   },
+  "api/zoom--o-auth": {
+    "title": "zoom--o-auth api Reference",
+    "description": "Reference documentation for zoom--o-auth in api.",
+    "patterns": [
+      "./content/docs/api/reference/zoom--o-auth/**/*.mdx"
+    ]
+  },
   "api-v2": {
     "title": "api-v2 Documentation",
     "description": "Documentation for api-v2.",
@@ -103,6 +110,13 @@ export const categoryConfig: CategoryConfigMap = {
     "description": "Reference documentation for webhooks in api-v2.",
     "patterns": [
       "./content/docs/api-v2/reference/webhooks/**/*.mdx"
+    ]
+  },
+  "api-v2/zoom--credentials": {
+    "title": "zoom--credentials api-v2 Reference",
+    "description": "Reference documentation for zoom--credentials in api-v2.",
+    "patterns": [
+      "./content/docs/api-v2/reference/zoom--credentials/**/*.mdx"
     ]
   },
   "mcp-servers": {
@@ -209,6 +223,11 @@ export const knownTxtPaths: string[][] = [
   ],
   [
     "llms",
+    "api",
+    "zoom--o-auth"
+  ],
+  [
+    "llms",
     "api-v2"
   ],
   [
@@ -235,6 +254,11 @@ export const knownTxtPaths: string[][] = [
     "llms",
     "api-v2",
     "webhooks"
+  ],
+  [
+    "llms",
+    "api-v2",
+    "zoom--credentials"
   ],
   [
     "llms",

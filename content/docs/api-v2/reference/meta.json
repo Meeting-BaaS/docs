@@ -5,6 +5,7 @@
         "bots",
         "calendars",
         "webhooks",
-        "callbacks"
+        "callbacks",
+        "zoom--credentials"
     ]
 }
