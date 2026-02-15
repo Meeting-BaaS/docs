@@ -19570,7 +19570,7 @@
   },
   "servers": [
     {
-      "url": "https://api.pre-prod-meetingbaas.com",
+      "url": "https://api.meetingbaas.com",
       "description": "production server"
     }
   ],
