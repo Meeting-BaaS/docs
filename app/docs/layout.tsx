@@ -14,7 +14,7 @@ const docsOptions: DocsLayoutProps = {
         const meta = source.getNodeMeta(node);
         if (!meta) return option;
 
-        const dirname = meta.slugs?.[0] ?? '';
+        const dirname = meta.path.split('/')[0] ?? '';
         const color = `var(--${dirname}-color, var(--color-fd-foreground))`;
 
         return {
