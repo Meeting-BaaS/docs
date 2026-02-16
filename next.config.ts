@@ -92,10 +92,23 @@ const config: NextConfig = {
       permanent: true,
     }));
 
+    const apiV2ZoomRedirects = [
+      ['list-zoom-credentials', 'listZoomCredentials'],
+      ['create-zoom-credential', 'createZoomCredential'],
+      ['get-zoom-credential', 'getZoomCredential'],
+      ['update-zoom-credential', 'updateZoomCredential'],
+      ['delete-zoom-credential', 'deleteZoomCredential'],
+    ].map(([from, to]) => ({
+      source: `/api-v2/reference/zoom--credentials/${from}`,
+      destination: `/api-v2/reference/zoom--credentials/${to}`,
+      permanent: true,
+    }));
+
     return [
       // API v2 legacy path redirects
       ...apiV2BotRedirects,
       ...apiV2CalendarRedirects,
+      ...apiV2ZoomRedirects,
       // Redirect /docs paths to root
       {
         source: '/docs/:path*',

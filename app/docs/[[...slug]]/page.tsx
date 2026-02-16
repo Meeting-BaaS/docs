@@ -79,7 +79,6 @@ export default async function Page(props: {
 
   // Get the current slug to check if this is the updates page
   const isUpdatesPage = params.slug && params.slug.length === 1 && params.slug[0] === 'updates';
-  console.log("Current page slug:", params.slug, "Is updates page:", isUpdatesPage);
 
   // Use useMDXComponents and merge with page-specific components
   const mdxComponents = useMDXComponents({
