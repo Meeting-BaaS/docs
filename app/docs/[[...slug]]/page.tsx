@@ -30,19 +30,18 @@ import {
   type FC,
   type ReactElement
 } from 'react';
+import type { Page } from '@/lib/source';
 
 const generator = createGenerator();
 
 // Replacement for removed DocsCategory component
-function CategoryCards({ page, from }: { page: any; from: typeof source }) {
-  // Get directory of current page from its path
-  const pagePath = page.path as string;
-  const pageDir = pagePath.substring(0, pagePath.lastIndexOf('/'));
+function CategoryCards({ page, from }: { page: Page; from: typeof source }) {
+  const pagePath = page.url;
+  const pageDir = pagePath.includes('/') ? pagePath.substring(0, pagePath.lastIndexOf('/')) : '';
 
   const pages = from.getPages().filter((p) => {
-    const pPath = p.path as string;
-    const pDir = pPath.substring(0, pPath.lastIndexOf('/'));
-    return pDir === pageDir && pPath !== pagePath;
+    const pDir = p.url.includes('/') ? p.url.substring(0, p.url.lastIndexOf('/')) : '';
+    return pDir === pageDir && p.url !== pagePath;
   });
 
   if (pages.length === 0) return null;
@@ -102,9 +101,11 @@ export default async function Page(props: {
     blockquote: Callout as unknown as FC<ComponentProps<'blockquote'>>,
     Note: Callout, // Alias for Note component used in generated API reference
     APIPage: openapi.APIPage,
-    DocsCategory: ({ slugs = params.slug }: { slugs?: string[] }) => (
-      <CategoryCards page={source.getPage(slugs)!} from={source} />
-    ),
+    DocsCategory: ({ slugs = params.slug }: { slugs?: string[] }) => {
+      const resolved = source.getPage(slugs);
+      if (!resolved) return null;
+      return <CategoryCards page={resolved} from={source} />;
+    },
     ImageZoom,
     // Custom components for services
     ServicesListSSR,
