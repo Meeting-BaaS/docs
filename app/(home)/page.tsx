@@ -1,5 +1,5 @@
 import { cn } from '@/lib/cn';
-import { BotIcon, CaptionsIcon, MonitorUp, ServerCog, Settings, WebhookIcon } from 'lucide-react';
+import { BotIcon, CaptionsIcon, MonitorUp, Server, ServerCog, Settings, WebhookIcon } from 'lucide-react';
 import type { LinkProps } from 'next/link';
 import Link from 'next/link';
 
@@ -81,6 +81,16 @@ export default function DocsPage(): React.ReactElement {
           <h2 className="mb-2 text-lg font-semibold">Transcript Seeker</h2>
           <p className="text-fd-muted-foreground text-sm">
             Open-source platform for uploading, transcribing, and interacting with meeting recordings
+          </p>
+        </Item>
+
+        <Item href="/self-hosting">
+          <Icon className="self-hosting">
+            <Server className="size-full" />
+          </Icon>
+          <h2 className="mb-2 text-lg font-semibold">Self Hosting</h2>
+          <p className="text-fd-muted-foreground text-sm">
+            Deploy Meeting BaaS v2 in your own infrastructure with full control
           </p>
         </Item>
       </div>

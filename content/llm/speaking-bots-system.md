@@ -11,7 +11,7 @@ Reference documentation for system in speaking-bots.
 
 Health check endpoint
 
-<APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/health","method":"get"}]} webhooks={[]} hasHead={false} />
+<APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/health","method":"get"}]} />
 
 ---
 

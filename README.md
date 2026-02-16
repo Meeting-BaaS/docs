@@ -2,7 +2,7 @@
 
 <p align="center"><a href="https://discord.com/invite/dsvFgDTr6c"><img height="60px" src="https://user-images.githubusercontent.com/31022056/158916278-4504b838-7ecb-4ab9-a900-7dc002aade78.png" alt="Join our Discord!"></a></p>
 
-This is the official GitHub repository for Meeting BaaS documentation and mirror of: https://docs.meetingbaas.com
+This is the official GitHub repository for Meeting BaaS documentation deployed [here](https://docs.meetingbaas.com)
 
 This is a Next.js application using Fumadocs for generating and maintaining Meeting BaaS service documentation.
 
@@ -10,7 +10,7 @@ This is a Next.js application using Fumadocs for generating and maintaining Meet
 
 Found an issue in our production documentation? Please open a Pull Request on any content file directly -- we'll take care of the rest.
 
-You can simply edit one of the following files in the `/content/docs/api/reference/` directory:
+You can edit any of the following files in the `/content/docs/api/reference/` directory:
 
 - bots_with_metadata.mdx
 - delete_data.mdx
@@ -22,6 +22,7 @@ You can simply edit one of the following files in the `/content/docs/api/referen
 - webhooks/ (directory)
 - calendars/ (directory)
 
+And more!
 Your contributions - even small fixes for typos or unclear explanations - are greatly appreciated.
 
 ## What is Meeting BaaS?
@@ -49,7 +50,7 @@ pnpm install
 pnpm dev
 ```
 
-Then open http://localhost:3000 in your browser to see the documentation site.
+Then open [localhost](http://localhost:3000) in your browser to see the documentation site.
 
 For more detailed development instructions, check the `DEVELOPPEMENT.md` file.
 
@@ -77,4 +78,5 @@ pnpm enhance:updates --key=your_openrouter_api_key --date=2023-10-15
 - [Website](https://meetingbaas.com)
 - [Documentation](https://docs.meetingbaas.com)
 - [Join our Discord](https://discord.com/invite/dsvFgDTr6c)
+- [v2 Dashboard](https://dashboard.meetingbaas.com)
 ```

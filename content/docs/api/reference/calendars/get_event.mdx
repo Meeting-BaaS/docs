@@ -3,7 +3,6 @@ title: Get Event
 full: true
 _openapi:
   method: GET
-  route: /calendar_events/{uuid}
   toc: []
   structuredData:
     headings: []
@@ -22,4 +21,4 @@ _openapi:
 
 Retrieves comprehensive details about a specific calendar event by its UUID. Returns complete event information including title, meeting link, start and end times, organizer status, recurrence information, and the full list of attendees with their names and email addresses. Also includes any associated bot parameters if recording is scheduled for this event. The raw calendar data from the provider is also included for advanced use cases.
 
-<APIPage document={"./openapi.json"} operations={[{"path":"/calendar_events/{uuid}","method":"get"}]} webhooks={[]} hasHead={false} />
+<APIPage document={"./openapi.json"} operations={[{"path":"/calendar_events/{uuid}","method":"get"}]} />

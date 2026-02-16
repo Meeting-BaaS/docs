@@ -131,6 +131,7 @@ export async function generateServiceUpdate(
     let updateContent = templateContent
       .replace(/\{\{TODAY\}\}/g, TODAY)
       .replace(/\{\{SERVICE_NAME\}\}/g, config.name)
+      .replace(/\{\{SERVICE_KEY\}\}/g, config.serviceKey)
       .replace(/\{\{SERVICE_ICON\}\}/g, config.icon)
       .replace(/\{\{TAGS\}\}/g, tagsString)
       .replace(/\{\{FILE_NAME\}\}/g, fileName)

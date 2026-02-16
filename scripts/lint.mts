@@ -1,7 +1,7 @@
 import fg from 'fast-glob';
 import { printErrors, scanURLs, validateFiles } from 'next-validate-link';
-import { createGetUrl, getSlugs, parseFilePath } from 'fumadocs-core/source';
-import { getTableOfContents } from 'fumadocs-core/server';
+import { createGetUrl, getSlugs } from 'fumadocs-core/source';
+import { getTableOfContents } from 'fumadocs-core/content/toc';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import matter from 'gray-matter';
@@ -27,10 +27,10 @@ async function checkLinks() {
   );
 
   const docs = docsFiles.map(async (file) => {
-    const info = parseFilePath(path.relative('content/docs', file.path));
+    const relativePath = path.relative('content/docs', file.path);
 
     return {
-      value: getSlugs(info),
+      value: getSlugs(relativePath),
       hashes: (
         await getTableOfContents(
           {
@@ -59,8 +59,8 @@ async function checkLinks() {
       scanned,
 
       pathToUrl(value) {
-        const info = parseFilePath(path.relative('content/docs', value));
-        return getUrl(getSlugs(info));
+        const relativePath = path.relative('content/docs', value);
+        return getUrl(getSlugs(relativePath));
       },
     }),
     true,

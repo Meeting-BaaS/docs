@@ -1,5 +1,5 @@
 ---
-title: {{DATE}}
+title: "{{TODAY}}"
 description: Changes from recent development in {{SERVICE_NAME}}
 icon: {{SERVICE_ICON}}
 service: {{SERVICE_KEY}}
@@ -19,19 +19,14 @@ tags: [{{TAGS}}]
   The content in this document is automatically generated from service updates. It should be re-read by a human or at least an AI ;)
 </Callout>
 
-{{#SINGLE_FILE}}
-# Changed Files
+## Changed Files
 
-::filepath[{{FILE_PATH}}]
-{{FILE_DIFF}}
-{{/SINGLE_FILE}}
+```
+{{FILES_LIST}}
+```
 
-{{#MULTI_FILE}}
-# Changed Files
+## Changes
 
-{{#FILES}}
-::filepath[{{PATH}}]
-{{DIFF}}
-
-{{/FILES}}
-{{/MULTI_FILE}} 
+```diff
+{{GIT_DIFF}}
+```
