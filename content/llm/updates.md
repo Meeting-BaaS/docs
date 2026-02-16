@@ -4478,3 +4478,135 @@ This update contains changes to the Speaking Bots service documentation and rela
 
 ---
 
+## 2026-01-28
+
+Changes from recent development in Speaking Bots
+
+### Source: ./content/docs/updates/speaking-bots-2026-01-28.mdx
+
+
+<Callout type="warning">
+  <Files>
+    <Folder name="content" defaultOpen>
+      <Folder name="docs">
+        <Folder name="updates">
+          <File name="speaking-bots-2026-01-28.mdx" />
+        </Folder>
+      </Folder>
+    </Folder>
+  </Files>
+  The content in this document is automatically generated from service updates. It should be re-read by a human or at least an AI ;)
+</Callout>
+
+## Changed Files
+
+```
+content/docs/speaking-bots/reference/bots/join_meeting_bots_post.mdx
+content/docs/speaking-bots/reference/bots/leave_bot_bots__bot_id__delete.mdx
+content/docs/speaking-bots/reference/index.mdx
+content/docs/speaking-bots/reference/personas/generate_persona_image_personas_generate_image_post.mdx
+content/docs/speaking-bots/reference/system/health_health_get.mdx
+```
+
+## Changes
+
+```diff
+diff --git a/content/docs/speaking-bots/reference/bots/join_meeting_bots_post.mdx b/content/docs/speaking-bots/reference/bots/join_meeting_bots_post.mdx
+index 10b5fa0..f6744ec 100644
+--- a/content/docs/speaking-bots/reference/bots/join_meeting_bots_post.mdx
++++ b/content/docs/speaking-bots/reference/bots/join_meeting_bots_post.mdx
+@@ -3,7 +3,6 @@ title: Join Meeting
+ full: true
+ _openapi:
+   method: POST
+-  route: /bots
+   toc: []
+   structuredData:
+     headings: []
+@@ -25,4 +24,4 @@ Create and deploy a speaking bot in a meeting.
+ Launches an AI-powered bot that joins a video meeting through MeetingBaas
+ and processes audio using Pipecat's voice AI framework.
+ 
+-&lt;APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/bots","method":"post"}]} webhooks={[]} hasHead={false} /&gt;
+\ No newline at end of file
++&lt;APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/bots","method":"post"}]} /&gt;
+\ No newline at end of file
+diff --git a/content/docs/speaking-bots/reference/bots/leave_bot_bots__bot_id__delete.mdx b/content/docs/speaking-bots/reference/bots/leave_bot_bots__bot_id__delete.mdx
+index a68df5c..886e0e3 100644
+--- a/content/docs/speaking-bots/reference/bots/leave_bot_bots__bot_id__delete.mdx
++++ b/content/docs/speaking-bots/reference/bots/leave_bot_bots__bot_id__delete.mdx
+@@ -3,7 +3,6 @@ title: Leave Bot
+ full: true
+ _openapi:
+   method: DELETE
+-  route: /bots/{bot_id}
+   toc: []
+   structuredData:
+     headings: []
+@@ -26,4 +25,4 @@ This will:
+ 2. Close WebSocket connections if they exist
+ 3. Terminate the associated Pipecat process
+ 
+-&lt;APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/bots/{bot_id}","method":"delete"}]} webhooks={[]} hasHead={false} /&gt;
+\ No newline at end of file
++&lt;APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/bots/{bot_id}","method":"delete"}]} /&gt;
+\ No newline at end of file
+diff --git a/content/docs/speaking-bots/reference/index.mdx b/content/docs/speaking-bots/reference/index.mdx
+index b79be9c..461ffb5 100644
+--- a/content/docs/speaking-bots/reference/index.mdx
++++ b/content/docs/speaking-bots/reference/index.mdx
+@@ -1,3 +1,8 @@
++---
++title: Speaking Bots API Reference
++description: API reference documentation for Speaking Bots
++---
++
+ # Speaking Bots API Reference
+ 
+ This section contains detailed documentation for the Speaking Bots API, which allows you to programmatically create and manage speaking bots in your meetings.
+diff --git a/content/docs/speaking-bots/reference/personas/generate_persona_image_personas_generate_image_post.mdx b/content/docs/speaking-bots/reference/personas/generate_persona_image_personas_generate_image_post.mdx
+index 3ae6595..24d1200 100644
+--- a/content/docs/speaking-bots/reference/personas/generate_persona_image_personas_generate_image_post.mdx
++++ b/content/docs/speaking-bots/reference/personas/generate_persona_image_personas_generate_image_post.mdx
+@@ -3,7 +3,6 @@ title: Generate Persona Image
+ full: true
+ _openapi:
+   method: POST
+-  route: /personas/generate-image
+   toc: []
+   structuredData:
+     headings: []
+@@ -15,4 +14,4 @@ _openapi:
+ 
+ Generate an image for a persona using Replicate.
+ 
+-&lt;APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/personas/generate-image","method":"post"}]} webhooks={[]} hasHead={false} /&gt;
+\ No newline at end of file
++&lt;APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/personas/generate-image","method":"post"}]} /&gt;
+\ No newline at end of file
+diff --git a/content/docs/speaking-bots/reference/system/health_health_get.mdx b/content/docs/speaking-bots/reference/system/health_health_get.mdx
+index 9128bee..030b446 100644
+--- a/content/docs/speaking-bots/reference/system/health_health_get.mdx
++++ b/content/docs/speaking-bots/reference/system/health_health_get.mdx
+@@ -3,7 +3,6 @@ title: Health
+ full: true
+ _openapi:
+   method: GET
+-  route: /health
+   toc: []
+   structuredData:
+     headings: []
+@@ -15,4 +14,4 @@ _openapi:
+ 
+ Health check endpoint
+ 
+-&lt;APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/health","method":"get"}]} webhooks={[]} hasHead={false} /&gt;
+\ No newline at end of file
++&lt;APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/health","method":"get"}]} /&gt;
+\ No newline at end of file
+
+```
+
+
+---
+

@@ -3,7 +3,6 @@ title: List Raw Calendars
 full: true
 _openapi:
   method: POST
-  route: /calendars/raw
   toc: []
   structuredData:
     headings: []
@@ -22,4 +21,4 @@ _openapi:
 
 Retrieves unprocessed calendar data directly from the provider (Google, Microsoft) using provided OAuth credentials. This endpoint is typically used during the initial setup process to allow users to select which calendars to integrate. Returns a list of available calendars with their unique IDs, email addresses, and primary status. This data is not persisted until a calendar is formally created using the create_calendar endpoint.
 
-<APIPage document={"./openapi.json"} operations={[{"path":"/calendars/raw","method":"post"}]} webhooks={[]} hasHead={false} />
+<APIPage document={"./openapi.json"} operations={[{"path":"/calendars/raw","method":"post"}]} />
