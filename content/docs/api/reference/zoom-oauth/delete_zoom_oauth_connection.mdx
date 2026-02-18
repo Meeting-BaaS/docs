@@ -3,7 +3,6 @@ title: Delete Zoom OAuth Connection
 full: true
 _openapi:
   method: DELETE
-  route: /zoom_oauth_connections/{uuid}
   toc: []
   structuredData:
     headings: []
@@ -20,4 +19,4 @@ _openapi:
 
 Permanently deletes a Zoom OAuth connection by its UUID, removing all stored tokens. After deletion, bots using this connection's `zoom_user_id` as `zoom_obf_token_user_id` will no longer be able to automatically fetch OBF tokens. The Zoom user would need to re-authorize to create a new connection.
 
-<APIPage document={"./openapi.json"} operations={[{"path":"/zoom_oauth_connections/{uuid}","method":"delete"}]} webhooks={[]} hasHead={false} />
+<APIPage document={"./openapi.json"} operations={[{"path":"/zoom_oauth_connections/{uuid}","method":"delete"}]} />
