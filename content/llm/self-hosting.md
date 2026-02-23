@@ -927,114 +927,89 @@ This guide walks you through setting up the infrastructure required for Meeting 
 
 The following diagram illustrates the complete infrastructure architecture for Meeting BaaS v2:
 
-```mermaid
-flowchart TD
-    %% Entry point
+<Mermaid chart={`flowchart TD
     Users[Users / API Clients]
-
     Users -->|HTTPS| Domain[api.yourcompany.com]
-
     Domain -->|DNS| LB[Load Balancer]
-
     LB --> NGINX[NGINX Ingress Controller]
-
     CertManager[cert-manager] -.->|SSL Certs| NGINX
 
-    %% API Layer
-    subgraph APIPool["API Server Pool"]
-        API[API Server Pods<br/>x2-3 replicas]
+    subgraph APIPool[" API Server Pool "]
+        API[API Server Pods x2-3]
     end
-
     NGINX --> API
 
-    %% Data stores
-    subgraph DataStores["Data Layer"]
+    subgraph DataStores[" Data Layer "]
         DB[(PostgreSQL)]
         Redis[(Redis)]
     end
-
     API <--> DB
     API <--> Redis
 
-    %% Queues
-    subgraph Queues["Message Queues"]
+    subgraph Queues[" Message Queues "]
         SQSZoom[Zoom Queue]
         SQSMeet[Meet/Teams Queue]
     end
-
     API --> SQSZoom
     API --> SQSMeet
 
-    %% Bot Pools
-    subgraph BotPool["Bot Node Pool"]
-        subgraph ZoomBots["Zoom Bots"]
-            ZBot[Zoom Bot Pods<br/>KEDA ScaledJob]
+    subgraph BotPool[" Bot Node Pool "]
+        subgraph ZoomBots[" Zoom Bots "]
+            ZBot[Zoom Bot Pods]
         end
-
-        subgraph MeetBots["Meet/Teams Bots"]
-            MTBot[Meet/Teams Bot Pods<br/>KEDA ScaledJob]
+        subgraph MeetBots[" Meet/Teams Bots "]
+            MTBot[Meet/Teams Bot Pods]
         end
-
         VideoPlugin[Video Device Plugin]
     end
-
     SQSZoom --> ZBot
     SQSMeet --> MTBot
     VideoPlugin -.-> ZBot
     VideoPlugin -.-> MTBot
 
-    %% External connections
-    MeetingPlatforms[Meeting Platforms<br/>Zoom, Meet, Teams]
-
+    MeetingPlatforms[Meeting Platforms]
     ZBot <--> MeetingPlatforms
     MTBot <--> MeetingPlatforms
 
-    %% Storage
-    subgraph Storage["Object Storage"]
-        S3[S3 Buckets<br/>recordings, logs, audio]
+    subgraph Storage[" Object Storage "]
+        S3[S3 Buckets]
     end
-
     ZBot --> S3
     MTBot --> S3
     ZBot <--> DB
     MTBot <--> DB
 
-    %% CronJobs
-    subgraph CronJobs["Background Jobs"]
-        Cron[CronJobs<br/>Scheduler, Calendar, Cleanup]
+    subgraph CronJobs[" Background Jobs "]
+        Cron[CronJobs]
     end
-
     Cron <--> DB
     Cron --> SQSZoom
     Cron --> SQSMeet
 
-    %% Optional
-    subgraph Optional["Optional Services"]
-        Gladia[Gladia<br/>Transcription]
-        Stripe[Stripe<br/>Billing]
+    subgraph Optional[" Optional Services "]
+        Gladia[Gladia]
+        Stripe[Stripe]
     end
-
     ZBot -.-> Gladia
     MTBot -.-> Gladia
     API -.-> Stripe
 
-    %% Styling
-    classDef primary fill:#00dbc6,stroke:#0ea5a0,stroke-width:2px,color:#0f172a
-    classDef api fill:#3b82f6,stroke:#2563eb,stroke-width:2px,color:#fff
-    classDef bot fill:#8b5cf6,stroke:#7c3aed,stroke-width:2px,color:#fff
-    classDef storage fill:#f59e0b,stroke:#d97706,stroke-width:2px,color:#0f172a
-    classDef queue fill:#ec4899,stroke:#db2777,stroke-width:2px,color:#fff
-    classDef optional fill:#64748b,stroke:#475569,stroke-width:2px,color:#fff
-    classDef external fill:#1e293b,stroke:#334155,stroke-width:2px,color:#f1f5f9
+    classDef entry fill:#00dbc6,stroke:#0ea5a0,stroke-width:2px,color:#0f172a
+    classDef api fill:#dbeafe,stroke:#3b82f6,stroke-width:2px,color:#1e40af
+    classDef bot fill:#ede9fe,stroke:#8b5cf6,stroke-width:2px,color:#5b21b6
+    classDef storage fill:#fef3c7,stroke:#f59e0b,stroke-width:2px,color:#92400e
+    classDef queue fill:#fce7f3,stroke:#ec4899,stroke-width:2px,color:#9d174d
+    classDef optional fill:#f1f5f9,stroke:#64748b,stroke-width:2px,color:#334155
+    classDef external fill:#e0e7ff,stroke:#6366f1,stroke-width:2px,color:#3730a3
 
-    class Users,Domain,LB,NGINX,CertManager primary
-    class API,APIPool,Cron,CronJobs api
-    class ZBot,MTBot,ZoomBots,MeetBots,BotPool,VideoPlugin bot
-    class DB,Redis,DataStores,S3,Storage storage
-    class SQSZoom,SQSMeet,Queues queue
-    class Gladia,Stripe,Optional optional
+    class Users,Domain,LB,NGINX,CertManager entry
+    class API,Cron api
+    class ZBot,MTBot,VideoPlugin bot
+    class DB,Redis,S3 storage
+    class SQSZoom,SQSMeet queue
+    class Gladia,Stripe optional
     class MeetingPlatforms external
-```
+`} />
 
 ### Key Architecture Components
 

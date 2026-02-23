@@ -14,7 +14,7 @@
     "calendar--events",
     "add--bot--parameters-on--event",
     "unschedule--record--event",
-    "zoom--o-auth",
+    "zoom-oauth",
     "..."
   ]
 }

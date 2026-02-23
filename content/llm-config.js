@@ -52,11 +52,11 @@ export const categoryConfig = {
       "./content/docs/api-v2/reference/webhooks/**/*.mdx"
     ]
   },
-  "api/zoom--o-auth": {
-    "title": "zoom--o-auth api Reference",
-    "description": "Reference documentation for zoom--o-auth in api.",
+  "api/zoom-oauth": {
+    "title": "zoom-oauth api Reference",
+    "description": "Reference documentation for zoom-oauth in api.",
     "patterns": [
-      "./content/docs/api/reference/zoom--o-auth/**/*.mdx"
+      "./content/docs/api/reference/zoom-oauth/**/*.mdx"
     ]
   },
   "api-v2": {
@@ -101,11 +101,11 @@ export const categoryConfig = {
       "./content/docs/api-v2/reference/webhooks/**/*.mdx"
     ]
   },
-  "api-v2/zoom--credentials": {
-    "title": "zoom--credentials api-v2 Reference",
-    "description": "Reference documentation for zoom--credentials in api-v2.",
+  "api-v2/zoom-credentials": {
+    "title": "zoom-credentials api-v2 Reference",
+    "description": "Reference documentation for zoom-credentials in api-v2.",
     "patterns": [
-      "./content/docs/api-v2/reference/zoom--credentials/**/*.mdx"
+      "./content/docs/api-v2/reference/zoom-credentials/**/*.mdx"
     ]
   },
   "mcp-servers": {
@@ -220,7 +220,7 @@ export const knownTxtPaths = [
   [
     "llms",
     "api",
-    "zoom--o-auth"
+    "zoom-oauth"
   ],
   [
     "llms",
@@ -254,7 +254,7 @@ export const knownTxtPaths = [
   [
     "llms",
     "api-v2",
-    "zoom--credentials"
+    "zoom-credentials"
   ],
   [
     "llms",
