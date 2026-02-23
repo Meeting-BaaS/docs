@@ -6,6 +6,6 @@
         "calendars",
         "webhooks",
         "callbacks",
-        "zoom--credentials"
+        "zoom-credentials"
     ]
 }

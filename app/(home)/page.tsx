@@ -5,7 +5,7 @@ import Link from 'next/link';
 
 export default function DocsPage(): React.ReactElement {
   return (
-    <main className="container flex flex-col py-16">
+    <main className="container mx-auto flex flex-col py-16">
       <h1 className="text-2xl font-semibold md:text-3xl">
         Welcome to Meeting BaaS Documentation
       </h1>
