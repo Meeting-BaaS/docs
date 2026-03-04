@@ -1035,10 +1035,10 @@ Rate limiting controls how many requests per second your team can make to the AP
 
 Default rate limits vary by plan:
 
-- **Pay-as-you-go**: 5 request/second
-- **Pro**: 10 request/second
-- **Scale**: 20 request/second
-- **Enterprise**: 20 requests/second (Can be customised)
+- **Pay-as-you-go**: 5 requests/second
+- **Pro**: 10 requests/second
+- **Scale**: 20 requests/second
+- **Enterprise**: 20 requests/second (can be customised)
 
 ### Rate Limit Headers
 
@@ -1059,7 +1059,7 @@ When you exceed the rate limit, you'll receive a `429 Too Many Requests` respons
   "error": "Rate Limited",
   "code": "FST_ERR_TOO_MANY_REQUESTS",
   "statusCode": 429,
-  "message": "Rate limit exceeded. Maximum 1 request(s) per second allowed. Retry after x seconds",
+  "message": "Rate limit exceeded. Maximum <plan_limit> requests per second allowed. Retry after x seconds",
   "retryAfter": 1
 }
 ```
