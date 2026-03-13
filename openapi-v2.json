@@ -129,13 +129,57 @@
             "maxLength": 255
           },
           "bot_image": {
-            "description": "The image URL of the bot's avatar.\n\nMust be a valid HTTPS URL pointing to a JPEG or PNG image. This image will be displayed as the bot's avatar in the meeting.\n\nThe recommended aspect ratio is 16:9 for best display across different platforms.",
+            "description": "The bot's avatar image(s).\n\nAccepts a single HTTPS URL or an array of up to 5 HTTPS URLs pointing to image files (JPEG, PNG, or WebP). When multiple images are provided, they will be cycled based on the bot_image_config settings.",
             "example": null,
             "default": null,
             "anyOf": [
               {
-                "type": "string",
-                "format": "uri"
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  {
+                    "minItems": 1,
+                    "maxItems": 5,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "bot_image_config": {
+            "description": "Configuration for how bot avatar images are displayed. Only relevant when multiple images are provided in bot_image.",
+            "example": null,
+            "default": null,
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "loop_mode": {
+                    "description": "Controls how multiple bot images are cycled.\n\n- `auto`: Cycles through images at the interval specified by image_duration.\n- `bot_status`: Uses the first image when the bot joins, and the second image when recording starts. Only the first two images are used in this mode; additional images are ignored.",
+                    "default": "auto",
+                    "type": "string",
+                    "enum": [
+                      "auto",
+                      "bot_status"
+                    ]
+                  },
+                  "image_duration": {
+                    "description": "Duration in seconds each image is displayed before switching to the next. Only used when loop_mode is 'auto'.\n\nDefault: 30. Range: 10-120.",
+                    "default": 30,
+                    "type": "integer",
+                    "minimum": 10,
+                    "maximum": 120
+                  }
+                }
               },
               {
                 "type": "null"
@@ -1190,6 +1234,65 @@
                     "type": "null"
                   }
                 ]
+              },
+              "zoom_config": {
+                "description": "Zoom configuration for this bot (null if not a Zoom bot or no zoom config provided)",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "credential_id": {
+                        "description": "UUID of the stored Zoom credential",
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "credential_user_id": {
+                        "description": "Zoom user ID used to look up the credential",
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "obf_token_url": {
+                        "description": "URL that returns an OBF token at join time",
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "zak_token_url": {
+                        "description": "URL that returns a ZAK token at join time",
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "required": [
@@ -1215,7 +1318,8 @@
               "transcription_provider",
               "error_code",
               "error_message",
-              "extra"
+              "extra",
+              "zoom_config"
             ]
           }
         },
@@ -1517,13 +1621,57 @@
             "maxLength": 255
           },
           "bot_image": {
-            "description": "The image URL of the bot's avatar.\n\nMust be a valid HTTPS URL pointing to a JPEG or PNG image. This image will be displayed as the bot's avatar in the meeting.\n\nThe recommended aspect ratio is 16:9 for best display across different platforms.",
+            "description": "The bot's avatar image(s).\n\nAccepts a single HTTPS URL or an array of up to 5 HTTPS URLs pointing to image files (JPEG, PNG, or WebP). When multiple images are provided, they will be cycled based on the bot_image_config settings.",
             "example": null,
             "default": null,
             "anyOf": [
               {
-                "type": "string",
-                "format": "uri"
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  {
+                    "minItems": 1,
+                    "maxItems": 5,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "bot_image_config": {
+            "description": "Configuration for how bot avatar images are displayed. Only relevant when multiple images are provided in bot_image.",
+            "example": null,
+            "default": null,
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "loop_mode": {
+                    "description": "Controls how multiple bot images are cycled.\n\n- `auto`: Cycles through images at the interval specified by image_duration.\n- `bot_status`: Uses the first image when the bot joins, and the second image when recording starts. Only the first two images are used in this mode; additional images are ignored.",
+                    "default": "auto",
+                    "type": "string",
+                    "enum": [
+                      "auto",
+                      "bot_status"
+                    ]
+                  },
+                  "image_duration": {
+                    "description": "Duration in seconds each image is displayed before switching to the next. Only used when loop_mode is 'auto'.\n\nDefault: 30. Range: 10-120.",
+                    "default": 30,
+                    "type": "integer",
+                    "minimum": 10,
+                    "maximum": 120
+                  }
+                }
               },
               {
                 "type": "null"
@@ -2427,6 +2575,65 @@
                     "type": "null"
                   }
                 ]
+              },
+              "zoom_config": {
+                "description": "Zoom configuration for this bot (null if not a Zoom bot or no zoom config provided)",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "credential_id": {
+                        "description": "UUID of the stored Zoom credential",
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "credential_user_id": {
+                        "description": "Zoom user ID used to look up the credential",
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "obf_token_url": {
+                        "description": "URL that returns an OBF token at join time",
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "zak_token_url": {
+                        "description": "URL that returns a ZAK token at join time",
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "required": [
@@ -2447,7 +2654,8 @@
               "transcription_config",
               "streaming_config",
               "callback_config",
-              "extra"
+              "extra",
+              "zoom_config"
             ]
           }
         },
@@ -2645,13 +2853,57 @@
                 "maxLength": 255
               },
               "bot_image": {
-                "description": "The image URL of the bot's avatar.\n\nMust be a valid HTTPS URL pointing to a JPEG or PNG image. This image will be displayed as the bot's avatar in the meeting.\n\nThe recommended aspect ratio is 16:9 for best display across different platforms.",
+                "description": "The bot's avatar image(s).\n\nAccepts a single HTTPS URL or an array of up to 5 HTTPS URLs pointing to image files (JPEG, PNG, or WebP). When multiple images are provided, they will be cycled based on the bot_image_config settings.",
                 "example": null,
                 "default": null,
                 "anyOf": [
                   {
-                    "type": "string",
-                    "format": "uri"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uri"
+                      },
+                      {
+                        "minItems": 1,
+                        "maxItems": 5,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "uri"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "bot_image_config": {
+                "description": "Configuration for how bot avatar images are displayed. Only relevant when multiple images are provided in bot_image.",
+                "example": null,
+                "default": null,
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "loop_mode": {
+                        "description": "Controls how multiple bot images are cycled.\n\n- `auto`: Cycles through images at the interval specified by image_duration.\n- `bot_status`: Uses the first image when the bot joins, and the second image when recording starts. Only the first two images are used in this mode; additional images are ignored.",
+                        "default": "auto",
+                        "type": "string",
+                        "enum": [
+                          "auto",
+                          "bot_status"
+                        ]
+                      },
+                      "image_duration": {
+                        "description": "Duration in seconds each image is displayed before switching to the next. Only used when loop_mode is 'auto'.\n\nDefault: 30. Range: 10-120.",
+                        "default": 30,
+                        "type": "integer",
+                        "minimum": 10,
+                        "maximum": 120
+                      }
+                    }
                   },
                   {
                     "type": "null"
@@ -3039,13 +3291,57 @@
                 "maxLength": 255
               },
               "bot_image": {
-                "description": "The image URL of the bot's avatar.\n\nMust be a valid HTTPS URL pointing to a JPEG or PNG image. This image will be displayed as the bot's avatar in the meeting.\n\nThe recommended aspect ratio is 16:9 for best display across different platforms.",
+                "description": "The bot's avatar image(s).\n\nAccepts a single HTTPS URL or an array of up to 5 HTTPS URLs pointing to image files (JPEG, PNG, or WebP). When multiple images are provided, they will be cycled based on the bot_image_config settings.",
                 "example": null,
                 "default": null,
                 "anyOf": [
                   {
-                    "type": "string",
-                    "format": "uri"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uri"
+                      },
+                      {
+                        "minItems": 1,
+                        "maxItems": 5,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "uri"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "bot_image_config": {
+                "description": "Configuration for how bot avatar images are displayed. Only relevant when multiple images are provided in bot_image.",
+                "example": null,
+                "default": null,
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "loop_mode": {
+                        "description": "Controls how multiple bot images are cycled.\n\n- `auto`: Cycles through images at the interval specified by image_duration.\n- `bot_status`: Uses the first image when the bot joins, and the second image when recording starts. Only the first two images are used in this mode; additional images are ignored.",
+                        "default": "auto",
+                        "type": "string",
+                        "enum": [
+                          "auto",
+                          "bot_status"
+                        ]
+                      },
+                      "image_duration": {
+                        "description": "Duration in seconds each image is displayed before switching to the next. Only used when loop_mode is 'auto'.\n\nDefault: 30. Range: 10-120.",
+                        "default": 30,
+                        "type": "integer",
+                        "minimum": 10,
+                        "maximum": 120
+                      }
+                    }
                   },
                   {
                     "type": "null"
@@ -7555,6 +7851,66 @@
                     "type": "null"
                   }
                 ]
+              },
+              "zoom_config": {
+                "description": "Zoom configuration for this bot (null if not a Zoom bot or no zoom config provided)",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "credential_id": {
+                        "description": "UUID of the stored Zoom credential",
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "credential_user_id": {
+                        "description": "Zoom user ID used to look up the credential",
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "obf_token_url": {
+                        "description": "URL that returns an OBF token at join time",
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "zak_token_url": {
+                        "description": "URL that returns a ZAK token at join time",
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "required": [
@@ -7580,7 +7936,8 @@
               "transcription_provider",
               "error_code",
               "error_message",
-              "extra"
+              "extra",
+              "zoom_config"
             ],
             "additionalProperties": false
           }
@@ -7897,13 +8254,62 @@
             "maxLength": 255
           },
           "bot_image": {
-            "description": "The image URL of the bot's avatar.\n\nMust be a valid HTTPS URL pointing to a JPEG or PNG image. This image will be displayed as the bot's avatar in the meeting.\n\nThe recommended aspect ratio is 16:9 for best display across different platforms.",
+            "description": "The bot's avatar image(s).\n\nAccepts a single HTTPS URL or an array of up to 5 HTTPS URLs pointing to image files (JPEG, PNG, or WebP). When multiple images are provided, they will be cycled based on the bot_image_config settings.",
             "example": null,
             "default": null,
             "anyOf": [
               {
-                "type": "string",
-                "format": "uri"
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  {
+                    "minItems": 1,
+                    "maxItems": 5,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uri"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "bot_image_config": {
+            "description": "Configuration for how bot avatar images are displayed. Only relevant when multiple images are provided in bot_image.",
+            "example": null,
+            "default": null,
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "loop_mode": {
+                    "description": "Controls how multiple bot images are cycled.\n\n- `auto`: Cycles through images at the interval specified by image_duration.\n- `bot_status`: Uses the first image when the bot joins, and the second image when recording starts. Only the first two images are used in this mode; additional images are ignored.",
+                    "default": "auto",
+                    "type": "string",
+                    "enum": [
+                      "auto",
+                      "bot_status"
+                    ]
+                  },
+                  "image_duration": {
+                    "description": "Duration in seconds each image is displayed before switching to the next. Only used when loop_mode is 'auto'.\n\nDefault: 30. Range: 10-120.",
+                    "default": 30,
+                    "type": "integer",
+                    "minimum": 10,
+                    "maximum": 120
+                  }
+                },
+                "required": [
+                  "loop_mode",
+                  "image_duration"
+                ],
+                "additionalProperties": false
               },
               {
                 "type": "null"
@@ -8841,6 +9247,66 @@
                     "type": "null"
                   }
                 ]
+              },
+              "zoom_config": {
+                "description": "Zoom configuration for this bot (null if not a Zoom bot or no zoom config provided)",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "credential_id": {
+                        "description": "UUID of the stored Zoom credential",
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "credential_user_id": {
+                        "description": "Zoom user ID used to look up the credential",
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "obf_token_url": {
+                        "description": "URL that returns an OBF token at join time",
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "zak_token_url": {
+                        "description": "URL that returns a ZAK token at join time",
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "required": [
@@ -8861,7 +9327,8 @@
               "transcription_config",
               "streaming_config",
               "callback_config",
-              "extra"
+              "extra",
+              "zoom_config"
             ],
             "additionalProperties": false
           }
@@ -9071,13 +9538,62 @@
                 "maxLength": 255
               },
               "bot_image": {
-                "description": "The image URL of the bot's avatar.\n\nMust be a valid HTTPS URL pointing to a JPEG or PNG image. This image will be displayed as the bot's avatar in the meeting.\n\nThe recommended aspect ratio is 16:9 for best display across different platforms.",
+                "description": "The bot's avatar image(s).\n\nAccepts a single HTTPS URL or an array of up to 5 HTTPS URLs pointing to image files (JPEG, PNG, or WebP). When multiple images are provided, they will be cycled based on the bot_image_config settings.",
                 "example": null,
                 "default": null,
                 "anyOf": [
                   {
-                    "type": "string",
-                    "format": "uri"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uri"
+                      },
+                      {
+                        "minItems": 1,
+                        "maxItems": 5,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "uri"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "bot_image_config": {
+                "description": "Configuration for how bot avatar images are displayed. Only relevant when multiple images are provided in bot_image.",
+                "example": null,
+                "default": null,
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "loop_mode": {
+                        "description": "Controls how multiple bot images are cycled.\n\n- `auto`: Cycles through images at the interval specified by image_duration.\n- `bot_status`: Uses the first image when the bot joins, and the second image when recording starts. Only the first two images are used in this mode; additional images are ignored.",
+                        "default": "auto",
+                        "type": "string",
+                        "enum": [
+                          "auto",
+                          "bot_status"
+                        ]
+                      },
+                      "image_duration": {
+                        "description": "Duration in seconds each image is displayed before switching to the next. Only used when loop_mode is 'auto'.\n\nDefault: 30. Range: 10-120.",
+                        "default": 30,
+                        "type": "integer",
+                        "minimum": 10,
+                        "maximum": 120
+                      }
+                    },
+                    "required": [
+                      "loop_mode",
+                      "image_duration"
+                    ],
+                    "additionalProperties": false
                   },
                   {
                     "type": "null"
@@ -9414,6 +9930,7 @@
             "required": [
               "bot_name",
               "bot_image",
+              "bot_image_config",
               "recording_mode",
               "entry_message",
               "timeout_config",
@@ -9502,13 +10019,62 @@
                 "maxLength": 255
               },
               "bot_image": {
-                "description": "The image URL of the bot's avatar.\n\nMust be a valid HTTPS URL pointing to a JPEG or PNG image. This image will be displayed as the bot's avatar in the meeting.\n\nThe recommended aspect ratio is 16:9 for best display across different platforms.",
+                "description": "The bot's avatar image(s).\n\nAccepts a single HTTPS URL or an array of up to 5 HTTPS URLs pointing to image files (JPEG, PNG, or WebP). When multiple images are provided, they will be cycled based on the bot_image_config settings.",
                 "example": null,
                 "default": null,
                 "anyOf": [
                   {
-                    "type": "string",
-                    "format": "uri"
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uri"
+                      },
+                      {
+                        "minItems": 1,
+                        "maxItems": 5,
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "format": "uri"
+                        }
+                      }
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "bot_image_config": {
+                "description": "Configuration for how bot avatar images are displayed. Only relevant when multiple images are provided in bot_image.",
+                "example": null,
+                "default": null,
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "loop_mode": {
+                        "description": "Controls how multiple bot images are cycled.\n\n- `auto`: Cycles through images at the interval specified by image_duration.\n- `bot_status`: Uses the first image when the bot joins, and the second image when recording starts. Only the first two images are used in this mode; additional images are ignored.",
+                        "default": "auto",
+                        "type": "string",
+                        "enum": [
+                          "auto",
+                          "bot_status"
+                        ]
+                      },
+                      "image_duration": {
+                        "description": "Duration in seconds each image is displayed before switching to the next. Only used when loop_mode is 'auto'.\n\nDefault: 30. Range: 10-120.",
+                        "default": 30,
+                        "type": "integer",
+                        "minimum": 10,
+                        "maximum": 120
+                      }
+                    },
+                    "required": [
+                      "loop_mode",
+                      "image_duration"
+                    ],
+                    "additionalProperties": false
                   },
                   {
                     "type": "null"

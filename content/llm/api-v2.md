@@ -1235,9 +1235,19 @@ These errors are specific to Zoom meetings:
 **Title:** Waiting for Host Timeout
 **Description:** The bot timed out while waiting for the meeting host to join the meeting.
 
-**OBF Context:** When using OBF tokens, this error also occurs if the **authorized user** (the Zoom user who authorized your app) does not join the meeting within the timeout period. The bot retries joining every few seconds, but if the authorized user never appears, this timeout is triggered.
+**Resolution:** Ensure the meeting host joins before the timeout expires. You can increase the timeout via `timeout_config.waiting_room_timeout`.
+
+### `WAITING_FOR_AUTHORIZED_USER_TIMEOUT`
+**Title:** Waiting for Authorized User Timeout
+**Description:** The bot timed out waiting for the authorized user (associated with the OBF token) to join the meeting. When using OBF tokens, the Zoom user who authorized your app must be present in the meeting for the bot to join successfully. The bot retries joining every few seconds, but if the authorized user never appears, this timeout is triggered.
 
 **Resolution:** Ensure the authorized user joins the meeting before or shortly after the bot. You can increase the timeout via `timeout_config.waiting_room_timeout`.
+
+### `UNABLE_JOIN_EXTERNAL_MEETING`
+**Title:** Unable to Join External Meeting
+**Description:** The Zoom SDK app is not authorized to join meetings hosted by a different Zoom organization. This occurs when the SDK app's configuration restricts it to meetings within its own Zoom organization.
+
+**Resolution:** Ensure the Zoom SDK app has permission to join external meetings in its [Zoom Marketplace app settings](https://marketplace.zoom.us/). Alternatively, use an OBF token from a user within the meeting's Zoom organization.
 
 ### `RECORDING_RIGHTS_NOT_GRANTED`
 **Title:** Recording Rights Not Granted  
@@ -1350,7 +1360,7 @@ When you receive a `bot.failed` webhook:
 
 1. Check the `error_code` to understand what went wrong
 2. Review the `error_message` for additional context
-3. For user-responsible errors (`BOT_NOT_ACCEPTED`, `TIMEOUT_WAITING_TO_START`), ensure meeting settings allow bots
+3. For user-responsible errors (`BOT_NOT_ACCEPTED`, `TIMEOUT_WAITING_TO_START`, `WAITING_FOR_AUTHORIZED_USER_TIMEOUT`), ensure meeting settings allow bots and authorized users join promptly
 4. For transcription errors, you can retry transcription using the re-transcribe endpoint
 5. For system errors, check your token balance and daily bot cap
 6. For unknown errors, contact support with the bot ID and error details
