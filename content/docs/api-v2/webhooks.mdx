@@ -100,7 +100,7 @@ Triggered when a bot successfully completes recording and processing.
     "mp4": "https://s3.amazonaws.com/.../video.mp4",
     "audio": "https://s3.amazonaws.com/.../audio.mp3",
     "diarization": "https://s3.amazonaws.com/.../diarization.jsonl",
-    "chat_messages: "https://s3.amazonaws.com/.../chat_messages.json",
+    "chat_messages": "https://s3.amazonaws.com/.../chat_messages.json",
     "duration_seconds": 3600,
     "participants": [...],
     "speakers": [...],
@@ -150,7 +150,7 @@ Triggered in real-time when a chat message is received in the meeting. This allo
 - `sender_name`: Display name of the message sender
 - `sender_id`: Participant ID of the sender. May be `null` if the sender could not be resolved to a participant
 - `text`: Text content of the chat message
-- `sent_at`: ISO 8601 timestamp when this webhook was sent
+- `sent_at`: ISO 8601 timestamp when this webhook was dispatched by the server (not when the message was sent in the meeting)
 
 **Note:** The bot's own messages (sent via the [send chat message](/api-v2/reference/bots/sendChatMessage) endpoint) do not trigger this webhook — only messages from meeting participants are delivered. For a complete record of all chat messages (including bot-sent messages), use the `chat_messages` artifact available in the [bot.completed webhook](#botcompleted) and [bot details endpoint](/api-v2/reference/bots/getBotDetails). See the [Artifacts documentation](/api-v2/artifacts) for the artifact structure.
 

@@ -354,6 +354,8 @@ The chat messages artifact contains all chat messages exchanged during the meeti
 - `text`: Text content of the message (HTML tags stripped for Teams messages)
 - `timestamp`: ISO 8601 timestamp of when the message was sent or received
 
+**Note on timestamps**: The `timestamp` field in the artifact represents when the message was sent or received in the meeting. This differs from the `sent_at` field in the `bot.chat_message` webhook, which represents when the webhook was dispatched by the server.
+
 **Real-Time Events**: In addition to the artifact, each chat message triggers a `bot.chat_message` webhook event in real-time as messages are received during the meeting. The artifact provides a complete record of all messages for post-meeting access.
 
 **Use Cases**:

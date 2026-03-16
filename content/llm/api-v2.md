@@ -424,7 +424,7 @@ The diarization artifact contains speaker identification and timing information,
 
 ## Chat Messages Artifact
 
-The chat messages artifact contains all chat messages exchanged during the meeting, including messages from participants and messages sent by the bot via the [send chat message](/docs/api-v2/reference#sendChatMessage) endpoint.
+The chat messages artifact contains all chat messages exchanged during the meeting, including messages from participants and messages sent by the bot via the [send chat message](/api-v2/reference/bots/sendChatMessage) endpoint.
 
 **Format**: JSON file
 
@@ -458,6 +458,8 @@ The chat messages artifact contains all chat messages exchanged during the meeti
 - `sender_id`: Participant ID of the sender. For Google Meet, this is the assigned sequential ID. For Zoom, this is the SDK user ID. May be `null` for Teams or if the sender could not be resolved to a participant.
 - `text`: Text content of the message (HTML tags stripped for Teams messages)
 - `timestamp`: ISO 8601 timestamp of when the message was sent or received
+
+**Note on timestamps**: The `timestamp` field in the artifact represents when the message was sent or received in the meeting. This differs from the `sent_at` field in the `bot.chat_message` webhook, which represents when the webhook was dispatched by the server.
 
 **Real-Time Events**: In addition to the artifact, each chat message triggers a `bot.chat_message` webhook event in real-time as messages are received during the meeting. The artifact provides a complete record of all messages for post-meeting access.
 
@@ -8429,7 +8431,8 @@ Triggered when a bot successfully completes recording and processing.
     "transcription": "https://s3.amazonaws.com/.../transcription.json",
     "mp4": "https://s3.amazonaws.com/.../video.mp4",
     "audio": "https://s3.amazonaws.com/.../audio.mp3",
-    "diarization": "https://s3.amazonaws.com/.../diarization.json",
+    "diarization": "https://s3.amazonaws.com/.../diarization.jsonl",
+    "chat_messages": "https://s3.amazonaws.com/.../chat_messages.json",
     "duration_seconds": 3600,
     "participants": [...],
     "speakers": [...],
@@ -8479,9 +8482,9 @@ Triggered in real-time when a chat message is received in the meeting. This allo
 - `sender_name`: Display name of the message sender
 - `sender_id`: Participant ID of the sender. May be `null` if the sender could not be resolved to a participant
 - `text`: Text content of the chat message
-- `sent_at`: ISO 8601 timestamp when this webhook was sent
+- `sent_at`: ISO 8601 timestamp when this webhook was dispatched by the server (not when the message was sent in the meeting)
 
-**Note:** The bot's own messages (sent via the [send chat message](/docs/api-v2/reference#sendChatMessage) endpoint) do not trigger this webhook — only messages from meeting participants are delivered. For a complete record of all chat messages (including bot-sent messages), use the `chat_messages` artifact available in the [bot.completed webhook](#botcompleted) and [bot details endpoint](/docs/api-v2/reference#getBotDetails). See the [Artifacts documentation](/docs/api-v2/artifacts#chat-messages-artifact) for the artifact structure.
+**Note:** The bot's own messages (sent via the [send chat message](/api-v2/reference/bots/sendChatMessage) endpoint) do not trigger this webhook — only messages from meeting participants are delivered. For a complete record of all chat messages (including bot-sent messages), use the `chat_messages` artifact available in the [bot.completed webhook](#botcompleted) and [bot details endpoint](/api-v2/reference/bots/getBotDetails). See the [Artifacts documentation](/api-v2/artifacts) for the artifact structure.
 
 ### `bot.failed`
 
