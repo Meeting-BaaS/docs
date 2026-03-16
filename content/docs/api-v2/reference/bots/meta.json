@@ -4,6 +4,7 @@
         "batchCreateBots",
         "createBot",
         "updateBotConfig",
+        "sendChatMessage",
         "deleteBotData",
         "getBotDetails",
         "getBotScreenshots",

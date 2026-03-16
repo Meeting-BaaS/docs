@@ -4,6 +4,7 @@
     "botwebhookstatuschange",
     "botwebhookcompleted",
     "botwebhookfailed",
+    "botwebhookchatmessage",
     "calendarwebhookconnectioncreated",
     "calendarwebhookconnectionupdated",
     "calendarwebhookconnectiondeleted",
