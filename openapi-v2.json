@@ -210,7 +210,7 @@
             ]
           },
           "entry_message": {
-            "description": "The message that the bot will send when it joins the meeting.\n\nThis message will be posted in the meeting chat when the bot successfully joins.\n\nAvailable for Google Meet and Zoom meetings. Microsoft Teams does not support entry messages for guests outside of an organization.\n\nMaximum: 500 characters",
+            "description": "The message that the bot will send when it joins the meeting.\n\nThis message will be posted in the meeting chat when the bot successfully joins.\n\nAvailable for Google Meet, Microsoft Teams, and Zoom meetings.\n\nMaximum: 500 characters",
             "example": "Hello! I'm here to record this meeting.",
             "default": null,
             "anyOf": [
@@ -1715,7 +1715,7 @@
             ]
           },
           "entry_message": {
-            "description": "The message that the bot will send when it joins the meeting.\n\nThis message will be posted in the meeting chat when the bot successfully joins.\n\nAvailable for Google Meet and Zoom meetings. Microsoft Teams does not support entry messages for guests outside of an organization.\n\nMaximum: 500 characters",
+            "description": "The message that the bot will send when it joins the meeting.\n\nThis message will be posted in the meeting chat when the bot successfully joins.\n\nAvailable for Google Meet, Microsoft Teams, and Zoom meetings.\n\nMaximum: 500 characters",
             "example": "Hello! I'm here to record this meeting.",
             "default": null,
             "anyOf": [
@@ -2935,7 +2935,7 @@
                 ]
               },
               "entry_message": {
-                "description": "The message that the bot will send when it joins the meeting.\n\nThis message will be posted in the meeting chat when the bot successfully joins.\n\nAvailable for Google Meet and Zoom meetings. Microsoft Teams does not support entry messages for guests outside of an organization.\n\nMaximum: 500 characters",
+                "description": "The message that the bot will send when it joins the meeting.\n\nThis message will be posted in the meeting chat when the bot successfully joins.\n\nAvailable for Google Meet, Microsoft Teams, and Zoom meetings.\n\nMaximum: 500 characters",
                 "example": "Hello! I'm here to record this meeting.",
                 "default": null,
                 "anyOf": [
@@ -3373,7 +3373,7 @@
                 ]
               },
               "entry_message": {
-                "description": "The message that the bot will send when it joins the meeting.\n\nThis message will be posted in the meeting chat when the bot successfully joins.\n\nAvailable for Google Meet and Zoom meetings. Microsoft Teams does not support entry messages for guests outside of an organization.\n\nMaximum: 500 characters",
+                "description": "The message that the bot will send when it joins the meeting.\n\nThis message will be posted in the meeting chat when the bot successfully joins.\n\nAvailable for Google Meet, Microsoft Teams, and Zoom meetings.\n\nMaximum: 500 characters",
                 "example": "Hello! I'm here to record this meeting.",
                 "default": null,
                 "anyOf": [
@@ -8462,7 +8462,7 @@
             ]
           },
           "entry_message": {
-            "description": "The message that the bot will send when it joins the meeting.\n\nThis message will be posted in the meeting chat when the bot successfully joins.\n\nAvailable for Google Meet and Zoom meetings. Microsoft Teams does not support entry messages for guests outside of an organization.\n\nMaximum: 500 characters",
+            "description": "The message that the bot will send when it joins the meeting.\n\nThis message will be posted in the meeting chat when the bot successfully joins.\n\nAvailable for Google Meet, Microsoft Teams, and Zoom meetings.\n\nMaximum: 500 characters",
             "example": "Hello! I'm here to record this meeting.",
             "default": null,
             "anyOf": [
@@ -9734,7 +9734,7 @@
                 ]
               },
               "entry_message": {
-                "description": "The message that the bot will send when it joins the meeting.\n\nThis message will be posted in the meeting chat when the bot successfully joins.\n\nAvailable for Google Meet and Zoom meetings. Microsoft Teams does not support entry messages for guests outside of an organization.\n\nMaximum: 500 characters",
+                "description": "The message that the bot will send when it joins the meeting.\n\nThis message will be posted in the meeting chat when the bot successfully joins.\n\nAvailable for Google Meet, Microsoft Teams, and Zoom meetings.\n\nMaximum: 500 characters",
                 "example": "Hello! I'm here to record this meeting.",
                 "default": null,
                 "anyOf": [
@@ -10215,7 +10215,7 @@
                 ]
               },
               "entry_message": {
-                "description": "The message that the bot will send when it joins the meeting.\n\nThis message will be posted in the meeting chat when the bot successfully joins.\n\nAvailable for Google Meet and Zoom meetings. Microsoft Teams does not support entry messages for guests outside of an organization.\n\nMaximum: 500 characters",
+                "description": "The message that the bot will send when it joins the meeting.\n\nThis message will be posted in the meeting chat when the bot successfully joins.\n\nAvailable for Google Meet, Microsoft Teams, and Zoom meetings.\n\nMaximum: 500 characters",
                 "example": "Hello! I'm here to record this meeting.",
                 "default": null,
                 "anyOf": [
