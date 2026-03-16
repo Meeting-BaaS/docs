@@ -120,6 +120,7 @@ When a bot completes recording a meeting, it generates several artifacts that yo
 - **Transcription**: Standardized transcription with accurate timestamps
 - **Raw Transcription**: Provider-specific transcription with advanced features
 - **Diarization**: Speaker identification and timing data
+- **Chat Messages**: JSON file containing all chat messages exchanged during the meeting
 
 All artifacts are accessed via presigned URLs provided in bot details responses and webhook payloads.
 
@@ -421,6 +422,65 @@ The diarization artifact contains speaker identification and timing information,
 - **Zoom**: Includes `user_id` (platform user ID) and optional `lang` fields in each segment
 - **Google Meet/Teams**: Includes `user_id` (assigned user ID) when available. The assigned ID attempts to remain consistent even if a participant rejoins the meeting.
 
+## Chat Messages Artifact
+
+The chat messages artifact contains all chat messages exchanged during the meeting, including messages from participants and messages sent by the bot via the [send chat message](/api-v2/reference/bots/sendChatMessage) endpoint.
+
+**Format**: JSON file
+
+**When Available**: Only when chat messages were exchanged during the meeting. If no messages were sent or received, this artifact will not be generated.
+
+**Structure**:
+
+```json
+[
+  {
+    "message_id": "spaces/XxM_aNTpzGkB/messages/1773539019302815",
+    "sender_name": "John Doe",
+    "sender_id": 2,
+    "text": "Hi everyone!",
+    "timestamp": "2025-01-15T10:30:15.359Z"
+  },
+  {
+    "message_id": "71149604-eb75-433c-91bc-6a3c02defa94",
+    "sender_name": "Meeting Bot",
+    "sender_id": 1,
+    "text": "Hello! How can I help?",
+    "timestamp": "2025-01-15T10:30:28.456Z"
+  }
+]
+```
+
+**Fields**:
+
+- `message_id`: Unique identifier for the message (format varies by platform)
+- `sender_name`: Display name of the message sender
+- `sender_id`: Participant ID of the sender. For Google Meet, this is the assigned sequential ID. For Zoom, this is the SDK user ID. May be `null` for Teams or if the sender could not be resolved to a participant.
+- `text`: Text content of the message (HTML tags stripped for Teams messages)
+- `timestamp`: ISO 8601 timestamp of when the message was sent or received
+
+**Note on timestamps**: The `timestamp` field in the artifact represents when the message was sent or received in the meeting. This differs from the `sent_at` field in the `bot.chat_message` webhook, which represents when the webhook was dispatched by the server.
+
+**Real-Time Events**: In addition to the artifact, each chat message triggers a `bot.chat_message` webhook event in real-time as messages are received during the meeting. The artifact provides a complete record of all messages for post-meeting access.
+
+**Use Cases**:
+
+- Post-meeting review of chat discussions
+- Capturing action items and links shared in chat
+- Audit trail of meeting communications
+- Integration with note-taking and project management tools
+- Correlating chat messages with transcript timestamps
+
+**Access**: Available via the `chat_messages` field in bot details and webhook payloads. Returns `null` if no chat messages were exchanged or if the bot's data has been deleted.
+
+**Signed URL**: Valid for 4 hours
+
+**Platform Differences**:
+
+- **Google Meet**: `sender_id` is an auto-assigned sequential participant ID (same as in diarization). Since Google Meet does not provide native participant IDs, these are generated internally and may be `null` in some cases.
+- **Microsoft Teams**: `sender_id` is always `null` (Teams does not provide a participant ID mapping for chat senders). Sender names are resolved from the platform's display name field.
+- **Zoom**: `sender_id` is the Zoom SDK user ID (numeric, e.g., `16778240`). Both received messages and bot-sent messages include the SDK user ID.
+
 ## Additional Response Fields
 
 ### Transcription IDs
@@ -553,7 +613,7 @@ We recommend users take ownership of their data by using the `DELETE /v2/bots/{b
 
 **What Gets Deleted**:
 
-- All artifacts from S3 (video, audio, transcription, diarization, screenshots)
+- All artifacts from S3 (video, audio, transcription, diarization, chat messages, screenshots)
 - Optionally deletes transcription data from the transcription provider (default: `true`)
 - Sets `artifacts_deleted: true` flag
 - Ensures complete data scrubbing from our system
@@ -627,6 +687,7 @@ curl -X GET "https://api.meetingbaas.com/v2/bots/BOT-ID" \
     "transcription": "https://s3.amazonaws.com/.../output_transcription.json",
     "raw_transcription": "https://s3.amazonaws.com/.../raw_transcription.json",
     "diarization": "https://s3.amazonaws.com/.../diarization.jsonl",
+    "chat_messages": "https://s3.amazonaws.com/.../chat_messages.json",
     "participants": [
       { "name": "John Doe", "id": 1, "display_name": "John", "profile_picture": "https://lh3.googleusercontent.com/..." },
       { "name": "Jane Smith", "id": 2 }
@@ -655,6 +716,7 @@ When a bot completes, you'll receive a webhook with all artifact URLs:
     "transcription": "https://s3.amazonaws.com/.../output_transcription.json",
     "raw_transcription": "https://s3.amazonaws.com/.../raw_transcription.json",
     "diarization": "https://s3.amazonaws.com/.../diarization.jsonl",
+    "chat_messages": "https://s3.amazonaws.com/.../chat_messages.json",
     "transcription_ids": ["gladia-job-12345"],
     "transcription_provider": "gladia"
   }
@@ -752,6 +814,7 @@ When a bot completes, you'll receive a webhook with all artifact URLs:
     - **Video**: `null` when `recording_mode` is `audio_only` or if the artifact has been deleted
     - **Transcription/Raw Transcription**: `null` when transcription was not enabled or if artifacts have been deleted
     - **Diarization**: `null` when diarization data is not available or has been deleted
+    - **Chat Messages**: `null` when no chat messages were exchanged during the meeting or if artifacts have been deleted
     - **All artifacts**: `null` when `artifacts_deleted: true` (data has been manually deleted or exceeded retention period)
 
   </Accordion>
@@ -5577,6 +5640,31 @@ Retry sending the transcription callback for a bot.
 
 ---
 
+## Send chat message
+
+### Source: ./content/docs/api-v2/reference/bots/sendChatMessage.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Send a chat message to the meeting through the bot.
+
+    The message will be sent as the bot in the meeting's chat. The bot must be actively in the meeting to send messages. Messages are limited to 500 characters and cannot be empty or whitespace-only.
+
+    **Status Requirements:** The bot must be in one of the following statuses: `in_call_not_recording`, `in_call_recording`, `recording_paused`, or `recording_resumed`. If the bot is in any other state (e.g., `queued`, `joining_call`, `in_waiting_room`, `completed`, `failed`), the request will fail with a 409 Conflict error (`FST_ERR_BOT_STATUS`).
+
+    **Chat Disabled:** Some meetings have chat disabled by the host or meeting policy. If the bot attempts to send a message in a meeting where chat is not available, the request will fail with a 422 Unprocessable Entity error (`FST_ERR_CHAT_DISABLED`). This is determined at runtime by the meeting platform and cannot be known in advance. Chat disabled detection works for Zoom and Microsoft Teams meetings. For Google Meet, message delivery is best-effort — the bot may report success even if the host has restricted chat permissions for external participants.
+
+    **Message Delivery:** The message is forwarded to the bot process which sends it through the meeting platform's chat API (Google Meet, Microsoft Teams, or Zoom). Delivery is best-effort — if the bot process is unreachable or the platform rejects the message, the request will fail with a 500 Internal Server Error (`FST_ERR_SEND_CHAT_MESSAGE_FAILED`).
+
+    **Message Persistence:** Successfully sent messages are included in the `chat_messages` artifact alongside received messages when the bot completes. Bot-sent messages have `sender_id: null` and the bot's display name as `sender_name`.
+
+    Returns 404 if the bot is not found, 409 if the bot's status does not allow this operation, or 422 if chat is disabled in the meeting.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/send-chat-message","method":"post"}]} />
+
+---
+
 ## Update bot configuration
 
 ### Source: ./content/docs/api-v2/reference/bots/updateBotConfig.mdx
@@ -6253,6 +6341,78 @@ Reference documentation for all webhook and callback payload structures is avail
 
 ---
 
+## Bot Chat Message
+
+Bot Chat Message payload structure
+
+### Source: ./content/docs/api-v2/reference/webhooks/botwebhookchatmessage.mdx
+
+
+
+
+## Payload Structure
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `event` | string | Yes | The webhook event type |
+| `data` | object | Yes |  |
+| `extra` | object | null | Yes | Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking |
+
+## Field Details
+
+- **`event`** (string) **Required**
+  The webhook event type
+
+- **`data`** (object) **Required**
+
+  Properties:
+    - **`bot_id`** (string (uuid)) **Required**
+      The UUID of the bot that received the chat message
+
+    - **`event_id`** (string (uuid) | null) **Required**
+      The UUID of the calendar event associated with this bot. Null for non-calendar bots
+
+    - **`message_id`** (string) **Required**
+      Unique identifier of the chat message
+
+    - **`sender_name`** (string) **Required**
+      Display name of the message sender
+
+    - **`sender_id`** (integer | null) **Required**
+      Sequential participant ID of the sender. Null if the sender could not be resolved to a participant
+
+    - **`text`** (string) **Required**
+      Text content of the chat message
+
+    - **`sent_at`** (string (date-time)) **Required**
+      ISO 8601 timestamp when this webhook was sent
+
+
+- **`extra`** (object | null) **Required**
+  Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking
+
+
+## Example
+
+```json
+{
+  "event": "exampleevent",
+  "data": {
+    "bot_id": "examplebot_id",
+    "event_id": null,
+    "message_id": "examplemessage_id",
+    "sender_name": "examplesender_name",
+    "sender_id": null,
+    "text": "exampletext",
+    "sent_at": "examplesent_at"
+  },
+  "extra": null
+}
+```
+
+
+---
+
 ## Bot Completed
 
 Bot Completed payload structure
@@ -6896,6 +7056,7 @@ This section contains reference documentation for all webhook payload structures
 - [Bot Webhook Status Change](/docs/api-v2/reference/webhooks/botwebhookstatuschange)
 - [Bot Webhook Completed](/docs/api-v2/reference/webhooks/botwebhookcompleted)
 - [Bot Webhook Failed](/docs/api-v2/reference/webhooks/botwebhookfailed)
+- [Bot Webhook Chat Message](/docs/api-v2/reference/webhooks/botwebhookchatmessage)
 
 ## Calendar Webhooks
 
@@ -7025,6 +7186,691 @@ Update an existing Zoom credential.
     - `404 Not Found`: Credential not found or does not belong to your team
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/zoom-credentials/{id}","method":"patch"}]} />
+
+---
+
+## Streaming
+
+Real-time audio streaming with bidirectional WebSocket support
+
+### Source: ./content/docs/api-v2/streaming.mdx
+
+
+Meeting BaaS v2 supports real-time audio streaming over WebSocket, allowing you to receive meeting audio as it happens and optionally send audio back into the meeting. This enables use cases like live transcription, real-time translation, AI-powered meeting assistants, and speaking bots.
+
+## Overview
+
+Streaming provides:
+
+- **Output Streaming**: Receive the meeting's mixed audio in real time via WebSocket
+- **Input Streaming**: Send audio into the meeting so participants can hear it (for speaking bots, AI agents, etc.)
+- **Bidirectional Streaming**: Combine both - receive meeting audio and speak back - using a single or two separate WebSocket connections
+- **Speaker Diarization**: Receive real-time speaker state updates as JSON messages alongside the audio stream
+- **Configurable Sample Rate**: Choose from 16,000 Hz, 24,000 Hz (default), 32,000 Hz, or 48,000 Hz
+- **Works on All Platforms**: Google Meet, Microsoft Teams, and Zoom
+
+## Enabling Streaming
+
+To enable streaming, include `streaming_enabled` and `streaming_config` in your bot creation request:
+
+```json
+{
+  "meeting_url": "https://meet.google.com/abc-defg-hij",
+  "bot_name": "AI Assistant",
+  "streaming_enabled": true,
+  "streaming_config": {
+    "output_url": "wss://your-server.com/audio-stream",
+    "input_url": null,
+    "audio_frequency": 16000
+  }
+}
+```
+
+### Configuration Fields
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `output_url` | `string \| null` | `null` | WebSocket URL where the bot sends meeting audio |
+| `input_url` | `string \| null` | `null` | WebSocket URL from which the bot receives audio to play into the meeting |
+| `audio_frequency` | `integer` | `24000` | Sample rate in Hz. Supported: `16000`, `24000`, `32000`, `48000` |
+
+<Callout type="info">
+  Provide `output_url` to receive meeting audio, `input_url` to send audio into the meeting, or both for bidirectional streaming. Set either to `null` if you only need one direction.
+</Callout>
+
+## Streaming Modes
+
+### Output Only (Receive Meeting Audio)
+
+Use this mode when you want to process meeting audio in real time - for example, to feed it into your own transcription engine, AI model, or analytics pipeline.
+
+```json
+{
+  "streaming_enabled": true,
+  "streaming_config": {
+    "output_url": "wss://your-server.com/audio-stream",
+    "input_url": null,
+    "audio_frequency": 24000
+  }
+}
+```
+
+Your WebSocket server receives:
+- A **handshake message** (JSON) when the connection opens
+- **Binary audio chunks** (raw PCM) every 100ms
+- **Speaker state updates** (JSON) when speakers change
+
+### Input Only (Send Audio into the Meeting)
+
+Use this mode when you want to inject audio into the meeting without processing the output - for example, playing pre-recorded announcements or TTS audio.
+
+```json
+{
+  "streaming_enabled": true,
+  "streaming_config": {
+    "output_url": null,
+    "input_url": "wss://your-server.com/audio-input",
+    "audio_frequency": 24000
+  }
+}
+```
+
+Your WebSocket server sends binary audio chunks to the bot, and participants in the meeting hear the audio.
+
+### Bidirectional (Receive and Send Audio)
+
+Use this mode for interactive AI agents and speaking bots. The bot receives meeting audio, you process it (e.g., speech-to-text → LLM → text-to-speech), and send audio back.
+
+**Option A: Same URL for both directions**
+
+When `input_url` and `output_url` are the same, the bot uses a single bidirectional WebSocket connection:
+
+```json
+{
+  "streaming_enabled": true,
+  "streaming_config": {
+    "output_url": "wss://your-server.com/audio",
+    "input_url": "wss://your-server.com/audio",
+    "audio_frequency": 24000
+  }
+}
+```
+
+**Option B: Separate URLs**
+
+When the URLs differ, the bot opens two separate WebSocket connections - one for sending audio to your server, and one for receiving audio from your server:
+
+```json
+{
+  "streaming_enabled": true,
+  "streaming_config": {
+    "output_url": "wss://your-server.com/audio-out",
+    "input_url": "wss://your-server.com/audio-in",
+    "audio_frequency": 24000
+  }
+}
+```
+
+## WebSocket Protocol
+
+### Connection Lifecycle
+
+1. The bot joins the meeting and establishes WebSocket connection(s) to your server
+2. Immediately sends a **handshake message** (JSON text) on the output connection
+3. Begins streaming **binary audio chunks** every 100ms
+4. Sends **speaker state updates** (JSON text) whenever the active speakers change
+5. On the input connection, the bot listens for **binary audio chunks** from your server
+6. When the meeting ends or the bot leaves, the WebSocket connections close
+
+### Handshake Message
+
+When the output WebSocket connection opens, the bot sends a JSON text message:
+
+```json
+{
+  "protocol_version": 2,
+  "bot_id": "123e4567-e89b-12d3-a456-426614174000",
+  "offset": 0.0,
+  "sample_rate": 24000
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `protocol_version` | `number` | Protocol version. May vary by meeting platform (currently `1` or `2`). Treat as informational - do not depend on a specific value. |
+| `bot_id` | `string` | UUID of the bot |
+| `offset` | `number` | Time offset in seconds (typically `0.0`) |
+| `sample_rate` | `number` | The audio sample rate in Hz, matching your `audio_frequency` config |
+
+Use this message to initialize your audio processing pipeline with the correct sample rate and to associate the stream with a specific bot.
+
+### Output Audio Chunks (Bot → Your Server)
+
+After the handshake, the bot sends **binary WebSocket messages** containing raw audio data:
+
+| Property | Value |
+|----------|-------|
+| **Format** | Signed 16-bit PCM |
+| **Channels** | Mono (1 channel) |
+| **Sample Rate** | As configured in `audio_frequency` (default 24,000 Hz) |
+| **Chunk Duration** | 100ms |
+| **Samples per Chunk** | `audio_frequency / 10` (e.g., 2,400 at 24kHz) |
+| **Bytes per Chunk** | `samples × 2` (e.g., 4,800 bytes at 24kHz) |
+
+The audio is the mixed meeting audio - all participants' audio combined into a single mono stream. Each chunk represents exactly 100 milliseconds of audio.
+
+<Callout type="info">
+  The binary messages contain **raw PCM samples only** - no headers, framing, or metadata. Each message is a sequence of signed 16-bit integers representing audio samples.
+</Callout>
+
+### Speaker State Updates (Bot → Your Server)
+
+Alongside audio chunks, the bot sends **JSON text messages** with real-time speaker information whenever the active speakers change:
+
+```json
+[
+  {
+    "name": "John Doe",
+    "id": 1,
+    "timestamp": 1709654321.5,
+    "isSpeaking": true
+  },
+  {
+    "name": "Jane Smith",
+    "id": 2,
+    "timestamp": 1709654321.5,
+    "isSpeaking": false
+  }
+]
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | `string` | Participant's display name |
+| `id` | `number` or `null` | Sequential participant ID (stable within a session) |
+| `timestamp` | `number` | Unix timestamp (seconds, with fractional part) |
+| `isSpeaking` | `boolean` | Whether the participant is currently speaking |
+
+These updates are sent on the **output WebSocket** as JSON text messages. Your server can distinguish them from audio chunks by checking the WebSocket message type: **text** messages are speaker state, **binary** messages are audio.
+
+### Input Audio Chunks (Your Server → Bot)
+
+To send audio into the meeting, your server sends **binary WebSocket messages** on the input connection:
+
+| Property | Value |
+|----------|-------|
+| **Format** | Signed 16-bit PCM |
+| **Channels** | Mono (1 channel) |
+| **Sample Rate** | Must match the configured `audio_frequency` |
+
+The bot receives these chunks and plays them into the meeting - all participants will hear the audio. There is no strict chunk size requirement for input audio, but sending in consistent intervals (e.g., every 20-100ms) produces the smoothest playback.
+
+<Callout type="warning">
+  The input audio sample rate **must match** the `audio_frequency` you configured. Mismatched sample rates will cause audio distortion.
+</Callout>
+
+## Reconnection
+
+The bot automatically reconnects to your WebSocket server if the connection drops:
+
+- Uses **exponential backoff**: 1s, 2s, 4s, 8s, ... up to 60s maximum
+- Resends the **handshake message** after reconnecting
+- Audio chunks sent during disconnection are **not buffered** - they are dropped
+
+Your WebSocket server should be prepared to receive a new handshake message at any time, indicating a reconnection.
+
+## Examples
+
+### Creating a Bot with Output Streaming
+
+<Tabs items={['Bash', 'Python', 'JavaScript']}>
+  <Tab value="Bash">
+    ```bash
+    curl -X POST "https://api.meetingbaas.com/v2/bots" \
+         -H "Content-Type: application/json" \
+         -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+         -d '{
+               "meeting_url": "https://meet.google.com/abc-defg-hij",
+               "bot_name": "Audio Listener",
+               "streaming_enabled": true,
+               "streaming_config": {
+                 "output_url": "wss://your-server.com/audio-stream",
+                 "input_url": null,
+                 "audio_frequency": 24000
+               }
+             }'
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    import requests
+
+    response = requests.post(
+        "https://api.meetingbaas.com/v2/bots",
+        headers={
+            "Content-Type": "application/json",
+            "x-meeting-baas-api-key": "YOUR-API-KEY",
+        },
+        json={
+            "meeting_url": "https://meet.google.com/abc-defg-hij",
+            "bot_name": "Audio Listener",
+            "streaming_enabled": True,
+            "streaming_config": {
+                "output_url": "wss://your-server.com/audio-stream",
+                "input_url": None,
+                "audio_frequency": 24000,
+            },
+        },
+    )
+    print(response.json())
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript
+    fetch("https://api.meetingbaas.com/v2/bots", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+      },
+      body: JSON.stringify({
+        meeting_url: "https://meet.google.com/abc-defg-hij",
+        bot_name: "Audio Listener",
+        streaming_enabled: true,
+        streaming_config: {
+          output_url: "wss://your-server.com/audio-stream",
+          input_url: null,
+          audio_frequency: 24000,
+        },
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log(data.data.bot_id));
+    ```
+  </Tab>
+</Tabs>
+
+### Creating a Bidirectional Speaking Bot
+
+<Tabs items={['Bash', 'Python', 'JavaScript']}>
+  <Tab value="Bash">
+    ```bash
+    curl -X POST "https://api.meetingbaas.com/v2/bots" \
+         -H "Content-Type: application/json" \
+         -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+         -d '{
+               "meeting_url": "https://meet.google.com/abc-defg-hij",
+               "bot_name": "AI Meeting Assistant",
+               "streaming_enabled": true,
+               "streaming_config": {
+                 "output_url": "wss://your-server.com/audio",
+                 "input_url": "wss://your-server.com/audio",
+                 "audio_frequency": 24000
+               }
+             }'
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    import requests
+
+    response = requests.post(
+        "https://api.meetingbaas.com/v2/bots",
+        headers={
+            "Content-Type": "application/json",
+            "x-meeting-baas-api-key": "YOUR-API-KEY",
+        },
+        json={
+            "meeting_url": "https://meet.google.com/abc-defg-hij",
+            "bot_name": "AI Meeting Assistant",
+            "streaming_enabled": True,
+            "streaming_config": {
+                "output_url": "wss://your-server.com/audio",
+                "input_url": "wss://your-server.com/audio",
+                "audio_frequency": 24000,
+            },
+        },
+    )
+    print(response.json())
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript
+    fetch("https://api.meetingbaas.com/v2/bots", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+      },
+      body: JSON.stringify({
+        meeting_url: "https://meet.google.com/abc-defg-hij",
+        bot_name: "AI Meeting Assistant",
+        streaming_enabled: true,
+        streaming_config: {
+          output_url: "wss://your-server.com/audio",
+          input_url: "wss://your-server.com/audio",
+          audio_frequency: 24000,
+        },
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log(data.data.bot_id));
+    ```
+  </Tab>
+</Tabs>
+
+### WebSocket Server (Receiving Audio)
+
+Here's how to build a WebSocket server that receives and processes the stream:
+
+<Tabs items={['Python', 'JavaScript']}>
+  <Tab value="Python">
+    ```python
+    import asyncio
+    import json
+    import numpy as np
+    import websockets
+
+    async def handle_stream(websocket):
+        async for message in websocket:
+            if isinstance(message, str):
+                # JSON message - either handshake or speaker state
+                data = json.loads(message)
+
+                if "protocol_version" in data:
+                    # Handshake message
+                    print(f"Bot connected: {data['bot_id']}")
+                    print(f"Sample rate: {data['sample_rate']} Hz")
+                else:
+                    # Speaker state update
+                    for speaker in data:
+                        status = "speaking" if speaker["isSpeaking"] else "silent"
+                        print(f"{speaker['name']}: {status}")
+
+            elif isinstance(message, bytes):
+                # Binary message - raw Int16 PCM audio
+                audio = np.frombuffer(message, dtype=np.int16)
+                print(f"Audio chunk: {len(audio)} samples, "
+                      f"duration: {len(audio) / 24000 * 1000:.0f}ms")
+
+                # Process the audio (e.g., feed to STT, analyze, store)
+                # audio is a numpy array of signed 16-bit integers
+
+    async def main():
+        async with websockets.serve(handle_stream, "0.0.0.0", 8765):
+            print("WebSocket server running on ws://0.0.0.0:8765")
+            await asyncio.Future()  # Run forever
+
+    asyncio.run(main())
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript
+    const { WebSocketServer } = require("ws");
+
+    const wss = new WebSocketServer({ port: 8765 });
+
+    wss.on("connection", (ws) => {
+      console.log("Bot connected");
+
+      ws.on("message", (message, isBinary) => {
+        if (!isBinary) {
+          // JSON message - either handshake or speaker state
+          const data = JSON.parse(message.toString());
+
+          if (data.protocol_version) {
+            // Handshake message
+            console.log(`Bot ID: ${data.bot_id}`);
+            console.log(`Sample rate: ${data.sample_rate} Hz`);
+          } else {
+            // Speaker state update
+            data.forEach((speaker) => {
+              const status = speaker.isSpeaking ? "speaking" : "silent";
+              console.log(`${speaker.name}: ${status}`);
+            });
+          }
+        } else {
+          // Binary message - raw Int16 PCM audio
+          const audio = new Int16Array(
+            message.buffer,
+            message.byteOffset,
+            message.byteLength / 2
+          );
+          console.log(
+            `Audio chunk: ${audio.length} samples, ` +
+            `duration: ${(audio.length / 24000) * 1000}ms`
+          );
+
+          // Process the audio (e.g., feed to STT, analyze, store)
+        }
+      });
+
+      ws.on("close", () => console.log("Bot disconnected"));
+    });
+
+    console.log("WebSocket server running on ws://0.0.0.0:8765");
+    ```
+  </Tab>
+</Tabs>
+
+### WebSocket Server (Bidirectional)
+
+For a bidirectional setup where you receive audio, process it, and send audio back:
+
+<Tabs items={['Python', 'JavaScript']}>
+  <Tab value="Python">
+    ```python
+    import asyncio
+    import json
+    import numpy as np
+    import websockets
+
+    SAMPLE_RATE = 24000
+
+    async def handle_bidirectional(websocket):
+        async for message in websocket:
+            if isinstance(message, str):
+                data = json.loads(message)
+                if "protocol_version" in data:
+                    print(f"Bot connected: {data['bot_id']}")
+                    continue
+                # Speaker state update
+                for speaker in data:
+                    if speaker["isSpeaking"]:
+                        print(f"Now speaking: {speaker['name']}")
+                continue
+
+            # Binary audio from the meeting
+            audio_in = np.frombuffer(message, dtype=np.int16)
+
+            # --- Your processing pipeline here ---
+            # Example: speech-to-text → LLM → text-to-speech
+            # audio_out = your_pipeline(audio_in)
+
+            # Send audio back into the meeting (Int16 PCM)
+            # await websocket.send(audio_out.tobytes())
+
+    async def main():
+        async with websockets.serve(handle_bidirectional, "0.0.0.0", 8765):
+            print("Bidirectional WebSocket server on ws://0.0.0.0:8765")
+            await asyncio.Future()
+
+    asyncio.run(main())
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript
+    const { WebSocketServer } = require("ws");
+
+    const SAMPLE_RATE = 24000;
+    const wss = new WebSocketServer({ port: 8765 });
+
+    wss.on("connection", (ws) => {
+      console.log("Bot connected");
+
+      ws.on("message", (message, isBinary) => {
+        if (!isBinary) {
+          const data = JSON.parse(message.toString());
+          if (data.protocol_version) {
+            console.log(`Bot ID: ${data.bot_id}`);
+            return;
+          }
+          // Speaker state update
+          data.forEach((s) => {
+            if (s.isSpeaking) console.log(`Now speaking: ${s.name}`);
+          });
+          return;
+        }
+
+        // Binary audio from the meeting
+        const audioIn = new Int16Array(
+          message.buffer,
+          message.byteOffset,
+          message.byteLength / 2
+        );
+
+        // --- Your processing pipeline here ---
+        // Example: speech-to-text → LLM → text-to-speech
+        // const audioOut = yourPipeline(audioIn);
+
+        // Send audio back into the meeting (Int16 PCM)
+        // ws.send(Buffer.from(audioOut.buffer));
+      });
+
+      ws.on("close", () => console.log("Bot disconnected"));
+    });
+
+    console.log("Bidirectional WebSocket server on ws://0.0.0.0:8765");
+    ```
+  </Tab>
+</Tabs>
+
+## Combining Streaming with Recording and Transcription
+
+Streaming works independently from recording and transcription. You can enable all three at once:
+
+```json
+{
+  "meeting_url": "https://meet.google.com/abc-defg-hij",
+  "bot_name": "Full-Featured Bot",
+  "recording_mode": "speaker_view",
+  "transcription_enabled": true,
+  "transcription_config": {
+    "provider": "gladia"
+  },
+  "streaming_enabled": true,
+  "streaming_config": {
+    "output_url": "wss://your-server.com/audio-stream",
+    "input_url": null,
+    "audio_frequency": 24000
+  }
+}
+```
+
+The recording, transcription, and streaming pipelines operate independently - enabling streaming does not affect recording quality or transcription accuracy.
+
+## Error Handling
+
+Currently, we don't give any feedback on errors with the websocket connection or invalid message formats. We plan to improve this in the future.
+
+**Troubleshooting:**
+
+- Verify your WebSocket server is running and accessible from the internet
+- Ensure the URL uses `wss://` for secure WebSocket connections
+- Check that your server accepts WebSocket upgrade requests
+- Verify there are no firewall rules blocking the connection
+
+### Connection Drops
+
+If the WebSocket connection drops during a meeting, the bot will automatically attempt to reconnect with exponential backoff. Audio chunks during the disconnection period are lost and not buffered.
+
+Your server should handle reconnection gracefully - when the bot reconnects, it sends a fresh handshake message.
+
+## Best Practices
+
+1. **Use `wss://` endpoints**: We recommend using secure WebSocket connections with valid TLS certificates.
+2. **Handle reconnections**: Your server should accept new handshake messages at any time, as the bot reconnects automatically on connection drops.
+3. **Process audio asynchronously**: Audio chunks arrive every 100ms. Ensure your processing pipeline can keep up to avoid backpressure.
+4. **Match sample rates**: When sending audio back (input streaming), always use the same sample rate configured in `audio_frequency`. Mismatched rates cause distorted audio.
+5. **Distinguish message types**: Use the WebSocket message type to differentiate - **binary** for audio, **text** for JSON (handshake and speaker state).
+6. **Keep connections alive**: The bot expects the WebSocket connection to remain open. Avoid closing the connection from your server while the meeting is active.
+7. **Monitor speaker state**: Use speaker state updates to know who is talking - this is useful for building real-time diarization or triggering AI responses to specific speakers.
+
+## Frequently Asked Questions
+
+<Accordions>
+  <Accordion title="What audio format does the stream use?">
+    The stream uses **raw signed 16-bit PCM audio** (mono). There are no headers or container formats - each binary WebSocket message is a sequence of Int16 samples. This is the same format used by most audio processing libraries and speech-to-text APIs.
+  </Accordion>
+
+  <Accordion title="Can I use streaming without recording?">
+    Yes. Streaming and recording are independent features. You can set `recording_mode` to `"audio_only"` to minimize resource usage while still receiving the full audio stream in real time.
+  </Accordion>
+
+  <Accordion title="How do I distinguish audio messages from speaker state messages?">
+    Check the WebSocket message type. **Binary** messages are audio chunks (raw PCM data). **Text** messages are JSON - either a handshake (contains `protocol_version`) or a speaker state update (a JSON array of speaker objects).
+  </Accordion>
+
+  <Accordion title="What happens if my WebSocket server goes down during a meeting?">
+    The bot automatically reconnects with exponential backoff (1s → 2s → 4s → ... up to 60s). Audio during the disconnection is dropped. When the connection is re-established, the bot sends a new handshake message and resumes streaming. The recording (if enabled) is not affected by streaming connection issues.
+  </Accordion>
+
+  <Accordion title="Can I change the chunk size?">
+    No. Audio chunks are fixed at 100ms intervals. This provides a good balance between latency and overhead. If your use case requires different buffering, implement it on your server side.
+  </Accordion>
+
+  <Accordion title="Which sample rate should I choose?">
+    - **16,000 Hz**: Lowest bandwidth. Sufficient for basic speech recognition. Good for constrained environments.
+    - **24,000 Hz** (default): Good balance of quality and bandwidth. Works well with most speech-to-text APIs.
+    - **32,000 Hz**: Higher fidelity. Useful if your processing pipeline benefits from more audio detail.
+    - **48,000 Hz**: Studio quality. Highest bandwidth usage. Use only if your pipeline specifically requires it.
+
+    Most speech-to-text services (Deepgram, AssemblyAI, Whisper) work well with 16-24kHz audio, so the default of 24kHz is recommended for most use cases.
+  </Accordion>
+
+  <Accordion title="Is the audio mixed or per-speaker?">
+    The streamed audio is **mixed** - all participants' audio is combined into a single mono stream. To identify who is speaking, use the **speaker state updates** sent alongside the audio. If you need per-speaker audio, you can use the speaker state timestamps to segment the mixed audio by speaker.
+  </Accordion>
+
+  <Accordion title="Can I use the same WebSocket URL for input and output?">
+    Yes. When `input_url` and `output_url` are the same, the bot uses a single bidirectional WebSocket connection. Your server receives audio and speaker state on the same connection, and can send audio back on the same connection. This is the simplest setup for bidirectional use cases.
+  </Accordion>
+
+  <Accordion title="What latency can I expect?">
+    Audio chunks are sent every 100ms. Combined with WebSocket transport overhead, expect approximately 100-200ms of latency from when audio is captured in the meeting to when it arrives at your server. For bidirectional use cases, the round-trip latency (meeting → your server → back to meeting) depends primarily on your processing pipeline speed.
+  </Accordion>
+
+  <Accordion title="Does streaming work on all meeting platforms?">
+    Yes. Streaming works on Google Meet, Microsoft Teams, and Zoom. The WebSocket protocol and audio format are identical across all platforms - your server implementation does not need to be platform-aware.
+  </Accordion>
+
+  <Accordion title="Can I update the streaming configuration after the bot is created?">
+    Streaming configuration is set when creating the bot and cannot be changed while the bot is running. To use different streaming settings, create a new bot with the desired configuration.
+  </Accordion>
+
+  <Accordion title="Does the bot buffer audio if my server is slow to process?">
+    No. Audio chunks are sent in real time and are not buffered. If your server cannot keep up with the 100ms chunk interval, chunks may queue up at the WebSocket layer. Ensure your processing pipeline can handle the incoming data rate to avoid growing memory usage or dropped frames.
+  </Accordion>
+
+  <Accordion title="How much bandwidth does streaming use?">
+    Bandwidth depends on the sample rate:
+
+    - **16,000 Hz**: ~32 KB/s (256 kbps)
+    - **24,000 Hz**: ~48 KB/s (384 kbps)
+    - **32,000 Hz**: ~64 KB/s (512 kbps)
+    - **48,000 Hz**: ~96 KB/s (768 kbps)
+
+    These are approximate values for the raw audio stream (mono, 16-bit PCM). Actual bandwidth is slightly higher due to WebSocket framing overhead.
+  </Accordion>
+</Accordions>
+
+## Next Steps
+
+- [Send a Bot](/docs/api-v2/getting-started/sending-a-bot) to get started with the API
+- Set up [Webhooks](/docs/api-v2/webhooks) to receive bot status notifications
+- Explore [Speaking Bots](/docs/speaking-bots) for a ready-made AI meeting agent framework
+- Check the [API Reference](/docs/api-v2/reference) for complete parameter documentation
+
 
 ---
 
@@ -7585,7 +8431,8 @@ Triggered when a bot successfully completes recording and processing.
     "transcription": "https://s3.amazonaws.com/.../transcription.json",
     "mp4": "https://s3.amazonaws.com/.../video.mp4",
     "audio": "https://s3.amazonaws.com/.../audio.mp3",
-    "diarization": "https://s3.amazonaws.com/.../diarization.json",
+    "diarization": "https://s3.amazonaws.com/.../diarization.jsonl",
+    "chat_messages": "https://s3.amazonaws.com/.../chat_messages.json",
     "duration_seconds": 3600,
     "participants": [...],
     "speakers": [...],
@@ -7597,6 +8444,47 @@ Triggered when a bot successfully completes recording and processing.
 ```
 
 **Note:** All artifact URLs (transcription, mp4, audio, diarization) are presigned S3 URLs valid for 4 hours. For detailed information about each artifact type, see the [Artifacts documentation](/docs/api-v2/artifacts).
+
+### `bot.chat_message`
+
+Triggered in real-time when a chat message is received in the meeting. This allows you to process chat messages as they happen, without waiting for the meeting to end.
+
+**Use Cases:**
+
+- Build real-time chat integrations
+- Respond to participant questions or commands
+- Log chat messages for compliance
+- Trigger workflows based on chat content
+
+**Payload:**
+
+```json
+{
+  "event": "bot.chat_message",
+  "data": {
+    "bot_id": "123e4567-e89b-12d3-a456-426614174000",
+    "event_id": "789e0123-e45b-67c8-d901-234567890abc",
+    "message_id": "spaces/XxM_aNTpzGkB/messages/1773539019302815",
+    "sender_name": "John Doe",
+    "sender_id": 2,
+    "text": "Can we discuss the Q4 roadmap?",
+    "sent_at": "2025-01-15T10:32:15Z"
+  },
+  "extra": {
+    "customer_id": "12345"
+  }
+}
+```
+
+**Fields:**
+
+- `message_id`: Unique identifier for the chat message (format varies by platform)
+- `sender_name`: Display name of the message sender
+- `sender_id`: Participant ID of the sender. May be `null` if the sender could not be resolved to a participant
+- `text`: Text content of the chat message
+- `sent_at`: ISO 8601 timestamp when this webhook was dispatched by the server (not when the message was sent in the meeting)
+
+**Note:** The bot's own messages (sent via the [send chat message](/api-v2/reference/bots/sendChatMessage) endpoint) do not trigger this webhook — only messages from meeting participants are delivered. For a complete record of all chat messages (including bot-sent messages), use the `chat_messages` artifact available in the [bot.completed webhook](#botcompleted) and [bot details endpoint](/api-v2/reference/bots/getBotDetails). See the [Artifacts documentation](/api-v2/artifacts) for the artifact structure.
 
 ### `bot.failed`
 

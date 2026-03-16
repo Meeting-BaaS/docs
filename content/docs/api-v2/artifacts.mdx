@@ -15,6 +15,7 @@ When a bot completes recording a meeting, it generates several artifacts that yo
 - **Transcription**: Standardized transcription with accurate timestamps
 - **Raw Transcription**: Provider-specific transcription with advanced features
 - **Diarization**: Speaker identification and timing data
+- **Chat Messages**: JSON file containing all chat messages exchanged during the meeting
 
 All artifacts are accessed via presigned URLs provided in bot details responses and webhook payloads.
 
@@ -316,6 +317,65 @@ The diarization artifact contains speaker identification and timing information,
 - **Zoom**: Includes `user_id` (platform user ID) and optional `lang` fields in each segment
 - **Google Meet/Teams**: Includes `user_id` (assigned user ID) when available. The assigned ID attempts to remain consistent even if a participant rejoins the meeting.
 
+## Chat Messages Artifact
+
+The chat messages artifact contains all chat messages exchanged during the meeting, including messages from participants and messages sent by the bot via the [send chat message](/api-v2/reference/bots/sendChatMessage) endpoint.
+
+**Format**: JSON file
+
+**When Available**: Only when chat messages were exchanged during the meeting. If no messages were sent or received, this artifact will not be generated.
+
+**Structure**:
+
+```json
+[
+  {
+    "message_id": "spaces/XxM_aNTpzGkB/messages/1773539019302815",
+    "sender_name": "John Doe",
+    "sender_id": 2,
+    "text": "Hi everyone!",
+    "timestamp": "2025-01-15T10:30:15.359Z"
+  },
+  {
+    "message_id": "71149604-eb75-433c-91bc-6a3c02defa94",
+    "sender_name": "Meeting Bot",
+    "sender_id": 1,
+    "text": "Hello! How can I help?",
+    "timestamp": "2025-01-15T10:30:28.456Z"
+  }
+]
+```
+
+**Fields**:
+
+- `message_id`: Unique identifier for the message (format varies by platform)
+- `sender_name`: Display name of the message sender
+- `sender_id`: Participant ID of the sender. For Google Meet, this is the assigned sequential ID. For Zoom, this is the SDK user ID. May be `null` for Teams or if the sender could not be resolved to a participant.
+- `text`: Text content of the message (HTML tags stripped for Teams messages)
+- `timestamp`: ISO 8601 timestamp of when the message was sent or received
+
+**Note on timestamps**: The `timestamp` field in the artifact represents when the message was sent or received in the meeting. This differs from the `sent_at` field in the `bot.chat_message` webhook, which represents when the webhook was dispatched by the server.
+
+**Real-Time Events**: In addition to the artifact, each chat message triggers a `bot.chat_message` webhook event in real-time as messages are received during the meeting. The artifact provides a complete record of all messages for post-meeting access.
+
+**Use Cases**:
+
+- Post-meeting review of chat discussions
+- Capturing action items and links shared in chat
+- Audit trail of meeting communications
+- Integration with note-taking and project management tools
+- Correlating chat messages with transcript timestamps
+
+**Access**: Available via the `chat_messages` field in bot details and webhook payloads. Returns `null` if no chat messages were exchanged or if the bot's data has been deleted.
+
+**Signed URL**: Valid for 4 hours
+
+**Platform Differences**:
+
+- **Google Meet**: `sender_id` is an auto-assigned sequential participant ID (same as in diarization). Since Google Meet does not provide native participant IDs, these are generated internally and may be `null` in some cases.
+- **Microsoft Teams**: `sender_id` is always `null` (Teams does not provide a participant ID mapping for chat senders). Sender names are resolved from the platform's display name field.
+- **Zoom**: `sender_id` is the Zoom SDK user ID (numeric, e.g., `16778240`). Both received messages and bot-sent messages include the SDK user ID.
+
 ## Additional Response Fields
 
 ### Transcription IDs
@@ -448,7 +508,7 @@ We recommend users take ownership of their data by using the `DELETE /v2/bots/{b
 
 **What Gets Deleted**:
 
-- All artifacts from S3 (video, audio, transcription, diarization, screenshots)
+- All artifacts from S3 (video, audio, transcription, diarization, chat messages, screenshots)
 - Optionally deletes transcription data from the transcription provider (default: `true`)
 - Sets `artifacts_deleted: true` flag
 - Ensures complete data scrubbing from our system
@@ -522,6 +582,7 @@ curl -X GET "https://api.meetingbaas.com/v2/bots/BOT-ID" \
     "transcription": "https://s3.amazonaws.com/.../output_transcription.json",
     "raw_transcription": "https://s3.amazonaws.com/.../raw_transcription.json",
     "diarization": "https://s3.amazonaws.com/.../diarization.jsonl",
+    "chat_messages": "https://s3.amazonaws.com/.../chat_messages.json",
     "participants": [
       { "name": "John Doe", "id": 1, "display_name": "John", "profile_picture": "https://lh3.googleusercontent.com/..." },
       { "name": "Jane Smith", "id": 2 }
@@ -550,6 +611,7 @@ When a bot completes, you'll receive a webhook with all artifact URLs:
     "transcription": "https://s3.amazonaws.com/.../output_transcription.json",
     "raw_transcription": "https://s3.amazonaws.com/.../raw_transcription.json",
     "diarization": "https://s3.amazonaws.com/.../diarization.jsonl",
+    "chat_messages": "https://s3.amazonaws.com/.../chat_messages.json",
     "transcription_ids": ["gladia-job-12345"],
     "transcription_provider": "gladia"
   }
@@ -647,6 +709,7 @@ When a bot completes, you'll receive a webhook with all artifact URLs:
     - **Video**: `null` when `recording_mode` is `audio_only` or if the artifact has been deleted
     - **Transcription/Raw Transcription**: `null` when transcription was not enabled or if artifacts have been deleted
     - **Diarization**: `null` when diarization data is not available or has been deleted
+    - **Chat Messages**: `null` when no chat messages were exchanged during the meeting or if artifacts have been deleted
     - **All artifacts**: `null` when `artifacts_deleted: true` (data has been manually deleted or exceeded retention period)
 
   </Accordion>

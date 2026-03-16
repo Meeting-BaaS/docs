@@ -2,6 +2,78 @@
 
 Documentation for webhook integration endpoints and functionality.
 
+## Bot Chat Message
+
+Bot Chat Message payload structure
+
+### Source: ./content/docs/api-v2/reference/webhooks/botwebhookchatmessage.mdx
+
+
+
+
+## Payload Structure
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `event` | string | Yes | The webhook event type |
+| `data` | object | Yes |  |
+| `extra` | object | null | Yes | Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking |
+
+## Field Details
+
+- **`event`** (string) **Required**
+  The webhook event type
+
+- **`data`** (object) **Required**
+
+  Properties:
+    - **`bot_id`** (string (uuid)) **Required**
+      The UUID of the bot that received the chat message
+
+    - **`event_id`** (string (uuid) | null) **Required**
+      The UUID of the calendar event associated with this bot. Null for non-calendar bots
+
+    - **`message_id`** (string) **Required**
+      Unique identifier of the chat message
+
+    - **`sender_name`** (string) **Required**
+      Display name of the message sender
+
+    - **`sender_id`** (integer | null) **Required**
+      Sequential participant ID of the sender. Null if the sender could not be resolved to a participant
+
+    - **`text`** (string) **Required**
+      Text content of the chat message
+
+    - **`sent_at`** (string (date-time)) **Required**
+      ISO 8601 timestamp when this webhook was sent
+
+
+- **`extra`** (object | null) **Required**
+  Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking
+
+
+## Example
+
+```json
+{
+  "event": "exampleevent",
+  "data": {
+    "bot_id": "examplebot_id",
+    "event_id": null,
+    "message_id": "examplemessage_id",
+    "sender_name": "examplesender_name",
+    "sender_id": null,
+    "text": "exampletext",
+    "sent_at": "examplesent_at"
+  },
+  "extra": null
+}
+```
+
+
+---
+
 ## Bot Completed
 
 Bot Completed payload structure
@@ -645,6 +717,7 @@ This section contains reference documentation for all webhook payload structures
 - [Bot Webhook Status Change](/docs/api-v2/reference/webhooks/botwebhookstatuschange)
 - [Bot Webhook Completed](/docs/api-v2/reference/webhooks/botwebhookcompleted)
 - [Bot Webhook Failed](/docs/api-v2/reference/webhooks/botwebhookfailed)
+- [Bot Webhook Chat Message](/docs/api-v2/reference/webhooks/botwebhookchatmessage)
 
 ## Calendar Webhooks
 
