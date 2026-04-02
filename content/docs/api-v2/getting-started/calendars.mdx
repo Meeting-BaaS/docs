@@ -145,6 +145,22 @@ curl -X POST "https://api.meetingbaas.com/v2/calendars/CALENDAR-ID/bots" \
 - `all_occurrences`: Set to `true` to schedule for all occurrences of a recurring event
 - `series_id`: Use this instead of `event_id` to schedule for an entire series
 
+## Shared Service Account Use Case (Invite-To-Schedule)
+
+Once the OAuth flow is configured, and if you want to avoid creating calendar connections for every end-user, you can connect a single dedicated "bot mailbox" (for example, `recording@xyz.io`) and reuse it.
+
+<Callout type="info">
+  Meeting BaaS v2 uses a bring-your-own-credentials model and requires OAuth refresh tokens obtained via a normal OAuth consent flow. See [Implement OAuth Flow](#implement-oauth-flow) above. The practical workaround for a "service account" is to use a dedicated mailbox/user account that can complete OAuth once, then reuse its refresh token.
+</Callout>
+
+### How it works
+
+1. Create a dedicated provider account and calendar (the bot mailbox).
+2. Run a single OAuth consent flow for the bot mailbox to obtain its refresh token, then connect that calendar to Meeting BaaS v2 using `POST /v2/calendars` (you'll get one `calendar_id` for this shared connection).
+3. When you need a bot, create the meeting/event and invite the bot mailbox. Make sure the event contains a meeting URL (since bot scheduling depends on it).
+4. Meeting BaaS syncs the event into that connection and emits webhooks for the connection and subsequent event changes.
+5. In your webhook handler, schedule the bot for the relevant `event_id` using `POST /v2/calendars/{calendar_id}/bots`. For recurring meetings, prefer `series_id` or `all_occurrences`.
+
 ## Webhooks
 
 Calendar integrations trigger webhook events for:
