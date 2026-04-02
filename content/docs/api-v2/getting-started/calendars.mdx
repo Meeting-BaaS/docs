@@ -188,7 +188,12 @@ See the [Webhooks documentation](/docs/api-v2/webhooks) for details on all calen
 
 ## Frequently Asked Questions
 
-### What happens if a calendar event is updated close to its start time?
+<Accordions type="single">
+
+<Accordion
+  id="faq-updated-close-to-start"
+  title="What happens if a calendar event is updated close to its start time?"
+>
 
 **Lock Window Behavior (4 minutes before event start):**
 
@@ -202,7 +207,12 @@ When an event is updated within 4 minutes of its start time, the system enters a
 
 If an event is updated more than 4 minutes before its start time, the bot schedule is safely updated with the new event details, and only one bot will join.
 
-### What happens if a calendar event is deleted close to its start time?
+</Accordion>
+
+<Accordion
+  id="faq-deleted-close-to-start"
+  title="What happens if a calendar event is deleted close to its start time?"
+>
 
 **Within Lock Window (4 minutes before start):**
 - The bot schedule remains active and the bot will still attempt to join
@@ -212,7 +222,12 @@ If an event is updated more than 4 minutes before its start time, the bot schedu
 - The bot schedule is automatically deleted
 - No bot will be created for the cancelled event
 
-### What happens if the meeting URL is removed from an event?
+</Accordion>
+
+<Accordion
+  id="faq-meeting-url-removed"
+  title="What happens if the meeting URL is removed from an event?"
+>
 
 **If the event originally had a meeting URL:**
 - The bot will use the meeting URL from the bot configuration, which was captured when the bot was scheduled
@@ -222,21 +237,30 @@ If an event is updated more than 4 minutes before its start time, the bot schedu
 - No bot schedule is created
 - Calendar events without meeting URLs are skipped during bot scheduling
 
-### How often are calendar events synced?
+</Accordion>
+
+<Accordion id="faq-sync-frequency" title="How often are calendar events synced?">
 
 Calendar events are synced via **push notifications (real-time)**:
 - **Google Calendar**: Push notifications via watch channels (renewed every 7 days)
 - **Microsoft Calendar**: Push notifications via subscriptions (renewed every 2 days)
 - Changes are typically reflected within seconds
 
-### What is the event materialization window?
+</Accordion>
+
+<Accordion
+  id="faq-materialization-window"
+  title="What is the event materialization window?"
+>
 
 Meeting BaaS maintains a **30-day rolling window** of calendar events:
 - Events are synced from **now** to **30 days in the future**
 - Events outside this window are not stored or monitored
 - As time progresses, new events enter the window and old events are removed
 
-### How are recurring events handled?
+</Accordion>
+
+<Accordion id="faq-recurring-events" title="How are recurring events handled?">
 
 **Series-Level Bot Scheduling:**
 - You can schedule a bot for all occurrences of a recurring event using `all_occurrences: true` or by providing the `series_id`
@@ -253,21 +277,30 @@ In some cases, the calendar platform may invalidate an event series (such as whe
 
 This behavior is inline with how calendar platforms handle major changes to recurring events.
 
-### What happens if I decline a calendar event?
+</Accordion>
+
+<Accordion id="faq-decline-event" title="What happens if I decline a calendar event?">
 
 If you decline a calendar event (as the calendar owner):
 - The event is treated as **cancelled** in Meeting BaaS
 - No bot will be scheduled for declined events
 - Existing bot schedules for declined events are automatically cancelled
 
-### Can I schedule bots for all-day events?
+</Accordion>
+
+<Accordion id="faq-all-day-events" title="Can I schedule bots for all-day events?">
 
 All-day events are synced and stored, but:
 - They typically don't have meeting URLs
 - Bots are only scheduled for events with valid meeting URLs
 - All-day events without meeting URLs are skipped during bot scheduling
 
-### What meeting platforms are supported?
+</Accordion>
+
+<Accordion
+  id="faq-meeting-platforms"
+  title="What meeting platforms are supported?"
+>
 
 Meeting BaaS automatically detects meeting URLs for:
 - **Zoom** (`zoom.us`)
@@ -280,7 +313,12 @@ The meeting platform is detected from:
 - The event description (for embedded links)
 - Conference data (Google Calendar)
 
-### How are event exceptions handled?
+</Accordion>
+
+<Accordion
+  id="faq-event-exceptions"
+  title="How are event exceptions handled?"
+>
 
 **Event exceptions** are recurring event instances that have been modified:
 - Modified start time
@@ -292,7 +330,9 @@ Exceptions are:
 - Synced and stored separately from the series pattern
 - Handled correctly for bot scheduling
 
-### What if my OAuth credentials expire?
+</Accordion>
+
+<Accordion id="faq-oauth-expire" title="What if my OAuth credentials expire?">
 
 **Refresh Token Expiration:**
 - Google: Refresh tokens don't expire unless revoked by the user
@@ -303,7 +343,12 @@ Exceptions are:
 - You'll receive a webhook notification
 - Users must re-authorize your application to restore the connection
 
-### How do I handle calendar connection errors?
+</Accordion>
+
+<Accordion
+  id="faq-connection-errors"
+  title="How do I handle calendar connection errors?"
+>
 
 Monitor the `status` field on calendar connections:
 - `active`: Connection is working normally
@@ -313,7 +358,12 @@ Monitor the `status` field on calendar connections:
 
 You'll receive webhook notifications for connection status changes.
 
-### Can I connect multiple calendars from the same account?
+</Accordion>
+
+<Accordion
+  id="faq-multiple-calendars"
+  title="Can I connect multiple calendars from the same account?"
+>
 
 Yes! You can create separate calendar connections for:
 - Multiple calendars from the same Google account
@@ -324,4 +374,7 @@ Each connection is independent and has its own:
 - Sync status
 - Bot schedules
 - Webhook events
+
+</Accordion>
+</Accordions>
 
