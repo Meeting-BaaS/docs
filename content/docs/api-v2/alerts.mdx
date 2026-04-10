@@ -1,0 +1,134 @@
+---
+title: Alerts
+description: Configure alerts to monitor bot operations, resource usage, and webhook delivery health
+icon: Bell
+---
+
+Alerts notify you when something goes wrong or when resource thresholds are reached. Configure alert rules from your dashboard to receive email notifications and HTTP callbacks in real-time.
+
+## Overview
+
+The alerts system monitors two categories of events:
+
+- **Operational alerts** detect errors during bot operations — failed joins, recording failures, crashes, and more
+- **Threshold alerts** monitor resource metrics like token balance, daily bot usage, and calendar connections
+
+Each alert rule defines what to monitor, when to trigger, how to notify you, and how often.
+
+## Creating an Alert Rule
+
+Navigate to **Alerts** in your dashboard to create a new rule. Each rule requires:
+
+1. **Alert type** — what to monitor (see [Alert Types](#alert-types) below)
+2. **Threshold** — the value that triggers the alert
+3. **Delivery channels** — where to send notifications (email, callback, or both)
+4. **Cooldown** — minimum time between consecutive alerts (1–1440 minutes, default: 15 minutes)
+
+At least one delivery channel (email or callback) is required.
+
+## Alert Types
+
+### Operational Alerts
+
+Operational alerts fire when errors accumulate within the cooldown window. For example, "alert me when bot crashes reach 3 occurrences within 15 minutes."
+
+| Alert Type | Description | Common Triggers |
+|------------|-------------|-----------------|
+| Bot Join Failed | Bot could not join the meeting | Invalid meeting URL, meeting ended before bot joined, login required, waiting for host timeout, bot not accepted |
+| Recording Failed | Bot joined but could not record | Recording rights not granted, recording start timeout, host cannot grant permission |
+| Zoom Credential Error | Zoom authentication failure | Invalid JWT token, SDK auth failed, access token error |
+| Bot Crash | Bot process exited unexpectedly | Out of memory, force killed, general error |
+| Transcription Failed | Transcription service error | Provider returned an error after recording completed |
+| Calendar Sync Error | Calendar synchronization failure | OAuth token expired, provider API error |
+| Webhook Delivery Exhausted | All webhook retry attempts failed | Endpoint unreachable, returning errors consistently |
+
+<Callout type="info">
+The **Webhook Delivery Exhausted** alert is particularly important — it fires each time a webhook message exhausts all retry attempts. If your webhook endpoint is down, you'll receive one alert per failed message, giving you immediate visibility before the endpoint is automatically disabled. See [Webhook Auto-Disable](/docs/api-v2/webhooks#auto-disable) for details.
+</Callout>
+
+### Threshold Alerts
+
+Threshold alerts fire when a resource metric crosses a configured boundary. They support both `>=` (greater than or equal) and `<=` (less than or equal) operators.
+
+| Alert Type | Description | Example Use Case |
+|------------|-------------|------------------|
+| Daily Bot Cap | Number of bots created today | "Alert me when daily bots reach 90% of my plan limit" |
+| Token Balance | Current token balance | "Alert me when tokens drop below 1000" |
+| Calendar Connections | Number of connected calendars | "Alert me when calendar connections reach my plan limit" |
+
+## Delivery Channels
+
+Each alert rule can use one or both delivery channels:
+
+### Email
+
+Configure up to 10 email recipients per rule. When an alert fires, all recipients receive an email containing:
+
+- Alert rule name
+- Current metric value and threshold
+- Number of suppressed alerts during the cooldown period (if any)
+- Direct link to the dashboard
+
+### Callback
+
+Configure an HTTP endpoint to receive alert notifications programmatically. Callbacks are sent as `POST` requests with a JSON payload:
+
+```json
+{
+  "alert_rule_id": "550e8400-e29b-41d4-a716-446655440000",
+  "alert_rule_name": "Bot Crash Monitor",
+  "alert_type": "bot_crash",
+  "category": "operational",
+  "triggered_at": "2025-01-15T10:30:00.000Z",
+  "current_value": 3,
+  "threshold_value": 3,
+  "suppressed_count": 0,
+  "message": "Bot Crash: 3 occurrence(s) reached threshold of 3"
+}
+```
+
+If you configure a `secret` on the callback, it is included as the `x-mb-alert-secret` header for verification.
+
+**Callback retry behavior:**
+- 4 total attempts (initial + 3 retries)
+- Retry delays: 1 second, 5 seconds, 15 seconds
+- Only retries on network errors and 5xx server responses
+- Does **not** retry on 4xx client errors
+- 30-second request timeout
+
+## Cooldown and Suppression
+
+The cooldown period (default: 15 minutes) prevents alert fatigue by batching rapid-fire events:
+
+1. When an alert fires, a cooldown window starts
+2. During cooldown, additional triggers are **counted but not delivered**
+3. When the cooldown expires and the next trigger occurs, the alert fires again with a **suppressed count** showing how many events were batched
+
+**Example:** You configure a "Bot Join Failed" alert with threshold `>= 1` and a 15-minute cooldown.
+
+- `10:00` — First bot join fails → alert fires immediately
+- `10:02` — Second failure → suppressed (cooldown active)
+- `10:08` — Third failure → suppressed (cooldown active)
+- `10:16` — Fourth failure → alert fires with `suppressed_count: 2` (the two suppressed events from 10:02 and 10:08)
+
+## Testing Alerts
+
+Use the **Test** button on any alert rule to send a test notification to all configured delivery channels. This verifies that your email addresses are correct and your callback endpoint is reachable.
+
+## Alert History
+
+Each alert rule maintains a delivery history accessible from the rule's detail page. History entries include:
+
+- When the alert fired
+- Current value at the time of trigger
+- Number of suppressed events
+- Delivery status for each channel (success or failure with error details)
+
+## Limits
+
+| Setting | Limit |
+|---------|-------|
+| Alert rules per team | 50 |
+| Email recipients per rule | 10 |
+| Cooldown range | 1–1440 minutes (24 hours) |
+| Minimum threshold for operational alerts | 1 occurrence |

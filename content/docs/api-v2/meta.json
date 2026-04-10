@@ -10,6 +10,7 @@
     "migration-guide",
     "api-keys",
     "webhooks",
+    "alerts",
     "transcription",
     "streaming",
     "artifacts",
