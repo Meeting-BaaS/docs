@@ -430,6 +430,7 @@ A small amount of random jitter (±20%) is added to each retry delay to prevent 
 
 ### Timeouts and Overload Protection
 
+- **Successful acknowledgement**: Only HTTP `2xx` responses are treated as successful delivery. Any other status code — including `3xx` redirects, `4xx` client errors, and `5xx` server errors — is considered a failure and will be retried. Failed deliveries contribute to the retry schedule and, over time, to the [auto-disable](#auto-disable) behavior.
 - **Request timeout**: Your endpoint must respond within 30 seconds. Requests that exceed this limit are treated as failures and retried.
 - **Overload penalty**: If your endpoint returns a `429 Too Many Requests` status or times out, a minimum 60-second delay is applied before the next retry, regardless of the scheduled delay.
 

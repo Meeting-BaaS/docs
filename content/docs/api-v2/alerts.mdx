@@ -30,7 +30,7 @@ At least one delivery channel (email or callback) is required.
 
 ### Operational Alerts
 
-Operational alerts fire when errors accumulate within the cooldown window. For example, "alert me when bot crashes reach 3 occurrences within 15 minutes."
+Operational alerts count error occurrences and fire when the count reaches your configured threshold. The same cooldown window is used for both counting events and suppressing repeated alerts after delivery (see [Cooldown and Suppression](#cooldown-and-suppression) below). For example, "alert me when bot crashes reach 3 occurrences within 15 minutes."
 
 | Alert Type | Description | Common Triggers |
 |------------|-------------|-----------------|
@@ -43,7 +43,7 @@ Operational alerts fire when errors accumulate within the cooldown window. For e
 | Webhook Delivery Exhausted | All webhook retry attempts failed | Endpoint unreachable, returning errors consistently |
 
 <Callout type="info">
-The **Webhook Delivery Exhausted** alert is particularly important — it fires each time a webhook message exhausts all retry attempts. If your webhook endpoint is down, you'll receive one alert per failed message, giving you immediate visibility before the endpoint is automatically disabled. See [Webhook Auto-Disable](/docs/api-v2/webhooks#auto-disable) for details.
+The **Webhook Delivery Exhausted** alert is particularly important — each time a webhook message exhausts all retry attempts, the alert metric increments. If cooldown is active, additional exhausted deliveries are aggregated into the `suppressed_count` and reported when the next alert fires. This gives you visibility into endpoint health well before the 5-day auto-disable threshold. See [Webhook Auto-Disable](/docs/api-v2/webhooks#auto-disable) for details.
 </Callout>
 
 ### Threshold Alerts
@@ -98,18 +98,25 @@ If you configure a `secret` on the callback, it is included as the `x-mb-alert-s
 
 ## Cooldown and Suppression
 
-The cooldown period (default: 15 minutes) prevents alert fatigue by batching rapid-fire events:
+The cooldown period (default: 15 minutes) serves a dual purpose — it is both the **counting window** for accumulating events toward a threshold and the **suppression window** that prevents repeated alerts after delivery.
 
-1. When an alert fires, a cooldown window starts
-2. During cooldown, additional triggers are **counted but not delivered**
-3. When the cooldown expires and the next trigger occurs, the alert fires again with a **suppressed count** showing how many events were batched
+**How it works:**
+
+1. Events are counted within a rolling window equal to the cooldown period
+2. When the count reaches the threshold, the alert fires and delivery begins
+3. After delivery, the cooldown starts — additional events during this period are **counted but not delivered**
+4. When the cooldown expires and the next trigger occurs, the alert fires again with a `suppressed_count` showing how many events were batched during the suppression period
+
+<Callout type="info">
+The system intentionally uses the same time window for both event accumulation (pre-trigger) and post-delivery suppression. For example, with a threshold of `>= 3` and a 15-minute cooldown, the system counts occurrences within a 15-minute window. Once 3 events are reached and the alert fires, the same 15-minute period becomes the suppression window.
+</Callout>
 
 **Example:** You configure a "Bot Join Failed" alert with threshold `>= 1` and a 15-minute cooldown.
 
-- `10:00` — First bot join fails → alert fires immediately
+- `10:00` — First bot join fails → threshold met, alert fires immediately
 - `10:02` — Second failure → suppressed (cooldown active)
 - `10:08` — Third failure → suppressed (cooldown active)
-- `10:16` — Fourth failure → alert fires with `suppressed_count: 2` (the two suppressed events from 10:02 and 10:08)
+- `10:16` — Fourth failure → cooldown expired, alert fires with `suppressed_count: 2`
 
 ## Testing Alerts
 
