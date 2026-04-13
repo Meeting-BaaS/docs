@@ -2,6 +2,145 @@
 
 Documentation for api-v2.
 
+## Alerts
+
+Configure alerts to monitor bot operations, resource usage, and webhook delivery health
+
+### Source: ./content/docs/api-v2/alerts.mdx
+
+
+Alerts notify you when something goes wrong or when resource thresholds are reached. Configure alert rules from your dashboard to receive email notifications and HTTP callbacks in real-time.
+
+## Overview
+
+The alerts system monitors two categories of events:
+
+- **Operational alerts** detect errors during bot operations — failed joins, recording failures, crashes, and more
+- **Threshold alerts** monitor resource metrics like token balance, daily bot usage, and calendar connections
+
+Each alert rule defines what to monitor, when to trigger, how to notify you, and how often.
+
+## Creating an Alert Rule
+
+Navigate to **Alerts** in your dashboard to create a new rule. Each rule requires:
+
+1. **Alert type** — what to monitor (see [Alert Types](#alert-types) below)
+2. **Threshold** — the value that triggers the alert
+3. **Delivery channels** — where to send notifications (email, callback, or both)
+4. **Cooldown** — minimum time between consecutive alerts (1–1440 minutes, default: 15 minutes)
+
+At least one delivery channel (email or callback) is required.
+
+## Alert Types
+
+### Operational Alerts
+
+Operational alerts fire when errors accumulate within the cooldown window. For example, "alert me when bot crashes reach 3 occurrences within 15 minutes."
+
+| Alert Type | Description | Common Triggers |
+|------------|-------------|-----------------|
+| Bot Join Failed | Bot could not join the meeting | Invalid meeting URL, meeting ended before bot joined, login required, waiting for host timeout, bot not accepted |
+| Recording Failed | Bot joined but could not record | Recording rights not granted, recording start timeout, host cannot grant permission |
+| Zoom Credential Error | Zoom authentication failure | Invalid JWT token, SDK auth failed, access token error |
+| Bot Crash | Bot process exited unexpectedly | Out of memory, force killed, general error |
+| Transcription Failed | Transcription service error | Provider returned an error after recording completed |
+| Calendar Sync Error | Calendar synchronization failure | OAuth token expired, provider API error |
+| Webhook Delivery Exhausted | All webhook retry attempts failed | Endpoint unreachable, returning errors consistently |
+
+<Callout type="info">
+The **Webhook Delivery Exhausted** alert is particularly important — it fires each time a webhook message exhausts all retry attempts. If your webhook endpoint is down, you'll receive one alert per failed message, giving you immediate visibility before the endpoint is automatically disabled. See [Webhook Auto-Disable](/docs/api-v2/webhooks#auto-disable) for details.
+</Callout>
+
+### Threshold Alerts
+
+Threshold alerts fire when a resource metric crosses a configured boundary. They support both `>=` (greater than or equal) and `<=` (less than or equal) operators.
+
+| Alert Type | Description | Example Use Case |
+|------------|-------------|------------------|
+| Daily Bot Cap | Number of bots created today | "Alert me when daily bots reach 90% of my plan limit" |
+| Token Balance | Current token balance | "Alert me when tokens drop below 1000" |
+| Calendar Connections | Number of connected calendars | "Alert me when calendar connections reach my plan limit" |
+
+## Delivery Channels
+
+Each alert rule can use one or both delivery channels:
+
+### Email
+
+Configure up to 10 email recipients per rule. When an alert fires, all recipients receive an email containing:
+
+- Alert rule name
+- Current metric value and threshold
+- Number of suppressed alerts during the cooldown period (if any)
+- Direct link to the dashboard
+
+### Callback
+
+Configure an HTTP endpoint to receive alert notifications programmatically. Callbacks are sent as `POST` requests with a JSON payload:
+
+```json
+{
+  "alert_rule_id": "550e8400-e29b-41d4-a716-446655440000",
+  "alert_rule_name": "Bot Crash Monitor",
+  "alert_type": "bot_crash",
+  "category": "operational",
+  "triggered_at": "2025-01-15T10:30:00.000Z",
+  "current_value": 3,
+  "threshold_value": 3,
+  "suppressed_count": 0,
+  "message": "Bot Crash: 3 occurrence(s) reached threshold of 3"
+}
+```
+
+If you configure a `secret` on the callback, it is included as the `x-mb-alert-secret` header for verification.
+
+**Callback retry behavior:**
+- 4 total attempts (initial + 3 retries)
+- Retry delays: 1 second, 5 seconds, 15 seconds
+- Only retries on network errors and 5xx server responses
+- Does **not** retry on 4xx client errors
+- 30-second request timeout
+
+## Cooldown and Suppression
+
+The cooldown period (default: 15 minutes) prevents alert fatigue by batching rapid-fire events:
+
+1. When an alert fires, a cooldown window starts
+2. During cooldown, additional triggers are **counted but not delivered**
+3. When the cooldown expires and the next trigger occurs, the alert fires again with a **suppressed count** showing how many events were batched
+
+**Example:** You configure a "Bot Join Failed" alert with threshold `>= 1` and a 15-minute cooldown.
+
+- `10:00` — First bot join fails → alert fires immediately
+- `10:02` — Second failure → suppressed (cooldown active)
+- `10:08` — Third failure → suppressed (cooldown active)
+- `10:16` — Fourth failure → alert fires with `suppressed_count: 2` (the two suppressed events from 10:02 and 10:08)
+
+## Testing Alerts
+
+Use the **Test** button on any alert rule to send a test notification to all configured delivery channels. This verifies that your email addresses are correct and your callback endpoint is reachable.
+
+## Alert History
+
+Each alert rule maintains a delivery history accessible from the rule's detail page. History entries include:
+
+- When the alert fired
+- Current value at the time of trigger
+- Number of suppressed events
+- Delivery status for each channel (success or failure with error details)
+
+## Limits
+
+| Setting | Limit |
+|---------|-------|
+| Alert rules per team | 50 |
+| Email recipients per rule | 10 |
+| Cooldown range | 1–1440 minutes (24 hours) |
+| Minimum threshold for operational alerts | 1 occurrence |
+
+
+---
+
 ## API Keys & Permissions
 
 Learn about API keys, permissions, and access control in Meeting BaaS v2
@@ -1580,6 +1719,22 @@ curl -X POST "https://api.meetingbaas.com/v2/calendars/CALENDAR-ID/bots" \
 - `all_occurrences`: Set to `true` to schedule for all occurrences of a recurring event
 - `series_id`: Use this instead of `event_id` to schedule for an entire series
 
+## Shared Service Account Use Case (Invite-To-Schedule)
+
+Once the OAuth flow is configured, and if you want to avoid creating calendar connections for every end-user, you can connect a single dedicated "bot mailbox" (for example, `recording@xyz.io`) and reuse it.
+
+<Callout type="info">
+  Meeting BaaS v2 uses a bring-your-own-credentials model and requires OAuth refresh tokens obtained via a normal OAuth consent flow. See [Implement OAuth Flow](#implement-oauth-flow) above. The practical workaround for a "service account" is to use a dedicated mailbox/user account that can complete OAuth once, then reuse its refresh token.
+</Callout>
+
+### How it works
+
+1. Create a dedicated provider account and calendar (the bot mailbox).
+2. Run a single OAuth consent flow for the bot mailbox to obtain its refresh token, then connect that calendar to Meeting BaaS v2 using `POST /v2/calendars` (you'll get one `calendar_id` for this shared connection).
+3. When you need a bot, create the meeting/event and invite the bot mailbox. Make sure the event contains a meeting URL (since bot scheduling depends on it).
+4. Meeting BaaS syncs the event into that connection and emits webhooks for the connection and subsequent event changes.
+5. In your webhook handler, schedule the bot for the relevant `event_id` using `POST /v2/calendars/{calendar_id}/bots`. For recurring meetings, prefer `series_id` or `all_occurrences`.
+
 ## Webhooks
 
 Calendar integrations trigger webhook events for:
@@ -1607,7 +1762,12 @@ See the [Webhooks documentation](/docs/api-v2/webhooks) for details on all calen
 
 ## Frequently Asked Questions
 
-### What happens if a calendar event is updated close to its start time?
+<Accordions type="single">
+
+<Accordion
+  id="faq-updated-close-to-start"
+  title="What happens if a calendar event is updated close to its start time?"
+>
 
 **Lock Window Behavior (4 minutes before event start):**
 
@@ -1621,7 +1781,12 @@ When an event is updated within 4 minutes of its start time, the system enters a
 
 If an event is updated more than 4 minutes before its start time, the bot schedule is safely updated with the new event details, and only one bot will join.
 
-### What happens if a calendar event is deleted close to its start time?
+</Accordion>
+
+<Accordion
+  id="faq-deleted-close-to-start"
+  title="What happens if a calendar event is deleted close to its start time?"
+>
 
 **Within Lock Window (4 minutes before start):**
 - The bot schedule remains active and the bot will still attempt to join
@@ -1631,7 +1796,12 @@ If an event is updated more than 4 minutes before its start time, the bot schedu
 - The bot schedule is automatically deleted
 - No bot will be created for the cancelled event
 
-### What happens if the meeting URL is removed from an event?
+</Accordion>
+
+<Accordion
+  id="faq-meeting-url-removed"
+  title="What happens if the meeting URL is removed from an event?"
+>
 
 **If the event originally had a meeting URL:**
 - The bot will use the meeting URL from the bot configuration, which was captured when the bot was scheduled
@@ -1641,21 +1811,30 @@ If an event is updated more than 4 minutes before its start time, the bot schedu
 - No bot schedule is created
 - Calendar events without meeting URLs are skipped during bot scheduling
 
-### How often are calendar events synced?
+</Accordion>
+
+<Accordion id="faq-sync-frequency" title="How often are calendar events synced?">
 
 Calendar events are synced via **push notifications (real-time)**:
 - **Google Calendar**: Push notifications via watch channels (renewed every 7 days)
 - **Microsoft Calendar**: Push notifications via subscriptions (renewed every 2 days)
 - Changes are typically reflected within seconds
 
-### What is the event materialization window?
+</Accordion>
+
+<Accordion
+  id="faq-materialization-window"
+  title="What is the event materialization window?"
+>
 
 Meeting BaaS maintains a **30-day rolling window** of calendar events:
 - Events are synced from **now** to **30 days in the future**
 - Events outside this window are not stored or monitored
 - As time progresses, new events enter the window and old events are removed
 
-### How are recurring events handled?
+</Accordion>
+
+<Accordion id="faq-recurring-events" title="How are recurring events handled?">
 
 **Series-Level Bot Scheduling:**
 - You can schedule a bot for all occurrences of a recurring event using `all_occurrences: true` or by providing the `series_id`
@@ -1672,21 +1851,30 @@ In some cases, the calendar platform may invalidate an event series (such as whe
 
 This behavior is inline with how calendar platforms handle major changes to recurring events.
 
-### What happens if I decline a calendar event?
+</Accordion>
+
+<Accordion id="faq-decline-event" title="What happens if I decline a calendar event?">
 
 If you decline a calendar event (as the calendar owner):
 - The event is treated as **cancelled** in Meeting BaaS
 - No bot will be scheduled for declined events
 - Existing bot schedules for declined events are automatically cancelled
 
-### Can I schedule bots for all-day events?
+</Accordion>
+
+<Accordion id="faq-all-day-events" title="Can I schedule bots for all-day events?">
 
 All-day events are synced and stored, but:
 - They typically don't have meeting URLs
 - Bots are only scheduled for events with valid meeting URLs
 - All-day events without meeting URLs are skipped during bot scheduling
 
-### What meeting platforms are supported?
+</Accordion>
+
+<Accordion
+  id="faq-meeting-platforms"
+  title="What meeting platforms are supported?"
+>
 
 Meeting BaaS automatically detects meeting URLs for:
 - **Zoom** (`zoom.us`)
@@ -1699,7 +1887,12 @@ The meeting platform is detected from:
 - The event description (for embedded links)
 - Conference data (Google Calendar)
 
-### How are event exceptions handled?
+</Accordion>
+
+<Accordion
+  id="faq-event-exceptions"
+  title="How are event exceptions handled?"
+>
 
 **Event exceptions** are recurring event instances that have been modified:
 - Modified start time
@@ -1711,7 +1904,9 @@ Exceptions are:
 - Synced and stored separately from the series pattern
 - Handled correctly for bot scheduling
 
-### What if my OAuth credentials expire?
+</Accordion>
+
+<Accordion id="faq-oauth-expire" title="What if my OAuth credentials expire?">
 
 **Refresh Token Expiration:**
 - Google: Refresh tokens don't expire unless revoked by the user
@@ -1722,7 +1917,12 @@ Exceptions are:
 - You'll receive a webhook notification
 - Users must re-authorize your application to restore the connection
 
-### How do I handle calendar connection errors?
+</Accordion>
+
+<Accordion
+  id="faq-connection-errors"
+  title="How do I handle calendar connection errors?"
+>
 
 Monitor the `status` field on calendar connections:
 - `active`: Connection is working normally
@@ -1732,7 +1932,12 @@ Monitor the `status` field on calendar connections:
 
 You'll receive webhook notifications for connection status changes.
 
-### Can I connect multiple calendars from the same account?
+</Accordion>
+
+<Accordion
+  id="faq-multiple-calendars"
+  title="Can I connect multiple calendars from the same account?"
+>
 
 Yes! You can create separate calendar connections for:
 - Multiple calendars from the same Google account
@@ -1743,6 +1948,9 @@ Each connection is independent and has its own:
 - Sync status
 - Bot schedules
 - Webhook events
+
+</Accordion>
+</Accordions>
 
 
 
@@ -8742,10 +8950,49 @@ Triggered when an event is cancelled in a connected calendar.
 
 ## Webhook Delivery
 
-- **Retries**: SVIX automatically retries failed webhook deliveries
-- **Timeout**: Webhook endpoints should respond within 30 seconds
-- **Idempotency**: Webhooks may be delivered multiple times - ensure your handler is idempotent
-- **Ordering**: Webhooks are delivered in order, but network issues may cause out-of-order delivery
+### Retry Schedule
+
+Failed webhook deliveries are automatically retried with increasing delays:
+
+| Attempt | Delay | Cumulative Time |
+|---------|-------|-----------------|
+| 1 (initial) | — | 0s |
+| 2 | 5 seconds | ~5s |
+| 3 | 10 seconds | ~15s |
+| 4 | 5 minutes | ~5 min |
+| 5 | 15 minutes | ~20 min |
+| 6 | 30 minutes | ~50 min |
+| 7 | 2 hours | ~3 hours |
+
+All retries complete within approximately 3 hours. This is intentional — `bot.completed` webhooks include signed download URLs (for video, audio, transcription) that are **valid for 4 hours**. Keeping retries within this window ensures that URLs in the payload remain usable.
+
+A small amount of random jitter (±20%) is added to each retry delay to prevent thundering herd issues.
+
+### Timeouts and Overload Protection
+
+- **Request timeout**: Your endpoint must respond within 30 seconds. Requests that exceed this limit are treated as failures and retried.
+- **Overload penalty**: If your endpoint returns a `429 Too Many Requests` status or times out, a minimum 60-second delay is applied before the next retry, regardless of the scheduled delay.
+
+### Idempotency and Ordering
+
+- **Idempotency**: Webhooks may be delivered multiple times — ensure your handler is idempotent
+- **Ordering**: Webhooks are generally delivered in order, but network issues or retries may cause out-of-order delivery
+
+### Endpoint Auto-Disable <span id="auto-disable" />
+
+If your webhook endpoint fails continuously for an extended period, it will be automatically disabled to prevent unnecessary retry traffic:
+
+1. **After all retry attempts fail** for a message, a `webhook_delivery_exhausted` operational alert is emitted (if you have [alert rules](/docs/api-v2/alerts) configured for this type)
+2. **After 5 days of continuous failure** (no successful delivery across any message), the endpoint is automatically disabled
+3. **When auto-disabled**, the team owner receives an email notification with the endpoint details and common failure causes
+4. **Your endpoint status** is updated in the dashboard — you'll see it marked as disabled
+5. **No new deliveries** are attempted to a disabled endpoint until you manually re-enable it from the dashboard
+
+<Callout type="warn">
+Once an endpoint is auto-disabled, all subsequent webhook messages are silently dropped. Configure a **Webhook Delivery Exhausted** alert rule to get notified per-message as retries fail, well before the 5-day auto-disable threshold. See [Alerts](/docs/api-v2/alerts) for setup instructions.
+</Callout>
+
+A single successful delivery at any point resets the failure clock — the 5-day timer only applies to endpoints that fail every delivery attempt without any success.
 
 ## Testing Webhooks
 
@@ -8785,9 +9032,22 @@ When creating a bot, include the `callback_config` in your request:
 
 If you provide a `secret` in `callback_config`, it will be included in the `x-mb-secret` header of all callback requests. Use this to verify that callbacks are coming from Meeting BaaS.
 
-### Retrying Callbacks
+### Callback Delivery and Retries
 
-If a callback delivery fails, you can retry it using the `POST /v2/bots/:bot_id/retry-callback` endpoint.
+Callbacks are delivered with automatic retries on failure:
+
+| Attempt | Delay |
+|---------|-------|
+| 1 (initial) | — |
+| 2 | 1 second |
+| 3 | 5 seconds |
+| 4 | 15 seconds |
+
+- Only retries on **network errors** and **5xx server responses**
+- Does **not** retry on **4xx client errors** (e.g., 400, 401, 403, 404)
+- 30-second request timeout per attempt
+
+If all 4 attempts fail, you can manually retry using the `POST /v2/bots/:bot_id/retry-callback` endpoint. This generates a fresh payload with new signed download URLs.
 
 ## Resending Webhooks
 

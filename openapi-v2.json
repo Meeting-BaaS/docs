@@ -864,6 +864,51 @@
                       "type": "null"
                     }
                   ]
+                },
+                "tokens": {
+                  "description": "Token consumption breakdown (null if not yet consumed)",
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "recording": {
+                          "description": "Recording tokens consumed",
+                          "type": "number"
+                        },
+                        "transcription": {
+                          "description": "Transcription tokens consumed",
+                          "type": "number"
+                        },
+                        "byok_transcription": {
+                          "description": "BYOK transcription tokens consumed",
+                          "type": "number"
+                        },
+                        "streaming_input": {
+                          "description": "Streaming input tokens consumed",
+                          "type": "number"
+                        },
+                        "streaming_output": {
+                          "description": "Streaming output tokens consumed",
+                          "type": "number"
+                        },
+                        "total": {
+                          "description": "Total tokens consumed",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "recording",
+                        "transcription",
+                        "byok_transcription",
+                        "streaming_input",
+                        "streaming_output",
+                        "total"
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -879,7 +924,8 @@
                 "exited_at",
                 "status",
                 "error_code",
-                "error_message"
+                "error_message",
+                "tokens"
               ]
             }
           },
@@ -1232,6 +1278,51 @@
                   }
                 ]
               },
+              "tokens": {
+                "description": "Token consumption breakdown (null if not yet consumed)",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "recording": {
+                        "description": "Recording tokens consumed",
+                        "type": "number"
+                      },
+                      "transcription": {
+                        "description": "Transcription tokens consumed",
+                        "type": "number"
+                      },
+                      "byok_transcription": {
+                        "description": "BYOK transcription tokens consumed",
+                        "type": "number"
+                      },
+                      "streaming_input": {
+                        "description": "Streaming input tokens consumed",
+                        "type": "number"
+                      },
+                      "streaming_output": {
+                        "description": "Streaming output tokens consumed",
+                        "type": "number"
+                      },
+                      "total": {
+                        "description": "Total tokens consumed",
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "recording",
+                      "transcription",
+                      "byok_transcription",
+                      "streaming_input",
+                      "streaming_output",
+                      "total"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
               "extra": {
                 "description": "Custom metadata associated with the bot",
                 "anyOf": [
@@ -1331,6 +1422,7 @@
               "transcription_provider",
               "error_code",
               "error_message",
+              "tokens",
               "extra",
               "zoom_config"
             ]
@@ -7586,6 +7678,52 @@
                       "type": "null"
                     }
                   ]
+                },
+                "tokens": {
+                  "description": "Token consumption breakdown (null if not yet consumed)",
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "recording": {
+                          "description": "Recording tokens consumed",
+                          "type": "number"
+                        },
+                        "transcription": {
+                          "description": "Transcription tokens consumed",
+                          "type": "number"
+                        },
+                        "byok_transcription": {
+                          "description": "BYOK transcription tokens consumed",
+                          "type": "number"
+                        },
+                        "streaming_input": {
+                          "description": "Streaming input tokens consumed",
+                          "type": "number"
+                        },
+                        "streaming_output": {
+                          "description": "Streaming output tokens consumed",
+                          "type": "number"
+                        },
+                        "total": {
+                          "description": "Total tokens consumed",
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "recording",
+                        "transcription",
+                        "byok_transcription",
+                        "streaming_input",
+                        "streaming_output",
+                        "total"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
                 }
               },
               "required": [
@@ -7601,7 +7739,8 @@
                 "exited_at",
                 "status",
                 "error_code",
-                "error_message"
+                "error_message",
+                "tokens"
               ],
               "additionalProperties": false
             }
@@ -7958,6 +8097,52 @@
                   }
                 ]
               },
+              "tokens": {
+                "description": "Token consumption breakdown (null if not yet consumed)",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "recording": {
+                        "description": "Recording tokens consumed",
+                        "type": "number"
+                      },
+                      "transcription": {
+                        "description": "Transcription tokens consumed",
+                        "type": "number"
+                      },
+                      "byok_transcription": {
+                        "description": "BYOK transcription tokens consumed",
+                        "type": "number"
+                      },
+                      "streaming_input": {
+                        "description": "Streaming input tokens consumed",
+                        "type": "number"
+                      },
+                      "streaming_output": {
+                        "description": "Streaming output tokens consumed",
+                        "type": "number"
+                      },
+                      "total": {
+                        "description": "Total tokens consumed",
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "recording",
+                      "transcription",
+                      "byok_transcription",
+                      "streaming_input",
+                      "streaming_output",
+                      "total"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
               "extra": {
                 "description": "Custom metadata associated with the bot",
                 "anyOf": [
@@ -8058,6 +8243,7 @@
               "transcription_provider",
               "error_code",
               "error_message",
+              "tokens",
               "extra",
               "zoom_config"
             ],
@@ -14231,6 +14417,24 @@
             "name": "bot_name",
             "required": false,
             "description": "Filter bots by name containing this string.\n\nPerforms a case-insensitive partial match on the bot's name. Useful for finding bots with specific naming conventions or to locate a particular bot when you don't have its ID.\n\nExample: \"Sales\" would match \"Sales Meeting\", \"Quarterly Sales\", etc."
+          },
+          {
+            "schema": {
+              "example": null,
+              "default": null,
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "participant_name",
+            "required": false,
+            "description": "Filter bots by participant name.\n\nPerforms a case-insensitive partial match on participant names in the meeting.\n\nExample: \"John\" would match meetings where \"John Smith\" participated."
           },
           {
             "schema": {

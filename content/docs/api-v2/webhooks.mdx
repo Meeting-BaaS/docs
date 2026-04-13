@@ -410,10 +410,50 @@ Triggered when an event is cancelled in a connected calendar.
 
 ## Webhook Delivery
 
-- **Retries**: SVIX automatically retries failed webhook deliveries
-- **Timeout**: Webhook endpoints should respond within 30 seconds
-- **Idempotency**: Webhooks may be delivered multiple times - ensure your handler is idempotent
-- **Ordering**: Webhooks are delivered in order, but network issues may cause out-of-order delivery
+### Retry Schedule
+
+Failed webhook deliveries are automatically retried with increasing delays:
+
+| Attempt | Delay | Cumulative Time |
+|---------|-------|-----------------|
+| 1 (initial) | — | 0s |
+| 2 | 5 seconds | ~5s |
+| 3 | 10 seconds | ~15s |
+| 4 | 5 minutes | ~5 min |
+| 5 | 15 minutes | ~20 min |
+| 6 | 30 minutes | ~50 min |
+| 7 | 2 hours | ~3 hours |
+
+All retries complete within approximately 3 hours. This is intentional — `bot.completed` webhooks include signed download URLs (for video, audio, transcription) that are **valid for 4 hours**. Keeping retries within this window ensures that URLs in the payload remain usable.
+
+A small amount of random jitter (±20%) is added to each retry delay to prevent thundering herd issues.
+
+### Timeouts and Overload Protection
+
+- **Successful acknowledgement**: Only HTTP `2xx` responses are treated as successful delivery. Any other status code — including `3xx` redirects, `4xx` client errors, and `5xx` server errors — is considered a failure and will be retried. Failed deliveries contribute to the retry schedule and, over time, to the [auto-disable](#auto-disable) behavior.
+- **Request timeout**: Your endpoint must respond within 30 seconds. Requests that exceed this limit are treated as failures and retried.
+- **Overload penalty**: If your endpoint returns a `429 Too Many Requests` status or times out, a minimum 60-second delay is applied before the next retry, regardless of the scheduled delay.
+
+### Idempotency and Ordering
+
+- **Idempotency**: Webhooks may be delivered multiple times — ensure your handler is idempotent
+- **Ordering**: Webhooks are generally delivered in order, but network issues or retries may cause out-of-order delivery
+
+### Endpoint Auto-Disable <span id="auto-disable" />
+
+If your webhook endpoint fails continuously for an extended period, it will be automatically disabled to prevent unnecessary retry traffic:
+
+1. **After all retry attempts fail** for a message, a `webhook_delivery_exhausted` operational alert is emitted (if you have [alert rules](/docs/api-v2/alerts) configured for this type)
+2. **After 5 days of continuous failure** (no successful delivery across any message), the endpoint is automatically disabled
+3. **When auto-disabled**, the team owner receives an email notification with the endpoint details and common failure causes
+4. **Your endpoint status** is updated in the dashboard — you'll see it marked as disabled
+5. **No new deliveries** are attempted to a disabled endpoint until you manually re-enable it from the dashboard
+
+<Callout type="warn">
+Once an endpoint is auto-disabled, all subsequent webhook messages are silently dropped. Configure a **Webhook Delivery Exhausted** alert rule to get notified per-message as retries fail, well before the 5-day auto-disable threshold. See [Alerts](/docs/api-v2/alerts) for setup instructions.
+</Callout>
+
+A single successful delivery at any point resets the failure clock — the 5-day timer only applies to endpoints that fail every delivery attempt without any success.
 
 ## Testing Webhooks
 
@@ -453,9 +493,22 @@ When creating a bot, include the `callback_config` in your request:
 
 If you provide a `secret` in `callback_config`, it will be included in the `x-mb-secret` header of all callback requests. Use this to verify that callbacks are coming from Meeting BaaS.
 
-### Retrying Callbacks
+### Callback Delivery and Retries
 
-If a callback delivery fails, you can retry it using the `POST /v2/bots/:bot_id/retry-callback` endpoint.
+Callbacks are delivered with automatic retries on failure:
+
+| Attempt | Delay |
+|---------|-------|
+| 1 (initial) | — |
+| 2 | 1 second |
+| 3 | 5 seconds |
+| 4 | 15 seconds |
+
+- Only retries on **network errors** and **5xx server responses**
+- Does **not** retry on **4xx client errors** (e.g., 400, 401, 403, 404)
+- 30-second request timeout per attempt
+
+If all 4 attempts fail, you can manually retry using the `POST /v2/bots/:bot_id/retry-callback` endpoint. This generates a fresh payload with new signed download URLs.
 
 ## Resending Webhooks
 
