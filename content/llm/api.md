@@ -1535,14 +1535,58 @@ Navigate to **Basic Information** to find:
 - **Client ID** — Used in OAuth authorization URL
 - **Client Secret** — Used when exchanging authorization codes
 
-**SDK credentials** (for internal meetings):
+**SDK credentials** (for internal meetings and AAN attribution):
 
 Navigate to **Features** → **Embed** → **Meeting SDK** section to find:
 - **SDK Key** (Client ID) — Use as `zoom_sdk_id`
 - **SDK Secret** — Use as `zoom_sdk_pwd`
 
+See Zoom's guide: [Get Meeting SDK Credentials](https://developers.zoom.us/docs/meeting-sdk/get-credentials/#get-meeting-sdk-credentials)
+
 </Step>
 </Steps>
+
+## Active Apps Notifier (AAN) Attribution
+
+When a bot joins a Zoom meeting using the Meeting SDK, Zoom displays the app name in the **Active Apps Notifier (AAN)** — a notice visible to all meeting participants showing which apps are accessing meeting content. The app name shown is determined by the **SDK credentials** used to initialize the session.
+
+<Callout type="warn">
+**Zoom Marketplace Requirement:** During Marketplace review, Zoom requires the AAN to display **your** app name. If the AAN shows a different app name (e.g., "Meeting Baas" instead of your product name), the reviewer may flag this. See [Zoom's AAN documentation](https://developers.zoom.us/docs/meeting-sdk/ui-notices/#active-apps-notifier-aan-use-case) for details.
+</Callout>
+
+### How It Works
+
+The AAN displays the app name associated with whichever SDK credentials are used for the session:
+
+- **With your SDK credentials** (`zoom_sdk_id` / `zoom_sdk_pwd`): The AAN shows **your** app name
+- **Without SDK credentials**: The bot falls back to Meeting BaaS's default SDK credentials, and the AAN shows "Meeting Baas"
+
+### Using SDK Credentials with OBF Tokens
+
+If your bots join external meetings (requiring OBF tokens), you should **also** pass your SDK credentials to ensure correct AAN attribution. The SDK credentials and OBF tokens serve different purposes:
+
+- **SDK credentials** → Control the AAN app name (your app identity)
+- **OBF tokens** → Authorize the bot to join on behalf of a specific user
+
+You can combine them in the same bot request:
+
+```json
+{
+  "meeting_url": "https://zoom.us/j/123456789",
+  "bot_name": "Recording Bot",
+  "zoom_sdk_id": "YOUR_SDK_KEY",
+  "zoom_sdk_pwd": "YOUR_SDK_SECRET",
+  "zoom_obf_token_url": "https://your-api.com/zoom/obf-token"
+}
+```
+
+This works with any of the three OBF options (`zoom_obf_token`, `zoom_obf_token_url`, or `zoom_obf_token_user_id`).
+
+<Callout>
+**v2 API users:** In v2, you can store your SDK credentials once using the [Credentials API](/docs/api-v2/getting-started/zoom/credentials) instead of passing them with every request. See [v2 Zoom Credentials](/docs/api-v2/getting-started/zoom/credentials) for details.
+</Callout>
+
+Learn more: [Zoom AAN Documentation](https://developers.zoom.us/docs/meeting-sdk/ui-notices/#active-apps-notifier-aan-use-case) | [Get Meeting SDK Credentials](https://developers.zoom.us/docs/meeting-sdk/get-credentials/#get-meeting-sdk-credentials)
 
 ## Using SDK Credentials
 
@@ -2878,6 +2922,34 @@ Meeting BaaS will automatically:
 
 **Best for:** Most customers, especially those building products for end users.
 
+## App Attribution (Active Apps Notifier)
+
+When using OBF tokens, the bot's **SDK credentials** determine which app name appears in Zoom's [Active Apps Notifier (AAN)](https://developers.zoom.us/docs/meeting-sdk/ui-notices/#active-apps-notifier-aan-use-case) — the notice shown to all meeting participants identifying which app is accessing meeting content.
+
+By default, if you only pass an OBF token without your own SDK credentials, the bot uses Meeting BaaS's default SDK credentials and the AAN will display "Meeting Baas" instead of your app name.
+
+**To show your app name in the AAN**, pass your SDK credentials alongside your OBF token option:
+
+```json
+{
+  "meeting_url": "https://zoom.us/j/123456789",
+  "bot_name": "Recording Bot",
+  "zoom_sdk_id": "YOUR_SDK_KEY",
+  "zoom_sdk_pwd": "YOUR_SDK_SECRET",
+  "zoom_obf_token_url": "https://your-api.com/zoom/obf-token"
+}
+```
+
+This works with all three OBF options. The SDK credentials and OBF tokens serve different purposes — SDK credentials control the app identity (AAN), while OBF tokens authorize the bot to join on behalf of a user.
+
+<Callout type="warn">
+**Zoom Marketplace Requirement:** During Marketplace review, Zoom requires the AAN to display your app's name. If you're going through review, the reviewer may flag this if your SDK credentials are not included. See [Zoom App Setup](/docs/api/getting-started/zoom/app-setup#active-apps-notifier-aan-attribution) for details.
+</Callout>
+
+<Callout>
+**Migrating to v2?** In the v2 API, you can store your SDK credentials once using the [Credentials API](/docs/api-v2/getting-started/zoom/credentials) instead of passing them with every request. This is more secure and simplifies your integration.
+</Callout>
+
 ## Bot Behavior with OBF Tokens
 
 ### Authorized User Not in Meeting
@@ -2886,7 +2958,7 @@ When the bot joins with an OBF token and the authorized user is not yet in the m
 
 1. Bot attempts to join
 2. Zoom returns "Authorized user not in meeting" error
-3. Bot retries every 3 seconds
+3. Bot retries every 30 seconds
 4. Once the authorized user joins, the bot successfully enters
 5. If the user does not join within the timeout period, the bot exits with error
 

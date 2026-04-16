@@ -30,14 +30,17 @@ curl -X POST "https://api.meetingbaas.com/v2/bots/BOT-ID/leave" \
 
 ### When Can You Leave a Bot?
 
-The leave endpoint can only be called when the bot is in one of these statuses:
+The leave endpoint works for bots in any active (non-terminal) state:
 
+- `queued`: Bot hasn't started joining yet
 - `joining_call`: Bot is attempting to join the meeting
 - `in_waiting_room`: Bot is waiting in the meeting's waiting room
 - `in_call_not_recording`: Bot is in the meeting but not recording
 - `in_call_recording`: Bot is actively recording
 - `recording_paused`: Bot recording is paused
 - `recording_resumed`: Bot recording has resumed
+
+It also works for **scheduled bots** that haven't spawned yet — the scheduled bot will be cancelled atomically.
 
 ### Error Responses
 
@@ -63,21 +66,18 @@ The leave endpoint can only be called when the bot is in one of these statuses:
 }
 ```
 
-This error occurs when the bot is in a status that doesn't allow leaving, such as:
-- `queued`: Bot hasn't started joining yet
-- `transcribing`: Bot has left and is processing transcription
+This error occurs when the bot is in a terminal status:
 - `completed`: Bot has already completed
 - `failed`: Bot has already failed
 
 ### How It Works
 
 When you call the leave endpoint:
-1. The system sends a stop recording command to the bot process
-2. The bot stops recording and exits the meeting (usually within a few seconds)
-3. The bot will transition to `transcribing` status (if transcription is enabled) or `completed` status
-4. A final webhook event (`bot.completed` or `bot.failed`) will be sent when the bot finishes processing
-
-**Note:** The leave command is sent immediately, but the bot may take a few seconds to actually exit the meeting and update its status.
+1. The stop signal is delivered to the bot process asynchronously with retries
+2. If the bot hasn't started yet (e.g., still `queued`), it will check for pending stop requests on startup and abort before joining the meeting
+3. **Pre-recording stops** (bot was in `queued`, `joining_call`, `in_waiting_room`, or `in_call_not_recording`): The bot exits with an `EXITING_MEETING_BEFORE_RECORD` error code. No tokens are consumed.
+4. **Recording stops** (bot was in `in_call_recording`, `recording_paused`, or `recording_resumed`): The bot stops recording and transitions to `completed` status. Tokens are consumed based on recording duration.
+5. A final webhook event will be sent when the bot finishes processing.
 
 ## Delete Bot Data
 
@@ -136,19 +136,21 @@ This error occurs when the bot is still active (e.g., `in_call_recording`, `tran
 
 ## Cancel Scheduled Bot
 
-To cancel a scheduled bot before it joins the meeting:
+To cancel a scheduled bot:
 
 ```bash
 curl -X DELETE "https://api.meetingbaas.com/v2/bots/scheduled/SCHEDULED-BOT-ID" \
      -H "x-meeting-baas-api-key: YOUR-API-KEY"
 ```
 
-**Note:** You can only cancel scheduled bots that haven't started yet. Once a bot has joined the meeting, you must use the regular delete endpoint.
+This can be called at any time before the bot reaches a terminal state (`completed` or `failed`). If the bot hasn't been spawned yet, the scheduled bot record is cancelled atomically. If the scheduling cron has already spawned the bot, the stop request is persisted and delivered to the bot process — the bot will exit with `EXITING_MEETING_BEFORE_RECORD`.
+
+**Note:** You can also use the leave endpoint (`POST /v2/bots/:bot_id/leave`) with the scheduled bot's UUID to achieve the same result.
 
 ## Important Notes
 
-- Deleting a bot removes all associated data including recordings, transcriptions, and screenshots
-- Deleted bots cannot be recovered
-- If a bot is currently recording, deletion will stop the recording and remove all data
-- Scheduled bots can be cancelled before they join, but once they've joined, they must be deleted like regular bots
+- Deleting a bot's data removes all associated data including recordings, transcriptions, and screenshots
+- Deleted data cannot be recovered
+- If a bot is currently recording, leaving it will stop the recording. Use the delete data endpoint afterwards to remove artifacts.
+- Scheduled and calendar bots can be cancelled at any time — if a bot has already been spawned, it will be stopped automatically
 

@@ -20,7 +20,7 @@ _openapi:
               
               **Status:** The scheduled bot starts in `scheduled` status and transitions to `completed` when the bot instance is created and queued to join. If the bot fails to join, it transitions to `failed` status.
               
-              **Updates and Deletions:** Scheduled bots can be updated or deleted as long as they are in `scheduled` status and the join time is at least 4 minutes in the future. This ensures the bot can be modified before it starts processing.
+              **Updates:** Scheduled bots can be updated as long as they are in `scheduled` status and the join time is at least 4 minutes in the future. **Deletions:** Scheduled bots can be cancelled at any time before reaching a terminal state.
               
               Returns a `bot_id` (UUID) that you can use to track and manage the scheduled bot. This UUID will be reused as the bot's UUID when it actually joins.
 ---
@@ -39,7 +39,7 @@ Schedule a bot to join a meeting at a specific time in the future.
     
     **Status:** The scheduled bot starts in `scheduled` status and transitions to `completed` when the bot instance is created and queued to join. If the bot fails to join, it transitions to `failed` status.
     
-    **Updates and Deletions:** Scheduled bots can be updated or deleted as long as they are in `scheduled` status and the join time is at least 4 minutes in the future. This ensures the bot can be modified before it starts processing.
+    **Updates:** Scheduled bots can be updated as long as they are in `scheduled` status and the join time is at least 4 minutes in the future. **Deletions:** Scheduled bots can be cancelled at any time before reaching a terminal state.
     
     Returns a `bot_id` (UUID) that you can use to track and manage the scheduled bot. This UUID will be reused as the bot's UUID when it actually joins.
 
