@@ -98,6 +98,14 @@ These codes indicate the bot process crashed:
 **Title:** General Error  
 **Description:** Bot process exited with a general error.
 
+## Pre-Recording Stop
+
+### `EXITING_MEETING_BEFORE_RECORD`
+**Title:** Exiting Meeting Before Record
+**Description:** The bot left the meeting before recording started. This can happen if the bot was requested to leave via the API (leave endpoint, scheduled bot deletion, or calendar bot cancellation), or if the meeting ended before the bot was accepted.
+
+**Token Charging:** No tokens are consumed for pre-recording stops.
+
 ## Transcription Errors
 
 ### `TRANSCRIPTION_FAILED`
@@ -135,10 +143,6 @@ These errors are specific to Zoom meetings:
 ### `CANNOT_REQUEST_RECORDING_RIGHT`
 **Title:** Cannot Request Recording Right  
 **Description:** The bot could not request recording rights. The meeting may not have recording enabled.
-
-### `EXITING_MEETING_BEFORE_RECORD`
-**Title:** Exiting Meeting Before Record  
-**Description:** The meeting ended before the bot could start recording.
 
 ### `MEETING_ENDED_PREMATURELY`
 **Title:** Meeting Ended Prematurely  

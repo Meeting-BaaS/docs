@@ -443,6 +443,34 @@ Meeting BaaS will automatically:
 
 **Best for:** Most customers, especially those building products for end users.
 
+## App Attribution (Active Apps Notifier)
+
+When using OBF tokens, the bot's **SDK credentials** determine which app name appears in Zoom's [Active Apps Notifier (AAN)](https://developers.zoom.us/docs/meeting-sdk/ui-notices/#active-apps-notifier-aan-use-case) — the notice shown to all meeting participants identifying which app is accessing meeting content.
+
+By default, if you only pass an OBF token without your own SDK credentials, the bot uses Meeting BaaS's default SDK credentials and the AAN will display "Meeting Baas" instead of your app name.
+
+**To show your app name in the AAN**, pass your SDK credentials alongside your OBF token option:
+
+```json
+{
+  "meeting_url": "https://zoom.us/j/123456789",
+  "bot_name": "Recording Bot",
+  "zoom_sdk_id": "YOUR_SDK_KEY",
+  "zoom_sdk_pwd": "YOUR_SDK_SECRET",
+  "zoom_obf_token_url": "https://your-api.com/zoom/obf-token"
+}
+```
+
+This works with all three OBF options. The SDK credentials and OBF tokens serve different purposes — SDK credentials control the app identity (AAN), while OBF tokens authorize the bot to join on behalf of a user.
+
+<Callout type="warn">
+**Zoom Marketplace Requirement:** During Marketplace review, Zoom requires the AAN to display your app's name. If you're going through review, the reviewer may flag this if your SDK credentials are not included. See [Zoom App Setup](/docs/api/getting-started/zoom/app-setup#active-apps-notifier-aan-attribution) for details.
+</Callout>
+
+<Callout>
+**Migrating to v2?** In the v2 API, you can store your SDK credentials once using the [Credentials API](/docs/api-v2/getting-started/zoom/credentials) instead of passing them with every request. This is more secure and simplifies your integration.
+</Callout>
+
 ## Bot Behavior with OBF Tokens
 
 ### Authorized User Not in Meeting
@@ -451,7 +479,7 @@ When the bot joins with an OBF token and the authorized user is not yet in the m
 
 1. Bot attempts to join
 2. Zoom returns "Authorized user not in meeting" error
-3. Bot retries every 3 seconds
+3. Bot retries every 30 seconds
 4. Once the authorized user joins, the bot successfully enters
 5. If the user does not join within the timeout period, the bot exits with error
 

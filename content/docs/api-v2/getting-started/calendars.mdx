@@ -214,13 +214,9 @@ If an event is updated more than 4 minutes before its start time, the bot schedu
   title="What happens if a calendar event is deleted close to its start time?"
 >
 
-**Within Lock Window (4 minutes before start):**
-- The bot schedule remains active and the bot will still attempt to join
-- This prevents last-minute cancellations from disrupting bots that are already queued
+When a calendar event is deleted, the bot schedule is automatically cancelled. If a bot has already been spawned for the event, it will be stopped — the bot will abort before joining or leave the meeting if it's already in.
 
-**Outside Lock Window (more than 4 minutes before start):**
-- The bot schedule is automatically deleted
-- No bot will be created for the cancelled event
+No tokens are consumed if the bot hadn't started recording yet.
 
 </Accordion>
 

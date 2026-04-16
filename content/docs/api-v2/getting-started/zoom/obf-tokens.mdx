@@ -373,6 +373,40 @@ def get_obf_token():
 
 ---
 
+## App Attribution (Active Apps Notifier)
+
+When using OBF tokens, the bot's **SDK credentials** determine which app name appears in Zoom's [Active Apps Notifier (AAN)](https://developers.zoom.us/docs/meeting-sdk/ui-notices/#active-apps-notifier-aan-use-case) — the notice shown to all participants identifying which app is accessing meeting content.
+
+### How Each Option Affects AAN
+
+| Option | AAN Shows | Why |
+|--------|-----------|-----|
+| **Stored Credential** (`credential_id`) | **Your app name** | Your SDK credentials are stored in the credential |
+| **User ID Lookup** (`credential_user_id`) | **Your app name** | Resolved credential includes your SDK credentials |
+| **Direct Token** (`obf_token`) only | "Meeting Baas" | No SDK credentials provided — falls back to defaults |
+| **Token URL** (`obf_token_url`) only | "Meeting Baas" | No SDK credentials provided — falls back to defaults |
+
+### Fixing AAN for Direct Token or Token URL
+
+If you use `obf_token` or `obf_token_url` and need the AAN to display your app name, combine it with a stored **app-only credential**:
+
+```json
+{
+  "bot_name": "Recording Bot",
+  "meeting_url": "https://zoom.us/j/123456789",
+  "zoom_config": {
+    "credential_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "obf_token_url": "https://your-api.com/zoom/obf-token"
+  }
+}
+```
+
+The stored credential provides your SDK keys for AAN attribution, while your endpoint continues handling OBF token generation. See [Zoom Credentials](/docs/api-v2/getting-started/zoom/credentials#active-apps-notifier-aan-attribution) for how to create an app-only credential.
+
+<Callout type="warn">
+**Zoom Marketplace Requirement:** During review, Zoom requires the AAN to show your app name. If you're going through Marketplace review, the reviewer may flag this if your bot requests don't include a stored credential. See [Zoom's AAN documentation](https://developers.zoom.us/docs/meeting-sdk/ui-notices/#active-apps-notifier-aan-use-case).
+</Callout>
+
 ## Bot Behavior with OBF Tokens
 
 ### Authorized User Not Yet in Meeting
@@ -381,7 +415,7 @@ When the bot joins with an OBF token and the authorized user hasn't joined yet:
 
 1. Bot attempts to join
 2. Zoom returns "authorized user not in meeting"
-3. Bot retries every 3 seconds
+3. Bot retries every 30 seconds
 4. Once the user joins, bot enters successfully
 5. If user doesn't join within timeout, bot exits with error
 

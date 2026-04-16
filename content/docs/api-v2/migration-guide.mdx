@@ -450,6 +450,82 @@ webhookHandler(event) {
 }
 ```
 
+## Zoom Credentials and AAN Attribution
+
+v2 introduces the [Credentials API](/docs/api-v2/getting-started/zoom/credentials) for secure storage of Zoom SDK credentials and OAuth tokens. This replaces the v1 pattern of passing credentials with every bot request.
+
+### Why This Matters: Active Apps Notifier (AAN)
+
+Zoom's [Active Apps Notifier](https://developers.zoom.us/docs/meeting-sdk/ui-notices/#active-apps-notifier-aan-use-case) displays which app is accessing meeting content. The app name shown is determined by the SDK credentials used to initialize the session. During Marketplace review, Zoom requires the AAN to display **your** app name — not "Meeting Baas".
+
+### v1: SDK Credentials Per Request
+
+In v1, you pass your SDK credentials with every bot request:
+
+```json
+{
+  "meeting_url": "https://zoom.us/j/123456789",
+  "bot_name": "Recording Bot",
+  "zoom_sdk_id": "YOUR_SDK_KEY",
+  "zoom_sdk_pwd": "YOUR_SDK_SECRET",
+  "zoom_obf_token_url": "https://your-api.com/zoom/obf-token"
+}
+```
+
+This works but requires sending secrets with every API call.
+
+### v2: Store Once, Reference by ID
+
+In v2, store your credentials once and reference them by ID:
+
+**Step 1: Create a credential** (one-time setup via API or [Dashboard](https://app.meetingbaas.com)):
+
+```bash
+curl -X POST "https://api.meetingbaas.com/v2/zoom-credentials" \
+     -H "Content-Type: application/json" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+     -d '{
+           "name": "Production Zoom App",
+           "client_id": "YOUR_ZOOM_CLIENT_ID",
+           "client_secret": "YOUR_ZOOM_CLIENT_SECRET"
+         }'
+```
+
+**Step 2: Reference in bot requests:**
+
+```json
+{
+  "bot_name": "Recording Bot",
+  "meeting_url": "https://zoom.us/j/123456789",
+  "zoom_config": {
+    "credential_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "obf_token_url": "https://your-api.com/zoom/obf-token"
+  }
+}
+```
+
+### Field Mapping
+
+| v1 Field | v2 Equivalent | Notes |
+|----------|---------------|-------|
+| `zoom_sdk_id` | Stored in credential | No longer passed per-request |
+| `zoom_sdk_pwd` | Stored in credential | No longer passed per-request |
+| `zoom_obf_token` | `zoom_config.obf_token` | Moved into `zoom_config` object |
+| `zoom_obf_token_url` | `zoom_config.obf_token_url` | Moved into `zoom_config` object |
+| `zoom_obf_token_user_id` | `zoom_config.credential_id` or `zoom_config.credential_user_id` | v2 uses unified Credentials API instead of separate OAuth connections |
+| `zoom_access_token_url` | `zoom_config.zak_token_url` | Renamed, moved into `zoom_config` |
+
+### Migration Steps
+
+1. **Create credentials in v2**: Store your Zoom app's SDK credentials ([how to find them](https://developers.zoom.us/docs/meeting-sdk/get-credentials/#get-meeting-sdk-credentials)) via `POST /v2/zoom-credentials` or the Dashboard
+2. **Update bot requests**: Replace `zoom_sdk_id`/`zoom_sdk_pwd` with `zoom_config.credential_id`
+3. **Move OBF config**: Move `zoom_obf_token`/`zoom_obf_token_url` into the `zoom_config` object
+4. **Migrate OAuth connections**: If using v1's `zoom_obf_token_user_id`, create user-type credentials in v2 and switch to `zoom_config.credential_id`
+
+<Callout>
+v2 credentials are encrypted at rest with AES-256-GCM. Secrets are never returned in API responses. This is more secure than passing credentials with every request in v1.
+</Callout>
+
 ## Calendar Integration Changes
 
 ### OAuth Model
@@ -569,6 +645,9 @@ v2 allows you to import your remaining tokens from v1, ensuring a smooth transit
 - [ ] Separate immediate and scheduled bot creation logic
 - [ ] Update webhook handlers for new event structure
 - [ ] Implement calendar OAuth flow (if using calendars)
+- [ ] Store Zoom SDK credentials via `/v2/zoom-credentials` or Dashboard (if using Zoom)
+- [ ] Replace `zoom_sdk_id`/`zoom_sdk_pwd` with `zoom_config.credential_id`
+- [ ] Move OBF token config into `zoom_config` object
 
 ### Phase 3: Testing
 

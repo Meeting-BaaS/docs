@@ -35,7 +35,7 @@ At least one delivery channel (email or callback) is required.
 
 ### Operational Alerts
 
-Operational alerts fire when errors accumulate within the cooldown window. For example, "alert me when bot crashes reach 3 occurrences within 15 minutes."
+Operational alerts count error occurrences and fire when the count reaches your configured threshold. The same cooldown window is used for both counting events and suppressing repeated alerts after delivery (see [Cooldown and Suppression](#cooldown-and-suppression) below). For example, "alert me when bot crashes reach 3 occurrences within 15 minutes."
 
 | Alert Type | Description | Common Triggers |
 |------------|-------------|-----------------|
@@ -48,7 +48,7 @@ Operational alerts fire when errors accumulate within the cooldown window. For e
 | Webhook Delivery Exhausted | All webhook retry attempts failed | Endpoint unreachable, returning errors consistently |
 
 <Callout type="info">
-The **Webhook Delivery Exhausted** alert is particularly important — it fires each time a webhook message exhausts all retry attempts. If your webhook endpoint is down, you'll receive one alert per failed message, giving you immediate visibility before the endpoint is automatically disabled. See [Webhook Auto-Disable](/docs/api-v2/webhooks#auto-disable) for details.
+The **Webhook Delivery Exhausted** alert is particularly important — each time a webhook message exhausts all retry attempts, the alert metric increments. If cooldown is active, additional exhausted deliveries are aggregated into the `suppressed_count` and reported when the next alert fires. This gives you visibility into endpoint health well before the 5-day auto-disable threshold. See [Webhook Auto-Disable](/docs/api-v2/webhooks#auto-disable) for details.
 </Callout>
 
 ### Threshold Alerts
@@ -103,18 +103,25 @@ If you configure a `secret` on the callback, it is included as the `x-mb-alert-s
 
 ## Cooldown and Suppression
 
-The cooldown period (default: 15 minutes) prevents alert fatigue by batching rapid-fire events:
+The cooldown period (default: 15 minutes) serves a dual purpose — it is both the **counting window** for accumulating events toward a threshold and the **suppression window** that prevents repeated alerts after delivery.
 
-1. When an alert fires, a cooldown window starts
-2. During cooldown, additional triggers are **counted but not delivered**
-3. When the cooldown expires and the next trigger occurs, the alert fires again with a **suppressed count** showing how many events were batched
+**How it works:**
+
+1. Events are counted within a rolling window equal to the cooldown period
+2. When the count reaches the threshold, the alert fires and delivery begins
+3. After delivery, the cooldown starts — additional events during this period are **counted but not delivered**
+4. When the cooldown expires and the next trigger occurs, the alert fires again with a `suppressed_count` showing how many events were batched during the suppression period
+
+<Callout type="info">
+The system intentionally uses the same time window for both event accumulation (pre-trigger) and post-delivery suppression. For example, with a threshold of `>= 3` and a 15-minute cooldown, the system counts occurrences within a 15-minute window. Once 3 events are reached and the alert fires, the same 15-minute period becomes the suppression window.
+</Callout>
 
 **Example:** You configure a "Bot Join Failed" alert with threshold `>= 1` and a 15-minute cooldown.
 
-- `10:00` — First bot join fails → alert fires immediately
+- `10:00` — First bot join fails → threshold met, alert fires immediately
 - `10:02` — Second failure → suppressed (cooldown active)
 - `10:08` — Third failure → suppressed (cooldown active)
-- `10:16` — Fourth failure → alert fires with `suppressed_count: 2` (the two suppressed events from 10:02 and 10:08)
+- `10:16` — Fourth failure → cooldown expired, alert fires with `suppressed_count: 2`
 
 ## Testing Alerts
 
@@ -2708,6 +2715,48 @@ After a user completes the OAuth consent flow, exchange the authorization code f
 **Important:** The `redirect_uri` must exactly match the URI registered in your Zoom app and used in the OAuth authorization URL.
 </Callout>
 
+## Active Apps Notifier (AAN) Attribution
+
+When a bot joins a Zoom meeting, Zoom displays the app name in the **Active Apps Notifier (AAN)** — a notice visible to all participants showing which apps are accessing meeting content. The app name is determined by the **SDK credentials** used to initialize the session.
+
+<Callout type="warn">
+**Zoom Marketplace Requirement:** During Marketplace review, Zoom requires the AAN to display **your** app name. If the AAN shows "Meeting Baas" instead of your product name, the reviewer may flag this. See [Zoom's AAN documentation](https://developers.zoom.us/docs/meeting-sdk/ui-notices/#active-apps-notifier-aan-use-case).
+</Callout>
+
+### How Credentials Control the AAN
+
+When you store a credential (either `app` or `user` type) and reference it via `credential_id` in `zoom_config`, the bot uses **your app's** SDK credentials for the session. This means the AAN displays your app name instead of "Meeting Baas".
+
+- **With a stored credential**: AAN shows **your** app name
+- **Without a credential** (e.g., only `obf_token` or `obf_token_url`): AAN shows "Meeting Baas"
+
+### Combining App-Only Credentials with External OBF
+
+If you manage OBF tokens yourself (via `obf_token` or `obf_token_url`) but still want the AAN to show your app name, store an **app-only credential** and combine it with your OBF method:
+
+```json
+{
+  "bot_name": "Recording Bot",
+  "meeting_url": "https://zoom.us/j/123456789",
+  "zoom_config": {
+    "credential_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "obf_token_url": "https://your-api.com/zoom/obf-token"
+  }
+}
+```
+
+This gives you the best of both worlds:
+- **Your SDK credentials** from the stored credential control the AAN (your app name)
+- **Your OBF backend** continues handling token generation (no changes needed)
+
+You can also manage credentials through the [Meeting BaaS Dashboard](https://app.meetingbaas.com) under the Zoom Credentials section, so you don't need to use the API directly.
+
+To find your SDK credentials in the Zoom Marketplace, see: [Get Meeting SDK Credentials](https://developers.zoom.us/docs/meeting-sdk/get-credentials/#get-meeting-sdk-credentials)
+
+<Callout>
+**v1 API users:** In v1, you must pass `zoom_sdk_id` and `zoom_sdk_pwd` with every bot request to control the AAN. v2's credential storage is more secure — store once, reference by ID. See the [Migration Guide](/docs/api-v2/migration-guide#zoom-credentials-and-aan-attribution) for details.
+</Callout>
+
 ## Using Credentials with Bots
 
 ### By Credential ID (Recommended)
@@ -4156,6 +4205,40 @@ def get_obf_token():
 
 ---
 
+## App Attribution (Active Apps Notifier)
+
+When using OBF tokens, the bot's **SDK credentials** determine which app name appears in Zoom's [Active Apps Notifier (AAN)](https://developers.zoom.us/docs/meeting-sdk/ui-notices/#active-apps-notifier-aan-use-case) — the notice shown to all participants identifying which app is accessing meeting content.
+
+### How Each Option Affects AAN
+
+| Option | AAN Shows | Why |
+|--------|-----------|-----|
+| **Stored Credential** (`credential_id`) | **Your app name** | Your SDK credentials are stored in the credential |
+| **User ID Lookup** (`credential_user_id`) | **Your app name** | Resolved credential includes your SDK credentials |
+| **Direct Token** (`obf_token`) only | "Meeting Baas" | No SDK credentials provided — falls back to defaults |
+| **Token URL** (`obf_token_url`) only | "Meeting Baas" | No SDK credentials provided — falls back to defaults |
+
+### Fixing AAN for Direct Token or Token URL
+
+If you use `obf_token` or `obf_token_url` and need the AAN to display your app name, combine it with a stored **app-only credential**:
+
+```json
+{
+  "bot_name": "Recording Bot",
+  "meeting_url": "https://zoom.us/j/123456789",
+  "zoom_config": {
+    "credential_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "obf_token_url": "https://your-api.com/zoom/obf-token"
+  }
+}
+```
+
+The stored credential provides your SDK keys for AAN attribution, while your endpoint continues handling OBF token generation. See [Zoom Credentials](/docs/api-v2/getting-started/zoom/credentials#active-apps-notifier-aan-attribution) for how to create an app-only credential.
+
+<Callout type="warn">
+**Zoom Marketplace Requirement:** During review, Zoom requires the AAN to show your app name. If you're going through Marketplace review, the reviewer may flag this if your bot requests don't include a stored credential. See [Zoom's AAN documentation](https://developers.zoom.us/docs/meeting-sdk/ui-notices/#active-apps-notifier-aan-use-case).
+</Callout>
+
 ## Bot Behavior with OBF Tokens
 
 ### Authorized User Not Yet in Meeting
@@ -4164,7 +4247,7 @@ When the bot joins with an OBF token and the authorized user hasn't joined yet:
 
 1. Bot attempts to join
 2. Zoom returns "authorized user not in meeting"
-3. Bot retries every 3 seconds
+3. Bot retries every 30 seconds
 4. Once the user joins, bot enters successfully
 5. If user doesn't join within timeout, bot exits with error
 
@@ -4825,6 +4908,82 @@ webhookHandler(event) {
 }
 ```
 
+## Zoom Credentials and AAN Attribution
+
+v2 introduces the [Credentials API](/docs/api-v2/getting-started/zoom/credentials) for secure storage of Zoom SDK credentials and OAuth tokens. This replaces the v1 pattern of passing credentials with every bot request.
+
+### Why This Matters: Active Apps Notifier (AAN)
+
+Zoom's [Active Apps Notifier](https://developers.zoom.us/docs/meeting-sdk/ui-notices/#active-apps-notifier-aan-use-case) displays which app is accessing meeting content. The app name shown is determined by the SDK credentials used to initialize the session. During Marketplace review, Zoom requires the AAN to display **your** app name — not "Meeting Baas".
+
+### v1: SDK Credentials Per Request
+
+In v1, you pass your SDK credentials with every bot request:
+
+```json
+{
+  "meeting_url": "https://zoom.us/j/123456789",
+  "bot_name": "Recording Bot",
+  "zoom_sdk_id": "YOUR_SDK_KEY",
+  "zoom_sdk_pwd": "YOUR_SDK_SECRET",
+  "zoom_obf_token_url": "https://your-api.com/zoom/obf-token"
+}
+```
+
+This works but requires sending secrets with every API call.
+
+### v2: Store Once, Reference by ID
+
+In v2, store your credentials once and reference them by ID:
+
+**Step 1: Create a credential** (one-time setup via API or [Dashboard](https://app.meetingbaas.com)):
+
+```bash
+curl -X POST "https://api.meetingbaas.com/v2/zoom-credentials" \
+     -H "Content-Type: application/json" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+     -d '{
+           "name": "Production Zoom App",
+           "client_id": "YOUR_ZOOM_CLIENT_ID",
+           "client_secret": "YOUR_ZOOM_CLIENT_SECRET"
+         }'
+```
+
+**Step 2: Reference in bot requests:**
+
+```json
+{
+  "bot_name": "Recording Bot",
+  "meeting_url": "https://zoom.us/j/123456789",
+  "zoom_config": {
+    "credential_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "obf_token_url": "https://your-api.com/zoom/obf-token"
+  }
+}
+```
+
+### Field Mapping
+
+| v1 Field | v2 Equivalent | Notes |
+|----------|---------------|-------|
+| `zoom_sdk_id` | Stored in credential | No longer passed per-request |
+| `zoom_sdk_pwd` | Stored in credential | No longer passed per-request |
+| `zoom_obf_token` | `zoom_config.obf_token` | Moved into `zoom_config` object |
+| `zoom_obf_token_url` | `zoom_config.obf_token_url` | Moved into `zoom_config` object |
+| `zoom_obf_token_user_id` | `zoom_config.credential_id` or `zoom_config.credential_user_id` | v2 uses unified Credentials API instead of separate OAuth connections |
+| `zoom_access_token_url` | `zoom_config.zak_token_url` | Renamed, moved into `zoom_config` |
+
+### Migration Steps
+
+1. **Create credentials in v2**: Store your Zoom app's SDK credentials ([how to find them](https://developers.zoom.us/docs/meeting-sdk/get-credentials/#get-meeting-sdk-credentials)) via `POST /v2/zoom-credentials` or the Dashboard
+2. **Update bot requests**: Replace `zoom_sdk_id`/`zoom_sdk_pwd` with `zoom_config.credential_id`
+3. **Move OBF config**: Move `zoom_obf_token`/`zoom_obf_token_url` into the `zoom_config` object
+4. **Migrate OAuth connections**: If using v1's `zoom_obf_token_user_id`, create user-type credentials in v2 and switch to `zoom_config.credential_id`
+
+<Callout>
+v2 credentials are encrypted at rest with AES-256-GCM. Secrets are never returned in API responses. This is more secure than passing credentials with every request in v1.
+</Callout>
+
 ## Calendar Integration Changes
 
 ### OAuth Model
@@ -4944,6 +5103,9 @@ v2 allows you to import your remaining tokens from v1, ensuring a smooth transit
 - [ ] Separate immediate and scheduled bot creation logic
 - [ ] Update webhook handlers for new event structure
 - [ ] Implement calendar OAuth flow (if using calendars)
+- [ ] Store Zoom SDK credentials via `/v2/zoom-credentials` or Dashboard (if using Zoom)
+- [ ] Replace `zoom_sdk_id`/`zoom_sdk_pwd` with `zoom_config.credential_id`
+- [ ] Move OBF token config into `zoom_config` object
 
 ### Phase 3: Testing
 
@@ -5585,20 +5747,21 @@ Permanently delete all bot data including recordings, transcripts, summaries, an
 {/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
 
 Cancel and delete a scheduled bot.
-    
-    The bot must be in `scheduled` status and the join time must be at least 4 minutes in the future. This ensures the bot can be updated before it starts processing. Once deleted, the scheduled bot cannot be recovered.
-    
-    **Status Requirements:** The bot must be in `scheduled` status. Bots that have already joined (`completed`) or failed (`failed`) cannot be deleted via this endpoint. If the bot is in an invalid state, the request will fail with a 409 Conflict status.
-    
-    **Join Time Requirements:** The join time must be at least 4 minutes in the future. If the join time is too close, the request will fail with 409 Conflict. This ensures the bot can be cancelled before it starts processing.
-    
-    **Irreversible Operation:** Once a scheduled bot is deleted, it cannot be recovered. If you need to cancel a bot that is about to join, you should use the leave endpoint on the actual bot instance instead.
-    
-    **No Token Impact:** Since tokens are not reserved for scheduled bots, deleting a scheduled bot does not affect your token balance.
-    
-    Returns 404 if the scheduled bot is not found, or 409 if the bot's status does not allow deletion or the join time is too close.
+
+    Can be called at any time before the bot reaches a terminal state (`completed` or `failed`). If the bot hasn't been spawned yet, the scheduled bot record is cancelled atomically. If the cron has already spawned the bot, the stop request is persisted in the database and delivered to the bot process asynchronously.
+
+    **Status Requirements:** The scheduled bot must not already be `cancelled`, `completed`, or `failed`. If the bot is in a terminal state, the request will fail with a 409 Conflict status.
+
+    **Pre-Recording Stops:** If the bot hasn't started recording yet, it will exit with an `EXITING_MEETING_BEFORE_RECORD` error code. No tokens are consumed for pre-recording stops.
+
+    **Irreversible Operation:** Once a scheduled bot is cancelled, it cannot be recovered.
+
+    **No Token Impact:** Since tokens are not reserved for scheduled bots, cancelling a scheduled bot does not affect your token balance.
+
+    Returns 404 if the scheduled bot is not found, or 409 if the bot's status does not allow deletion.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/scheduled/{bot_id}","method":"delete"}]} />
+
 
 ---
 
@@ -5717,15 +5880,14 @@ Retrieve detailed information about a specific scheduled bot.
 {/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
 
 Instruct a bot to leave the meeting immediately.
-    
-    The bot will stop recording and processing, then exit the meeting. Only works if the bot is currently in the meeting (status is `joining_call`, `in_waiting_room`, `in_call_not_recording`, `in_call_recording`, `recording_paused`, or `recording_resumed`). The bot will send a final webhook event when it leaves.
-    
-    **Status Requirements:** The bot must be in a state that allows leaving. Bots that have already completed, failed, or are not yet in the meeting cannot be left via this endpoint. If the bot is in an invalid state, the request will fail with a 409 Conflict status.
-    
-    **Token Consumption:** When a bot is manually left, tokens are consumed based on the duration from when recording started to when the bot left. The bot will transition to `completed` status and send a completion webhook.
-    
-    **Immediate Effect:** The leave command is sent to the bot process immediately. The bot will stop recording and exit the meeting as soon as it receives the command (usually within a few seconds).
-    
+
+    The bot will stop recording and processing, then exit the meeting. Works for bots in any active state: `queued`, `joining_call`, `in_waiting_room`, `in_call_not_recording`, `in_call_recording`, `recording_paused`, or `recording_resumed`. Also works for scheduled bots that haven't spawned yet — the scheduled bot will be cancelled atomically. The bot will send a final webhook event when it leaves.
+
+    **Status Requirements:** The bot must be in an active (non-terminal) state. Bots that have already `completed` or `failed` cannot be left via this endpoint. If the bot is in an invalid state, the request will fail with a 409 Conflict status.
+
+    **Pre-Recording Stops:** If the bot hasn't started recording yet (e.g., still `queued` or in the waiting room), it will exit with an `EXITING_MEETING_BEFORE_RECORD` error code. No tokens are consumed for pre-recording stops.
+
+    **Token Consumption:** When a bot that was recording is manually left, tokens are consumed based on the duration from when recording started to when the bot left. The bot will transition to `completed` status and send a completion webhook.
     Returns 404 if the bot is not found, or 409 if the bot's status does not allow this operation.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/leave","method":"post"}]} />
@@ -6007,25 +6169,23 @@ Connect a Google or Microsoft calendar to your account.
 {/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
 
 Cancel one or more scheduled calendar bots.
-    
-    You can target a single event or all occurrences in a series using `series_id`, `all_occurrences`, and `event_id` in the request body. Bots must be in `scheduled` status and the join time must be at least 4 minutes in the future.
-    
+
+    You can target a single event or all occurrences in a series using `series_id`, `all_occurrences`, and `event_id` in the request body. Can be called at any time — if a bot has already been spawned for the event, the stop request will be delivered to the bot process.
+
     **Cancellation Targets:**
     - `event_id`: Cancel bot for a specific event instance
     - `series_id`: Cancel bots for all occurrences of a series
     - `all_occurrences`: Cancel all future occurrences (for recurring events)
-    
-    **Status Requirements:** Bots must be in `scheduled` status. Bots that have already joined (`completed`) or failed (`failed`) cannot be cancelled via this endpoint. If a bot is in an invalid state, that bot will fail to cancel, but other bots may still be cancelled.
-    
-    **Join Time Requirements:** The join time must be at least 4 minutes in the future. If the join time is too close, the request will fail with 409 Conflict. This ensures the bot can be updated before it starts processing.
-    
-    **Partial Cancellation:** If cancelling multiple bots (e.g., all occurrences of a series), some bots may fail to cancel (e.g., if they're not in `scheduled` status). The response includes information about which bots were cancelled and which failed.
-    
-    **Irreversible Operation:** Once a calendar bot is cancelled, it cannot be recovered. If you need to cancel a bot that is about to join, you should use the leave endpoint on the actual bot instance instead.
-    
+
+    **Status Requirements:** Bots must be in `scheduled` status. Past schedules and non-scheduled future schedules are silently skipped.
+
+    **Partial Cancellation:** If cancelling multiple bots (e.g., all occurrences of a series), some bots may fail to cancel. The response includes information about which bots were cancelled and which failed.
+
+    **Irreversible Operation:** Once a calendar bot is cancelled, it cannot be recovered.
+
     **No Token Impact:** Since tokens are not reserved for calendar bots, cancelling a bot does not affect your token balance.
-    
-    Returns 200 with cancellation results. Returns 404 if the event or calendar bot schedule is not found, or 409 if the bot's status does not allow deletion.
+
+    Returns 200 with cancellation results. Returns 404 if the event or calendar bot schedule is not found.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}/bots","method":"delete"}]} />
 
@@ -8970,6 +9130,7 @@ A small amount of random jitter (±20%) is added to each retry delay to prevent 
 
 ### Timeouts and Overload Protection
 
+- **Successful acknowledgement**: Only HTTP `2xx` responses are treated as successful delivery. Any other status code — including `3xx` redirects, `4xx` client errors, and `5xx` server errors — is considered a failure and will be retried. Failed deliveries contribute to the retry schedule and, over time, to the [auto-disable](#auto-disable) behavior.
 - **Request timeout**: Your endpoint must respond within 30 seconds. Requests that exceed this limit are treated as failures and retried.
 - **Overload penalty**: If your endpoint returns a `429 Too Many Requests` status or times out, a minimum 60-second delay is applied before the next retry, regardless of the scheduled delay.
 
