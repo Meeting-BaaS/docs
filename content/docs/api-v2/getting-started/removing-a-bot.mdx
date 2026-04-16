@@ -143,7 +143,7 @@ curl -X DELETE "https://api.meetingbaas.com/v2/bots/scheduled/SCHEDULED-BOT-ID" 
      -H "x-meeting-baas-api-key: YOUR-API-KEY"
 ```
 
-This can be called at any time before the bot reaches a terminal state (`completed` or `failed`). If the bot hasn't been spawned yet, the scheduled bot record is cancelled atomically. If the scheduling cron has already spawned the bot, the stop request is persisted and delivered to the bot process — the bot will exit with `EXITING_MEETING_BEFORE_RECORD`.
+This can be called at any time before the bot reaches a terminal state (`cancelled`, `completed`, or `failed`). If the bot hasn't been spawned yet, the scheduled bot record is cancelled atomically. If the scheduling cron has already spawned the bot, the stop request is persisted and delivered to the bot process. If the bot hadn't started recording, it will exit with `EXITING_MEETING_BEFORE_RECORD` and no tokens are consumed. If recording was already in progress, the bot stops recording normally and tokens are consumed up to the stop time.
 
 **Note:** You can also use the leave endpoint (`POST /v2/bots/:bot_id/leave`) with the scheduled bot's UUID to achieve the same result.
 
@@ -151,6 +151,6 @@ This can be called at any time before the bot reaches a terminal state (`complet
 
 - Deleting a bot's data removes all associated data including recordings, transcriptions, and screenshots
 - Deleted data cannot be recovered
-- If a bot is currently recording, leaving it will stop the recording. Use the delete data endpoint afterwards to remove artifacts.
+- If a bot is currently recording, leaving it will stop the recording. Use the delete data endpoint afterward to remove artifacts.
 - Scheduled and calendar bots can be cancelled at any time — if a bot has already been spawned, it will be stopped automatically
 

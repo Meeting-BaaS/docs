@@ -10,20 +10,20 @@ _openapi:
       - content: |-
           Cancel one or more scheduled calendar bots.
 
-              You can target a single event or all occurrences in a series using `series_id`, `all_occurrences`, and `event_id` in the request body. Can be called at any time — if a bot has already been spawned for the event, the stop request will be delivered to the bot process.
+              You can target a single event or all occurrences in a series using `series_id`, `all_occurrences`, and `event_id` in the request body. For schedules still in `scheduled` status, the schedule is deleted. If a bot has already been spawned for the event, a stop request is delivered to the bot process regardless of the schedule's status.
 
               **Cancellation Targets:**
               - `event_id`: Cancel bot for a specific event instance
               - `series_id`: Cancel bots for all occurrences of a series
               - `all_occurrences`: Cancel all future occurrences (for recurring events)
 
-              **Status Requirements:** Bots must be in `scheduled` status. Past schedules and non-scheduled future schedules are silently skipped.
+              **Status Requirements:** Only schedules in `scheduled` status are cancelled. For series deletes, past schedules and non-scheduled future schedules are silently skipped. For single-event deletes, the stop request is always sent to any spawned bot process.
 
               **Partial Cancellation:** If cancelling multiple bots (e.g., all occurrences of a series), some bots may fail to cancel. The response includes information about which bots were cancelled and which failed.
 
               **Irreversible Operation:** Once a calendar bot is cancelled, it cannot be recovered.
 
-              **No Token Impact:** Since tokens are not reserved for calendar bots, cancelling a bot does not affect your token balance.
+              **Token Consumption:** If the bot has already started recording, tokens are consumed based on the recording duration up to the stop time. If the bot hadn't started recording, no tokens are consumed.
 
               Returns 200 with cancellation results. Returns 404 if the event or calendar bot schedule is not found.
 ---
@@ -32,20 +32,20 @@ _openapi:
 
 Cancel one or more scheduled calendar bots.
 
-    You can target a single event or all occurrences in a series using `series_id`, `all_occurrences`, and `event_id` in the request body. Can be called at any time — if a bot has already been spawned for the event, the stop request will be delivered to the bot process.
+    You can target a single event or all occurrences in a series using `series_id`, `all_occurrences`, and `event_id` in the request body. For schedules still in `scheduled` status, the schedule is deleted. If a bot has already been spawned for the event, a stop request is delivered to the bot process regardless of the schedule's status.
 
     **Cancellation Targets:**
     - `event_id`: Cancel bot for a specific event instance
     - `series_id`: Cancel bots for all occurrences of a series
     - `all_occurrences`: Cancel all future occurrences (for recurring events)
 
-    **Status Requirements:** Bots must be in `scheduled` status. Past schedules and non-scheduled future schedules are silently skipped.
+    **Status Requirements:** Only schedules in `scheduled` status are cancelled. For series deletes, past schedules and non-scheduled future schedules are silently skipped. For single-event deletes, the stop request is always sent to any spawned bot process.
 
     **Partial Cancellation:** If cancelling multiple bots (e.g., all occurrences of a series), some bots may fail to cancel. The response includes information about which bots were cancelled and which failed.
 
     **Irreversible Operation:** Once a calendar bot is cancelled, it cannot be recovered.
 
-    **No Token Impact:** Since tokens are not reserved for calendar bots, cancelling a bot does not affect your token balance.
+    **Token Consumption:** If the bot has already started recording, tokens are consumed based on the recording duration up to the stop time. If the bot hadn't started recording, no tokens are consumed.
 
     Returns 200 with cancellation results. Returns 404 if the event or calendar bot schedule is not found.
 

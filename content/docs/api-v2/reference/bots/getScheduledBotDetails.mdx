@@ -18,7 +18,7 @@ _openapi:
               
               **Bot Instance:** If the scheduled bot has transitioned to `completed` status, the bot instance has been created and is queued to join. You can use the `bot_id` (which will be reused as the bot's UUID when it joins) to query the bot's status and retrieve meeting data once it has joined.
               
-              **Updates:** If the bot is in `scheduled` status and the join time is at least 4 minutes in the future, you can update the scheduled bot. **Deletions:** Scheduled bots can be cancelled at any time before reaching a terminal state.
+              **Updates:** If the bot is in `scheduled` status and the join time is at least 4 minutes in the future, you can update the scheduled bot. **Cancellation:** Scheduled bots can be cancelled at any time before reaching a terminal state.
               
               Returns 404 if the scheduled bot is not found or does not belong to your team.
 ---
@@ -35,7 +35,7 @@ Retrieve detailed information about a specific scheduled bot.
     
     **Bot Instance:** If the scheduled bot has transitioned to `completed` status, the bot instance has been created and is queued to join. You can use the `bot_id` (which will be reused as the bot's UUID when it joins) to query the bot's status and retrieve meeting data once it has joined.
     
-    **Updates:** If the bot is in `scheduled` status and the join time is at least 4 minutes in the future, you can update the scheduled bot. **Deletions:** Scheduled bots can be cancelled at any time before reaching a terminal state.
+    **Updates:** If the bot is in `scheduled` status and the join time is at least 4 minutes in the future, you can update the scheduled bot. **Cancellation:** Scheduled bots can be cancelled at any time before reaching a terminal state.
     
     Returns 404 if the scheduled bot is not found or does not belong to your team.
 
