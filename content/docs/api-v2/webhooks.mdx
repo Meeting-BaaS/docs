@@ -39,7 +39,7 @@ To verify webhooks, use SVIX's verification libraries or verify the signature ma
 
 ### `bot.status_change`
 
-Triggered whenever a bot's status changes (e.g., from `queued` to `joining`, from `joining` to `in_call_recording`, etc.).
+Triggered whenever a bot's status changes (e.g., from `queued` to `joining_call`, from `joining_call` to `in_call_recording`, etc.).
 
 **Use Cases:**
 
@@ -68,14 +68,50 @@ Triggered whenever a bot's status changes (e.g., from `queued` to `joining`, fro
 }
 ```
 
-**Status Codes:**
+**Status object fields:**
+
+- `code`: The status code (see list below)
+- `created_at`: ISO 8601 timestamp when this status change occurred
+- `start_time` *(optional)*: Unix timestamp in seconds when recording started. Only present on `in_call_recording`
+- `error_message` *(optional)*: Human-readable description of the failure. Present on `recording_failed` and `meeting_error`, and may appear on other error states
+
+**Status Codes**
+
+The `status.code` field can contain any of the values below, grouped here by where they occur in the bot's lifecycle.
+
+*Lifecycle*:
 
 - `queued`: Bot is queued and waiting to join
-- `joining`: Bot is attempting to join the meeting
-- `in_call_recording`: Bot is in the meeting and recording
 - `transcribing`: Bot has exited and transcription is in progress
-- `completed`: Bot has completed successfully
-- `failed`: Bot has failed
+- `completed`: Bot has finished successfully (terminal state)
+- `failed`: Bot has failed (terminal state)
+
+*In-call progress*:
+
+- `joining_call`: Bot is attempting to join the meeting
+- `in_waiting_room`: Bot is in the meeting's waiting room / lobby
+- `in_waiting_for_host`: Bot is waiting for the host to start or admit it (Zoom only)
+- `in_call_not_recording`: Bot has joined the call but recording has not yet started
+- `in_call_recording`: Bot is in the meeting and recording. The payload includes `start_time`
+- `recording_paused`: Recording has been paused (e.g., via the pause-recording endpoint)
+- `recording_resumed`: Recording has resumed after a pause
+- `call_ended`: Bot has left the meeting
+- `recording_succeeded`: Recording finished and artifacts were captured successfully
+- `recording_failed`: Recording could not be produced. The payload includes `error_message`
+
+*Intermediary signals* (Google Meet / Microsoft Teams) — these indicate *why* a recording is about to fail, and are followed by a `recording_failed` status and, ultimately, a `bot.failed` webhook:
+
+- `api_request_stop`: Bot was stopped via the [leave-bot endpoint](/docs/api-v2/reference/bots/leaveBot)
+- `bot_rejected`: Bot was denied entry to the meeting (e.g., host rejected the join request)
+- `bot_removed`: Bot was removed from the meeting by a participant after joining
+- `bot_removed_too_early`: Bot was removed before recording could start
+- `waiting_room_timeout`: Bot timed out waiting to be admitted from the waiting room
+- `invalid_meeting_url`: The meeting URL was invalid or could not be opened
+- `meeting_error`: A general meeting-related error occurred. The payload includes `error_message`
+
+<Callout type="info">
+If you only care about terminal outcomes, watch for `completed` and `failed` (or subscribe to the `bot.completed` and `bot.failed` webhooks instead). The other codes are useful for live progress tracking but are not required reading.
+</Callout>
 
 ### `bot.completed`
 
