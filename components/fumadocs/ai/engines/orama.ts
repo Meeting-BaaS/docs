@@ -3,74 +3,102 @@ import type {
   MessageRecord,
   MessageReference,
 } from '@/components/fumadocs/ai/context';
-import { OramaClient } from '@oramacloud/client';
+import { OramaCloud } from '@orama/core';
 
-const context =
-  "The user is a web developer who has basic programming knowledge, and has questions about MeetingBaas's APIs.";
-const endpoint = process.env.NEXT_PUBLIC_ORAMA_AI_ENDPOINT;
-const apiKey = process.env.NEXT_PUBLIC_ORAMA_AI_API_KEY;
+const projectId = process.env.NEXT_PUBLIC_ORAMA_PROJECT_ID;
+const apiKey = process.env.NEXT_PUBLIC_ORAMA_API_KEY;
 
 export async function createOramaEngine(): Promise<Engine> {
-  if (!endpoint || !apiKey) throw new Error('Failed to find api keys');
-  const client = new OramaClient({
-    endpoint,
-    api_key: apiKey,
-  });
+  if (!projectId || !apiKey) throw new Error('Failed to find api keys');
 
-  const instance = client.createAnswerSession({
-    userContext: context,
-    inferenceType: 'documentation',
+  const client = new OramaCloud({ projectId, apiKey });
+
+  const session = client.ai.createAISession({
     events: {
-      onSourceChange(sources) {
-        const last = instance.getMessages().at(-1);
-
-        if (last) {
-          (last as MessageRecord).references = (
-            sources as unknown as typeof sources.hits
-          ).map((result) => result.document as MessageReference);
-        }
-      },
-      onRelatedQueries(queries) {
-        const last = instance.getMessages().at(-1);
-
-        if (last) {
-          (last as MessageRecord).suggestions = queries;
-        }
+      onStateChange() {
+        // State updates (sources, related queries) are read in getHistory()
       },
     },
   });
 
   return {
     async prompt(text, onUpdate, onEnd) {
-      let v = '';
-      const stream = await instance.askStream({
-        term: text,
-      });
+      let full = '';
+      const stream = session.answerStream({ query: text });
 
-      for await (const block of stream) {
-        v = block;
-        onUpdate?.(block);
+      for await (const chunk of stream) {
+        full = chunk;
+        onUpdate?.(chunk);
       }
-      onEnd?.(v);
+      onEnd?.(full);
     },
     abortAnswer() {
-      instance.abortAnswer();
+      session.abort();
     },
-    getHistory() {
-      return instance.getMessages();
+    getHistory(): MessageRecord[] {
+      const records: MessageRecord[] = [];
+      let interactionIdx = 0;
+
+      for (const msg of session.messages) {
+        if (msg.role === 'system') continue;
+
+        const record: MessageRecord = {
+          role: msg.role as 'user' | 'assistant',
+          content: msg.content,
+        };
+
+        if (msg.role === 'assistant') {
+          const interaction = session.state[interactionIdx];
+          if (interaction) {
+            if (interaction.sources) {
+              const sources = interaction.sources as any;
+              const hits: any[] = Array.isArray(sources) ? sources : [];
+              record.references = hits.map((result: any) => {
+                const doc = result.document ?? result;
+                return {
+                  title: doc.title ?? '',
+                  description: doc.description,
+                  url: doc.url ?? '',
+                  breadcrumbs: doc.breadcrumbs,
+                } as MessageReference;
+              });
+            }
+            if (interaction.related) {
+              try {
+                const related =
+                  typeof interaction.related === 'string'
+                    ? JSON.parse(interaction.related)
+                    : interaction.related;
+                record.suggestions = Array.isArray(related)
+                  ? related
+                  : [String(related)];
+              } catch {
+                record.suggestions = [interaction.related];
+              }
+            }
+          }
+          interactionIdx++;
+        }
+
+        records.push(record);
+      }
+
+      return records;
     },
     clearHistory() {
-      instance.clearSession();
+      session.clearSession();
     },
     async regenerateLast(onUpdate, onEnd) {
-      const result = await instance.regenerateLast({ stream: true });
-      let v = '';
+      const result = session.regenerateLast({
+        stream: true,
+      }) as AsyncGenerator<string>;
+      let full = '';
 
-      for await (const block of result) {
-        v = block;
-        onUpdate?.(block);
+      for await (const chunk of result) {
+        full = chunk;
+        onUpdate?.(chunk);
       }
-      onEnd?.(v);
+      onEnd?.(full);
     },
   };
 }
