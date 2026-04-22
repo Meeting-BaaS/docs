@@ -31,21 +31,9 @@ export default function CustomSearchDialog(
           value: 'api',
         },
         {
-          name: 'Transcript Seeker',
-          value: 'transcript-seeker',
+          name: 'API v2',
+          value: 'api-v2',
         },
-        {
-          name: 'Speaking Bots',
-          value: 'speaking-bots',
-        },
-        {
-          name: 'Typescript SDK',
-          value: 'typescript-sdk',
-        },
-        {
-          name: 'MCP Servers',
-          value: 'mcp-servers'
-        }
       ]}
       client={client}
       showOrama

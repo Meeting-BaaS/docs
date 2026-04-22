@@ -20,6 +20,15 @@ const processor = remark()
   .use(remarkInstall, { persist: { id: 'package-manager' } })
   .use(remarkStringify);
 
+interface OramaAiRecord {
+  [key: string]: unknown;
+  id: string;
+  title: string;
+  description: string;
+  content: string;
+  category?: string;
+}
+
 export async function updateOramaAi(): Promise<void> {
   const apiKey = process.env.ORAMA_PRIVATE_API_KEY;
   const projectId = process.env.NEXT_PUBLIC_ORAMA_PROJECT_ID;
@@ -37,7 +46,7 @@ export async function updateOramaAi(): Promise<void> {
     './content/docs/**/*.mdx',
     '!./content/docs/api/reference/**/*',
   ]);
-  const records: Record<string, unknown>[] = [];
+  const records: OramaAiRecord[] = [];
 
   console.log('processing documents for AI');
   const scan = files.map(async (file) => {
@@ -61,7 +70,7 @@ export async function updateOramaAi(): Promise<void> {
       id: file,
       title: data.title as string,
       description: data.description as string,
-      content: processed,
+      content: String(processed),
       category,
     });
   });
@@ -70,6 +79,14 @@ export async function updateOramaAi(): Promise<void> {
 
   console.log(`added ${records.length} records`);
   await indexManager.transaction.open();
-  await indexManager.transaction.insertDocuments(records);
-  await indexManager.transaction.commit();
+  try {
+    await indexManager.transaction.insertDocuments(records);
+    await indexManager.transaction.commit();
+  } catch (error) {
+    console.error('transaction failed, rolling back:', error);
+    await indexManager.transaction.rollback().catch((rollbackError: unknown) => {
+      console.error('rollback failed:', rollbackError);
+    });
+    throw error;
+  }
 }

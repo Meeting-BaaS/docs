@@ -18,6 +18,12 @@ export async function updateSearchIndexes(): Promise<void> {
   const allowedTags = new Set(['api', 'api-v2']);
   const records = allRecords.filter((doc) => doc.tag && allowedTags.has(doc.tag));
 
+  if (records.length === 0) {
+    throw new Error(
+      `no documents matched allowed tags (${[...allowedTags].join(', ')}), aborting to prevent empty index`,
+    );
+  }
+
   console.log(`filtering: ${records.length}/${allRecords.length} documents (tags: ${[...allowedTags].join(', ')})`);
 
   const orama = new OramaCloud({ projectId, apiKey });
