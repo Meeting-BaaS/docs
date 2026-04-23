@@ -1428,6 +1428,14 @@ These codes indicate the bot process crashed:
 **Title:** General Error  
 **Description:** Bot process exited with a general error.
 
+## Pre-Recording Stop
+
+### `EXITING_MEETING_BEFORE_RECORD`
+**Title:** Exiting Meeting Before Record
+**Description:** The bot left the meeting before recording started. This can happen if the bot was requested to leave via the API (leave endpoint, scheduled bot deletion, or calendar bot cancellation), or if the meeting ended before the bot was accepted.
+
+**Token Charging:** No tokens are consumed for pre-recording stops.
+
 ## Transcription Errors
 
 ### `TRANSCRIPTION_FAILED`
@@ -1465,10 +1473,6 @@ These errors are specific to Zoom meetings:
 ### `CANNOT_REQUEST_RECORDING_RIGHT`
 **Title:** Cannot Request Recording Right  
 **Description:** The bot could not request recording rights. The meeting may not have recording enabled.
-
-### `EXITING_MEETING_BEFORE_RECORD`
-**Title:** Exiting Meeting Before Record  
-**Description:** The meeting ended before the bot could start recording.
 
 ### `MEETING_ENDED_PREMATURELY`
 **Title:** Meeting Ended Prematurely  
@@ -1795,13 +1799,9 @@ If an event is updated more than 4 minutes before its start time, the bot schedu
   title="What happens if a calendar event is deleted close to its start time?"
 >
 
-**Within Lock Window (4 minutes before start):**
-- The bot schedule remains active and the bot will still attempt to join
-- This prevents last-minute cancellations from disrupting bots that are already queued
+When a calendar event is deleted, the bot schedule is automatically cancelled. If a bot has already been spawned for the event, it will be stopped — the bot will abort before joining or leave the meeting if it's already in.
 
-**Outside Lock Window (more than 4 minutes before start):**
-- The bot schedule is automatically deleted
-- No bot will be created for the cancelled event
+No tokens are consumed if the bot hadn't started recording yet.
 
 </Accordion>
 
@@ -2095,14 +2095,17 @@ curl -X POST "https://api.meetingbaas.com/v2/bots/BOT-ID/leave" \
 
 ### When Can You Leave a Bot?
 
-The leave endpoint can only be called when the bot is in one of these statuses:
+The leave endpoint works for bots in any active (non-terminal) state:
 
+- `queued`: Bot hasn't started joining yet
 - `joining_call`: Bot is attempting to join the meeting
 - `in_waiting_room`: Bot is waiting in the meeting's waiting room
 - `in_call_not_recording`: Bot is in the meeting but not recording
 - `in_call_recording`: Bot is actively recording
 - `recording_paused`: Bot recording is paused
 - `recording_resumed`: Bot recording has resumed
+
+It also works for **scheduled bots** that haven't spawned yet — the scheduled bot will be cancelled atomically.
 
 ### Error Responses
 
@@ -2128,21 +2131,18 @@ The leave endpoint can only be called when the bot is in one of these statuses:
 }
 ```
 
-This error occurs when the bot is in a status that doesn't allow leaving, such as:
-- `queued`: Bot hasn't started joining yet
-- `transcribing`: Bot has left and is processing transcription
+This error occurs when the bot is in a terminal status:
 - `completed`: Bot has already completed
 - `failed`: Bot has already failed
 
 ### How It Works
 
 When you call the leave endpoint:
-1. The system sends a stop recording command to the bot process
-2. The bot stops recording and exits the meeting (usually within a few seconds)
-3. The bot will transition to `transcribing` status (if transcription is enabled) or `completed` status
-4. A final webhook event (`bot.completed` or `bot.failed`) will be sent when the bot finishes processing
-
-**Note:** The leave command is sent immediately, but the bot may take a few seconds to actually exit the meeting and update its status.
+1. The stop signal is delivered to the bot process asynchronously with retries
+2. If the bot hasn't started yet (e.g., still `queued`), it will check for pending stop requests on startup and abort before joining the meeting
+3. **Pre-recording stops** (bot was in `queued`, `joining_call`, `in_waiting_room`, or `in_call_not_recording`): The bot exits with an `EXITING_MEETING_BEFORE_RECORD` error code. No tokens are consumed.
+4. **Recording stops** (bot was in `in_call_recording`, `recording_paused`, or `recording_resumed`): The bot stops recording and transitions to `completed` status. Tokens are consumed based on recording duration.
+5. A final webhook event will be sent when the bot finishes processing.
 
 ## Delete Bot Data
 
@@ -2201,21 +2201,23 @@ This error occurs when the bot is still active (e.g., `in_call_recording`, `tran
 
 ## Cancel Scheduled Bot
 
-To cancel a scheduled bot before it joins the meeting:
+To cancel a scheduled bot:
 
 ```bash
 curl -X DELETE "https://api.meetingbaas.com/v2/bots/scheduled/SCHEDULED-BOT-ID" \
      -H "x-meeting-baas-api-key: YOUR-API-KEY"
 ```
 
-**Note:** You can only cancel scheduled bots that haven't started yet. Once a bot has joined the meeting, you must use the regular delete endpoint.
+This can be called at any time before the bot reaches a terminal state (`cancelled`, `completed`, or `failed`). If the bot hasn't been spawned yet, the scheduled bot record is cancelled atomically. If the scheduling cron has already spawned the bot, the stop request is persisted and delivered to the bot process. If the bot hadn't started recording, it will exit with `EXITING_MEETING_BEFORE_RECORD` and no tokens are consumed. If recording was already in progress, the bot stops recording normally and tokens are consumed up to the stop time.
+
+**Note:** You can also use the leave endpoint (`POST /v2/bots/:bot_id/leave`) with the scheduled bot's UUID to achieve the same result.
 
 ## Important Notes
 
-- Deleting a bot removes all associated data including recordings, transcriptions, and screenshots
-- Deleted bots cannot be recovered
-- If a bot is currently recording, deletion will stop the recording and remove all data
-- Scheduled bots can be cancelled before they join, but once they've joined, they must be deleted like regular bots
+- Deleting a bot's data removes all associated data including recordings, transcriptions, and screenshots
+- Deleted data cannot be recovered
+- If a bot is currently recording, leaving it will stop the recording. Use the delete data endpoint afterward to remove artifacts.
+- Scheduled and calendar bots can be cancelled at any time — if a bot has already been spawned, it will be stopped automatically
 
 
 
@@ -5762,7 +5764,6 @@ Cancel and delete a scheduled bot.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/scheduled/{bot_id}","method":"delete"}]} />
 
-
 ---
 
 ## Get bot details
@@ -8739,7 +8740,7 @@ To verify webhooks, use SVIX's verification libraries or verify the signature ma
 
 ### `bot.status_change`
 
-Triggered whenever a bot's status changes (e.g., from `queued` to `joining`, from `joining` to `in_call_recording`, etc.).
+Triggered whenever a bot's status changes (e.g., from `queued` to `joining_call`, from `joining_call` to `in_call_recording`, etc.).
 
 **Use Cases:**
 
@@ -8768,14 +8769,50 @@ Triggered whenever a bot's status changes (e.g., from `queued` to `joining`, fro
 }
 ```
 
-**Status Codes:**
+**Status object fields:**
+
+- `code`: The status code (see list below)
+- `created_at`: ISO 8601 timestamp when this status change occurred
+- `start_time` *(optional)*: Unix timestamp in seconds when recording started. Only present on `in_call_recording`
+- `error_message` *(optional)*: Human-readable description of the failure. Present on `recording_failed` and `meeting_error`, and may appear on other error states
+
+**Status Codes**
+
+The `status.code` field can contain any of the values below, grouped here by where they occur in the bot's lifecycle.
+
+*Lifecycle*:
 
 - `queued`: Bot is queued and waiting to join
-- `joining`: Bot is attempting to join the meeting
-- `in_call_recording`: Bot is in the meeting and recording
 - `transcribing`: Bot has exited and transcription is in progress
-- `completed`: Bot has completed successfully
-- `failed`: Bot has failed
+- `completed`: Bot has finished successfully (terminal state)
+- `failed`: Bot has failed (terminal state)
+
+*In-call progress*:
+
+- `joining_call`: Bot is attempting to join the meeting
+- `in_waiting_room`: Bot is in the meeting's waiting room / lobby
+- `in_waiting_for_host`: Bot is waiting for the host to start or admit it (Zoom only)
+- `in_call_not_recording`: Bot has joined the call but recording has not yet started
+- `in_call_recording`: Bot is in the meeting and recording. The payload includes `start_time`
+- `recording_paused`: Recording has been paused (e.g., via the pause-recording endpoint)
+- `recording_resumed`: Recording has resumed after a pause
+- `call_ended`: Bot has left the meeting
+- `recording_succeeded`: Recording finished and artifacts were captured successfully
+- `recording_failed`: Recording could not be produced. The payload includes `error_message`
+
+*Intermediary signals* (Google Meet / Microsoft Teams) — these indicate *why* a recording is about to fail, and are followed by a `recording_failed` status and, ultimately, a `bot.failed` webhook:
+
+- `api_request_stop`: Bot was stopped via the [leave-bot endpoint](/docs/api-v2/reference/bots/leaveBot)
+- `bot_rejected`: Bot was denied entry to the meeting (e.g., host rejected the join request)
+- `bot_removed`: Bot was removed from the meeting by a participant after joining
+- `bot_removed_too_early`: Bot was removed before recording could start
+- `waiting_room_timeout`: Bot timed out waiting to be admitted from the waiting room
+- `invalid_meeting_url`: The meeting URL was invalid or could not be opened
+- `meeting_error`: A general meeting-related error occurred. The payload includes `error_message`
+
+<Callout type="info">
+If you only care about terminal outcomes, watch for `completed` and `failed` (or subscribe to the `bot.completed` and `bot.failed` webhooks instead). The other codes are useful for live progress tracking but are not required reading.
+</Callout>
 
 ### `bot.completed`
 

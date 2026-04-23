@@ -169,7 +169,6 @@ Cancel and delete a scheduled bot.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/scheduled/{bot_id}","method":"delete"}]} />
 
-
 ---
 
 ## Get bot details
