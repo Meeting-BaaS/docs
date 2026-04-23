@@ -170,13 +170,6 @@ export const categoryConfig = {
     "patterns": [
       "./content/docs/typescript-sdk/**/*.mdx"
     ]
-  },
-  "updates": {
-    "title": "updates Documentation",
-    "description": "Documentation for updates.",
-    "patterns": [
-      "./content/docs/updates/**/*.mdx"
-    ]
   }
 };
 
@@ -296,8 +289,4 @@ export const knownTxtPaths = [
     "llms",
     "typescript-sdk"
   ],
-  [
-    "llms",
-    "updates"
-  ]
 ];
