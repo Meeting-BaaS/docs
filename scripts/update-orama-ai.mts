@@ -1,5 +1,5 @@
 import * as fs from 'node:fs/promises';
-import { CloudManager } from '@oramacloud/client';
+import { OramaCloud } from '@orama/core';
 import fg from 'fast-glob';
 import matter from 'gray-matter';
 import path from 'node:path';
@@ -20,23 +20,33 @@ const processor = remark()
   .use(remarkInstall, { persist: { id: 'package-manager' } })
   .use(remarkStringify);
 
+interface OramaAiRecord {
+  [key: string]: unknown;
+  id: string;
+  title: string;
+  description: string;
+  content: string;
+  category?: string;
+}
+
 export async function updateOramaAi(): Promise<void> {
   const apiKey = process.env.ORAMA_PRIVATE_API_KEY;
+  const projectId = process.env.NEXT_PUBLIC_ORAMA_PROJECT_ID;
   const index = process.env.ORAMA_AI_INDEX_ID;
 
-  if (!apiKey || !index) {
+  if (!apiKey || !projectId || !index) {
     console.log('no api key for Orama found, skipping');
     return;
   }
 
-  const manager = new CloudManager({ api_key: apiKey });
-  const indexManager = manager.index(index);
+  const orama = new OramaCloud({ projectId, apiKey });
+  const indexManager = orama.index.set(index);
 
   const files = await fg([
     './content/docs/**/*.mdx',
     '!./content/docs/api/reference/**/*',
   ]);
-  const records: unknown[] = [];
+  const records: OramaAiRecord[] = [];
 
   console.log('processing documents for AI');
   const scan = files.map(async (file) => {
@@ -60,7 +70,7 @@ export async function updateOramaAi(): Promise<void> {
       id: file,
       title: data.title as string,
       description: data.description as string,
-      content: processed,
+      content: String(processed),
       category,
     });
   });
@@ -68,6 +78,15 @@ export async function updateOramaAi(): Promise<void> {
   await Promise.all(scan);
 
   console.log(`added ${records.length} records`);
-  await indexManager.snapshot(records);
-  await indexManager.deploy();
+  await indexManager.transaction.open();
+  try {
+    await indexManager.transaction.insertDocuments(records);
+    await indexManager.transaction.commit();
+  } catch (error) {
+    console.error('transaction failed, rolling back:', error);
+    await indexManager.transaction.rollback().catch((rollbackError: unknown) => {
+      console.error('rollback failed:', rollbackError);
+    });
+    throw error;
+  }
 }

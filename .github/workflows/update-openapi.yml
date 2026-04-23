@@ -150,10 +150,8 @@ jobs:
             --head "$BRANCH_NAME"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NEXT_PUBLIC_ORAMA_AI_API_KEY: ${{ secrets.NEXT_PUBLIC_ORAMA_AI_API_KEY }}
-          NEXT_PUBLIC_ORAMA_AI_ENDPOINT: ${{ secrets.NEXT_PUBLIC_ORAMA_AI_ENDPOINT }}
-          NEXT_PUBLIC_ORAMA_SEARCH_API_KEY: ${{ secrets.NEXT_PUBLIC_ORAMA_SEARCH_API_KEY }}
-          NEXT_PUBLIC_ORAMA_SEARCH_ENDPOINT: ${{ secrets.NEXT_PUBLIC_ORAMA_SEARCH_ENDPOINT }}
+          NEXT_PUBLIC_ORAMA_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_ORAMA_PROJECT_ID }}
+          NEXT_PUBLIC_ORAMA_API_KEY: ${{ secrets.NEXT_PUBLIC_ORAMA_API_KEY }}
 
       - name: Comment on existing PR
         if: steps.fetch-spec.outputs.has_changes == 'true' && steps.check-prs.outputs.create_pr == 'false'
@@ -174,10 +172,11 @@ jobs:
           # Build commands (use full build script)
           pnpm build
         env:
-          NEXT_PUBLIC_ORAMA_AI_API_KEY: ${{ secrets.NEXT_PUBLIC_ORAMA_AI_API_KEY }}
-          NEXT_PUBLIC_ORAMA_AI_ENDPOINT: ${{ secrets.NEXT_PUBLIC_ORAMA_AI_ENDPOINT }}
-          NEXT_PUBLIC_ORAMA_SEARCH_API_KEY: ${{ secrets.NEXT_PUBLIC_ORAMA_SEARCH_API_KEY }}
-          NEXT_PUBLIC_ORAMA_SEARCH_ENDPOINT: ${{ secrets.NEXT_PUBLIC_ORAMA_SEARCH_ENDPOINT }}
+          NEXT_PUBLIC_ORAMA_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_ORAMA_PROJECT_ID }}
+          NEXT_PUBLIC_ORAMA_API_KEY: ${{ secrets.NEXT_PUBLIC_ORAMA_API_KEY }}
+          ORAMA_PRIVATE_API_KEY: ${{ secrets.ORAMA_PRIVATE_API_KEY }}
+          ORAMA_SEARCH_INDEX_ID: ${{ secrets.ORAMA_SEARCH_INDEX_ID }}
+          ORAMA_AI_INDEX_ID: ${{ secrets.ORAMA_AI_INDEX_ID }}
 
       - name: Upload artifacts
         if: steps.fetch-spec.outputs.has_changes == 'true' && steps.check-prs.outputs.create_pr == 'true'

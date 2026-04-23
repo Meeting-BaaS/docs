@@ -1,21 +1,20 @@
-import { OramaClient } from '@oramacloud/client';
+import { OramaCloud } from '@orama/core';
 import type { SharedProps } from 'fumadocs-ui/components/dialog/search';
 import SearchDialog from 'fumadocs-ui/components/dialog/search-orama';
 import { useMode } from '@/app/layout.client';
 
-// Check if environment variables are defined
-const endpoint = process.env.NEXT_PUBLIC_ORAMA_SEARCH_ENDPOINT;
-const apiKey = process.env.NEXT_PUBLIC_ORAMA_SEARCH_API_KEY;
+const projectId = process.env.NEXT_PUBLIC_ORAMA_PROJECT_ID;
+const apiKey = process.env.NEXT_PUBLIC_ORAMA_API_KEY;
 
-if (!endpoint || !apiKey) {
+if (!projectId || !apiKey) {
   throw new Error(
-    'Orama search endpoint and API key must be defined in environment variables',
+    'Orama project ID and API key must be defined in environment variables',
   );
 }
 
-const client = new OramaClient({
-  endpoint,
-  api_key: apiKey,
+const client = new OramaCloud({
+  projectId,
+  apiKey,
 });
 
 export default function CustomSearchDialog(
@@ -32,21 +31,9 @@ export default function CustomSearchDialog(
           value: 'api',
         },
         {
-          name: 'Transcript Seeker',
-          value: 'transcript-seeker',
+          name: 'API v2',
+          value: 'api-v2',
         },
-        {
-          name: 'Speaking Bots',
-          value: 'speaking-bots',
-        },
-        {
-          name: 'Typescript SDK',
-          value: 'typescript-sdk',
-        },
-        {
-          name: 'MCP Servers',
-          value: 'mcp-servers'
-        }
       ]}
       client={client}
       showOrama
