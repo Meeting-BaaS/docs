@@ -1,5 +1,5 @@
 import { cn } from '@/lib/cn';
-import { BotIcon, CaptionsIcon, MonitorUp, Server, ServerCog, Settings, WebhookIcon } from 'lucide-react';
+import { BotIcon, CaptionsIcon, Server, ServerCog, Settings, WebhookIcon } from 'lucide-react';
 import type { LinkProps } from 'next/link';
 import Link from 'next/link';
 
@@ -31,16 +31,6 @@ export default function DocsPage(): React.ReactElement {
           <h2 className="mb-2 text-lg font-semibold">Meeting BaaS API v2</h2>
           <p className="text-fd-muted-foreground text-sm">
             Next-generation API with enhanced features, better error handling, and comprehensive webhook documentation
-          </p>
-        </Item>
-
-        <Item href="/updates">
-          <Icon className="updates">
-            <MonitorUp className="size-full" />
-          </Icon>
-          <h2 className="mb-2 text-lg font-semibold">Updates</h2>
-          <p className="text-fd-muted-foreground text-sm">
-            Latest improvements, changes, and releases for all Meeting BaaS services
           </p>
         </Item>
 
