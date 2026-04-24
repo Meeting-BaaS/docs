@@ -164,7 +164,7 @@
                 "type": "object",
                 "properties": {
                   "loop_mode": {
-                    "description": "Controls how multiple bot images are cycled.\n\n- `auto`: Cycles through images at the interval specified by image_duration.\n- `bot_status`: Uses the first image when the bot joins, and the second image when recording starts. Only the first two images are used in this mode; additional images are ignored.",
+                    "description": "Controls how multiple bot images are cycled.\n\n- `auto`: Cycles through images at the interval specified by image_duration.\n- `bot_status`: Uses the first image when the bot joins, the second image when recording starts, and the third image when recording is paused. If no third image is provided, the bot stays on the recording image during pause. Only the first three images are used in this mode; additional images are ignored.",
                     "default": "auto",
                     "type": "string",
                     "enum": [
@@ -1761,7 +1761,7 @@
                 "type": "object",
                 "properties": {
                   "loop_mode": {
-                    "description": "Controls how multiple bot images are cycled.\n\n- `auto`: Cycles through images at the interval specified by image_duration.\n- `bot_status`: Uses the first image when the bot joins, and the second image when recording starts. Only the first two images are used in this mode; additional images are ignored.",
+                    "description": "Controls how multiple bot images are cycled.\n\n- `auto`: Cycles through images at the interval specified by image_duration.\n- `bot_status`: Uses the first image when the bot joins, the second image when recording starts, and the third image when recording is paused. If no third image is provided, the bot stays on the recording image during pause. Only the first three images are used in this mode; additional images are ignored.",
                     "default": "auto",
                     "type": "string",
                     "enum": [
@@ -2993,7 +2993,7 @@
                     "type": "object",
                     "properties": {
                       "loop_mode": {
-                        "description": "Controls how multiple bot images are cycled.\n\n- `auto`: Cycles through images at the interval specified by image_duration.\n- `bot_status`: Uses the first image when the bot joins, and the second image when recording starts. Only the first two images are used in this mode; additional images are ignored.",
+                        "description": "Controls how multiple bot images are cycled.\n\n- `auto`: Cycles through images at the interval specified by image_duration.\n- `bot_status`: Uses the first image when the bot joins, the second image when recording starts, and the third image when recording is paused. If no third image is provided, the bot stays on the recording image during pause. Only the first three images are used in this mode; additional images are ignored.",
                         "default": "auto",
                         "type": "string",
                         "enum": [
@@ -3431,7 +3431,7 @@
                     "type": "object",
                     "properties": {
                       "loop_mode": {
-                        "description": "Controls how multiple bot images are cycled.\n\n- `auto`: Cycles through images at the interval specified by image_duration.\n- `bot_status`: Uses the first image when the bot joins, and the second image when recording starts. Only the first two images are used in this mode; additional images are ignored.",
+                        "description": "Controls how multiple bot images are cycled.\n\n- `auto`: Cycles through images at the interval specified by image_duration.\n- `bot_status`: Uses the first image when the bot joins, the second image when recording starts, and the third image when recording is paused. If no third image is provided, the bot stays on the recording image during pause. Only the first three images are used in this mode; additional images are ignored.",
                         "default": "auto",
                         "type": "string",
                         "enum": [
@@ -8597,7 +8597,7 @@
                 "type": "object",
                 "properties": {
                   "loop_mode": {
-                    "description": "Controls how multiple bot images are cycled.\n\n- `auto`: Cycles through images at the interval specified by image_duration.\n- `bot_status`: Uses the first image when the bot joins, and the second image when recording starts. Only the first two images are used in this mode; additional images are ignored.",
+                    "description": "Controls how multiple bot images are cycled.\n\n- `auto`: Cycles through images at the interval specified by image_duration.\n- `bot_status`: Uses the first image when the bot joins, the second image when recording starts, and the third image when recording is paused. If no third image is provided, the bot stays on the recording image during pause. Only the first three images are used in this mode; additional images are ignored.",
                     "default": "auto",
                     "type": "string",
                     "enum": [
@@ -9881,7 +9881,7 @@
                     "type": "object",
                     "properties": {
                       "loop_mode": {
-                        "description": "Controls how multiple bot images are cycled.\n\n- `auto`: Cycles through images at the interval specified by image_duration.\n- `bot_status`: Uses the first image when the bot joins, and the second image when recording starts. Only the first two images are used in this mode; additional images are ignored.",
+                        "description": "Controls how multiple bot images are cycled.\n\n- `auto`: Cycles through images at the interval specified by image_duration.\n- `bot_status`: Uses the first image when the bot joins, the second image when recording starts, and the third image when recording is paused. If no third image is provided, the bot stays on the recording image during pause. Only the first three images are used in this mode; additional images are ignored.",
                         "default": "auto",
                         "type": "string",
                         "enum": [
@@ -10362,7 +10362,7 @@
                     "type": "object",
                     "properties": {
                       "loop_mode": {
-                        "description": "Controls how multiple bot images are cycled.\n\n- `auto`: Cycles through images at the interval specified by image_duration.\n- `bot_status`: Uses the first image when the bot joins, and the second image when recording starts. Only the first two images are used in this mode; additional images are ignored.",
+                        "description": "Controls how multiple bot images are cycled.\n\n- `auto`: Cycles through images at the interval specified by image_duration.\n- `bot_status`: Uses the first image when the bot joins, the second image when recording starts, and the third image when recording is paused. If no third image is provided, the bot stays on the recording image during pause. Only the first three images are used in this mode; additional images are ignored.",
                         "default": "auto",
                         "type": "string",
                         "enum": [
@@ -15630,6 +15630,394 @@
         }
       }
     },
+    "/v2/bots/{bot_id}/pause-recording": {
+      "post": {
+        "operationId": "pauseBotRecording",
+        "summary": "Pause recording",
+        "tags": [
+          "Bots"
+        ],
+        "description": "Pause the bot's recording during a meeting.\n\n    The bot stays in the meeting, but the paused portion is excluded from the final recording, transcript, and diarization. If you have streaming output enabled, the stream is paused too and no audio is forwarded until you resume.\n\n    **Status Requirements:** The bot must be actively recording (`in_call_recording`, or `recording_resumed` if it was previously paused). Bots that are already paused, still joining, or have finished will fail with a 409 Conflict.\n\n    **Chat Message:** Optionally include `chat_message` in the body to post a message in the meeting chat when pausing — e.g., \"Recording has been paused\".\n\n    **Pairing:** Use `POST /bots/{bot_id}/resume-recording` to continue. You can pause and resume as many times as needed within a single meeting.\n\n    Returns 404 if the bot is not found, or 409 if the bot's status does not allow this operation.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "chat_message": {
+                    "description": "Optional chat message to send to meeting participants when pausing.",
+                    "default": null,
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "description": "The UUID of the bot to pause recording."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "description": "Success message",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input or validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Bot not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - Bot status does not allow this operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error - Unexpected server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v2/bots/{bot_id}/resume-recording": {
+      "post": {
+        "operationId": "resumeBotRecording",
+        "summary": "Resume recording",
+        "tags": [
+          "Bots"
+        ],
+        "description": "Resume a bot's recording after it was paused.\n\n    Meeting content from this point onward is captured again and included in the final recording, transcript, and diarization. If you have streaming output enabled, audio resumes flowing. Timestamps in the final artifacts are continuous across the pause — the paused gap is collapsed, not represented as silence.\n\n    **Status Requirements:** The bot must be in `recording_paused` status. Bots that are already recording, still joining, or have finished will fail with a 409 Conflict.\n\n    **Chat Message:** Optionally include `chat_message` in the body to post a message in the meeting chat when resuming — e.g., \"Recording has resumed\".\n\n    **Pairing:** Follows a prior `POST /bots/{bot_id}/pause-recording`. You can pause and resume multiple times within a single meeting.\n\n    Returns 404 if the bot is not found, or 409 if the bot's status does not allow this operation.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "chat_message": {
+                    "description": "Optional chat message to send to meeting participants when resuming.",
+                    "default": null,
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "maxLength": 500
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "description": "The UUID of the bot to resume recording."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "description": "Success message",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input or validation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found - Bot not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict - Bot status does not allow this operation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate Limited - Exceeded rate limit",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "default": false,
+                      "type": "boolean",
+                      "enum": [
+                        false
+                      ]
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    },
+                    "message": {
+                      "description": "Human-readable error message",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "details": {
+                      "description": "Additional error details (string or null)",
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "type": "integer",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error - Unexpected server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v2/bots/{bot_id}/delete-data": {
       "delete": {
         "operationId": "deleteBotData",
@@ -17077,7 +17465,7 @@
         "tags": [
           "Bots"
         ],
-        "description": "Cancel and delete a scheduled bot.\n\n    Can be called at any time before the bot reaches a terminal state (`completed` or `failed`). If the bot hasn't been spawned yet, the scheduled bot record is cancelled atomically. If the cron has already spawned the bot, the stop request is persisted in the database and delivered to the bot process asynchronously.\n\n    **Status Requirements:** The scheduled bot must not already be `cancelled`, `completed`, or `failed`. If the bot is in a terminal state, the request will fail with a 409 Conflict status.\n\n    **Pre-Recording Stops:** If the bot hasn't started recording yet, it will exit with an `EXITING_MEETING_BEFORE_RECORD` error code. No tokens are consumed for pre-recording stops.\n\n    **Irreversible Operation:** Once a scheduled bot is cancelled, it cannot be recovered.\n\n    **No Token Impact:** Since tokens are not reserved for scheduled bots, cancelling a scheduled bot does not affect your token balance.\n\n    Returns 404 if the scheduled bot is not found, or 409 if the bot's status does not allow deletion.",
+        "description": "Cancel and delete a scheduled bot. The behavior depends on where the bot is in its lifecycle when you call this:\n\n    - **Not yet launched** — the schedule is cancelled and the bot never starts.\n    - **Launched but not yet in the meeting** — the bot exits before joining, with an `EXITING_MEETING_BEFORE_RECORD` error code. No meeting content is captured.\n    - **Already in the meeting** — the bot leaves. Whatever it captured up to that point (audio, video, transcript, diarization) is still processed and delivered as usual.\n\n    **Status Requirements:** The scheduled bot must not already be `cancelled`, `completed`, or `failed`. If the bot is in a terminal state, the request will fail with a 409 Conflict status.\n\n    **Irreversible Operation:** Once a scheduled bot is cancelled, it cannot be recovered.\n\n    **Token Impact:** Tokens are not reserved for scheduled bots, so cancelling before the bot joins a meeting has no impact on your token balance. If the bot had already started recording, tokens are consumed only for the recorded portion — you won't be charged for time after the cancellation.\n\n    Returns 404 if the scheduled bot is not found, or 409 if the bot's status does not allow deletion.",
         "parameters": [
           {
             "schema": {
@@ -20587,7 +20975,7 @@
         "tags": [
           "Calendars"
         ],
-        "description": "Cancel one or more scheduled calendar bots.\n\n    You can target a single event or all occurrences in a series using `series_id`, `all_occurrences`, and `event_id` in the request body. Can be called at any time — if a bot has already been spawned for the event, the stop request will be delivered to the bot process.\n\n    **Cancellation Targets:**\n    - `event_id`: Cancel bot for a specific event instance\n    - `series_id`: Cancel bots for all occurrences of a series\n    - `all_occurrences`: Cancel all future occurrences (for recurring events)\n\n    **Status Requirements:** Bots must be in `scheduled` status. Past schedules and non-scheduled future schedules are silently skipped.\n\n    **Partial Cancellation:** If cancelling multiple bots (e.g., all occurrences of a series), some bots may fail to cancel. The response includes information about which bots were cancelled and which failed.\n\n    **Irreversible Operation:** Once a calendar bot is cancelled, it cannot be recovered.\n\n    **No Token Impact:** Since tokens are not reserved for calendar bots, cancelling a bot does not affect your token balance.\n\n    Returns 200 with cancellation results. Returns 404 if the event or calendar bot schedule is not found.",
+        "description": "Cancel one or more scheduled calendar bots. You can target a single event or all occurrences in a series using `series_id`, `all_occurrences`, and `event_id` in the request body. The behavior for each targeted bot depends on where it is in its lifecycle:\n\n    - **Not yet launched** — the schedule is cancelled and the bot never starts.\n    - **Launched but not yet in the meeting** — the bot exits before joining, with an `EXITING_MEETING_BEFORE_RECORD` error code.\n    - **Already in the meeting** — the bot leaves. Whatever it captured up to that point is still processed and delivered as usual. This case applies to single-event deletes and to series deletes for recent occurrences; see \"Series deletes\" below.\n\n    **Cancellation Targets:**\n    - `event_id`: Cancel bot for a specific event instance\n    - `series_id`: Cancel bots for all occurrences of a series\n    - `all_occurrences`: Cancel all future occurrences (for recurring events)\n\n    **Series deletes:** When `all_occurrences` is true, occurrences whose scheduled time is already well in the past are silently skipped — their bots would have long since finished. Recent and future occurrences are cancelled normally. For single-event deletes (`event_id`, no `all_occurrences`), no time filter is applied — whatever state the bot is in, the stop request is delivered.\n\n    **Partial Cancellation:** If cancelling multiple bots (e.g., all occurrences of a series), some bots may fail to cancel. The response includes which bots were cancelled and which failed.\n\n    **Irreversible Operation:** Once a calendar bot is cancelled, it cannot be recovered.\n\n    **Token Impact:** Tokens are not reserved for calendar bots, so cancelling before a bot joins a meeting has no impact on your token balance. If a bot had already started recording, tokens are consumed only for the recorded portion — you won't be charged for time after the cancellation.\n\n    Returns 200 with cancellation results. Returns 404 if the event or calendar bot schedule is not found.",
         "requestBody": {
           "content": {
             "application/json": {
