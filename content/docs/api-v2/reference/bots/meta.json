@@ -3,6 +3,8 @@
     "pages": [
         "batchCreateBots",
         "createBot",
+        "pauseBotRecording",
+        "resumeBotRecording",
         "updateBotConfig",
         "sendChatMessage",
         "deleteBotData",
