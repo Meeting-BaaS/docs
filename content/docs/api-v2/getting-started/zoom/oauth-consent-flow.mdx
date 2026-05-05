@@ -204,10 +204,11 @@ https://your-app.com/oauth/zoom/callback?error=access_denied
 
       const { data } = await response.json();
 
-      // Store the credential_id and zoom_user_id in your database
+      // Store the credential_id, zoom_user_id, and zoom_email in your database
       await saveZoomCredential(userId, {
         credentialId: data.credential_id,
         zoomUserId: data.zoom_user_id,
+        zoomEmail: data.zoom_email, // shows the user which Zoom account is connected
       });
 
       redirect("/settings?success=zoom_connected");
@@ -260,6 +261,7 @@ https://your-app.com/oauth/zoom/callback?error=access_denied
           data: {
             zoomCredentialId: data.credential_id,
             zoomUserId: data.zoom_user_id,
+            zoomEmail: data.zoom_email,
           },
         });
 
@@ -317,6 +319,7 @@ https://your-app.com/oauth/zoom/callback?error=access_denied
         # Save to your database
         current_user.zoom_credential_id = data["credential_id"]
         current_user.zoom_user_id = data["zoom_user_id"]
+        current_user.zoom_email = data["zoom_email"]
         db.session.commit()
 
         return redirect("/settings?success=zoom_connected")
@@ -423,6 +426,7 @@ app.get("/oauth/zoom/callback", async (req, res) => {
     await updateUser(req.user.id, {
       zoomCredentialId: data.credential_id,
       zoomUserId: data.zoom_user_id,
+      zoomEmail: data.zoom_email,
       zoomConnected: true,
     });
 
@@ -600,7 +604,7 @@ No, use environment-specific URIs. Add both to your Zoom app's allowed redirect 
 
 **Q: What if the user has multiple Zoom accounts?**
 
-They'll authorize with whichever account they're logged into. Consider showing the connected email in your UI so they can verify.
+They'll authorize with whichever account they're logged into. The credential response includes `zoom_email` and `zoom_display_name` (captured from Zoom's `/users/me` API at OAuth time, requires the `user:read:user` scope) — surface these in your UI so the user can verify which Zoom account is connected and disconnect/reconnect if it's the wrong one.
 
 **Q: How do I handle re-authorization?**
 

@@ -2098,6 +2098,7 @@ curl -X POST "https://api.meetingbaas.com/v2/bots/BOT-ID/leave" \
 The leave endpoint works for bots in any active (non-terminal) state:
 
 - `queued`: Bot hasn't started joining yet
+- `pickup_delayed`: Bot has stayed in the `queued` status longer than the expected pickup window
 - `joining_call`: Bot is attempting to join the meeting
 - `in_waiting_room`: Bot is waiting in the meeting's waiting room
 - `in_call_not_recording`: Bot is in the meeting but not recording
@@ -2547,7 +2548,9 @@ Store OAuth tokens for a specific Zoom user who authorized your app. Use these f
 - Access token (encrypted)
 - Refresh token (encrypted)
 - Zoom user ID and account ID
+- Zoom email and display name (captured from Zoom's `/users/me` API at OAuth time, requires the `user:read:user` scope)
 - Granted scopes
+- Optional `extra` JSON object you supply to tag the credential (e.g. internal user ID, environment)
 
 **Use case:** Building a product where customers authorize your bot to join their meetings.
 
@@ -2619,10 +2622,13 @@ Store SDK credentials for internal meeting access:
     "credential_type": "app",
     "zoom_user_id": null,
     "zoom_account_id": null,
+    "zoom_email": null,
+    "zoom_display_name": null,
     "scopes": null,
     "state": "active",
     "last_error_message": null,
     "last_error_at": null,
+    "extra": null,
     "created_at": "2026-02-10T10:00:00Z",
     "updated_at": "2026-02-10T10:00:00Z"
   }
@@ -2703,10 +2709,13 @@ After a user completes the OAuth consent flow, exchange the authorization code f
     "credential_type": "user",
     "zoom_user_id": "SeJwoMGwTCu52501SbDC0Q",
     "zoom_account_id": "AplWZ5oMSouJOw9zu0cmKQ",
+    "zoom_email": "john.doe@acme.com",
+    "zoom_display_name": "John Doe",
     "scopes": "user:read:token,user:read:user,user:read:zak",
     "state": "active",
     "last_error_message": null,
     "last_error_at": null,
+    "extra": null,
     "created_at": "2026-02-10T10:00:00Z",
     "updated_at": "2026-02-10T10:00:00Z"
   }
@@ -2716,6 +2725,39 @@ After a user completes the OAuth consent flow, exchange the authorization code f
 <Callout>
 **Important:** The `redirect_uri` must exactly match the URI registered in your Zoom app and used in the OAuth authorization URL.
 </Callout>
+
+<Callout>
+**Showing the connected account in your UI:** `zoom_email` and `zoom_display_name` are captured from Zoom's `/users/me` API at OAuth time. Use them to show users which Zoom account is connected — particularly helpful when a user has multiple Zoom accounts and needs to verify the right one is linked.
+</Callout>
+
+## Attaching Custom Metadata with `extra`
+
+Both `POST /v2/zoom-credentials` and `PATCH /v2/zoom-credentials/{id}` accept an optional `extra` JSON object that lets you tag the credential with arbitrary key/value pairs your application cares about. The API stores it as-is and never interprets it.
+
+```bash
+curl -X POST "https://api.meetingbaas.com/v2/zoom-credentials" \
+     -H "Content-Type: application/json" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+     -d '{
+           "name": "John Doe - Acme Corp",
+           "client_id": "YOUR_ZOOM_CLIENT_ID",
+           "client_secret": "YOUR_ZOOM_CLIENT_SECRET",
+           "authorization_code": "AUTHORIZATION_CODE_FROM_ZOOM",
+           "redirect_uri": "https://your-app.com/oauth/callback",
+           "extra": {
+             "internal_user_id": "u_42",
+             "environment": "production",
+             "tenant": "acme"
+           }
+         }'
+```
+
+Common uses:
+- Correlate the credential with a record in your own database (e.g. `internal_user_id`)
+- Tag credentials with environment, region, or tenant for later filtering
+- Store anything else your app needs without maintaining a side table
+
+To clear the metadata on an existing credential, send `"extra": null` in a `PATCH` request.
 
 ## Active Apps Notifier (AAN) Attribution
 
@@ -2838,7 +2880,10 @@ Get all credentials for your team:
       "name": "Production Zoom App",
       "credential_type": "app",
       "zoom_user_id": null,
+      "zoom_email": null,
+      "zoom_display_name": null,
       "state": "active",
+      "extra": null,
       ...
     },
     {
@@ -2846,11 +2891,44 @@ Get all credentials for your team:
       "name": "John Doe - Acme Corp",
       "credential_type": "user",
       "zoom_user_id": "SeJwoMGwTCu52501SbDC0Q",
+      "zoom_email": "john.doe@acme.com",
+      "zoom_display_name": "John Doe",
       "state": "active",
+      "extra": { "internal_user_id": "u_42", "environment": "production" },
       ...
     }
   ]
 }
+```
+
+### Filtering
+
+The list endpoint accepts the following optional query parameters. All filters combine with AND.
+
+| Parameter | Behaviour |
+|-----------|-----------|
+| `name` | Case-insensitive partial match on `name` |
+| `zoom_email` | Case-insensitive partial match on `zoom_email` |
+| `zoom_display_name` | Case-insensitive partial match on `zoom_display_name` |
+| `zoom_user_id` | Exact match on `zoom_user_id` |
+| `credential_type` | Comma-separated list (`app`, `user`) |
+| `state` | Comma-separated list (`active`, `invalid`) |
+| `extra` | Match values in the `extra` JSON payload using `key:value` syntax. Multiple conditions are comma-separated and must all match. Values are matched exactly (case-sensitive); credentials missing the key are excluded. |
+
+Examples:
+
+```bash
+# Find a specific user's credentials by email substring
+curl "https://api.meetingbaas.com/v2/zoom-credentials?zoom_email=john.doe" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY"
+
+# Only invalid user-type credentials
+curl "https://api.meetingbaas.com/v2/zoom-credentials?credential_type=user&state=invalid" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY"
+
+# Filter by your own metadata stored in `extra`
+curl "https://api.meetingbaas.com/v2/zoom-credentials?extra=internal_user_id:u_42,environment:production" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY"
 ```
 
 ## Getting a Single Credential
@@ -3416,10 +3494,11 @@ https://your-app.com/oauth/zoom/callback?error=access_denied
 
       const { data } = await response.json();
 
-      // Store the credential_id and zoom_user_id in your database
+      // Store the credential_id, zoom_user_id, and zoom_email in your database
       await saveZoomCredential(userId, {
         credentialId: data.credential_id,
         zoomUserId: data.zoom_user_id,
+        zoomEmail: data.zoom_email, // shows the user which Zoom account is connected
       });
 
       redirect("/settings?success=zoom_connected");
@@ -3472,6 +3551,7 @@ https://your-app.com/oauth/zoom/callback?error=access_denied
           data: {
             zoomCredentialId: data.credential_id,
             zoomUserId: data.zoom_user_id,
+            zoomEmail: data.zoom_email,
           },
         });
 
@@ -3529,6 +3609,7 @@ https://your-app.com/oauth/zoom/callback?error=access_denied
         # Save to your database
         current_user.zoom_credential_id = data["credential_id"]
         current_user.zoom_user_id = data["zoom_user_id"]
+        current_user.zoom_email = data["zoom_email"]
         db.session.commit()
 
         return redirect("/settings?success=zoom_connected")
@@ -3635,6 +3716,7 @@ app.get("/oauth/zoom/callback", async (req, res) => {
     await updateUser(req.user.id, {
       zoomCredentialId: data.credential_id,
       zoomUserId: data.zoom_user_id,
+      zoomEmail: data.zoom_email,
       zoomConnected: true,
     });
 
@@ -3812,7 +3894,7 @@ No, use environment-specific URIs. Add both to your Zoom app's allowed redirect 
 
 **Q: What if the user has multiple Zoom accounts?**
 
-They'll authorize with whichever account they're logged into. Consider showing the connected email in your UI so they can verify.
+They'll authorize with whichever account they're logged into. The credential response includes `zoom_email` and `zoom_display_name` (captured from Zoom's `/users/me` API at OAuth time, requires the `user:read:user` scope) — surface these in your UI so the user can verify which Zoom account is connected and disconnect/reconnect if it's the wrong one.
 
 **Q: How do I handle re-authorization?**
 
@@ -5939,7 +6021,10 @@ Retrieve a paginated list of scheduled bots.
     - `status`: Filter by scheduled bot status (comma-separated for multiple statuses)
     - `scheduled_after`: ISO 8601 timestamp - only return bots scheduled to join after this time
     - `scheduled_before`: ISO 8601 timestamp - only return bots scheduled to join before this time
-    
+    - `bot_id`, `bot_name`, `meeting_url`: case-insensitive partial match
+    - `meeting_platform`: comma-separated list of `zoom`, `meet`, `teams`
+    - `extra`: filter by values in the `extra` JSON payload using `key:value` syntax (comma-separated for multiple conditions, e.g. `extra=customer_id:12345,project:sales`). Values match exactly (case-sensitive); scheduled bots without the key are excluded.
+
     **Status Values:**
     - `scheduled`: Bot is scheduled but has not yet joined
     - `completed`: Bot instance was created and queued to join (bot may still be joining)
@@ -7501,7 +7586,9 @@ Create a new Zoom credential for your team.
 
     **App-only credentials:** Provide only `name`, `client_id`, and `client_secret`. These credentials can be used for SDK authentication when bots join meetings.
 
-    **User-authorized credentials:** Additionally provide `authorization_code` and `redirect_uri`. The API will exchange the authorization code for OAuth tokens, enabling OBF (On-Behalf-Of) token support. OBF tokens allow bots to join meetings on behalf of a specific Zoom user.
+    **User-authorized credentials:** Additionally provide `authorization_code` and `redirect_uri`. The API will exchange the authorization code for OAuth tokens, enabling OBF (On-Behalf-Of) token support. OBF tokens allow bots to join meetings on behalf of a specific Zoom user. The authorising user's `zoom_email` and `zoom_display_name` are captured from Zoom's `/users/me` API at exchange time (requires the `user:read:user` scope) and returned in the response so you can show end users which Zoom account is connected.
+
+    **Custom Metadata:** Pass an optional `extra` JSON object to tag the credential with your own key-value pairs (for example an internal user ID, environment, or tenant). The data is stored as-is, returned by all credential endpoints, and is filterable on the list endpoint via the `extra` query parameter.
 
     **Security:** All credentials are encrypted at rest using AES-256-GCM. Client secrets and OAuth tokens are never returned in API responses.
 
@@ -7547,6 +7634,8 @@ Get detailed information about a specific Zoom credential.
 
     Returns the credential's metadata including its current state and any recent errors. Sensitive fields (client_secret, OAuth tokens) are never included.
 
+    For "user" type credentials, the response also includes `zoom_email` and `zoom_display_name` (captured from Zoom's `/users/me` API at OAuth time) and any `extra` JSON metadata you attached at creation or via `PATCH`.
+
     **Error Tracking:** The `last_error_message` and `last_error_at` fields show the most recent OBF token fetch failure. Check these fields if bots using this credential are failing to join meetings.
 
     Returns 404 if the credential is not found or does not belong to your team.
@@ -7571,8 +7660,16 @@ List all Zoom credentials for your team.
     - `name`: User-friendly name for identification
     - `credential_type`: "app" (SDK only) or "user" (with OAuth tokens)
     - `zoom_user_id`: The Zoom user ID (only for "user" type)
+    - `zoom_email` / `zoom_display_name`: The authorising Zoom user's email and display name, captured from Zoom's `/users/me` API at OAuth time (only for "user" type, requires the `user:read:user` scope)
     - `state`: "active" or "invalid"
     - `last_error_message`: Last OBF token fetch error (if any)
+    - `extra`: The optional user-supplied JSON metadata attached to the credential
+
+    **Filtering:** Narrow the result set with optional query parameters (combined with AND):
+    - `name`, `zoom_email`, `zoom_display_name`: case-insensitive partial match
+    - `zoom_user_id`: exact match
+    - `credential_type`, `state`: comma-separated enum lists (e.g. `credential_type=user`, `state=active,invalid`)
+    - `extra`: `key:value` pairs against the `extra` JSON payload, comma-separated for multiple conditions (e.g. `extra=internal_user_id:u_42,environment:production`). Values are matched exactly (case-sensitive); credentials missing the key are excluded.
 
     **Error Tracking:** If bots fail to fetch OBF tokens using a credential, the error is recorded in `last_error_message` and `last_error_at`. These fields are cleared on successful OBF token fetch.
 
@@ -7589,13 +7686,15 @@ List all Zoom credentials for your team.
 
 Update an existing Zoom credential.
 
-    You can update the credential name, SDK credentials (client_id/client_secret), or re-authorize with new OAuth tokens.
+    You can update the credential name, SDK credentials (client_id/client_secret), the user-supplied `extra` metadata, or re-authorize with new OAuth tokens.
 
     **Updating Name:** Provide only `name` to rename the credential.
 
     **Updating SDK Credentials:** Provide both `client_id` and `client_secret` together to update the SDK credentials.
 
-    **Re-authorizing:** Provide `authorization_code`, `redirect_uri`, `client_id`, and `client_secret` to exchange a new authorization code for fresh OAuth tokens. This also resets the credential state to "active" and clears any error messages.
+    **Updating Custom Metadata:** Provide `extra` to replace the credential's metadata payload, or send `"extra": null` to clear it.
+
+    **Re-authorizing:** Provide `authorization_code`, `redirect_uri`, `client_id`, and `client_secret` to exchange a new authorization code for fresh OAuth tokens. This also refreshes `zoom_email` and `zoom_display_name` from Zoom's `/users/me` API, resets the credential state to "active", and clears any error messages.
 
     **Error Scenarios:**
     - `400 Bad Request`: Missing redirect_uri when authorization_code is provided
@@ -8831,6 +8930,7 @@ The `status.code` field can contain any of the values below, grouped here by whe
 *Lifecycle*:
 
 - `queued`: Bot is queued and waiting to join
+- `pickup_delayed`: The bot has stayed in the `queued` status longer than the expected pickup window. **No action is required on your end** — this is informational. The bot may still proceed normally to `joining_call`, and our team is automatically notified to investigate persistent occurrences
 - `transcribing`: Bot has exited and transcription is in progress
 - `completed`: Bot has finished successfully (terminal state)
 - `failed`: Bot has failed (terminal state)

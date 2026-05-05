@@ -82,6 +82,7 @@ The `status.code` field can contain any of the values below, grouped here by whe
 *Lifecycle*:
 
 - `queued`: Bot is queued and waiting to join
+- `pickup_delayed`: The bot has stayed in the `queued` status longer than the expected pickup window. **No action is required on your end** — this is informational. The bot may still proceed normally to `joining_call`, and our team is automatically notified to investigate persistent occurrences
 - `transcribing`: Bot has exited and transcription is in progress
 - `completed`: Bot has finished successfully (terminal state)
 - `failed`: Bot has failed (terminal state)
