@@ -288,5 +288,5 @@ export const knownTxtPaths = [
   [
     "llms",
     "typescript-sdk"
-  ],
+  ]
 ];

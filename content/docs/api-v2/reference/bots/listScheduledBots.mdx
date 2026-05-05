@@ -18,7 +18,10 @@ _openapi:
               - `status`: Filter by scheduled bot status (comma-separated for multiple statuses)
               - `scheduled_after`: ISO 8601 timestamp - only return bots scheduled to join after this time
               - `scheduled_before`: ISO 8601 timestamp - only return bots scheduled to join before this time
-              
+              - `bot_id`, `bot_name`, `meeting_url`: case-insensitive partial match
+              - `meeting_platform`: comma-separated list of `zoom`, `meet`, `teams`
+              - `extra`: filter by values in the `extra` JSON payload using `key:value` syntax (comma-separated for multiple conditions, e.g. `extra=customer_id:12345,project:sales`). Values match exactly (case-sensitive); scheduled bots without the key are excluded.
+
               **Status Values:**
               - `scheduled`: Bot is scheduled but has not yet joined
               - `completed`: Bot instance was created and queued to join (bot may still be joining)
@@ -39,7 +42,10 @@ Retrieve a paginated list of scheduled bots.
     - `status`: Filter by scheduled bot status (comma-separated for multiple statuses)
     - `scheduled_after`: ISO 8601 timestamp - only return bots scheduled to join after this time
     - `scheduled_before`: ISO 8601 timestamp - only return bots scheduled to join before this time
-    
+    - `bot_id`, `bot_name`, `meeting_url`: case-insensitive partial match
+    - `meeting_platform`: comma-separated list of `zoom`, `meet`, `teams`
+    - `extra`: filter by values in the `extra` JSON payload using `key:value` syntax (comma-separated for multiple conditions, e.g. `extra=customer_id:12345,project:sales`). Values match exactly (case-sensitive); scheduled bots without the key are excluded.
+
     **Status Values:**
     - `scheduled`: Bot is scheduled but has not yet joined
     - `completed`: Bot instance was created and queued to join (bot may still be joining)

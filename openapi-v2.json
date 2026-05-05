@@ -821,6 +821,7 @@
                   "type": "string",
                   "enum": [
                     "queued",
+                    "pickup_delayed",
                     "transcribing",
                     "completed",
                     "failed",
@@ -1009,6 +1010,7 @@
                 "type": "string",
                 "enum": [
                   "queued",
+                  "pickup_delayed",
                   "transcribing",
                   "completed",
                   "failed",
@@ -1456,6 +1458,7 @@
                 "type": "string",
                 "enum": [
                   "queued",
+                  "pickup_delayed",
                   "transcribing",
                   "completed",
                   "failed",
@@ -4810,6 +4813,21 @@
                 "description": "Whether a bot has been scheduled for this event instance. True if a calendar bot schedule exists for this event",
                 "type": "boolean"
               },
+              "raw_payload": {
+                "description": "The most recent raw event object as returned by the calendar provider. Use this to access any provider-specific fields not surfaced by other properties on this response. The shape is provider-dependent: Google Calendar events follow the Google Calendar API event resource, and Microsoft events follow the Microsoft Graph event resource. Null if no provider payload has been captured yet (e.g. a row created from an internal source)",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {}
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
               "created_at": {
                 "description": "ISO 8601 timestamp when this event instance was first synced into the system",
                 "type": "string",
@@ -4843,6 +4861,7 @@
               "calendar_id",
               "calendar_platform",
               "bot_scheduled",
+              "raw_payload",
               "created_at",
               "updated_at"
             ]
@@ -7635,6 +7654,7 @@
                   "type": "string",
                   "enum": [
                     "queued",
+                    "pickup_delayed",
                     "transcribing",
                     "completed",
                     "failed",
@@ -7826,6 +7846,7 @@
                 "type": "string",
                 "enum": [
                   "queued",
+                  "pickup_delayed",
                   "transcribing",
                   "completed",
                   "failed",
@@ -8279,6 +8300,7 @@
                 "type": "string",
                 "enum": [
                   "queued",
+                  "pickup_delayed",
                   "transcribing",
                   "completed",
                   "failed",
@@ -11791,6 +11813,21 @@
                 "description": "Whether a bot has been scheduled for this event instance. True if a calendar bot schedule exists for this event",
                 "type": "boolean"
               },
+              "raw_payload": {
+                "description": "The most recent raw event object as returned by the calendar provider. Use this to access any provider-specific fields not surfaced by other properties on this response. The shape is provider-dependent: Google Calendar events follow the Google Calendar API event resource, and Microsoft events follow the Microsoft Graph event resource. Null if no provider payload has been captured yet (e.g. a row created from an internal source)",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string"
+                    },
+                    "additionalProperties": {}
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
               "created_at": {
                 "description": "ISO 8601 timestamp when this event instance was first synced into the system",
                 "type": "string",
@@ -11824,6 +11861,7 @@
               "calendar_id",
               "calendar_platform",
               "bot_scheduled",
+              "raw_payload",
               "created_at",
               "updated_at"
             ],
@@ -14561,7 +14599,7 @@
             "in": "query",
             "name": "extra",
             "required": false,
-            "description": "Filter bots by matching values in the extra JSON payload.\n\nThis parameter performs in-memory filtering on the `extra` JSON field, similar to a SQL WHERE clause. It reduces the result set to only include bots that match all specified conditions.\n\nFormat specifications: - Single condition: \"field:value\" - Multiple conditions: \"field1:value1,field2:value2\"\n\nExamples: - \"customer_id:12345\" - Only bots with this customer ID - \"status:active,project:sales\" - Only active bots from sales projects\n\nNotes: - All conditions must match for a bot to be included - Values are matched exactly (case-sensitive) - Bots without the specified field are excluded"
+            "description": "Filter bots by matching values in the extra JSON payload.\n\nThis parameter applies SQL-level filtering on the `extra` JSON field and returns only bots that match all specified conditions.\n\nFormat specifications: - Single condition: \"field:value\" - Multiple conditions: \"field1:value1,field2:value2\"\n\nExamples: - \"customer_id:12345\" - Only bots with this customer ID - \"status:active,project:sales\" - Only active bots from sales projects\n\nNotes: - All conditions must match for a bot to be included - Values are matched exactly (case-sensitive) - Bots without the specified field are excluded"
           },
           {
             "schema": {
@@ -14627,7 +14665,7 @@
             "in": "query",
             "name": "status",
             "required": false,
-            "description": "Filter bots by bot statuses.\n\nThis parameter filters bots by their status. It can be used to find bots that have any of the specified statuses. Valid values are one or more of: queued, transcribing, completed, failed, joining_call, in_waiting_room, in_waiting_for_host, in_call_not_recording, in_call_recording, recording_paused, recording_resumed, call_ended, recording_succeeded, recording_failed, api_request_stop, bot_rejected, bot_removed, bot_removed_too_early, waiting_room_timeout, invalid_meeting_url, meeting_error.\n\nExample: \"queued,joining_call\" would match all bots that are queued or joining the call"
+            "description": "Filter bots by bot statuses.\n\nThis parameter filters bots by their status. It can be used to find bots that have any of the specified statuses. Valid values are one or more of: queued, pickup_delayed, transcribing, completed, failed, joining_call, in_waiting_room, in_waiting_for_host, in_call_not_recording, in_call_recording, recording_paused, recording_resumed, call_ended, recording_succeeded, recording_failed, api_request_stop, bot_rejected, bot_removed, bot_removed_too_early, waiting_room_timeout, invalid_meeting_url, meeting_error.\n\nExample: \"queued,joining_call\" would match all bots that are queued or joining the call"
           }
         ],
         "responses": {
@@ -16777,7 +16815,7 @@
         "tags": [
           "Bots"
         ],
-        "description": "Retrieve a paginated list of scheduled bots.\n    \n    Supports filtering by status (`scheduled`, `completed`, `failed`) and date range. Results are ordered by scheduled join time (earliest first). Use cursor-based pagination for efficient navigation.\n    \n    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 20, max: 100).\n    \n    **Filtering:**\n    - `status`: Filter by scheduled bot status (comma-separated for multiple statuses)\n    - `scheduled_after`: ISO 8601 timestamp - only return bots scheduled to join after this time\n    - `scheduled_before`: ISO 8601 timestamp - only return bots scheduled to join before this time\n    \n    **Status Values:**\n    - `scheduled`: Bot is scheduled but has not yet joined\n    - `completed`: Bot instance was created and queued to join (bot may still be joining)\n    - `failed`: Bot failed to join (token issues, daily cap, etc.)\n    \n    Returns a paginated list of scheduled bots with metadata including bot ID, scheduled join time, status, and basic configuration.",
+        "description": "Retrieve a paginated list of scheduled bots.\n    \n    Supports filtering by status (`scheduled`, `completed`, `failed`) and date range. Results are ordered by scheduled join time (earliest first). Use cursor-based pagination for efficient navigation.\n    \n    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The `limit` parameter controls how many results are returned per page (default: 20, max: 100).\n    \n    **Filtering:**\n    - `status`: Filter by scheduled bot status (comma-separated for multiple statuses)\n    - `scheduled_after`: ISO 8601 timestamp - only return bots scheduled to join after this time\n    - `scheduled_before`: ISO 8601 timestamp - only return bots scheduled to join before this time\n    - `bot_id`, `bot_name`, `meeting_url`: case-insensitive partial match\n    - `meeting_platform`: comma-separated list of `zoom`, `meet`, `teams`\n    - `extra`: filter by values in the `extra` JSON payload using `key:value` syntax (comma-separated for multiple conditions, e.g. `extra=customer_id:12345,project:sales`). Values match exactly (case-sensitive); scheduled bots without the key are excluded.\n\n    **Status Values:**\n    - `scheduled`: Bot is scheduled but has not yet joined\n    - `completed`: Bot instance was created and queued to join (bot may still be joining)\n    - `failed`: Bot failed to join (token issues, daily cap, etc.)\n    \n    Returns a paginated list of scheduled bots with metadata including bot ID, scheduled join time, status, and basic configuration.",
         "parameters": [
           {
             "schema": {
@@ -16950,6 +16988,24 @@
             "name": "meeting_platform",
             "required": false,
             "description": "Filter by meeting platform.\n\nThis parameter filters scheduled bots by the platform they are associated with. It can be used to find bots that are associated with a specific meeting platform. Valid values are: \"zoom\", \"meet\", \"teams\".\n\nExample: \"zoom\" would match all bots associated with Zoom meetings.\n\nTo filter multiple platforms, use a comma-separated list of values. For example, \"zoom,meet\" would match all bots associated with Zoom or Meet meetings."
+          },
+          {
+            "schema": {
+              "example": null,
+              "default": null,
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "extra",
+            "required": false,
+            "description": "Filter scheduled bots by matching values in the extra JSON payload.\n\nThis parameter applies SQL-level filtering on the `extra` JSON field and returns only scheduled bots that match all specified conditions.\n\nFormat specifications: - Single condition: \"field:value\" - Multiple conditions: \"field1:value1,field2:value2\"\n\nExamples: - \"customer_id:12345\" - Only scheduled bots with this customer ID - \"status:active,project:sales\" - Only active scheduled bots from sales projects\n\nNotes: - All conditions must match for a scheduled bot to be included - Values are matched exactly (case-sensitive) - Scheduled bots without the specified field are excluded"
           }
         ],
         "responses": {
@@ -17609,7 +17665,7 @@
         "tags": [
           "Zoom Credentials"
         ],
-        "description": "Create a new Zoom credential for your team.\n\n    Zoom credentials store your Zoom OAuth App credentials (client_id and client_secret) securely encrypted. You can create two types of credentials:\n\n    **App-only credentials:** Provide only `name`, `client_id`, and `client_secret`. These credentials can be used for SDK authentication when bots join meetings.\n\n    **User-authorized credentials:** Additionally provide `authorization_code` and `redirect_uri`. The API will exchange the authorization code for OAuth tokens, enabling OBF (On-Behalf-Of) token support. OBF tokens allow bots to join meetings on behalf of a specific Zoom user.\n\n    **Security:** All credentials are encrypted at rest using AES-256-GCM. Client secrets and OAuth tokens are never returned in API responses.\n\n    **OAuth Flow:** To obtain an authorization code, redirect users to Zoom's OAuth authorization endpoint and capture the code from the callback. Ensure your redirect URI exactly matches the one registered in your Zoom OAuth App.\n\n    **Error Scenarios:**\n    - `400 Bad Request`: Invalid input or missing redirect_uri when authorization_code is provided\n    - `400 Bad Request`: Failed to exchange authorization code (invalid code or redirect_uri mismatch)",
+        "description": "Create a new Zoom credential for your team.\n\n    Zoom credentials store your Zoom OAuth App credentials (client_id and client_secret) securely encrypted. You can create two types of credentials:\n\n    **App-only credentials:** Provide only `name`, `client_id`, and `client_secret`. These credentials can be used for SDK authentication when bots join meetings.\n\n    **User-authorized credentials:** Additionally provide `authorization_code` and `redirect_uri`. The API will exchange the authorization code for OAuth tokens, enabling OBF (On-Behalf-Of) token support. OBF tokens allow bots to join meetings on behalf of a specific Zoom user. The authorising user's `zoom_email` and `zoom_display_name` are captured from Zoom's `/users/me` API at exchange time (requires the `user:read:user` scope) and returned in the response so you can show end users which Zoom account is connected.\n\n    **Custom Metadata:** Pass an optional `extra` JSON object to tag the credential with your own key-value pairs (for example an internal user ID, environment, or tenant). The data is stored as-is, returned by all credential endpoints, and is filterable on the list endpoint via the `extra` query parameter.\n\n    **Security:** All credentials are encrypted at rest using AES-256-GCM. Client secrets and OAuth tokens are never returned in API responses.\n\n    **OAuth Flow:** To obtain an authorization code, redirect users to Zoom's OAuth authorization endpoint and capture the code from the callback. Ensure your redirect URI exactly matches the one registered in your Zoom OAuth App.\n\n    **Error Scenarios:**\n    - `400 Bad Request`: Invalid input or missing redirect_uri when authorization_code is provided\n    - `400 Bad Request`: Failed to exchange authorization code (invalid code or redirect_uri mismatch)",
         "requestBody": {
           "content": {
             "application/json": {
@@ -17648,6 +17704,25 @@
                     "example": "https://yourapp.com/oauth/callback",
                     "type": "string",
                     "format": "uri"
+                  },
+                  "extra": {
+                    "anyOf": [
+                      {
+                        "description": "An optional free-form JSON object you can attach to the credential.\n\nThis is stored as-is and never interpreted by the API. Useful for tagging credentials with your own identifiers (e.g. internal user ID, environment, tenant) so you can correlate them in your application or filter them via the list endpoint.\n\nFilterable on the list endpoint via the `extra` query parameter using the `key:value` syntax.",
+                        "example": {
+                          "internal_user_id": "u_123",
+                          "environment": "production"
+                        },
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {}
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "required": [
@@ -17724,6 +17799,30 @@
                             }
                           ]
                         },
+                        "zoom_email": {
+                          "example": "user@example.com",
+                          "anyOf": [
+                            {
+                              "description": "The email address of the Zoom user who authorised this credential.\n\nCaptured from Zoom's `/users/me` API at the time of OAuth exchange (or refresh) using the `user:read:user` scope. Use this to display which Zoom account is connected when a user has multiple accounts.\n\nOnly present for 'user' type credentials.",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "zoom_display_name": {
+                          "example": "Jane Doe",
+                          "anyOf": [
+                            {
+                              "description": "The display name of the Zoom user who authorised this credential.\n\nCaptured from Zoom's `/users/me` API at the time of OAuth exchange (or refresh).\n\nOnly present for 'user' type credentials.",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
                         "scopes": {
                           "example": "meeting:read,meeting:write,user:read",
                           "anyOf": [
@@ -17784,6 +17883,26 @@
                           "type": "string",
                           "format": "date-time",
                           "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                        },
+                        "extra": {
+                          "example": null,
+                          "anyOf": [
+                            {
+                              "description": "An optional free-form JSON object you can attach to the credential.\n\nThis is stored as-is and never interpreted by the API. Useful for tagging credentials with your own identifiers (e.g. internal user ID, environment, tenant) so you can correlate them in your application or filter them via the list endpoint.\n\nFilterable on the list endpoint via the `extra` query parameter using the `key:value` syntax.",
+                              "example": {
+                                "internal_user_id": "u_123",
+                                "environment": "production"
+                              },
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {}
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         }
                       },
                       "required": [
@@ -17792,12 +17911,15 @@
                         "credential_type",
                         "zoom_user_id",
                         "zoom_account_id",
+                        "zoom_email",
+                        "zoom_display_name",
                         "scopes",
                         "state",
                         "last_error_message",
                         "last_error_at",
                         "created_at",
-                        "updated_at"
+                        "updated_at",
+                        "extra"
                       ],
                       "additionalProperties": false
                     }
@@ -17908,7 +18030,140 @@
         "tags": [
           "Zoom Credentials"
         ],
-        "description": "List all Zoom credentials for your team.\n\n    Returns all non-deleted credentials with their metadata. Sensitive fields (client_secret, OAuth tokens) are never included in responses.\n\n    **Response Fields:**\n    - `credential_id`: UUID to reference this credential in bot requests\n    - `name`: User-friendly name for identification\n    - `credential_type`: \"app\" (SDK only) or \"user\" (with OAuth tokens)\n    - `zoom_user_id`: The Zoom user ID (only for \"user\" type)\n    - `state`: \"active\" or \"invalid\"\n    - `last_error_message`: Last OBF token fetch error (if any)\n\n    **Error Tracking:** If bots fail to fetch OBF tokens using a credential, the error is recorded in `last_error_message` and `last_error_at`. These fields are cleared on successful OBF token fetch.",
+        "description": "List all Zoom credentials for your team.\n\n    Returns all non-deleted credentials with their metadata. Sensitive fields (client_secret, OAuth tokens) are never included in responses.\n\n    **Response Fields:**\n    - `credential_id`: UUID to reference this credential in bot requests\n    - `name`: User-friendly name for identification\n    - `credential_type`: \"app\" (SDK only) or \"user\" (with OAuth tokens)\n    - `zoom_user_id`: The Zoom user ID (only for \"user\" type)\n    - `zoom_email` / `zoom_display_name`: The authorising Zoom user's email and display name, captured from Zoom's `/users/me` API at OAuth time (only for \"user\" type, requires the `user:read:user` scope)\n    - `state`: \"active\" or \"invalid\"\n    - `last_error_message`: Last OBF token fetch error (if any)\n    - `extra`: The optional user-supplied JSON metadata attached to the credential\n\n    **Filtering:** Narrow the result set with optional query parameters (combined with AND):\n    - `name`, `zoom_email`, `zoom_display_name`: case-insensitive partial match\n    - `zoom_user_id`: exact match\n    - `credential_type`, `state`: comma-separated enum lists (e.g. `credential_type=user`, `state=active,invalid`)\n    - `extra`: `key:value` pairs against the `extra` JSON payload, comma-separated for multiple conditions (e.g. `extra=internal_user_id:u_42,environment:production`). Values are matched exactly (case-sensitive); credentials missing the key are excluded.\n\n    **Error Tracking:** If bots fail to fetch OBF tokens using a credential, the error is recorded in `last_error_message` and `last_error_at`. These fields are cleared on successful OBF token fetch.",
+        "parameters": [
+          {
+            "schema": {
+              "default": null,
+              "anyOf": [
+                {
+                  "description": "Filter credentials whose `name` contains this string (case-insensitive partial match).",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "name",
+            "required": false
+          },
+          {
+            "schema": {
+              "default": null,
+              "anyOf": [
+                {
+                  "description": "Filter credentials whose `zoom_email` contains this string (case-insensitive partial match).\n\nUseful when a user has connected multiple Zoom accounts and you want to find a specific one.",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "zoom_email",
+            "required": false
+          },
+          {
+            "schema": {
+              "default": null,
+              "anyOf": [
+                {
+                  "description": "Filter credentials whose `zoom_display_name` contains this string (case-insensitive partial match).",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "zoom_display_name",
+            "required": false
+          },
+          {
+            "schema": {
+              "default": null,
+              "anyOf": [
+                {
+                  "description": "Filter credentials by exact `zoom_user_id`.",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "zoom_user_id",
+            "required": false
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "description": "Filter by credential type. Comma-separated list. Valid values: `app`, `user`.",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "credential_type",
+            "required": false
+          },
+          {
+            "schema": {
+              "anyOf": [
+                {
+                  "description": "Filter by credential state. Comma-separated list. Valid values: `active`, `invalid`.",
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "state",
+            "required": false
+          },
+          {
+            "schema": {
+              "default": null,
+              "anyOf": [
+                {
+                  "description": "Filter credentials by matching values in the `extra` JSON payload.\n\nApplies SQL-level filtering on the `extra` field and reduces the result set to credentials that match all specified conditions.\n\nFormat:\n- Single condition: `\"field:value\"`\n- Multiple conditions: `\"field1:value1,field2:value2\"`\n\nExamples:\n- `internal_user_id:u_123` — only credentials with this internal user ID\n- `environment:production,tenant:acme` — only production credentials for the acme tenant\n\nNotes: all conditions must match; values are matched exactly (case-sensitive); credentials without the field are excluded.",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            },
+            "in": "query",
+            "name": "extra",
+            "required": false
+          }
+        ],
         "responses": {
           "200": {
             "description": "Default Response",
@@ -17968,6 +18223,30 @@
                             "anyOf": [
                               {
                                 "description": "The Zoom account ID associated with this credential.\n\nOnly present for 'user' type credentials.",
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "zoom_email": {
+                            "example": "user@example.com",
+                            "anyOf": [
+                              {
+                                "description": "The email address of the Zoom user who authorised this credential.\n\nCaptured from Zoom's `/users/me` API at the time of OAuth exchange (or refresh) using the `user:read:user` scope. Use this to display which Zoom account is connected when a user has multiple accounts.\n\nOnly present for 'user' type credentials.",
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "zoom_display_name": {
+                            "example": "Jane Doe",
+                            "anyOf": [
+                              {
+                                "description": "The display name of the Zoom user who authorised this credential.\n\nCaptured from Zoom's `/users/me` API at the time of OAuth exchange (or refresh).\n\nOnly present for 'user' type credentials.",
                                 "type": "string"
                               },
                               {
@@ -18035,6 +18314,26 @@
                             "type": "string",
                             "format": "date-time",
                             "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                          },
+                          "extra": {
+                            "example": null,
+                            "anyOf": [
+                              {
+                                "description": "An optional free-form JSON object you can attach to the credential.\n\nThis is stored as-is and never interpreted by the API. Useful for tagging credentials with your own identifiers (e.g. internal user ID, environment, tenant) so you can correlate them in your application or filter them via the list endpoint.\n\nFilterable on the list endpoint via the `extra` query parameter using the `key:value` syntax.",
+                                "example": {
+                                  "internal_user_id": "u_123",
+                                  "environment": "production"
+                                },
+                                "type": "object",
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "additionalProperties": {}
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
                           }
                         },
                         "required": [
@@ -18043,12 +18342,15 @@
                           "credential_type",
                           "zoom_user_id",
                           "zoom_account_id",
+                          "zoom_email",
+                          "zoom_display_name",
                           "scopes",
                           "state",
                           "last_error_message",
                           "last_error_at",
                           "created_at",
-                          "updated_at"
+                          "updated_at",
+                          "extra"
                         ],
                         "additionalProperties": false
                       }
@@ -18162,7 +18464,7 @@
         "tags": [
           "Zoom Credentials"
         ],
-        "description": "Get detailed information about a specific Zoom credential.\n\n    Returns the credential's metadata including its current state and any recent errors. Sensitive fields (client_secret, OAuth tokens) are never included.\n\n    **Error Tracking:** The `last_error_message` and `last_error_at` fields show the most recent OBF token fetch failure. Check these fields if bots using this credential are failing to join meetings.\n\n    Returns 404 if the credential is not found or does not belong to your team.",
+        "description": "Get detailed information about a specific Zoom credential.\n\n    Returns the credential's metadata including its current state and any recent errors. Sensitive fields (client_secret, OAuth tokens) are never included.\n\n    For \"user\" type credentials, the response also includes `zoom_email` and `zoom_display_name` (captured from Zoom's `/users/me` API at OAuth time) and any `extra` JSON metadata you attached at creation or via `PATCH`.\n\n    **Error Tracking:** The `last_error_message` and `last_error_at` fields show the most recent OBF token fetch failure. Check these fields if bots using this credential are failing to join meetings.\n\n    Returns 404 if the credential is not found or does not belong to your team.",
         "parameters": [
           {
             "schema": {
@@ -18241,6 +18543,30 @@
                             }
                           ]
                         },
+                        "zoom_email": {
+                          "example": "user@example.com",
+                          "anyOf": [
+                            {
+                              "description": "The email address of the Zoom user who authorised this credential.\n\nCaptured from Zoom's `/users/me` API at the time of OAuth exchange (or refresh) using the `user:read:user` scope. Use this to display which Zoom account is connected when a user has multiple accounts.\n\nOnly present for 'user' type credentials.",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "zoom_display_name": {
+                          "example": "Jane Doe",
+                          "anyOf": [
+                            {
+                              "description": "The display name of the Zoom user who authorised this credential.\n\nCaptured from Zoom's `/users/me` API at the time of OAuth exchange (or refresh).\n\nOnly present for 'user' type credentials.",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
                         "scopes": {
                           "example": "meeting:read,meeting:write,user:read",
                           "anyOf": [
@@ -18301,6 +18627,26 @@
                           "type": "string",
                           "format": "date-time",
                           "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                        },
+                        "extra": {
+                          "example": null,
+                          "anyOf": [
+                            {
+                              "description": "An optional free-form JSON object you can attach to the credential.\n\nThis is stored as-is and never interpreted by the API. Useful for tagging credentials with your own identifiers (e.g. internal user ID, environment, tenant) so you can correlate them in your application or filter them via the list endpoint.\n\nFilterable on the list endpoint via the `extra` query parameter using the `key:value` syntax.",
+                              "example": {
+                                "internal_user_id": "u_123",
+                                "environment": "production"
+                              },
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {}
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         }
                       },
                       "required": [
@@ -18309,12 +18655,15 @@
                         "credential_type",
                         "zoom_user_id",
                         "zoom_account_id",
+                        "zoom_email",
+                        "zoom_display_name",
                         "scopes",
                         "state",
                         "last_error_message",
                         "last_error_at",
                         "created_at",
-                        "updated_at"
+                        "updated_at",
+                        "extra"
                       ],
                       "additionalProperties": false
                     }
@@ -18435,7 +18784,7 @@
         "tags": [
           "Zoom Credentials"
         ],
-        "description": "Update an existing Zoom credential.\n\n    You can update the credential name, SDK credentials (client_id/client_secret), or re-authorize with new OAuth tokens.\n\n    **Updating Name:** Provide only `name` to rename the credential.\n\n    **Updating SDK Credentials:** Provide both `client_id` and `client_secret` together to update the SDK credentials.\n\n    **Re-authorizing:** Provide `authorization_code`, `redirect_uri`, `client_id`, and `client_secret` to exchange a new authorization code for fresh OAuth tokens. This also resets the credential state to \"active\" and clears any error messages.\n\n    **Error Scenarios:**\n    - `400 Bad Request`: Missing redirect_uri when authorization_code is provided\n    - `400 Bad Request`: Failed to exchange authorization code\n    - `404 Not Found`: Credential not found or does not belong to your team",
+        "description": "Update an existing Zoom credential.\n\n    You can update the credential name, SDK credentials (client_id/client_secret), the user-supplied `extra` metadata, or re-authorize with new OAuth tokens.\n\n    **Updating Name:** Provide only `name` to rename the credential.\n\n    **Updating SDK Credentials:** Provide both `client_id` and `client_secret` together to update the SDK credentials.\n\n    **Updating Custom Metadata:** Provide `extra` to replace the credential's metadata payload, or send `\"extra\": null` to clear it.\n\n    **Re-authorizing:** Provide `authorization_code`, `redirect_uri`, `client_id`, and `client_secret` to exchange a new authorization code for fresh OAuth tokens. This also refreshes `zoom_email` and `zoom_display_name` from Zoom's `/users/me` API, resets the credential state to \"active\", and clears any error messages.\n\n    **Error Scenarios:**\n    - `400 Bad Request`: Missing redirect_uri when authorization_code is provided\n    - `400 Bad Request`: Failed to exchange authorization code\n    - `404 Not Found`: Credential not found or does not belong to your team",
         "requestBody": {
           "content": {
             "application/json": {
@@ -18474,6 +18823,25 @@
                     "example": "https://yourapp.com/oauth/callback",
                     "type": "string",
                     "format": "uri"
+                  },
+                  "extra": {
+                    "anyOf": [
+                      {
+                        "description": "An optional free-form JSON object you can attach to the credential.\n\nThis is stored as-is and never interpreted by the API. Useful for tagging credentials with your own identifiers (e.g. internal user ID, environment, tenant) so you can correlate them in your application or filter them via the list endpoint.\n\nFilterable on the list endpoint via the `extra` query parameter using the `key:value` syntax.",
+                        "example": {
+                          "internal_user_id": "u_123",
+                          "environment": "production"
+                        },
+                        "type": "object",
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "additionalProperties": {}
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 }
               }
@@ -18558,6 +18926,30 @@
                             }
                           ]
                         },
+                        "zoom_email": {
+                          "example": "user@example.com",
+                          "anyOf": [
+                            {
+                              "description": "The email address of the Zoom user who authorised this credential.\n\nCaptured from Zoom's `/users/me` API at the time of OAuth exchange (or refresh) using the `user:read:user` scope. Use this to display which Zoom account is connected when a user has multiple accounts.\n\nOnly present for 'user' type credentials.",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "zoom_display_name": {
+                          "example": "Jane Doe",
+                          "anyOf": [
+                            {
+                              "description": "The display name of the Zoom user who authorised this credential.\n\nCaptured from Zoom's `/users/me` API at the time of OAuth exchange (or refresh).\n\nOnly present for 'user' type credentials.",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
                         "scopes": {
                           "example": "meeting:read,meeting:write,user:read",
                           "anyOf": [
@@ -18618,6 +19010,26 @@
                           "type": "string",
                           "format": "date-time",
                           "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+                        },
+                        "extra": {
+                          "example": null,
+                          "anyOf": [
+                            {
+                              "description": "An optional free-form JSON object you can attach to the credential.\n\nThis is stored as-is and never interpreted by the API. Useful for tagging credentials with your own identifiers (e.g. internal user ID, environment, tenant) so you can correlate them in your application or filter them via the list endpoint.\n\nFilterable on the list endpoint via the `extra` query parameter using the `key:value` syntax.",
+                              "example": {
+                                "internal_user_id": "u_123",
+                                "environment": "production"
+                              },
+                              "type": "object",
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "additionalProperties": {}
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         }
                       },
                       "required": [
@@ -18626,12 +19038,15 @@
                         "credential_type",
                         "zoom_user_id",
                         "zoom_account_id",
+                        "zoom_email",
+                        "zoom_display_name",
                         "scopes",
                         "state",
                         "last_error_message",
                         "last_error_at",
                         "created_at",
-                        "updated_at"
+                        "updated_at",
+                        "extra"
                       ],
                       "additionalProperties": false
                     }

@@ -33,6 +33,7 @@ curl -X POST "https://api.meetingbaas.com/v2/bots/BOT-ID/leave" \
 The leave endpoint works for bots in any active (non-terminal) state:
 
 - `queued`: Bot hasn't started joining yet
+- `pickup_delayed`: Bot has stayed in the `queued` status longer than the expected pickup window
 - `joining_call`: Bot is attempting to join the meeting
 - `in_waiting_room`: Bot is waiting in the meeting's waiting room
 - `in_call_not_recording`: Bot is in the meeting but not recording
