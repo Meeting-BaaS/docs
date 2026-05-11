@@ -13,6 +13,7 @@ export const source = loader({
 
 const openapiServer = createOpenAPI({
   proxyUrl: 'https://proxy.meetingbaas.com/api/',
+  input: ['./openapi.json', './openapi-v2.json', './speaking-bots-openapi.json'],
 });
 
 export const openapi = {
