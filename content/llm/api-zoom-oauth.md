@@ -13,6 +13,7 @@ Exchanges a Zoom OAuth authorization code for access and refresh tokens, retriev
 
 <APIPage document={"./openapi.json"} operations={[{"path":"/zoom_oauth_connections/","method":"post"}]} />
 
+
 ---
 
 ## Delete Zoom OAuth Connection
@@ -38,6 +39,7 @@ Permanently deletes a Zoom OAuth connection by its UUID, removing all stored tok
 Retrieves a specific Zoom OAuth connection by its UUID. Returns the connection details including the Zoom user ID, account ID, connection state, and granted scopes. Sensitive token data is never included in the response.
 
 <APIPage document={"./openapi.json"} operations={[{"path":"/zoom_oauth_connections/{uuid}","method":"get"}]} />
+
 
 ---
 

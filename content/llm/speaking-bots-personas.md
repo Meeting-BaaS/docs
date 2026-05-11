@@ -13,5 +13,6 @@ Generate an image for a persona using Replicate.
 
 <APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/personas/generate-image","method":"post"}]} />
 
+
 ---
 

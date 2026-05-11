@@ -1,15 +1,14 @@
 import { run as generateLLMContent } from './generate-llm-content.mjs';
 import { generateAllUpdates } from './updates/generate-updates.mjs';
+import { updateSearchIndexes } from './update-orama-index.mjs';
 
 async function postBuild() {
   try {
     console.log('Running post-build tasks...');
 
-    // First generate LLM content
     await generateLLMContent();
-
-    // Then generate updates based on that content
     await generateAllUpdates();
+    await updateSearchIndexes();
 
     console.log('Post-build tasks completed successfully');
   } catch (error) {

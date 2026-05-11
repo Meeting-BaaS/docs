@@ -32,6 +32,7 @@ Schedule a bot to automatically join a calendar event.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}/bots","method":"post"}]} />
 
+
 ---
 
 ## Create calendar connection
@@ -58,6 +59,7 @@ Connect a Google or Microsoft calendar to your account.
     Returns 201 with the newly created calendar connection. Returns 401 if OAuth token refresh failed, 429 if the calendar connection limit is exceeded, or 409 if the connection already exists.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars","method":"post"}]} />
+
 
 ---
 
@@ -91,6 +93,7 @@ Cancel one or more scheduled calendar bots. You can target a single event or all
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}/bots","method":"delete"}]} />
 
+
 ---
 
 ## Delete calendar connection
@@ -119,6 +122,7 @@ Disconnect and delete a calendar connection.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}","method":"delete"}]} />
 
+
 ---
 
 ## Get calendar connection details
@@ -141,6 +145,7 @@ Retrieve detailed information about a specific calendar connection.
     Returns 404 if the calendar connection is not found or does not belong to your team.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}","method":"get"}]} />
+
 
 ---
 
@@ -173,6 +178,7 @@ Retrieve detailed information about a specific calendar event.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}/events/{event_id}","method":"get"}]} />
 
+
 ---
 
 ## List calendar connections
@@ -201,6 +207,7 @@ Retrieve a paginated list of calendar connections.
     Returns a paginated list of calendar connections with metadata including calendar ID, platform, account email, status, and last sync time.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars","method":"get"}]} />
+
 
 ---
 
@@ -233,6 +240,7 @@ Retrieve a paginated list of event series (both one-off and recurring events).
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}/series","method":"get"}]} />
 
+
 ---
 
 ## List calendar events
@@ -262,6 +270,7 @@ Retrieve a paginated list of calendar events.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}/events","method":"get"}]} />
 
+
 ---
 
 ## List raw calendars (preview before creating connection)
@@ -284,6 +293,7 @@ Preview available calendars from a Google or Microsoft account before creating a
     Returns 401 if OAuth token refresh failed, or 403 if a Microsoft account license is required.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/list-raw","method":"post"}]} />
+
 
 ---
 
@@ -317,6 +327,7 @@ Renew or recreate the push subscription for a calendar connection.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}/resubscribe","method":"post"}]} />
 
+
 ---
 
 ## Sync calendar events
@@ -345,6 +356,7 @@ Manually trigger a sync of calendar events.
     Returns 200 with sync results. Returns 401 if OAuth token refresh failed, or 404 if the calendar connection is not found.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}/sync","method":"post"}]} />
+
 
 ---
 
@@ -376,6 +388,7 @@ Update one or more calendar bots for a calendar.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}/bots","method":"patch"}]} />
 
+
 ---
 
 ## Update calendar connection
@@ -403,6 +416,7 @@ Update a calendar connection with new OAuth credentials.
     Returns 200 with the updated calendar connection. Returns 401 if OAuth token refresh failed, 403 if permission is denied, or 404 if the calendar connection is not found.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}","method":"patch"}]} />
+
 
 ---
 

@@ -3142,6 +3142,7 @@ Retrieves a paginated list of the user's bots with essential metadata, including
 
 <APIPage document={"./openapi.json"} operations={[{"path":"/bots/bots_with_metadata","method":"get"}]} />
 
+
 ---
 
 ## Create Calendar
@@ -3154,6 +3155,7 @@ Retrieves a paginated list of the user's bots with essential metadata, including
 Integrates a new calendar with the system using OAuth credentials. This endpoint establishes a connection with the calendar provider (Google, Microsoft), sets up webhook notifications for real-time updates, and performs an initial sync of all calendar events. It requires OAuth credentials (client ID, client secret, and refresh token) and the platform type. Once created, the calendar is assigned a unique UUID that should be used for all subsequent operations. Returns the newly created calendar object with all integration details.
 
 <APIPage document={"./openapi.json"} operations={[{"path":"/calendars/","method":"post"}]} />
+
 
 ---
 
@@ -3181,6 +3183,7 @@ Retrieves detailed information about a specific calendar integration by its UUID
 
 <APIPage document={"./openapi.json"} operations={[{"path":"/calendars/{uuid}","method":"get"}]} />
 
+
 ---
 
 ## Get Event
@@ -3193,6 +3196,7 @@ Retrieves detailed information about a specific calendar integration by its UUID
 Retrieves comprehensive details about a specific calendar event by its UUID. Returns complete event information including title, meeting link, start and end times, organizer status, recurrence information, and the full list of attendees with their names and email addresses. Also includes any associated bot parameters if recording is scheduled for this event. The raw calendar data from the provider is also included for advanced use cases.
 
 <APIPage document={"./openapi.json"} operations={[{"path":"/calendar_events/{uuid}","method":"get"}]} />
+
 
 ---
 
@@ -3220,6 +3224,7 @@ Retrieves a paginated list of calendar events with comprehensive filtering optio
 
 <APIPage document={"./openapi.json"} operations={[{"path":"/calendar_events/","method":"get"}]} />
 
+
 ---
 
 ## List Raw Calendars
@@ -3233,6 +3238,7 @@ Retrieves unprocessed calendar data directly from the provider (Google, Microsof
 
 <APIPage document={"./openapi.json"} operations={[{"path":"/calendars/raw","method":"post"}]} />
 
+
 ---
 
 ## Patch Bot
@@ -3245,6 +3251,7 @@ Retrieves unprocessed calendar data directly from the provider (Google, Microsof
 Updates the configuration of a bot already scheduled to record an event. Allows modification of recording settings, webhook URLs, and other bot parameters without canceling and recreating the scheduled recording. For recurring events, the 'all_occurrences' parameter determines whether changes apply to all instances or just the specific occurrence. Returns the updated event(s) with the modified bot parameters.
 
 <APIPage document={"./openapi.json"} operations={[{"path":"/calendar_events/{uuid}/bot","method":"patch"}]} />
+
 
 ---
 
@@ -3265,6 +3272,7 @@ Sends webhook notifications for calendars with updates.
 
 <APIPage document={"./openapi.json"} operations={[{"path":"/calendars/resync_all","method":"post"}]} />
 
+
 ---
 
 ## Schedule Record Event
@@ -3277,6 +3285,7 @@ Sends webhook notifications for calendars with updates.
 Configures a bot to automatically join and record a specific calendar event at its scheduled time. The UUID in the request path is the event UUID. The request body contains detailed bot configuration, including recording options, streaming settings, and webhook notification URLs. For recurring events, the 'all_occurrences' parameter can be set to true to schedule recording for all instances of the recurring series, or false (default) to schedule only the specific instance. Returns the updated event(s) with the bot parameters attached.
 
 <APIPage document={"./openapi.json"} operations={[{"path":"/calendar_events/{uuid}/bot","method":"post"}]} />
+
 
 ---
 
@@ -3304,6 +3313,7 @@ Updates a calendar integration with new credentials or platform while maintainin
 
 <APIPage document={"./openapi.json"} operations={[{"path":"/calendars/{uuid}","method":"patch"}]} />
 
+
 ---
 
 ## Delete Data
@@ -3317,6 +3327,7 @@ Deletes a bot's data including recording, transcription, and logs. Only metadata
 
 <APIPage document={"./openapi.json"} operations={[{"path":"/bots/{uuid}/delete_data","method":"post"}]} />
 
+
 ---
 
 ## Get Meeting Data
@@ -3329,6 +3340,7 @@ Deletes a bot's data including recording, transcription, and logs. Only metadata
 Get meeting recording and metadata
 
 <APIPage document={"./openapi.json"} operations={[{"path":"/bots/meeting_data","method":"get"}]} />
+
 
 ---
 
@@ -3356,6 +3368,7 @@ Have a bot join a meeting, now or in the future. You can provide a `webhook_url`
 
 <APIPage document={"./openapi.json"} operations={[{"path":"/bots/","method":"post"}]} />
 
+
 ---
 
 ## Leave
@@ -3369,6 +3382,7 @@ Leave
 
 <APIPage document={"./openapi.json"} operations={[{"path":"/bots/{uuid}","method":"delete"}]} />
 
+
 ---
 
 ## Retranscribe Bot
@@ -3381,6 +3395,7 @@ Leave
 Transcribe or retranscribe a bot's audio using the Default or your provided Speech to Text Provider
 
 <APIPage document={"./openapi.json"} operations={[{"path":"/bots/retranscribe","method":"post"}]} />
+
 
 ---
 
@@ -3766,6 +3781,7 @@ Exchanges a Zoom OAuth authorization code for access and refresh tokens, retriev
 
 <APIPage document={"./openapi.json"} operations={[{"path":"/zoom_oauth_connections/","method":"post"}]} />
 
+
 ---
 
 ## Delete Zoom OAuth Connection
@@ -3791,6 +3807,7 @@ Permanently deletes a Zoom OAuth connection by its UUID, removing all stored tok
 Retrieves a specific Zoom OAuth connection by its UUID. Returns the connection details including the Zoom user ID, account ID, connection state, and granted scopes. Sensitive token data is never included in the response.
 
 <APIPage document={"./openapi.json"} operations={[{"path":"/zoom_oauth_connections/{uuid}","method":"get"}]} />
+
 
 ---
 
