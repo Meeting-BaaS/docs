@@ -1,42 +1,8 @@
-import { OramaCloud } from '@orama/core';
+'use client';
+
 import type { SharedProps } from 'fumadocs-ui/components/dialog/search';
-import SearchDialog from 'fumadocs-ui/components/dialog/search-orama';
-import { useMode } from '@/app/layout.client';
+import SearchDialog from 'fumadocs-ui/components/dialog/search-default';
 
-const projectId = process.env.NEXT_PUBLIC_ORAMA_PROJECT_ID;
-const apiKey = process.env.NEXT_PUBLIC_ORAMA_API_KEY;
-
-if (!projectId || !apiKey) {
-  throw new Error(
-    'Orama project ID and API key must be defined in environment variables',
-  );
-}
-
-const client = new OramaCloud({
-  projectId,
-  apiKey,
-});
-
-export default function CustomSearchDialog(
-  props: SharedProps,
-): React.ReactElement {
-  return (
-    <SearchDialog
-      {...props}
-      defaultTag={useMode() ?? 'ui'}
-      allowClear
-      tags={[
-        {
-          name: 'API',
-          value: 'api',
-        },
-        {
-          name: 'API v2',
-          value: 'api-v2',
-        },
-      ]}
-      client={client}
-      showOrama
-    />
-  );
+export default function CustomSearchDialog(props: SharedProps): React.ReactElement {
+  return <SearchDialog {...props} />;
 }
