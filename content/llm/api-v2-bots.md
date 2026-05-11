@@ -29,6 +29,7 @@ Create multiple bots in a single request with partial success support.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/batch","method":"post"}]} />
 
+
 ---
 
 ## Create multiple scheduled bots
@@ -60,6 +61,7 @@ Create multiple scheduled bots in a single request with partial success support.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/scheduled/batch","method":"post"}]} />
 
+
 ---
 
 ## Create a bot
@@ -88,6 +90,7 @@ Create a bot to join a meeting immediately.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots","method":"post"}]} />
 
+
 ---
 
 ## Create scheduled bot
@@ -114,6 +117,7 @@ Schedule a bot to join a meeting at a specific time in the future.
     Returns a `bot_id` (UUID) that you can use to track and manage the scheduled bot. This UUID will be reused as the bot's UUID when it actually joins.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/scheduled","method":"post"}]} />
+
 
 ---
 
@@ -144,6 +148,7 @@ Permanently delete all bot data including recordings, transcripts, summaries, an
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/delete-data","method":"delete"}]} />
 
+
 ---
 
 ## Delete scheduled bot
@@ -169,6 +174,7 @@ Cancel and delete a scheduled bot. The behavior depends on where the bot is in i
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/scheduled/{bot_id}","method":"delete"}]} />
 
+
 ---
 
 ## Get bot details
@@ -193,6 +199,7 @@ Get comprehensive information about a specific bot.
     Returns 404 if the bot is not found or does not belong to your team.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}","method":"get"}]} />
+
 
 ---
 
@@ -220,6 +227,7 @@ Retrieve a paginated list of screenshot URLs captured during the meeting.
     Returns 404 if the bot is not found or does not belong to your team.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/screenshots","method":"get"}]} />
+
 
 ---
 
@@ -251,6 +259,7 @@ Get the current status of a bot, including the latest status code, transcription
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/status","method":"get"}]} />
 
+
 ---
 
 ## Get scheduled bot details
@@ -276,6 +285,7 @@ Retrieve detailed information about a specific scheduled bot.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/scheduled/{bot_id}","method":"get"}]} />
 
+
 ---
 
 ## Leave meeting
@@ -297,6 +307,7 @@ Instruct a bot to leave the meeting immediately.
     Returns 404 if the bot is not found, or 409 if the bot's status does not allow this operation.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/leave","method":"post"}]} />
+
 
 ---
 
@@ -324,6 +335,7 @@ List all bots for your team with pagination support.
     Returns a paginated list of bots with metadata including bot ID, status, meeting platform, creation time, and basic configuration.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots","method":"get"}]} />
+
 
 ---
 
@@ -357,6 +369,7 @@ Retrieve a paginated list of scheduled bots.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/scheduled","method":"get"}]} />
 
+
 ---
 
 ## Pause recording
@@ -379,6 +392,7 @@ Pause the bot's recording during a meeting.
     Returns 404 if the bot is not found, or 409 if the bot's status does not allow this operation.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/pause-recording","method":"post"}]} />
+
 
 ---
 
@@ -409,6 +423,7 @@ Resend the final webhook (completed or failed) for a bot.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/resend-webhook","method":"post"}]} />
 
+
 ---
 
 ## Resume recording
@@ -431,6 +446,7 @@ Resume a bot's recording after it was paused.
     Returns 404 if the bot is not found, or 409 if the bot's status does not allow this operation.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/resume-recording","method":"post"}]} />
+
 
 ---
 
@@ -463,6 +479,7 @@ Retry sending the transcription callback for a bot.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/retry-callback","method":"post"}]} />
 
+
 ---
 
 ## Send chat message
@@ -487,6 +504,7 @@ Send a chat message to the meeting through the bot.
     Returns 404 if the bot is not found, 409 if the bot's status does not allow this operation, or 422 if chat is disabled in the meeting.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/send-chat-message","method":"post"}]} />
+
 
 ---
 
@@ -526,6 +544,7 @@ Update bot configuration (currently only supports updating the extra parameter).
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/update-config","method":"patch"}]} />
 
+
 ---
 
 ## Update scheduled bot
@@ -554,6 +573,7 @@ Update a scheduled bot's configuration or scheduled join time.
     Returns 404 if the scheduled bot is not found, or 409 if the bot's status does not allow update or the join time is too close.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/scheduled/{bot_id}","method":"patch"}]} />
+
 
 ---
 

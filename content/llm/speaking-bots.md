@@ -941,6 +941,7 @@ and processes audio using Pipecat's voice AI framework.
 
 <APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/bots","method":"post"}]} />
 
+
 ---
 
 ## Leave Bot
@@ -958,6 +959,7 @@ This will:
 3. Terminate the associated Pipecat process
 
 <APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/bots/{bot_id}","method":"delete"}]} />
+
 
 ---
 
@@ -1003,6 +1005,7 @@ Use the navigation to explore the available endpoints.
 Generate an image for a persona using Replicate.
 
 <APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/personas/generate-image","method":"post"}]} />
+
 
 ---
 

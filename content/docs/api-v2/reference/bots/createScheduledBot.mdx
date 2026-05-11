@@ -23,6 +23,221 @@ _openapi:
               **Updates and Deletions:** Scheduled bots can be updated or deleted as long as they are in `scheduled` status and the join time is at least 4 minutes in the future. This ensures the bot can be modified before it starts processing.
               
               Returns a `bot_id` (UUID) that you can use to track and manage the scheduled bot. This UUID will be reused as the bot's UUID when it actually joins.
+      - content: |-
+          bot_name: The name of the bot.
+
+          This name will be displayed as the bot's name in the meeting.
+      - content: >-
+          bot_image: The bot's avatar image(s).
+
+
+          Accepts a single HTTPS URL or an array of up to 5 HTTPS URLs pointing
+          to image files (JPEG, PNG, or WebP). When multiple images are
+          provided, they will be cycled based on the bot_image_config settings.
+      - content: >-
+          bot_image_config: Configuration for how bot avatar images are
+          displayed. Only relevant when multiple images are provided in
+          bot_image.
+      - content: >-
+          meeting_url: The URL of the meeting to join.
+
+
+          Must be a valid HTTPS URL for a Microsoft Teams, Google Meet, or Zoom
+          meeting.
+
+
+          Example: "https://zoom.us/j/123456789" or
+          "https://meet.google.com/abc-defg-hij"
+      - content: >-
+          allow_multiple_bots: Whether to allow multiple bots to join the same
+          meeting.
+
+
+          If set to `false`, only a single bot will be allowed to join using the
+          same meeting URL within the last 5 minutes. This prevents duplicate
+          bots from joining the same meeting.
+
+
+          If set to `true` (default), multiple bots can join the same meeting
+          URL.
+
+
+          Default: `true`
+      - content: >-
+          recording_mode: The recording mode of the bot.
+
+
+          Determines what the bot records during the meeting:
+
+
+          - `speaker_view`: Records the speaker's view (default). Shows the
+          active speaker or presenter.
+
+          - `audio_only`: Records only the audio without video.
+
+          - `gallery_view`: Records the entire gallery view (coming soon).
+
+
+          Default: `speaker_view`
+      - content: >-
+          entry_message: The message that the bot will send when it joins the
+          meeting.
+
+
+          This message will be posted in the meeting chat when the bot
+          successfully joins.
+
+
+          Available for Google Meet, Microsoft Teams, and Zoom meetings.
+
+
+          Maximum: 500 characters
+      - content: >-
+          timeout_config: Configuration for automatic meeting exit behavior. For
+          Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to
+          wait in the waiting room, then no_one_joined_timeout to wait for
+          participants when first joining the meeting, and finally switches to
+          silence_timeout monitoring once participants are detected. Zoom only
+          uses waiting_room_timeout.
+      - content: >-
+          timeout_config.waiting_room_timeout: The timeout in seconds for the
+          bot to wait in the waiting room before leaving the meeting.
+
+
+          If the bot is placed in a waiting room and not admitted within this
+          time, it will leave the meeting.
+
+
+          Note: Google Meet has its own waiting room timeout (approximately 10
+          minutes). Setting a higher value for Google Meet meetings will have no
+          effect, as Google Meet will deny entry to the bot after its own
+          timeout.
+
+
+          Default: 600 seconds (10 minutes)
+
+          Minimum: 2 minutes
+
+          Maximum: 30 minutes
+      - content: >-
+          timeout_config.no_one_joined_timeout: The timeout in seconds for the
+          bot to wait for participants to join before leaving the meeting.
+
+
+          If no participants join the meeting within this time after the bot
+          joins, the bot will leave the meeting. Only applicable for Google Meet
+          and Microsoft Teams meetings.
+
+
+          Default: 600 seconds (10 minutes)
+
+          Minimum: 2 minutes
+
+          Maximum: 30 minutes
+      - content: >-
+          timeout_config.silence_timeout: The timeout in seconds for the bot to
+          wait for silence before leaving the meeting.
+
+
+          If no audio is detected for this duration after the bot joins, the bot
+          will leave the meeting. Only applicable for Google Meet and Microsoft
+          Teams meetings.
+
+
+          Default: 600 seconds (10 minutes)
+
+          Minimum: 5 minutes
+
+          Maximum: 30 minutes
+      - content: >-
+          timeout_config.grace_period: The grace period in seconds at the start
+          of the meeting during which no timeout conditions (waiting room, no
+          participants, silence) will trigger.
+
+
+          Default: 0 (disabled)
+
+          Maximum: 600 seconds (10 minutes)
+      - content: >-
+          zoom_config: Zoom-only configuration for authentication and join
+          method.
+
+
+          - **credential_id**: Use a stored Zoom credential (OBF token fetched
+          by the bot from the API server).
+
+          - **credential_user_id**: Resolve a stored credential by Zoom user ID.
+
+          - **obf_token**: Provide a direct OBF token (one-off join).
+
+          - **obf_token_url**: URL that returns an OBF token when the bot joins.
+
+          - **zak_token_url**: URL that returns a ZAK for joining without the
+          host.
+
+
+          Leave `null` for Google Meet and Microsoft Teams.
+      - content: >-
+          extra: An optional extra configuration object for the bot.
+
+
+          This object can contain any custom key-value pairs that you want to
+          associate with the bot. The data will be:
+
+
+          - Included in all webhook event payloads (if a webhook endpoint is
+          configured)
+
+          - Part of the callback payload (if callback is enabled)
+
+          - Returned when fetching the bot's details via the API
+
+
+          Useful for storing custom metadata, tracking information, or any other
+          data you need to correlate with the bot.
+      - content: >-
+          streaming_enabled: Enable audio streaming for this bot. When enabled,
+          the streaming_config property is used to provide the configuration.
+      - content: streaming_config
+      - content: >-
+          transcription_enabled: Enable transcription for this bot. When
+          enabled, the transcription_config property is used to customise the
+          transcription provider and parameters.
+      - content: transcription_config
+      - content: >-
+          callback_enabled: Enable callback for this bot. When enabled, the
+          callback_config property is used to provide the configuration.
+      - content: callback_config
+      - content: >-
+          join_at: ISO8601 timestamp when the bot should join the meeting.
+
+
+          Cannot be in the past (with 1 minute leeway) and cannot be more than
+          90 days in the future.
+
+
+          Example: "2025-12-25T10:00:00Z"
+      - content: success
+      - content: data
+      - content: 'data.bot_id: The UUID of the created scheduled bot'
+      - content: success
+      - content: 'error: Error name'
+      - content: 'code: Error code for programmatic handling'
+      - content: 'statusCode: HTTP status code'
+      - content: 'message: Human-readable error message'
+      - content: success
+      - content: 'error: Human-readable error message'
+      - content: 'code: Error code for programmatic handling'
+      - content: 'statusCode: HTTP status code'
+      - content: 'message: Human-readable error message'
+      - content: 'details: Additional error details (string or null)'
+      - content: 'retryAfter: Number of seconds to wait before retrying'
+      - content: success
+      - content: 'error: Human-readable error message'
+      - content: 'code: Error code for programmatic handling'
+      - content: 'statusCode: HTTP status code'
+      - content: 'message: Human-readable error message'
+      - content: 'details: Additional error details (string or null)'
 ---
 
 {/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}

@@ -29,6 +29,7 @@ Create a new Zoom credential for your team.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/zoom-credentials","method":"post"}]} />
 
+
 ---
 
 ## Delete a Zoom credential
@@ -50,6 +51,7 @@ Delete a Zoom credential (soft delete).
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/zoom-credentials/{id}","method":"delete"}]} />
 
+
 ---
 
 ## Get a Zoom credential
@@ -70,6 +72,7 @@ Get detailed information about a specific Zoom credential.
     Returns 404 if the credential is not found or does not belong to your team.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/zoom-credentials/{id}","method":"get"}]} />
+
 
 ---
 
@@ -104,6 +107,7 @@ List all Zoom credentials for your team.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/zoom-credentials","method":"get"}]} />
 
+
 ---
 
 ## Update a Zoom credential
@@ -131,6 +135,7 @@ Update an existing Zoom credential.
     - `404 Not Found`: Credential not found or does not belong to your team
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/zoom-credentials/{id}","method":"patch"}]} />
+
 
 ---
 

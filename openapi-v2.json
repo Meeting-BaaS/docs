@@ -228,7 +228,8 @@
             "default": {
               "waiting_room_timeout": 600,
               "no_one_joined_timeout": 600,
-              "silence_timeout": 600
+              "silence_timeout": 600,
+              "grace_period": 0
             },
             "type": "object",
             "properties": {
@@ -255,6 +256,14 @@
                 "type": "integer",
                 "minimum": 300,
                 "maximum": 1800
+              },
+              "grace_period": {
+                "description": "The grace period in seconds at the start of the meeting during which no timeout conditions (waiting room, no participants, silence) will trigger.\n\nDefault: 0 (disabled)\nMaximum: 600 seconds (10 minutes)",
+                "example": 0,
+                "default": 0,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 600
               }
             }
           },
@@ -307,7 +316,9 @@
                 "propertyNames": {
                   "type": "string"
                 },
-                "additionalProperties": {}
+                "additionalProperties": {
+
+                }
               },
               {
                 "type": "null"
@@ -439,7 +450,9 @@
                         "propertyNames": {
                           "type": "string"
                         },
-                        "additionalProperties": {}
+                        "additionalProperties": {
+
+                        }
                       },
                       {
                         "type": "null"
@@ -629,7 +642,9 @@
                       "propertyNames": {
                         "type": "string"
                       },
-                      "additionalProperties": {}
+                      "additionalProperties": {
+
+                      }
                     },
                     {
                       "type": "null"
@@ -683,7 +698,9 @@
                       "propertyNames": {
                         "type": "string"
                       },
-                      "additionalProperties": {}
+                      "additionalProperties": {
+
+                      }
                     },
                     {
                       "type": "null"
@@ -753,7 +770,9 @@
                       "propertyNames": {
                         "type": "string"
                       },
-                      "additionalProperties": {}
+                      "additionalProperties": {
+
+                      }
                     },
                     {
                       "type": "null"
@@ -1333,7 +1352,9 @@
                     "propertyNames": {
                       "type": "string"
                     },
-                    "additionalProperties": {}
+                    "additionalProperties": {
+
+                    }
                   },
                   {
                     "type": "null"
@@ -1828,7 +1849,8 @@
             "default": {
               "waiting_room_timeout": 600,
               "no_one_joined_timeout": 600,
-              "silence_timeout": 600
+              "silence_timeout": 600,
+              "grace_period": 0
             },
             "type": "object",
             "properties": {
@@ -1855,6 +1877,14 @@
                 "type": "integer",
                 "minimum": 300,
                 "maximum": 1800
+              },
+              "grace_period": {
+                "description": "The grace period in seconds at the start of the meeting during which no timeout conditions (waiting room, no participants, silence) will trigger.\n\nDefault: 0 (disabled)\nMaximum: 600 seconds (10 minutes)",
+                "example": 0,
+                "default": 0,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 600
               }
             }
           },
@@ -1907,7 +1937,9 @@
                 "propertyNames": {
                   "type": "string"
                 },
-                "additionalProperties": {}
+                "additionalProperties": {
+
+                }
               },
               {
                 "type": "null"
@@ -2039,7 +2071,9 @@
                         "propertyNames": {
                           "type": "string"
                         },
-                        "additionalProperties": {}
+                        "additionalProperties": {
+
+                        }
                       },
                       {
                         "type": "null"
@@ -2174,7 +2208,9 @@
                       "propertyNames": {
                         "type": "string"
                       },
-                      "additionalProperties": {}
+                      "additionalProperties": {
+
+                      }
                     },
                     {
                       "type": "null"
@@ -2228,7 +2264,9 @@
                       "propertyNames": {
                         "type": "string"
                       },
-                      "additionalProperties": {}
+                      "additionalProperties": {
+
+                      }
                     },
                     {
                       "type": "null"
@@ -2313,7 +2351,9 @@
                       "propertyNames": {
                         "type": "string"
                       },
-                      "additionalProperties": {}
+                      "additionalProperties": {
+
+                      }
                     },
                     {
                       "type": "null"
@@ -2546,7 +2586,9 @@
                             "propertyNames": {
                               "type": "string"
                             },
-                            "additionalProperties": {}
+                            "additionalProperties": {
+
+                            }
                           },
                           {
                             "type": "null"
@@ -2677,7 +2719,9 @@
                     "propertyNames": {
                       "type": "string"
                     },
-                    "additionalProperties": {}
+                    "additionalProperties": {
+
+                    }
                   },
                   {
                     "type": "null"
@@ -3048,7 +3092,8 @@
                 "default": {
                   "waiting_room_timeout": 600,
                   "no_one_joined_timeout": 600,
-                  "silence_timeout": 600
+                  "silence_timeout": 600,
+                  "grace_period": 0
                 },
                 "type": "object",
                 "properties": {
@@ -3075,6 +3120,14 @@
                     "type": "integer",
                     "minimum": 300,
                     "maximum": 1800
+                  },
+                  "grace_period": {
+                    "description": "The grace period in seconds at the start of the meeting during which no timeout conditions (waiting room, no participants, silence) will trigger.\n\nDefault: 0 (disabled)\nMaximum: 600 seconds (10 minutes)",
+                    "example": 0,
+                    "default": 0,
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 600
                   }
                 }
               },
@@ -3127,7 +3180,9 @@
                     "propertyNames": {
                       "type": "string"
                     },
-                    "additionalProperties": {}
+                    "additionalProperties": {
+
+                    }
                   },
                   {
                     "type": "null"
@@ -3259,7 +3314,9 @@
                             "propertyNames": {
                               "type": "string"
                             },
-                            "additionalProperties": {}
+                            "additionalProperties": {
+
+                            }
                           },
                           {
                             "type": "null"
@@ -3486,7 +3543,8 @@
                 "default": {
                   "waiting_room_timeout": 600,
                   "no_one_joined_timeout": 600,
-                  "silence_timeout": 600
+                  "silence_timeout": 600,
+                  "grace_period": 0
                 },
                 "type": "object",
                 "properties": {
@@ -3513,6 +3571,14 @@
                     "type": "integer",
                     "minimum": 300,
                     "maximum": 1800
+                  },
+                  "grace_period": {
+                    "description": "The grace period in seconds at the start of the meeting during which no timeout conditions (waiting room, no participants, silence) will trigger.\n\nDefault: 0 (disabled)\nMaximum: 600 seconds (10 minutes)",
+                    "example": 0,
+                    "default": 0,
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 600
                   }
                 }
               },
@@ -3565,7 +3631,9 @@
                     "propertyNames": {
                       "type": "string"
                     },
-                    "additionalProperties": {}
+                    "additionalProperties": {
+
+                    }
                   },
                   {
                     "type": "null"
@@ -3686,7 +3754,9 @@
                         "propertyNames": {
                           "type": "string"
                         },
-                        "additionalProperties": {}
+                        "additionalProperties": {
+
+                        }
                       },
                       {
                         "type": "null"
@@ -4071,7 +4141,9 @@
                     "propertyNames": {
                       "type": "string"
                     },
-                    "additionalProperties": {}
+                    "additionalProperties": {
+
+                    }
                   },
                   {
                     "type": "null"
@@ -4821,7 +4893,9 @@
                     "propertyNames": {
                       "type": "string"
                     },
-                    "additionalProperties": {}
+                    "additionalProperties": {
+
+                    }
                   },
                   {
                     "type": "null"
@@ -5171,7 +5245,9 @@
                 "propertyNames": {
                   "type": "string"
                 },
-                "additionalProperties": {}
+                "additionalProperties": {
+
+                }
               },
               {
                 "type": "null"
@@ -5457,7 +5533,9 @@
                 "propertyNames": {
                   "type": "string"
                 },
-                "additionalProperties": {}
+                "additionalProperties": {
+
+                }
               },
               {
                 "type": "null"
@@ -5534,7 +5612,9 @@
                 "propertyNames": {
                   "type": "string"
                 },
-                "additionalProperties": {}
+                "additionalProperties": {
+
+                }
               },
               {
                 "type": "null"
@@ -5630,7 +5710,9 @@
                 "propertyNames": {
                   "type": "string"
                 },
-                "additionalProperties": {}
+                "additionalProperties": {
+
+                }
               },
               {
                 "type": "null"
@@ -6709,7 +6791,9 @@
                 "propertyNames": {
                   "type": "string"
                 },
-                "additionalProperties": {}
+                "additionalProperties": {
+
+                }
               },
               {
                 "type": "null"
@@ -6786,7 +6870,9 @@
                 "propertyNames": {
                   "type": "string"
                 },
-                "additionalProperties": {}
+                "additionalProperties": {
+
+                }
               },
               {
                 "type": "null"
@@ -7159,7 +7245,9 @@
                   "propertyNames": {
                     "type": "string"
                   },
-                  "additionalProperties": {}
+                  "additionalProperties": {
+
+                  }
                 },
                 "translation": {
                   "description": "Translated transcriptions by target language",
@@ -7167,7 +7255,9 @@
                   "propertyNames": {
                     "type": "string"
                   },
-                  "additionalProperties": {}
+                  "additionalProperties": {
+
+                  }
                 },
                 "sentiment_analysis": {
                   "description": "Sentiment scores for utterances",
@@ -7175,7 +7265,9 @@
                   "propertyNames": {
                     "type": "string"
                   },
-                  "additionalProperties": {}
+                  "additionalProperties": {
+
+                  }
                 },
                 "named_entity_recognition": {
                   "description": "Extracted entities (names, organizations, locations)",
@@ -7183,7 +7275,9 @@
                   "propertyNames": {
                     "type": "string"
                   },
-                  "additionalProperties": {}
+                  "additionalProperties": {
+
+                  }
                 },
                 "audio_to_llm": {
                   "description": "LLM prompt responses",
@@ -7191,7 +7285,9 @@
                   "propertyNames": {
                     "type": "string"
                   },
-                  "additionalProperties": {}
+                  "additionalProperties": {
+
+                  }
                 },
                 "moderation": {
                   "description": "Content moderation results",
@@ -7199,7 +7295,9 @@
                   "propertyNames": {
                     "type": "string"
                   },
-                  "additionalProperties": {}
+                  "additionalProperties": {
+
+                  }
                 },
                 "chapterization": {
                   "description": "Automatic meeting chapters",
@@ -7207,14 +7305,18 @@
                   "propertyNames": {
                     "type": "string"
                   },
-                  "additionalProperties": {}
+                  "additionalProperties": {
+
+                  }
                 }
               },
               "required": [
                 "metadata",
                 "transcription"
               ],
-              "additionalProperties": {}
+              "additionalProperties": {
+
+              }
             }
           },
           "created_at": {
@@ -7459,7 +7561,9 @@
                       "propertyNames": {
                         "type": "string"
                       },
-                      "additionalProperties": {}
+                      "additionalProperties": {
+
+                      }
                     },
                     {
                       "type": "null"
@@ -7514,7 +7618,9 @@
                       "propertyNames": {
                         "type": "string"
                       },
-                      "additionalProperties": {}
+                      "additionalProperties": {
+
+                      }
                     },
                     {
                       "type": "null"
@@ -7586,7 +7692,9 @@
                       "propertyNames": {
                         "type": "string"
                       },
-                      "additionalProperties": {}
+                      "additionalProperties": {
+
+                      }
                     },
                     {
                       "type": "null"
@@ -8172,7 +8280,9 @@
                     "propertyNames": {
                       "type": "string"
                     },
-                    "additionalProperties": {}
+                    "additionalProperties": {
+
+                    }
                   },
                   {
                     "type": "null"
@@ -8688,7 +8798,8 @@
             "default": {
               "waiting_room_timeout": 600,
               "no_one_joined_timeout": 600,
-              "silence_timeout": 600
+              "silence_timeout": 600,
+              "grace_period": 0
             },
             "type": "object",
             "properties": {
@@ -8715,12 +8826,21 @@
                 "type": "integer",
                 "minimum": 300,
                 "maximum": 1800
+              },
+              "grace_period": {
+                "description": "The grace period in seconds at the start of the meeting during which no timeout conditions (waiting room, no participants, silence) will trigger.\n\nDefault: 0 (disabled)\nMaximum: 600 seconds (10 minutes)",
+                "example": 0,
+                "default": 0,
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 600
               }
             },
             "required": [
               "waiting_room_timeout",
               "no_one_joined_timeout",
-              "silence_timeout"
+              "silence_timeout",
+              "grace_period"
             ],
             "additionalProperties": false
           },
@@ -8774,7 +8894,9 @@
                 "propertyNames": {
                   "type": "string"
                 },
-                "additionalProperties": {}
+                "additionalProperties": {
+
+                }
               },
               {
                 "type": "null"
@@ -8912,7 +9034,9 @@
                         "propertyNames": {
                           "type": "string"
                         },
-                        "additionalProperties": {}
+                        "additionalProperties": {
+
+                        }
                       },
                       {
                         "type": "null"
@@ -9059,7 +9183,9 @@
                       "propertyNames": {
                         "type": "string"
                       },
-                      "additionalProperties": {}
+                      "additionalProperties": {
+
+                      }
                     },
                     {
                       "type": "null"
@@ -9114,7 +9240,9 @@
                       "propertyNames": {
                         "type": "string"
                       },
-                      "additionalProperties": {}
+                      "additionalProperties": {
+
+                      }
                     },
                     {
                       "type": "null"
@@ -9201,7 +9329,9 @@
                       "propertyNames": {
                         "type": "string"
                       },
-                      "additionalProperties": {}
+                      "additionalProperties": {
+
+                      }
                     },
                     {
                       "type": "null"
@@ -9437,7 +9567,9 @@
                             "propertyNames": {
                               "type": "string"
                             },
-                            "additionalProperties": {}
+                            "additionalProperties": {
+
+                            }
                           },
                           {
                             "type": "null"
@@ -9571,7 +9703,9 @@
                     "propertyNames": {
                       "type": "string"
                     },
-                    "additionalProperties": {}
+                    "additionalProperties": {
+
+                    }
                   },
                   {
                     "type": "null"
@@ -9960,7 +10094,8 @@
                 "default": {
                   "waiting_room_timeout": 600,
                   "no_one_joined_timeout": 600,
-                  "silence_timeout": 600
+                  "silence_timeout": 600,
+                  "grace_period": 0
                 },
                 "type": "object",
                 "properties": {
@@ -9987,12 +10122,21 @@
                     "type": "integer",
                     "minimum": 300,
                     "maximum": 1800
+                  },
+                  "grace_period": {
+                    "description": "The grace period in seconds at the start of the meeting during which no timeout conditions (waiting room, no participants, silence) will trigger.\n\nDefault: 0 (disabled)\nMaximum: 600 seconds (10 minutes)",
+                    "example": 0,
+                    "default": 0,
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 600
                   }
                 },
                 "required": [
                   "waiting_room_timeout",
                   "no_one_joined_timeout",
-                  "silence_timeout"
+                  "silence_timeout",
+                  "grace_period"
                 ],
                 "additionalProperties": false
               },
@@ -10046,7 +10190,9 @@
                     "propertyNames": {
                       "type": "string"
                     },
-                    "additionalProperties": {}
+                    "additionalProperties": {
+
+                    }
                   },
                   {
                     "type": "null"
@@ -10184,7 +10330,9 @@
                             "propertyNames": {
                               "type": "string"
                             },
-                            "additionalProperties": {}
+                            "additionalProperties": {
+
+                            }
                           },
                           {
                             "type": "null"
@@ -10441,7 +10589,8 @@
                 "default": {
                   "waiting_room_timeout": 600,
                   "no_one_joined_timeout": 600,
-                  "silence_timeout": 600
+                  "silence_timeout": 600,
+                  "grace_period": 0
                 },
                 "type": "object",
                 "properties": {
@@ -10468,12 +10617,21 @@
                     "type": "integer",
                     "minimum": 300,
                     "maximum": 1800
+                  },
+                  "grace_period": {
+                    "description": "The grace period in seconds at the start of the meeting during which no timeout conditions (waiting room, no participants, silence) will trigger.\n\nDefault: 0 (disabled)\nMaximum: 600 seconds (10 minutes)",
+                    "example": 0,
+                    "default": 0,
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 600
                   }
                 },
                 "required": [
                   "waiting_room_timeout",
                   "no_one_joined_timeout",
-                  "silence_timeout"
+                  "silence_timeout",
+                  "grace_period"
                 ],
                 "additionalProperties": false
               },
@@ -10527,7 +10685,9 @@
                     "propertyNames": {
                       "type": "string"
                     },
-                    "additionalProperties": {}
+                    "additionalProperties": {
+
+                    }
                   },
                   {
                     "type": "null"
@@ -10654,7 +10814,9 @@
                         "propertyNames": {
                           "type": "string"
                         },
-                        "additionalProperties": {}
+                        "additionalProperties": {
+
+                        }
                       },
                       {
                         "type": "null"
@@ -11055,7 +11217,9 @@
                     "propertyNames": {
                       "type": "string"
                     },
-                    "additionalProperties": {}
+                    "additionalProperties": {
+
+                    }
                   },
                   {
                     "type": "null"
@@ -11821,7 +11985,9 @@
                     "propertyNames": {
                       "type": "string"
                     },
-                    "additionalProperties": {}
+                    "additionalProperties": {
+
+                    }
                   },
                   {
                     "type": "null"
@@ -12184,7 +12350,9 @@
                 "propertyNames": {
                   "type": "string"
                 },
-                "additionalProperties": {}
+                "additionalProperties": {
+
+                }
               },
               {
                 "type": "null"
@@ -12474,7 +12642,9 @@
                 "propertyNames": {
                   "type": "string"
                 },
-                "additionalProperties": {}
+                "additionalProperties": {
+
+                }
               },
               {
                 "type": "null"
@@ -12553,7 +12723,9 @@
                 "propertyNames": {
                   "type": "string"
                 },
-                "additionalProperties": {}
+                "additionalProperties": {
+
+                }
               },
               {
                 "type": "null"
@@ -12651,7 +12823,9 @@
                 "propertyNames": {
                   "type": "string"
                 },
-                "additionalProperties": {}
+                "additionalProperties": {
+
+                }
               },
               {
                 "type": "null"
@@ -13753,7 +13927,9 @@
                 "propertyNames": {
                   "type": "string"
                 },
-                "additionalProperties": {}
+                "additionalProperties": {
+
+                }
               },
               {
                 "type": "null"
@@ -13832,7 +14008,9 @@
                 "propertyNames": {
                   "type": "string"
                 },
-                "additionalProperties": {}
+                "additionalProperties": {
+
+                }
               },
               {
                 "type": "null"
@@ -14216,7 +14394,9 @@
                   "propertyNames": {
                     "type": "string"
                   },
-                  "additionalProperties": {}
+                  "additionalProperties": {
+
+                  }
                 },
                 "translation": {
                   "description": "Translated transcriptions by target language",
@@ -14224,7 +14404,9 @@
                   "propertyNames": {
                     "type": "string"
                   },
-                  "additionalProperties": {}
+                  "additionalProperties": {
+
+                  }
                 },
                 "sentiment_analysis": {
                   "description": "Sentiment scores for utterances",
@@ -14232,7 +14414,9 @@
                   "propertyNames": {
                     "type": "string"
                   },
-                  "additionalProperties": {}
+                  "additionalProperties": {
+
+                  }
                 },
                 "named_entity_recognition": {
                   "description": "Extracted entities (names, organizations, locations)",
@@ -14240,7 +14424,9 @@
                   "propertyNames": {
                     "type": "string"
                   },
-                  "additionalProperties": {}
+                  "additionalProperties": {
+
+                  }
                 },
                 "audio_to_llm": {
                   "description": "LLM prompt responses",
@@ -14248,7 +14434,9 @@
                   "propertyNames": {
                     "type": "string"
                   },
-                  "additionalProperties": {}
+                  "additionalProperties": {
+
+                  }
                 },
                 "moderation": {
                   "description": "Content moderation results",
@@ -14256,7 +14444,9 @@
                   "propertyNames": {
                     "type": "string"
                   },
-                  "additionalProperties": {}
+                  "additionalProperties": {
+
+                  }
                 },
                 "chapterization": {
                   "description": "Automatic meeting chapters",
@@ -14264,14 +14454,18 @@
                   "propertyNames": {
                     "type": "string"
                   },
-                  "additionalProperties": {}
+                  "additionalProperties": {
+
+                  }
                 }
               },
               "required": [
                 "metadata",
                 "transcription"
               ],
-              "additionalProperties": {}
+              "additionalProperties": {
+
+              }
             }
           },
           "created_at": {
@@ -14360,9 +14554,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -14700,9 +14892,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -14820,9 +15010,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -14954,9 +15142,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -15088,9 +15274,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -15252,9 +15436,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -15396,9 +15578,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -15519,9 +15699,7 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "enum": [true]
                     },
                     "data": {
                       "type": "object",
@@ -15597,9 +15775,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -15723,9 +15899,7 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "enum": [true]
                     },
                     "data": {
                       "type": "object",
@@ -15791,9 +15965,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -15917,9 +16089,7 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "enum": [true]
                     },
                     "data": {
                       "type": "object",
@@ -15985,9 +16155,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -16129,9 +16297,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -16273,9 +16439,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -16426,9 +16590,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -16522,7 +16684,9 @@
                         "propertyNames": {
                           "type": "string"
                         },
-                        "additionalProperties": {}
+                        "additionalProperties": {
+
+                        }
                       },
                       {
                         "type": "null"
@@ -16561,9 +16725,7 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "enum": [true]
                     },
                     "data": {
                       "type": "object",
@@ -16619,9 +16781,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -16739,9 +16899,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -17040,9 +17198,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -17160,9 +17316,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -17294,9 +17448,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -17445,9 +17597,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -17587,9 +17737,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -17717,7 +17865,9 @@
                         "propertyNames": {
                           "type": "string"
                         },
-                        "additionalProperties": {}
+                        "additionalProperties": {
+
+                        }
                       },
                       {
                         "type": "null"
@@ -17745,9 +17895,7 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "enum": [true]
                     },
                     "data": {
                       "type": "object",
@@ -17897,7 +18045,9 @@
                               "propertyNames": {
                                 "type": "string"
                               },
-                              "additionalProperties": {}
+                              "additionalProperties": {
+
+                              }
                             },
                             {
                               "type": "null"
@@ -17954,9 +18104,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -18174,9 +18322,7 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "enum": [true]
                     },
                     "data": {
                       "type": "array",
@@ -18328,7 +18474,9 @@
                                 "propertyNames": {
                                   "type": "string"
                                 },
-                                "additionalProperties": {}
+                                "additionalProperties": {
+
+                                }
                               },
                               {
                                 "type": "null"
@@ -18386,9 +18534,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -18489,9 +18635,7 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "enum": [true]
                     },
                     "data": {
                       "type": "object",
@@ -18641,7 +18785,9 @@
                               "propertyNames": {
                                 "type": "string"
                               },
-                              "additionalProperties": {}
+                              "additionalProperties": {
+
+                              }
                             },
                             {
                               "type": "null"
@@ -18708,9 +18854,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -18836,7 +18980,9 @@
                         "propertyNames": {
                           "type": "string"
                         },
-                        "additionalProperties": {}
+                        "additionalProperties": {
+
+                        }
                       },
                       {
                         "type": "null"
@@ -18872,9 +19018,7 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "enum": [true]
                     },
                     "data": {
                       "type": "object",
@@ -19024,7 +19168,9 @@
                               "propertyNames": {
                                 "type": "string"
                               },
-                              "additionalProperties": {}
+                              "additionalProperties": {
+
+                              }
                             },
                             {
                               "type": "null"
@@ -19091,9 +19237,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -19192,9 +19336,7 @@
                   "properties": {
                     "success": {
                       "type": "boolean",
-                      "enum": [
-                        true
-                      ]
+                      "enum": [true]
                     },
                     "data": {
                       "type": "object",
@@ -19251,9 +19393,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -19391,9 +19531,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -19531,9 +19669,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -19737,9 +19873,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -19871,9 +20005,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -20003,9 +20135,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -20164,9 +20294,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -20308,9 +20436,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -20462,9 +20588,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -20688,9 +20812,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -20875,9 +20997,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -21020,9 +21140,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -21163,9 +21281,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -21314,9 +21430,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",
@@ -21490,9 +21604,7 @@
                     "success": {
                       "default": false,
                       "type": "boolean",
-                      "enum": [
-                        false
-                      ]
+                      "enum": [false]
                     },
                     "error": {
                       "description": "Human-readable error message",

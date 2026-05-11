@@ -27,6 +27,107 @@ _openapi:
               **Deleted Events:** Deleted events are included in the response. Check the `deleted_at` field to determine if an event has been deleted. Deleted events may still have associated bot schedules if they were scheduled before deletion.
               
               Returns 404 if the event is not found or does not belong to the specified calendar.
+      - content: success
+      - content: data
+      - content: 'data.event_id: The UUID of the event instance'
+      - content: >-
+          data.series_id: The UUID of the event series this instance belongs to.
+          Every event instance (both one-off and recurring) is associated with a
+          series. Use this ID when scheduling bots for all occurrences of a
+          recurring series
+      - content: >-
+          data.event_type: The type of event. 'one_off' for single events that
+          occur once, 'recurring' for events that are part of a recurring series
+          with multiple occurrences
+      - content: 'data.title: The title of the event as stored in the calendar'
+      - content: >-
+          data.description: The description of the event as returned by the
+          calendar platform. Null if the calendar platform did not include a
+          description for this event
+      - content: >-
+          data.location: The location of the event as returned by the calendar
+          platform. Null if the calendar platform did not include a location for
+          this event
+      - content: 'data.start_time: ISO 8601 timestamp when the event starts'
+      - content: 'data.end_time: ISO 8601 timestamp when the event ends'
+      - content: >-
+          data.timezone: The IANA timezone identifier for the event (e.g.,
+          'America/New_York', 'Europe/London'). Null if the calendar platform
+          did not provide timezone information or if the event is all-day
+      - content: >-
+          data.is_all_day: Whether this is an all-day event. True if the event
+          spans entire days without specific start/end times
+      - content: >-
+          data.status: The status of the event. Possible values: 'confirmed'
+          (event is confirmed), 'cancelled' (event has been cancelled),
+          'tentative' (event is tentative)
+      - content: >-
+          data.organizer_email: The email address of the event organizer as
+          returned by the calendar platform. Null if the calendar platform did
+          not provide organizer information
+      - content: >-
+          data.organizer_name: The display name of the event organizer as
+          returned by the calendar platform. Null if the calendar platform did
+          not provide organizer name information
+      - content: >-
+          data.attendees: List of event attendees as returned by the calendar
+          platform. Null if the calendar platform did not provide attendee
+          information or if the event has no attendees
+      - content: >-
+          data.meeting_url: The meeting URL extracted from the event. Null if
+          the calendar platform did not include a meeting link in the event
+      - content: >-
+          data.meeting_platform: The meeting platform detected from the meeting
+          URL. Null if no meeting link was found in the event. Possible values:
+          'zoom', 'meet', or 'teams'
+      - content: >-
+          data.calendar_id: The UUID of the calendar connection this event
+          belongs to
+      - content: >-
+          data.calendar_platform: The calendar platform where this event
+          originates. Either 'google' for Google Calendar or 'microsoft' for
+          Microsoft Outlook/365
+      - content: >-
+          data.bot_scheduled: Whether a bot has been scheduled for this event
+          instance. True if a calendar bot schedule exists for this event
+      - content: >-
+          data.raw_payload: The most recent raw event object as returned by the
+          calendar provider. Use this to access any provider-specific fields not
+          surfaced by other properties on this response. The shape is
+          provider-dependent: Google Calendar events follow the Google Calendar
+          API event resource, and Microsoft events follow the Microsoft Graph
+          event resource. Null if no provider payload has been captured yet
+          (e.g. a row created from an internal source)
+      - content: >-
+          data.created_at: ISO 8601 timestamp when this event instance was first
+          synced into the system
+      - content: >-
+          data.updated_at: ISO 8601 timestamp when this event instance was last
+          updated (either from a sync or from a webhook notification)
+      - content: success
+      - content: 'error: Error name'
+      - content: 'code: Error code for programmatic handling'
+      - content: 'statusCode: HTTP status code'
+      - content: 'message: Human-readable error message'
+      - content: success
+      - content: 'error: Human-readable error message'
+      - content: 'code: Error code for programmatic handling'
+      - content: 'statusCode: HTTP status code'
+      - content: 'message: Human-readable error message'
+      - content: 'details: Additional error details (string or null)'
+      - content: success
+      - content: 'error: Human-readable error message'
+      - content: 'code: Error code for programmatic handling'
+      - content: 'statusCode: HTTP status code'
+      - content: 'message: Human-readable error message'
+      - content: 'details: Additional error details (string or null)'
+      - content: 'retryAfter: Number of seconds to wait before retrying'
+      - content: success
+      - content: 'error: Human-readable error message'
+      - content: 'code: Error code for programmatic handling'
+      - content: 'statusCode: HTTP status code'
+      - content: 'message: Human-readable error message'
+      - content: 'details: Additional error details (string or null)'
 ---
 
 {/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}

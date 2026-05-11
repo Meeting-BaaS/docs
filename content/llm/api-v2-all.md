@@ -29,6 +29,7 @@ Create multiple bots in a single request with partial success support.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/batch","method":"post"}]} />
 
+
 ---
 
 ## Create multiple scheduled bots
@@ -60,6 +61,7 @@ Create multiple scheduled bots in a single request with partial success support.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/scheduled/batch","method":"post"}]} />
 
+
 ---
 
 ## Create a bot
@@ -88,6 +90,7 @@ Create a bot to join a meeting immediately.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots","method":"post"}]} />
 
+
 ---
 
 ## Create scheduled bot
@@ -114,6 +117,7 @@ Schedule a bot to join a meeting at a specific time in the future.
     Returns a `bot_id` (UUID) that you can use to track and manage the scheduled bot. This UUID will be reused as the bot's UUID when it actually joins.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/scheduled","method":"post"}]} />
+
 
 ---
 
@@ -144,6 +148,7 @@ Permanently delete all bot data including recordings, transcripts, summaries, an
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/delete-data","method":"delete"}]} />
 
+
 ---
 
 ## Delete scheduled bot
@@ -169,6 +174,7 @@ Cancel and delete a scheduled bot. The behavior depends on where the bot is in i
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/scheduled/{bot_id}","method":"delete"}]} />
 
+
 ---
 
 ## Get bot details
@@ -193,6 +199,7 @@ Get comprehensive information about a specific bot.
     Returns 404 if the bot is not found or does not belong to your team.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}","method":"get"}]} />
+
 
 ---
 
@@ -220,6 +227,7 @@ Retrieve a paginated list of screenshot URLs captured during the meeting.
     Returns 404 if the bot is not found or does not belong to your team.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/screenshots","method":"get"}]} />
+
 
 ---
 
@@ -251,6 +259,7 @@ Get the current status of a bot, including the latest status code, transcription
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/status","method":"get"}]} />
 
+
 ---
 
 ## Get scheduled bot details
@@ -276,6 +285,7 @@ Retrieve detailed information about a specific scheduled bot.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/scheduled/{bot_id}","method":"get"}]} />
 
+
 ---
 
 ## Leave meeting
@@ -297,6 +307,7 @@ Instruct a bot to leave the meeting immediately.
     Returns 404 if the bot is not found, or 409 if the bot's status does not allow this operation.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/leave","method":"post"}]} />
+
 
 ---
 
@@ -324,6 +335,7 @@ List all bots for your team with pagination support.
     Returns a paginated list of bots with metadata including bot ID, status, meeting platform, creation time, and basic configuration.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots","method":"get"}]} />
+
 
 ---
 
@@ -357,6 +369,7 @@ Retrieve a paginated list of scheduled bots.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/scheduled","method":"get"}]} />
 
+
 ---
 
 ## Pause recording
@@ -379,6 +392,7 @@ Pause the bot's recording during a meeting.
     Returns 404 if the bot is not found, or 409 if the bot's status does not allow this operation.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/pause-recording","method":"post"}]} />
+
 
 ---
 
@@ -409,6 +423,7 @@ Resend the final webhook (completed or failed) for a bot.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/resend-webhook","method":"post"}]} />
 
+
 ---
 
 ## Resume recording
@@ -431,6 +446,7 @@ Resume a bot's recording after it was paused.
     Returns 404 if the bot is not found, or 409 if the bot's status does not allow this operation.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/resume-recording","method":"post"}]} />
+
 
 ---
 
@@ -463,6 +479,7 @@ Retry sending the transcription callback for a bot.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/retry-callback","method":"post"}]} />
 
+
 ---
 
 ## Send chat message
@@ -487,6 +504,7 @@ Send a chat message to the meeting through the bot.
     Returns 404 if the bot is not found, 409 if the bot's status does not allow this operation, or 422 if chat is disabled in the meeting.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/send-chat-message","method":"post"}]} />
+
 
 ---
 
@@ -526,6 +544,7 @@ Update bot configuration (currently only supports updating the extra parameter).
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/update-config","method":"patch"}]} />
 
+
 ---
 
 ## Update scheduled bot
@@ -554,6 +573,7 @@ Update a scheduled bot's configuration or scheduled join time.
     Returns 404 if the scheduled bot is not found, or 409 if the bot's status does not allow update or the join time is too close.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/scheduled/{bot_id}","method":"patch"}]} />
+
 
 ---
 
@@ -587,6 +607,7 @@ Schedule a bot to automatically join a calendar event.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}/bots","method":"post"}]} />
 
+
 ---
 
 ## Create calendar connection
@@ -613,6 +634,7 @@ Connect a Google or Microsoft calendar to your account.
     Returns 201 with the newly created calendar connection. Returns 401 if OAuth token refresh failed, 429 if the calendar connection limit is exceeded, or 409 if the connection already exists.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars","method":"post"}]} />
+
 
 ---
 
@@ -646,6 +668,7 @@ Cancel one or more scheduled calendar bots. You can target a single event or all
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}/bots","method":"delete"}]} />
 
+
 ---
 
 ## Delete calendar connection
@@ -674,6 +697,7 @@ Disconnect and delete a calendar connection.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}","method":"delete"}]} />
 
+
 ---
 
 ## Get calendar connection details
@@ -696,6 +720,7 @@ Retrieve detailed information about a specific calendar connection.
     Returns 404 if the calendar connection is not found or does not belong to your team.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}","method":"get"}]} />
+
 
 ---
 
@@ -728,6 +753,7 @@ Retrieve detailed information about a specific calendar event.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}/events/{event_id}","method":"get"}]} />
 
+
 ---
 
 ## List calendar connections
@@ -756,6 +782,7 @@ Retrieve a paginated list of calendar connections.
     Returns a paginated list of calendar connections with metadata including calendar ID, platform, account email, status, and last sync time.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars","method":"get"}]} />
+
 
 ---
 
@@ -788,6 +815,7 @@ Retrieve a paginated list of event series (both one-off and recurring events).
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}/series","method":"get"}]} />
 
+
 ---
 
 ## List calendar events
@@ -817,6 +845,7 @@ Retrieve a paginated list of calendar events.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}/events","method":"get"}]} />
 
+
 ---
 
 ## List raw calendars (preview before creating connection)
@@ -839,6 +868,7 @@ Preview available calendars from a Google or Microsoft account before creating a
     Returns 401 if OAuth token refresh failed, or 403 if a Microsoft account license is required.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/list-raw","method":"post"}]} />
+
 
 ---
 
@@ -872,6 +902,7 @@ Renew or recreate the push subscription for a calendar connection.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}/resubscribe","method":"post"}]} />
 
+
 ---
 
 ## Sync calendar events
@@ -900,6 +931,7 @@ Manually trigger a sync of calendar events.
     Returns 200 with sync results. Returns 401 if OAuth token refresh failed, or 404 if the calendar connection is not found.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}/sync","method":"post"}]} />
+
 
 ---
 
@@ -931,6 +963,7 @@ Update one or more calendar bots for a calendar.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}/bots","method":"patch"}]} />
 
+
 ---
 
 ## Update calendar connection
@@ -958,6 +991,7 @@ Update a calendar connection with new OAuth credentials.
     Returns 200 with the updated calendar connection. Returns 401 if OAuth token refresh failed, 403 if permission is denied, or 404 if the calendar connection is not found.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}","method":"patch"}]} />
+
 
 ---
 
@@ -1923,6 +1957,7 @@ Create a new Zoom credential for your team.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/zoom-credentials","method":"post"}]} />
 
+
 ---
 
 ## Delete a Zoom credential
@@ -1944,6 +1979,7 @@ Delete a Zoom credential (soft delete).
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/zoom-credentials/{id}","method":"delete"}]} />
 
+
 ---
 
 ## Get a Zoom credential
@@ -1964,6 +2000,7 @@ Get detailed information about a specific Zoom credential.
     Returns 404 if the credential is not found or does not belong to your team.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/zoom-credentials/{id}","method":"get"}]} />
+
 
 ---
 
@@ -1998,6 +2035,7 @@ List all Zoom credentials for your team.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/zoom-credentials","method":"get"}]} />
 
+
 ---
 
 ## Update a Zoom credential
@@ -2025,6 +2063,7 @@ Update an existing Zoom credential.
     - `404 Not Found`: Credential not found or does not belong to your team
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/zoom-credentials/{id}","method":"patch"}]} />
+
 
 ---
 
