@@ -15,16 +15,13 @@ export async function updateSearchIndexes(): Promise<void> {
   const content = await fs.readFile('.next/server/app/static.json.body');
   const allRecords = JSON.parse(content.toString()) as OramaDocument[];
 
-  const allowedTags = new Set(['api', 'api-v2']);
-  const records = allRecords.filter((doc) => doc.tag && allowedTags.has(doc.tag));
+  const records = allRecords.filter((doc) => doc.tag);
 
   if (records.length === 0) {
-    throw new Error(
-      `no documents matched allowed tags (${[...allowedTags].join(', ')}), aborting to prevent empty index`,
-    );
+    throw new Error('no documents found, aborting to prevent empty index');
   }
 
-  console.log(`filtering: ${records.length}/${allRecords.length} documents (tags: ${[...allowedTags].join(', ')})`);
+  console.log(`syncing ${records.length}/${allRecords.length} documents`);
 
   const orama = new OramaCloud({ projectId, apiKey });
 
