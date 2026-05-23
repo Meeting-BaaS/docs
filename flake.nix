@@ -55,6 +55,18 @@
               cp -r .next/standalone/. "$dir"/
               cp -r .next/static "$dir/.next/static"
               [ -d public ] && cp -r public "$dir/public" || true
+              # Files the /llms/* route handlers read from the filesystem at
+              # request time, which Next's standalone tracer can NOT see (they
+              # are reached via fast-glob / fs, not static imports):
+              #   - ./content/**           globbed by app/llms/**/route.ts
+              #   - ./tsconfig.json        read by ts-morph/twoslash (listed in
+              #                            serverExternalPackages) when rendering
+              # Both are resolved relative to cwd, which Next's server.js sets to
+              # this dir — so place them at the dir root. Without them every
+              # /llms/* request 500s with ENOENT on tsconfig.json.
+              cp tsconfig.json "$dir/tsconfig.json"
+              rm -rf "$dir/content"
+              cp -r content "$dir/content"
               # Next's standalone tracer leaves dangling platform/optional
               # symlinks; prune so noBrokenSymlinks passes.
               find "$dir" -xtype l -delete
