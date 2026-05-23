@@ -29,7 +29,7 @@
             pnpmDeps = (pkgs.fetchPnpmDeps.override { pnpm = pkgs.pnpm_10; }) {
               inherit (finalAttrs) pname version src;
               fetcherVersion = 2;
-              hash = pkgs.lib.fakeHash;
+              hash = "sha256-MCBaYkYNr/+rt0dqaBs7LOGasjR71vq8oNxE64UwDqM=";
             };
             env = {
               NEXT_TELEMETRY_DISABLED = "1";
