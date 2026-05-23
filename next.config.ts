@@ -35,10 +35,17 @@ const config: NextConfig = {
   // Add URL rewrites to remove redundant /docs path segment
   async rewrites() {
     return [
-      // Redirect root paths to /docs paths
+      // Redirect root paths to /docs paths.
+      // EXCLUDE /llms* : the /llms/[folder] and /llms/[...path] LLM-bundle
+      // routes are *dynamic*, and Next's standalone server applies afterFiles
+      // rewrites BEFORE resolving dynamic routes — so without this guard the
+      // rewrite hijacks /llms/* → /docs/llms/* (404) on self-hosted
+      // `next start`. (Vercel serves the prerendered route first, which masks
+      // the bug there.) Static root handlers like /api/routes already match
+      // before afterFiles, so only the dynamic /llms* routes need excluding.
       {
-        source: '/:path*',
-        destination: '/docs/:path*',
+        source: '/:path((?!llms(?:$|/|\\.)).*)',
+        destination: '/docs/:path',
       },
       // Special case for the homepage
       {
