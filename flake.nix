@@ -34,6 +34,13 @@
             env = {
               NEXT_TELEMETRY_DISABLED = "1";
               CI = "true";
+              # Orama Cloud search: components/search.tsx throws at build time
+              # (prerender) unless these are set. They are NEXT_PUBLIC_* client
+              # read keys — inlined into the browser bundle and served to every
+              # visitor — so baking them here is not a secret leak. The private
+              # index-write key is only used by the (out-of-build) update scripts.
+              NEXT_PUBLIC_ORAMA_PROJECT_ID = "d0dd844f-8142-4391-8723-91dffd9db5a7";
+              NEXT_PUBLIC_ORAMA_API_KEY = "c1_v_X2X0I3Hll3DjoGtYV7hTkJUncZ5MA9H-86dmxrIE9c6uBKO3j-wWB8nZ5";
             };
             buildPhase = ''
               runHook preBuild
