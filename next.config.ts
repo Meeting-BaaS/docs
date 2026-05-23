@@ -7,6 +7,9 @@ const withAnalyzer = createBundleAnalyzer({
 });
 
 const config: NextConfig = {
+  // Standalone output so the Nix derivation can ship a self-contained
+  // server.js (see flake.nix). Safe for fumadocs/SSR.
+  output: 'standalone',
   reactStrictMode: true,
   logging: {
     fetches: {
