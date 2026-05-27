@@ -10,7 +10,7 @@ _openapi:
       - content: |-
           Send a chat message to the meeting through the bot.
 
-              The message will be sent as the bot in the meeting's chat. The bot must be actively in the meeting to send messages. Messages are limited to 500 characters and cannot be empty or whitespace-only.
+              The message will be sent as the bot in the meeting's chat. The bot must be actively in the meeting to send messages. Messages are limited to 4096 characters and cannot be empty or whitespace-only.
 
               **Status Requirements:** The bot must be in one of the following statuses: `in_call_not_recording`, `in_call_recording`, `recording_paused`, or `recording_resumed`. If the bot is in any other state (e.g., `queued`, `joining_call`, `in_waiting_room`, `completed`, `failed`), the request will fail with a 409 Conflict error (`FST_ERR_BOT_STATUS`).
 
@@ -67,7 +67,7 @@ _openapi:
 
 Send a chat message to the meeting through the bot.
 
-    The message will be sent as the bot in the meeting's chat. The bot must be actively in the meeting to send messages. Messages are limited to 500 characters and cannot be empty or whitespace-only.
+    The message will be sent as the bot in the meeting's chat. The bot must be actively in the meeting to send messages. Messages are limited to 4096 characters and cannot be empty or whitespace-only.
 
     **Status Requirements:** The bot must be in one of the following statuses: `in_call_not_recording`, `in_call_recording`, `recording_paused`, or `recording_resumed`. If the bot is in any other state (e.g., `queued`, `joining_call`, `in_waiting_room`, `completed`, `failed`), the request will fail with a 409 Conflict error (`FST_ERR_BOT_STATUS`).
 
