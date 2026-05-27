@@ -216,7 +216,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "maxLength": 500
+                "maxLength": 4096
               },
               {
                 "type": "null"
@@ -1837,7 +1837,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "maxLength": 500
+                "maxLength": 4096
               },
               {
                 "type": "null"
@@ -3080,7 +3080,7 @@
                 "anyOf": [
                   {
                     "type": "string",
-                    "maxLength": 500
+                    "maxLength": 4096
                   },
                   {
                     "type": "null"
@@ -3531,7 +3531,7 @@
                 "anyOf": [
                   {
                     "type": "string",
-                    "maxLength": 500
+                    "maxLength": 4096
                   },
                   {
                     "type": "null"
@@ -8786,7 +8786,7 @@
             "anyOf": [
               {
                 "type": "string",
-                "maxLength": 500
+                "maxLength": 4096
               },
               {
                 "type": "null"
@@ -10082,7 +10082,7 @@
                 "anyOf": [
                   {
                     "type": "string",
-                    "maxLength": 500
+                    "maxLength": 4096
                   },
                   {
                     "type": "null"
@@ -10577,7 +10577,7 @@
                 "anyOf": [
                   {
                     "type": "string",
-                    "maxLength": 500
+                    "maxLength": 4096
                   },
                   {
                     "type": "null"
@@ -15665,7 +15665,7 @@
                     "description": "The chat message text to send in the meeting.",
                     "type": "string",
                     "minLength": 1,
-                    "maxLength": 500
+                    "maxLength": 4096
                   }
                 },
                 "required": [
@@ -15864,7 +15864,7 @@
                     "anyOf": [
                       {
                         "type": "string",
-                        "maxLength": 500
+                        "maxLength": 4096
                       },
                       {
                         "type": "null"
@@ -16054,7 +16054,7 @@
                     "anyOf": [
                       {
                         "type": "string",
-                        "maxLength": 500
+                        "maxLength": 4096
                       },
                       {
                         "type": "null"
