@@ -2214,12 +2214,50 @@ The SAML certificate and private key are encrypted at rest using **AES-256-GCM**
   </Card>
 </Cards>
 
+## FAQ
+
+**Q: Do I need authenticated bots for every Google Meet?**
+
+No. Anonymous bots join open meetings fine. Use authenticated bots only when a meeting is **restricted to signed-in or in-organization users**, or when you need to **bypass the waiting room**. Leave `meet_config` `null` for everything else.
+
+**Q: Can I use my company's main Google Workspace domain?**
+
+Yes — you don't need a separate domain. The rule is that the **Legacy SSO profile must be scoped to a bot-only group or organizational unit**, never applied to your real users (assigning it org-wide would redirect everyone through the bot IdP). Put your bot accounts in a dedicated group/OU and assign the SSO profile to only that scope. A dedicated subdomain like `bots.acme.com` is one clean way to keep bots isolated, but it's optional. See [Setup](/docs/api-v2/getting-started/meet/setup).
+
+**Q: How many bots can join at once?**
+
+Each meet login supports up to **20 concurrent SSO sessions**, and capacity scales linearly with the number of active logins in a pool. To raise the ceiling, add more logins. Configure a [Meet Login Utilization alert](/docs/api-v2/alerts#meet-login-alerts) so you're warned before you saturate.
+
+**Q: How do I get bots past the waiting room?**
+
+Put the login's `email_group` (a Google Group) on the meeting's **calendar invite**, and dispatch the bot with that same `email_group`. The bot is then treated as an invited participant and lands in Meet's **verified queue** instead of the waiting room.
+
+**Q: When should I use `credential_id` vs `email_group`?**
+
+Use `email_group` for round-robin load balancing across a pool (recommended — it takes priority when both are set). Use `credential_id` when you need a specific, fixed login for a bot.
+
+**Q: What happens if the whole pool is busy?**
+
+Bot creation returns `MEET_LOGIN_UNAVAILABLE` when `meet_config.fallback` is `fail` (the default), or the bot silently joins anonymously when `fallback` is `anonymous`. Add logins or set the fallback based on whether an authenticated identity is mandatory.
+
+**Q: A workspace or login flipped to `invalid` — what do I do?**
+
+The system auto-disables a resource after a failure (a SAML rejection for workspaces; a bot login failure for logins). Check `last_error_message`, fix the cause (re-upload a matching cert, complete a user's first-time interactive login, un-suspend the account), then re-enable it with a `PATCH`.
+
+**Q: Can I retrieve the private key later?**
+
+No. `private_key_pem` is encrypted at rest and **never returned** in any response. If you need a new key, rotate the keypair via `PATCH /v2/meet-workspaces/{workspace_id}` and upload the new certificate to Google at the same time.
+
+**Q: Does this work for Zoom or Microsoft Teams?**
+
+No — `meet_config` is Google Meet only. For Zoom authentication, see [Zoom Integration](/docs/api-v2/getting-started/zoom). Microsoft Teams uses anonymous joins and needs no extra configuration.
+
 ## Related resources
 
 - [Meet Workspaces API](/docs/api-v2/reference/meet-workspaces/createMeetWorkspace) — manage SAML SSO configurations
 - [Meet Logins API](/docs/api-v2/reference/meet-logins/createMeetLogin) — manage the Workspace user identities bots sign in as
 - [Error Codes](/docs/api-v2/error-codes#google-meet-authentication-errors) — `MEET_LOGIN_*` failure reasons
-- [Alerts](/docs/api-v2/alerts#alert-types) — monitor pool utilization and saturation
+- [Alerts](/docs/api-v2/alerts#meet-login-alerts) — monitor pool utilization and saturation
 
 
 ---
