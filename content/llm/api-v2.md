@@ -63,6 +63,17 @@ Threshold alerts fire when a resource metric crosses a configured boundary. They
 | Calendar Connections | Number of connected calendars | "Alert me when calendar connections reach my plan limit" |
 | Meet Login Utilization | Concurrency used across your Google Meet login pool | "Alert me when meet login utilization reaches 70%" |
 
+### Meet login alerts
+
+If you run [authenticated Google Meet bots](/docs/api-v2/getting-started/meet), two alert types help you keep the authentication pool healthy. Configure these **before** you rely on the pool in production — together they warn you as it fills up and tell you the moment it overflows.
+
+| Alert | Category | What it tracks | Recommended setup |
+|-------|----------|----------------|-------------------|
+| **Meet Login Utilization** | Threshold | The percentage of your pool's concurrent capacity in use (`utilization_pct` from [`GET /v2/meet-logins/utilization`](/docs/api-v2/reference/meet-logins/getMeetLoginUtilization)). | `>= 70%`, so you have time to add logins before saturation. |
+| **Meet Login Unavailable** | Operational | Bots that failed to get an authenticated login slot because the pool was saturated (`MEET_LOGIN_UNAVAILABLE`). | `>= 1` occurrence, to hear about saturation immediately. |
+
+Use the **Meet Login Utilization** alert as the early warning and **Meet Login Unavailable** as the safety net. When either fires, add more meet logins to the pool (each login adds capacity) or reduce concurrent bot dispatch. See [Sending Authenticated Bots → Monitoring pool utilization](/docs/api-v2/getting-started/meet/sending-authenticated-bots#monitoring-pool-utilization) for how capacity and round-robin assignment work.
+
 ## Delivery Channels
 
 Each alert rule can use one or both delivery channels:
@@ -2177,7 +2188,7 @@ When you put a login's `email_group` (a Google Group address) on the **calendar 
 
 ### Round-robin pools and concurrency
 
-Each login supports up to **20 concurrent SSO sessions** by default (configurable per environment). When you dispatch bots with an `email_group`, the assigner picks the least-loaded active login and skips any login at capacity. If every login in a pool is saturated, bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, per your `fallback` setting). Create more logins to raise the ceiling and monitor headroom with the [utilization endpoint](/docs/api-v2/getting-started/meet/sending-authenticated-bots#monitoring-pool-utilization).
+Each login supports up to **20 concurrent SSO sessions**. When you dispatch bots with an `email_group`, the assigner picks the least-loaded active login and skips any login at capacity. If every login in a pool is saturated, bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, per your `fallback` setting). Create more logins to raise the ceiling, and configure a [**Meet Login Utilization** alert](/docs/api-v2/alerts#meet-login-alerts) to stay ahead of saturation (the [utilization endpoint](/docs/api-v2/getting-started/meet/sending-authenticated-bots#monitoring-pool-utilization) gives an on-demand view).
 
 ### States
 
@@ -2290,7 +2301,7 @@ The assigned bot is then a member of an invited group and lands in Meet's **veri
 
 ## Concurrency and capacity
 
-Each login supports up to **20 concurrent SSO sessions** by default (configurable per environment). The dispatcher:
+Each login supports up to **20 concurrent SSO sessions**. The dispatcher:
 
 1. Filters to **active** logins matching your selector.
 2. Picks the one with the lowest `active_session_count`.
@@ -2300,7 +2311,15 @@ If every candidate is saturated, the request fails with `MEET_LOGIN_UNAVAILABLE`
 
 ## Monitoring pool utilization
 
-Call `GET /v2/meet-logins/utilization` to see live concurrency across your pool. It's cheap to poll and returns uncached, live counters.
+### Configure a utilization alert first (recommended)
+
+Don't wait until bots start failing. Set up a [**Meet Login Utilization** threshold alert](/docs/api-v2/alerts#meet-login-alerts) so you're notified automatically as your pool fills up — for example, alert when utilization reaches **70%**, giving you time to add logins before you hit the ceiling. Pair it with a [**Meet Login Unavailable** operational alert](/docs/api-v2/alerts#meet-login-alerts) so you also hear about it the moment a bot actually fails to get an authenticated slot (`MEET_LOGIN_UNAVAILABLE`).
+
+Both are configured from the **Alerts** section of your dashboard. See [Alerts](/docs/api-v2/alerts#meet-login-alerts) for setup.
+
+### Check utilization on demand
+
+For an ad-hoc or programmatic view, call `GET /v2/meet-logins/utilization` to see live concurrency across your pool. It's cheap to poll and returns uncached, live counters.
 
 ```bash
 curl https://api.meetingbaas.com/v2/meet-logins/utilization \
@@ -2328,13 +2347,9 @@ curl https://api.meetingbaas.com/v2/meet-logins/utilization \
 |-------|---------|
 | `logins_total` / `logins_active` / `logins_invalid` | Login counts for your team by state. |
 | `concurrent_sessions` | Bots currently in flight using your auth pool (sum of `active_session_count` across active logins). |
-| `concurrent_capacity` | `logins_active × per-login-capacity` (default 20). |
+| `concurrent_capacity` | `logins_active × 20` (the per-login session limit). |
 | `utilization_pct` | `concurrent_sessions / concurrent_capacity`, as a percentage. |
 | `by_email_group` | The same metrics broken down per pool. |
-
-<Callout type="tip">
-Pair this with [alerts](/docs/api-v2/alerts#alert-types): configure a **Meet Login Utilization** threshold alert at ~70% to get warned before saturation, and a **Meet Login Unavailable** operational alert to know when bots have actually hit the ceiling.
-</Callout>
 
 ## Troubleshooting
 
@@ -7468,7 +7483,7 @@ Create a meet login — a Google Workspace user identity attached to a parent me
 
     **Per-team Uniqueness on Email:** Each `email` may exist at most once per team. Attempting to register the same email twice returns 409.
 
-    **Concurrency:** Each login supports up to 20 concurrent SSO sessions by default (configurable per environment). When a login hits its capacity, the round-robin assigner skips it and tries the next one in the pool. If all logins in a pool are saturated, the bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, depending on your `fallback` setting).
+    **Concurrency:** Each login supports up to 20 concurrent SSO sessions. When a login hits its capacity, the round-robin assigner skips it and tries the next one in the pool. If all logins in a pool are saturated, the bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, depending on your `fallback` setting).
 
     **Error Scenarios:**
     - `404 Not Found`: `workspace_id` is unknown or does not belong to your team.
