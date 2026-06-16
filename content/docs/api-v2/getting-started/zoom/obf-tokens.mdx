@@ -529,29 +529,33 @@ Test with real Zoom meetings before the enforcement date.
 
 ## FAQ
 
-**Q: What happens if I don't implement OBF tokens by March 2, 2026?**
+<Accordions type="single">
 
+<Accordion id="faq-deadline" title="What happens if I don't implement OBF tokens by March 2, 2026?">
 Bots joining external Zoom meetings will fail. You'll receive a join failure error. Internal meetings with SDK credentials are not affected.
+</Accordion>
 
-**Q: Can one OBF token be used for multiple meetings?**
-
+<Accordion id="faq-multiple-meetings" title="Can one OBF token be used for multiple meetings?">
 Yes, OBF tokens are not meeting-specific when fetched without specifying a meeting number.
+</Accordion>
 
-**Q: Do Google Meet and Teams bots need OBF tokens?**
-
+<Accordion id="faq-meet-teams" title="Do Google Meet and Teams bots need OBF tokens?">
 No, OBF tokens are Zoom-specific.
+</Accordion>
 
-**Q: What if the authorized user's Zoom account is deactivated?**
-
+<Accordion id="faq-deactivated-account" title="What if the authorized user's Zoom account is deactivated?">
 The stored credential becomes invalid. The user would need to re-authorize your app.
+</Accordion>
 
-**Q: Is there an alternative for continuous recording without user presence?**
-
+<Accordion id="faq-continuous-recording" title="Is there an alternative for continuous recording without user presence?">
 Zoom is developing Real-Time Media Streams (RTMS) for this use case. We're working on RTMS support, but it has different constraints and capabilities.
+</Accordion>
 
-**Q: How does v2 differ from v1 for OBF tokens?**
-
+<Accordion id="faq-v1-v2-obf" title="How does v2 differ from v1 for OBF tokens?">
 v2 introduces the Credentials API for secure token storage, the `zoom_config` object for cleaner configuration, and better error tracking with credential states.
+</Accordion>
+
+</Accordions>
 
 ## Resources
 
