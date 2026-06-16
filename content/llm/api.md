@@ -3069,23 +3069,23 @@ Test your integration with real Zoom meetings before the enforcement date.
 
 <Accordions type="single">
 
-<Accordion id="faq-deadline" title="What happens if I do not implement OBF tokens by March 2, 2026?">
+<Accordion title="What happens if I do not implement OBF tokens by March 2, 2026?">
 Your bots will fail to join external Zoom meetings. They will receive a join failure error.
 </Accordion>
 
-<Accordion id="faq-multiple-meetings" title="Can I use one OBF token for multiple meetings?">
+<Accordion title="Can I use one OBF token for multiple meetings?">
 Yes, OBF tokens are not meeting-specific by default. When fetched via the API without specifying a meeting number, the token is valid for all meetings.
 </Accordion>
 
-<Accordion id="faq-meet-teams" title="Do I need OBF tokens for Google Meet or Microsoft Teams?">
+<Accordion title="Do I need OBF tokens for Google Meet or Microsoft Teams?">
 No, OBF tokens are a Zoom-specific requirement.
 </Accordion>
 
-<Accordion id="faq-deactivated-account" title="What if the authorized user's Zoom account is deactivated?">
+<Accordion title="What if the authorized user's Zoom account is deactivated?">
 The OAuth connection will become invalid. The user would need to re-authorize your app.
 </Accordion>
 
-<Accordion id="faq-continuous-recording" title="Is there an alternative to OBF tokens for continuous recording?">
+<Accordion title="Is there an alternative to OBF tokens for continuous recording?">
 Zoom is developing Real-Time Media Streams (RTMS) for continuous recording use cases. We are working on RTMS support, but it has different constraints (runs as an app inside the meeting, no bidirectional streaming support yet).
 </Accordion>
 

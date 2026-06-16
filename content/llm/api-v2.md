@@ -1812,12 +1812,11 @@ Most applications use the API endpoints for initial reconciliation, as they may 
 
 See the [Webhooks documentation](/docs/api-v2/webhooks) for details on all calendar webhook events and their payloads.
 
-## Frequently Asked Questions
+## FAQ
 
 <Accordions type="single">
 
 <Accordion
-  id="faq-updated-close-to-start"
   title="What happens if a calendar event is updated close to its start time?"
 >
 
@@ -1836,7 +1835,6 @@ If an event is updated more than 4 minutes before its start time, the bot schedu
 </Accordion>
 
 <Accordion
-  id="faq-deleted-close-to-start"
   title="What happens if a calendar event is deleted close to its start time?"
 >
 
@@ -1847,7 +1845,6 @@ No tokens are consumed if the bot hadn't started recording yet.
 </Accordion>
 
 <Accordion
-  id="faq-meeting-url-removed"
   title="What happens if the meeting URL is removed from an event?"
 >
 
@@ -1861,7 +1858,7 @@ No tokens are consumed if the bot hadn't started recording yet.
 
 </Accordion>
 
-<Accordion id="faq-sync-frequency" title="How often are calendar events synced?">
+<Accordion title="How often are calendar events synced?">
 
 Calendar events are synced via **push notifications (real-time)**:
 - **Google Calendar**: Push notifications via watch channels (renewed every 7 days)
@@ -1871,7 +1868,6 @@ Calendar events are synced via **push notifications (real-time)**:
 </Accordion>
 
 <Accordion
-  id="faq-materialization-window"
   title="What is the event materialization window?"
 >
 
@@ -1882,7 +1878,7 @@ Meeting BaaS maintains a **30-day rolling window** of calendar events:
 
 </Accordion>
 
-<Accordion id="faq-recurring-events" title="How are recurring events handled?">
+<Accordion title="How are recurring events handled?">
 
 **Series-Level Bot Scheduling:**
 - You can schedule a bot for all occurrences of a recurring event using `all_occurrences: true` or by providing the `series_id`
@@ -1901,7 +1897,7 @@ This behavior is inline with how calendar platforms handle major changes to recu
 
 </Accordion>
 
-<Accordion id="faq-decline-event" title="What happens if I decline a calendar event?">
+<Accordion title="What happens if I decline a calendar event?">
 
 If you decline a calendar event (as the calendar owner):
 - The event is treated as **cancelled** in Meeting BaaS
@@ -1910,7 +1906,7 @@ If you decline a calendar event (as the calendar owner):
 
 </Accordion>
 
-<Accordion id="faq-all-day-events" title="Can I schedule bots for all-day events?">
+<Accordion title="Can I schedule bots for all-day events?">
 
 All-day events are synced and stored, but:
 - They typically don't have meeting URLs
@@ -1920,7 +1916,6 @@ All-day events are synced and stored, but:
 </Accordion>
 
 <Accordion
-  id="faq-meeting-platforms"
   title="What meeting platforms are supported?"
 >
 
@@ -1938,7 +1933,6 @@ The meeting platform is detected from:
 </Accordion>
 
 <Accordion
-  id="faq-event-exceptions"
   title="How are event exceptions handled?"
 >
 
@@ -1954,7 +1948,7 @@ Exceptions are:
 
 </Accordion>
 
-<Accordion id="faq-oauth-expire" title="What if my OAuth credentials expire?">
+<Accordion title="What if my OAuth credentials expire?">
 
 **Refresh Token Expiration:**
 - Google: Refresh tokens don't expire unless revoked by the user
@@ -1968,7 +1962,6 @@ Exceptions are:
 </Accordion>
 
 <Accordion
-  id="faq-connection-errors"
   title="How do I handle calendar connection errors?"
 >
 
@@ -1983,7 +1976,6 @@ You'll receive webhook notifications for connection status changes.
 </Accordion>
 
 <Accordion
-  id="faq-multiple-calendars"
   title="Can I connect multiple calendars from the same account?"
 >
 
@@ -2218,39 +2210,39 @@ The SAML certificate and private key are encrypted at rest using **AES-256-GCM**
 
 <Accordions type="single">
 
-<Accordion id="faq-when-needed" title="Do I need authenticated bots for every Google Meet?">
+<Accordion title="Do I need authenticated bots for every Google Meet?">
 No. Anonymous bots join open meetings fine. Use authenticated bots only when a meeting is **restricted to signed-in or in-organization users**, or when you need to **bypass the waiting room**. Leave `meet_config` `null` for everything else.
 </Accordion>
 
-<Accordion id="faq-main-domain" title="Can I use my company's main Google Workspace domain?">
+<Accordion title="Can I use my company's main Google Workspace domain?">
 Yes — you don't need a separate domain. The rule is that the **Legacy SSO profile must be scoped to a bot-only group or organizational unit**, never applied to your real users (assigning it org-wide would redirect everyone through the bot IdP). Put your bot accounts in a dedicated group/OU and assign the SSO profile to only that scope. A dedicated subdomain like `bots.acme.com` is one clean way to keep bots isolated, but it's optional. See [Setup](/docs/api-v2/getting-started/meet/setup).
 </Accordion>
 
-<Accordion id="faq-concurrency" title="How many bots can join at once?">
+<Accordion title="How many bots can join at once?">
 Each meet login supports up to **20 concurrent SSO sessions**, and capacity scales linearly with the number of active logins in a pool. To raise the ceiling, add more logins. Configure a [Meet Login Utilization alert](/docs/api-v2/alerts#meet-login-alerts) so you're warned before you saturate.
 </Accordion>
 
-<Accordion id="faq-waiting-room" title="How do I get bots past the waiting room?">
+<Accordion title="How do I get bots past the waiting room?">
 Put the login's `email_group` (a Google Group) on the meeting's **calendar invite**, and dispatch the bot with that same `email_group`. The bot is then treated as an invited participant and lands in Meet's **verified queue** instead of the waiting room.
 </Accordion>
 
-<Accordion id="faq-credential-vs-group" title="When should I use credential_id vs email_group?">
+<Accordion title="When should I use credential_id vs email_group?">
 Use `email_group` for round-robin load balancing across a pool (recommended — it takes priority when both are set). Use `credential_id` when you need a specific, fixed login for a bot.
 </Accordion>
 
-<Accordion id="faq-pool-saturated" title="What happens if the whole pool is busy?">
+<Accordion title="What happens if the whole pool is busy?">
 Bot creation returns `MEET_LOGIN_UNAVAILABLE` when `meet_config.fallback` is `fail` (the default), or the bot silently joins anonymously when `fallback` is `anonymous`. Add logins or set the fallback based on whether an authenticated identity is mandatory.
 </Accordion>
 
-<Accordion id="faq-invalid-resource" title="A workspace or login flipped to invalid — what do I do?">
+<Accordion title="A workspace or login flipped to invalid — what do I do?">
 The system auto-disables a resource after a failure (a SAML rejection for workspaces; a bot login failure for logins). Check `last_error_message`, fix the cause (re-upload a matching cert, complete a user's first-time interactive login, un-suspend the account), then re-enable it with a `PATCH`.
 </Accordion>
 
-<Accordion id="faq-private-key" title="Can I retrieve the private key later?">
+<Accordion title="Can I retrieve the private key later?">
 No. `private_key_pem` is encrypted at rest and **never returned** in any response. If you need a new key, rotate the keypair via `PATCH /v2/meet-workspaces/{workspace_id}` and upload the new certificate to Google at the same time.
 </Accordion>
 
-<Accordion id="faq-zoom-teams" title="Does this work for Zoom or Microsoft Teams?">
+<Accordion title="Does this work for Zoom or Microsoft Teams?">
 No — `meet_config` is Google Meet only. For Zoom authentication, see [Zoom Integration](/docs/api-v2/getting-started/zoom). Microsoft Teams uses anonymous joins and needs no extra configuration.
 </Accordion>
 
@@ -3715,23 +3707,23 @@ Users can revoke your app's access in their Zoom settings. When this happens:
 
 <Accordions type="single">
 
-<Accordion id="faq-how-many" title="How many credentials can I store?">
+<Accordion title="How many credentials can I store?">
 There's no hard limit. Store as many as you need for your users.
 </Accordion>
 
-<Accordion id="faq-what-updatable" title="What can I update on an existing credential?">
+<Accordion title="What can I update on an existing credential?">
 You can update the name, SDK credentials (client ID and secret together), or re-authorize with new OAuth tokens using `PATCH /v2/zoom-credentials/{id}`. Re-authorizing is useful when a credential becomes invalid.
 </Accordion>
 
-<Accordion id="faq-invalid-bots" title="What happens to bots when a credential becomes invalid?">
+<Accordion title="What happens to bots when a credential becomes invalid?">
 Bots created with that credential will fail to join with a `ZOOM_ACCESS_TOKEN_ERROR` or similar error. Already-running bots are not affected.
 </Accordion>
 
-<Accordion id="faq-token-validity" title="How long are OAuth tokens valid?">
+<Accordion title="How long are OAuth tokens valid?">
 Zoom access tokens expire after 1 hour. Meeting BaaS automatically refreshes them using the refresh token. If refresh fails, the credential becomes invalid.
 </Accordion>
 
-<Accordion id="faq-sdk-vs-obf" title="Do I need separate credentials for SDK and OBF?">
+<Accordion title="Do I need separate credentials for SDK and OBF?">
 For internal meetings: App-only credentials are sufficient.
 For external meetings: You need user credentials (with OAuth) for OBF token support.
 </Accordion>
@@ -3860,19 +3852,19 @@ All credentials are encrypted at rest using AES-256-GCM. Client secrets and OAut
 
 <Accordions type="single">
 
-<Accordion id="faq-migrate-v1" title="Can I migrate my v1 Zoom OAuth connections to v2?">
+<Accordion title="Can I migrate my v1 Zoom OAuth connections to v2?">
 Yes, but you'll need to create new credentials in v2 using the `/v2/zoom-credentials` endpoint. We recommend having users re-authorize to ensure fresh tokens.
 </Accordion>
 
-<Accordion id="faq-app-config" title="Do I need to change my Zoom app configuration?">
+<Accordion title="Do I need to change my Zoom app configuration?">
 No, your existing Zoom app works with v2. The scopes and settings remain the same.
 </Accordion>
 
-<Accordion id="faq-invalid-credential" title="What happens if a credential becomes invalid?">
+<Accordion title="What happens if a credential becomes invalid?">
 Bots using that credential will fail to join meetings. You'll see the error in the credential's `last_error_message` field and in the bot's failure webhook.
 </Accordion>
 
-<Accordion id="faq-v1-v2-simultaneous" title="Can I use both v1 and v2 APIs simultaneously?">
+<Accordion title="Can I use both v1 and v2 APIs simultaneously?">
 Yes, during migration you can use both APIs. However, credentials are not shared between v1 and v2—you'll need to set them up separately.
 </Accordion>
 
@@ -4491,19 +4483,19 @@ If a user revokes your app in their Zoom settings, the credential becomes invali
 
 <Accordions type="single">
 
-<Accordion id="faq-same-redirect-uri" title="Can I use the same redirect URI for development and production?">
+<Accordion title="Can I use the same redirect URI for development and production?">
 No, use environment-specific URIs. Add both to your Zoom app's allowed redirect URIs.
 </Accordion>
 
-<Accordion id="faq-multiple-accounts" title="What if the user has multiple Zoom accounts?">
+<Accordion title="What if the user has multiple Zoom accounts?">
 They'll authorize with whichever account they're logged into. The credential response includes `zoom_email` and `zoom_display_name` (captured from Zoom's `/users/me` API at OAuth time, requires the `user:read:user` scope) — surface these in your UI so the user can verify which Zoom account is connected and disconnect/reconnect if it's the wrong one.
 </Accordion>
 
-<Accordion id="faq-reauthorization" title="How do I handle re-authorization?">
+<Accordion title="How do I handle re-authorization?">
 When creating a new credential for an existing Zoom user, the old credential becomes orphaned. Delete it after successful re-auth to avoid confusion.
 </Accordion>
 
-<Accordion id="faq-customize-consent" title="Can I customize what users see on Zoom's authorization page?">
+<Accordion title="Can I customize what users see on Zoom's authorization page?">
 Limited customization is available in your Zoom app settings (app name, icon, description).
 </Accordion>
 
@@ -5052,27 +5044,27 @@ Test with real Zoom meetings before the enforcement date.
 
 <Accordions type="single">
 
-<Accordion id="faq-deadline" title="What happens if I don't implement OBF tokens by March 2, 2026?">
+<Accordion title="What happens if I don't implement OBF tokens by March 2, 2026?">
 Bots joining external Zoom meetings will fail. You'll receive a join failure error. Internal meetings with SDK credentials are not affected.
 </Accordion>
 
-<Accordion id="faq-multiple-meetings" title="Can one OBF token be used for multiple meetings?">
+<Accordion title="Can one OBF token be used for multiple meetings?">
 Yes, OBF tokens are not meeting-specific when fetched without specifying a meeting number.
 </Accordion>
 
-<Accordion id="faq-meet-teams" title="Do Google Meet and Teams bots need OBF tokens?">
+<Accordion title="Do Google Meet and Teams bots need OBF tokens?">
 No, OBF tokens are Zoom-specific.
 </Accordion>
 
-<Accordion id="faq-deactivated-account" title="What if the authorized user's Zoom account is deactivated?">
+<Accordion title="What if the authorized user's Zoom account is deactivated?">
 The stored credential becomes invalid. The user would need to re-authorize your app.
 </Accordion>
 
-<Accordion id="faq-continuous-recording" title="Is there an alternative for continuous recording without user presence?">
+<Accordion title="Is there an alternative for continuous recording without user presence?">
 Zoom is developing Real-Time Media Streams (RTMS) for this use case. We're working on RTMS support, but it has different constraints and capabilities.
 </Accordion>
 
-<Accordion id="faq-v1-v2-obf" title="How does v2 differ from v1 for OBF tokens?">
+<Accordion title="How does v2 differ from v1 for OBF tokens?">
 v2 introduces the Credentials API for secure token storage, the `zoom_config` object for cleaner configuration, and better error tracking with credential states.
 </Accordion>
 
