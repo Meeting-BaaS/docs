@@ -58,6 +58,17 @@ Threshold alerts fire when a resource metric crosses a configured boundary. They
 | Calendar Connections | Number of connected calendars | "Alert me when calendar connections reach my plan limit" |
 | Meet Login Utilization | Concurrency used across your Google Meet login pool | "Alert me when meet login utilization reaches 70%" |
 
+### Meet login alerts
+
+If you run [authenticated Google Meet bots](/docs/api-v2/getting-started/meet), two alert types help you keep the authentication pool healthy. Configure these **before** you rely on the pool in production — together they warn you as it fills up and tell you the moment it overflows.
+
+| Alert | Category | What it tracks | Recommended setup |
+|-------|----------|----------------|-------------------|
+| **Meet Login Utilization** | Threshold | The percentage of your pool's concurrent capacity in use (`utilization_pct` from [`GET /v2/meet-logins/utilization`](/docs/api-v2/reference/meet-logins/getMeetLoginUtilization)). | `>= 70%`, so you have time to add logins before saturation. |
+| **Meet Login Unavailable** | Operational | Bots that failed to get an authenticated login slot because the pool was saturated (`MEET_LOGIN_UNAVAILABLE`). | `>= 1` occurrence, to hear about saturation immediately. |
+
+Use the **Meet Login Utilization** alert as the early warning and **Meet Login Unavailable** as the safety net. When either fires, add more meet logins to the pool (each login adds capacity) or reduce concurrent bot dispatch. See [Sending Authenticated Bots → Monitoring pool utilization](/docs/api-v2/getting-started/meet/sending-authenticated-bots#monitoring-pool-utilization) for how capacity and round-robin assignment work.
+
 ## Delivery Channels
 
 Each alert rule can use one or both delivery channels:

@@ -74,7 +74,7 @@ The assigned bot is then a member of an invited group and lands in Meet's **veri
 
 ## Concurrency and capacity
 
-Each login supports up to **20 concurrent SSO sessions** by default (configurable per environment). The dispatcher:
+Each login supports up to **20 concurrent SSO sessions**. The dispatcher:
 
 1. Filters to **active** logins matching your selector.
 2. Picks the one with the lowest `active_session_count`.
@@ -84,7 +84,15 @@ If every candidate is saturated, the request fails with `MEET_LOGIN_UNAVAILABLE`
 
 ## Monitoring pool utilization
 
-Call `GET /v2/meet-logins/utilization` to see live concurrency across your pool. It's cheap to poll and returns uncached, live counters.
+### Configure a utilization alert first (recommended)
+
+Don't wait until bots start failing. Set up a [**Meet Login Utilization** threshold alert](/docs/api-v2/alerts#meet-login-alerts) so you're notified automatically as your pool fills up — for example, alert when utilization reaches **70%**, giving you time to add logins before you hit the ceiling. Pair it with a [**Meet Login Unavailable** operational alert](/docs/api-v2/alerts#meet-login-alerts) so you also hear about it the moment a bot actually fails to get an authenticated slot (`MEET_LOGIN_UNAVAILABLE`).
+
+Both are configured from the **Alerts** section of your dashboard. See [Alerts](/docs/api-v2/alerts#meet-login-alerts) for setup.
+
+### Check utilization on demand
+
+For an ad-hoc or programmatic view, call `GET /v2/meet-logins/utilization` to see live concurrency across your pool. It's cheap to poll and returns uncached, live counters.
 
 ```bash
 curl https://api.meetingbaas.com/v2/meet-logins/utilization \
@@ -112,13 +120,9 @@ curl https://api.meetingbaas.com/v2/meet-logins/utilization \
 |-------|---------|
 | `logins_total` / `logins_active` / `logins_invalid` | Login counts for your team by state. |
 | `concurrent_sessions` | Bots currently in flight using your auth pool (sum of `active_session_count` across active logins). |
-| `concurrent_capacity` | `logins_active × per-login-capacity` (default 20). |
+| `concurrent_capacity` | `logins_active × 20` (the per-login session limit). |
 | `utilization_pct` | `concurrent_sessions / concurrent_capacity`, as a percentage. |
 | `by_email_group` | The same metrics broken down per pool. |
-
-<Callout type="tip">
-Pair this with [alerts](/docs/api-v2/alerts#alert-types): configure a **Meet Login Utilization** threshold alert at ~70% to get warned before saturation, and a **Meet Login Unavailable** operational alert to know when bots have actually hit the ceiling.
-</Callout>
 
 ## Troubleshooting
 

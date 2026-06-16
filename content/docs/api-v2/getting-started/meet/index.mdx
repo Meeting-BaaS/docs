@@ -82,7 +82,7 @@ When you put a login's `email_group` (a Google Group address) on the **calendar 
 
 ### Round-robin pools and concurrency
 
-Each login supports up to **20 concurrent SSO sessions** by default (configurable per environment). When you dispatch bots with an `email_group`, the assigner picks the least-loaded active login and skips any login at capacity. If every login in a pool is saturated, bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, per your `fallback` setting). Create more logins to raise the ceiling and monitor headroom with the [utilization endpoint](/docs/api-v2/getting-started/meet/sending-authenticated-bots#monitoring-pool-utilization).
+Each login supports up to **20 concurrent SSO sessions**. When you dispatch bots with an `email_group`, the assigner picks the least-loaded active login and skips any login at capacity. If every login in a pool is saturated, bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, per your `fallback` setting). Create more logins to raise the ceiling, and configure a [**Meet Login Utilization** alert](/docs/api-v2/alerts#meet-login-alerts) to stay ahead of saturation (the [utilization endpoint](/docs/api-v2/getting-started/meet/sending-authenticated-bots#monitoring-pool-utilization) gives an on-demand view).
 
 ### States
 
