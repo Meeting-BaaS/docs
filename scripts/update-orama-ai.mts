@@ -1,4 +1,5 @@
 import * as fs from 'node:fs/promises';
+import { pathToFileURL } from 'node:url';
 import { OramaCloud } from '@orama/core';
 import fg from 'fast-glob';
 import matter from 'gray-matter';
@@ -89,4 +90,12 @@ export async function updateOramaAi(): Promise<void> {
     });
     throw error;
   }
+}
+
+// Allow running this file directly (e.g. `tsx scripts/update-orama-ai.mts`).
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  updateOramaAi().catch((error) => {
+    console.error('Failed to update Orama AI index:', error);
+    process.exit(1);
+  });
 }

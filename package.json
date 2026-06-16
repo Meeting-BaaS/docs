@@ -27,7 +27,9 @@
     "update:repo": "chmod +x ./git_greppers/update-single-repo.sh && ./git_greppers/update-single-repo.sh \"$REPO\" && pnpm clean:git-updates && pnpm test:git-updates",
     "clean:cache": "rimraf .next && pnpm clean:git-updates",
     "enhance:updates": "tsx ./scripts/enhance-updates.mts",
-    "enhance:all-non-api": "tsx ./scripts/enhance-all-non-api.mts"
+    "enhance:all-non-api": "tsx ./scripts/enhance-all-non-api.mts",
+    "search:sync": "node --env-file=./.env --import tsx ./scripts/update-orama-index.mts",
+    "search:sync:ai": "node --env-file=./.env --import tsx ./scripts/update-orama-ai.mts"
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.3.6",
