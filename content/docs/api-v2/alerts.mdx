@@ -40,6 +40,7 @@ Operational alerts count error occurrences and fire when the count reaches your 
 | Bot Crash | Bot process exited unexpectedly | Out of memory, force killed, general error |
 | Transcription Failed | Transcription service error | Provider returned an error after recording completed |
 | Calendar Sync Error | Calendar synchronization failure | OAuth token expired, provider API error |
+| Meet Login Unavailable | No authenticated Google Meet login slot was available | Round-robin pool saturated, no active login matched, bot failed with `MEET_LOGIN_UNAVAILABLE` |
 | Webhook Delivery Exhausted | All webhook retry attempts failed | Endpoint unreachable, returning errors consistently |
 
 <Callout type="info">
@@ -55,6 +56,7 @@ Threshold alerts fire when a resource metric crosses a configured boundary. They
 | Daily Bot Cap | Number of bots created today | "Alert me when daily bots reach 90% of my plan limit" |
 | Token Balance | Current token balance | "Alert me when tokens drop below 1000" |
 | Calendar Connections | Number of connected calendars | "Alert me when calendar connections reach my plan limit" |
+| Meet Login Utilization | Concurrency used across your Google Meet login pool | "Alert me when meet login utilization reaches 70%" |
 
 ## Delivery Channels
 

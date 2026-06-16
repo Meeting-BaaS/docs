@@ -1,0 +1,237 @@
+---
+title: Setup
+description: Create a meet workspace, configure the Legacy SSO profile in Google Admin Console, prepare Workspace users, and register meet logins
+icon: Settings
+---
+
+# Setting Up Google Meet Authentication
+
+Authenticated Meet bots sign in to a Google Workspace **you control** via SAML SSO. Meeting BaaS acts as the SAML Identity Provider (IdP); your Google Workspace is the Service Provider. This guide walks through the one-time setup.
+
+<Callout type="warn">
+**Never route real users through the bot IdP.** The Legacy SSO profile you configure below redirects sign-in to Meeting BaaS, so it must apply **only** to your bot accounts — never to your human users. Scope it one of two ways:
+
+- **Dedicated domain or subdomain (recommended):** Use a domain or subdomain you own that is reserved for bots — for example `bots.acme.com` — and configure SSO there.
+- **Dedicated organizational unit or group:** If you keep bots on an existing domain, move the bot accounts into a separate organizational unit (or group) and assign the Legacy SSO profile to **only that OU/group**, leaving everyone else on normal sign-in.
+
+Either way, the SSO profile must target the bot accounts exclusively.
+</Callout>
+
+## Prerequisites
+
+- A Google Workspace with **super admin** access to the Admin Console.
+- Bot accounts isolated from your human users — either on a dedicated domain/subdomain you own and have verified, or in a dedicated organizational unit/group.
+- A Meeting BaaS v2 API key with full access.
+
+## Overview
+
+<Steps>
+<Step>Create a **meet workspace** (holds the SAML certificate + key).</Step>
+<Step>Upload the certificate and configure the **Legacy SSO profile** in Google Admin Console.</Step>
+<Step>Create the **Google Workspace users** the bots will sign in as, and complete their first interactive login.</Step>
+<Step>Register a **meet login** for each user.</Step>
+</Steps>
+
+## Step 1 — Create a meet workspace
+
+A meet workspace is the parent resource for one Google Workspace domain. It stores the SAML signing keypair shared by every login attached to it.
+
+You have two options for the keypair:
+
+### Option A — Let the server generate the keypair (recommended)
+
+Pass `generate_keypair: true`. The server creates a self-signed RSA-2048 keypair with 10-year validity.
+
+```bash
+curl -X POST https://api.meetingbaas.com/v2/meet-workspaces \
+  -H "x-meeting-baas-api-key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Acme Production Workspace",
+    "domain": "bots.acme.com",
+    "generate_keypair": true
+  }'
+```
+
+### Option B — Bring your own keypair
+
+Provide `cert_pem` and `private_key_pem` together (mutually exclusive with `generate_keypair`).
+
+```bash
+curl -X POST https://api.meetingbaas.com/v2/meet-workspaces \
+  -H "x-meeting-baas-api-key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Acme Production Workspace",
+    "domain": "bots.acme.com",
+    "cert_pem": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----",
+    "private_key_pem": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+  }'
+```
+
+Either way, the response includes the `workspace_id` and the `cert_pem` you'll upload to Google. **`private_key_pem` is never returned** — it is encrypted at rest and only retrievable by rotating the keypair.
+
+```json
+{
+  "success": true,
+  "data": {
+    "workspace_id": "f0e1d2c3-b4a5-6789-0123-456789abcdef",
+    "name": "Acme Production Workspace",
+    "domain": "bots.acme.com",
+    "cert_pem": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----",
+    "state": "active",
+    "created_at": "2026-06-15T10:00:00.000Z",
+    "updated_at": "2026-06-15T10:00:00.000Z"
+  }
+}
+```
+
+<Callout type="info">
+Each `domain` may exist at most once per team. Creating a second workspace for the same domain returns `409 Conflict`.
+</Callout>
+
+## Step 2 — Configure the Legacy SSO profile in Google Admin Console
+
+This is the step that points your Google Workspace at Meeting BaaS as a SAML Identity Provider. You'll do it once per workspace, signed in to the [Google Admin Console](https://admin.google.com) as a **super admin**.
+
+<Steps>
+
+<Step>
+### Open the third-party SSO settings
+
+In the Admin Console left nav, go to **Security → Authentication → SSO with third party IdP**.
+
+<ImageZoom
+  src={'/assets/meet-sso/1-find-sso-setting.png'}
+  alt="Google Admin Console: Security → Authentication → SSO with third party IdP"
+  width={3028}
+  height={1722}
+  className="rounded-lg border"
+/>
+
+Under **Third-party SSO profiles**, open the **Legacy SSO Profile** (type `SAML` — it starts out *Disabled*).
+
+<ImageZoom
+  src={'/assets/meet-sso/2-open-legacy-profile.png'}
+  alt="Third-party SSO profiles list with the Legacy SSO Profile (SAML)"
+  width={3024}
+  height={1126}
+  className="rounded-lg border"
+/>
+</Step>
+
+<Step>
+### Enable the profile and enter the IdP details
+
+On the **Legacy SSO profile** page, fill in the following and **Save**:
+
+| Field | Value |
+|-------|-------|
+| Enable legacy SSO profile | ✅ Checked |
+| Sign-in page URL | `https://api.meetingbaas.com/v2/meet-sso/sign-in` |
+| Sign-out page URL | `https://api.meetingbaas.com/v2/meet-sso/sign-out` |
+| Verification certificate | Upload the `cert_pem` from [Step 1](#step-1--create-a-meet-workspace) (use **Replace certificate** / **Or upload**) |
+| Use a domain specific issuer | ✅ Checked |
+
+<ImageZoom
+  src={'/assets/meet-sso/3-configure-profile.png'}
+  alt="Legacy SSO profile form: enabled, Meeting BaaS sign-in/sign-out URLs, certificate uploaded, domain-specific issuer enabled"
+  width={3012}
+  height={1721}
+  className="rounded-lg border"
+/>
+
+<Callout type="info">
+These `/v2/meet-sso/*` URLs are SAML endpoints that Google calls during sign-in — you configure them in Google, you never call them yourself. The certificate you upload here must always match the one stored on the workspace. If you [rotate the keypair](#rotating-the-keypair), upload the new certificate at the same time.
+</Callout>
+</Step>
+
+<Step>
+### Assign the profile to your bot group (or OU) only
+
+Open **Manage SSO profile assignments**. Under **Groups**, pick the group that contains your bot accounts (for example `bots@bots.acme.com`) — or choose the bot **organizational unit**. A new scope starts with **Select SSO profile: None**.
+
+<ImageZoom
+  src={'/assets/meet-sso/4-assign-select-group.png'}
+  alt="Manage SSO profile assignments: selecting the bots group as the scope"
+  width={3020}
+  height={1708}
+  className="rounded-lg border"
+/>
+
+Set **Select SSO profile** to **Legacy SSO profile**, then click **Override** (or **Save**). This applies the bot IdP to that group/OU only and overrides the inherited organization setting.
+
+<ImageZoom
+  src={'/assets/meet-sso/5-assign-legacy-profile.png'}
+  alt="Assigning the Legacy SSO profile to the bots group and clicking Override"
+  width={3026}
+  height={1722}
+  className="rounded-lg border"
+/>
+
+<Callout type="warn">
+Assign the profile to the bot group/OU **only**. Never assign it to a scope that contains real users, or they will be redirected through the bot IdP. Changes take a few minutes to take effect.
+</Callout>
+</Step>
+
+</Steps>
+
+## Step 3 — Prepare the Workspace users
+
+For **each** Google account the bots will sign in as:
+
+1. Create the user in Google Admin Console (for example `bot1@bots.acme.com`).
+2. Sign in to that account once interactively and complete the **"Welcome to Workspace"** flow. This first-time interactive login is required before the account can be used programmatically — skipping it causes the login to flip to `invalid` on first use.
+3. Set the account language to **English (United States)** to ensure the sign-in and Meet UIs are in the expected state.
+
+<Callout type="tip">
+Create a **Google Group** (for example `bots@bots.acme.com`) and add the bot users as members. Putting this group on a calendar invite lets the assigned bot land in Meet's **verified queue** and bypass the waiting room. You'll reference this group as `email_group` in Step 4.
+</Callout>
+
+## Step 4 — Register a meet login per user
+
+Create one meet login for each Workspace user, referencing the `workspace_id` from Step 1.
+
+```bash
+curl -X POST https://api.meetingbaas.com/v2/meet-logins \
+  -H "x-meeting-baas-api-key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "workspace_id": "f0e1d2c3-b4a5-6789-0123-456789abcdef",
+    "name": "Production Bot Pool — Account 1",
+    "email": "bot1@bots.acme.com",
+    "email_group": "bots@bots.acme.com"
+  }'
+```
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `workspace_id` | ✅ | UUID of the parent workspace. |
+| `name` | ✅ | Friendly label. Not unique. |
+| `email` | ✅ | The Workspace user's email. Its domain must match the workspace domain (or a subdomain — e.g. `bot1@dev.bots.acme.com` is valid for workspace domain `bots.acme.com`). |
+| `email_group` | optional | Google Group address for round-robin pooling and verified-queue admission. Logins sharing the same `email_group` form one pool. Same domain rule applies. |
+| `extra` | optional | Free-form JSON for your own tags (filterable on the list endpoint). |
+
+<Callout type="info">
+Each `email` may exist at most once per team (`409 Conflict` on duplicates). An `email`/`email_group` whose domain doesn't match the workspace returns `422 Unprocessable Entity`. An unknown `workspace_id` returns `404 Not Found`.
+</Callout>
+
+Repeat for each user. Logins sharing an `email_group` form a round-robin pool — add more logins to increase concurrent capacity (each login handles up to 20 concurrent sessions by default).
+
+## You're ready
+
+With at least one **active** workspace and one **active** login, you can send authenticated bots. Continue to [Sending Authenticated Bots](/docs/api-v2/getting-started/meet/sending-authenticated-bots).
+
+## Maintenance
+
+### Rotating the keypair
+
+Rotate a workspace's certificate and key by sending **both** `cert_pem` and `private_key_pem` to `PATCH /v2/meet-workspaces/{workspace_id}`. The new pair takes effect immediately for all logins under the workspace, so **upload the new certificate to Google Admin Console at the same time** — there is a brief window where the stored cert and Google's cert must match.
+
+### Re-enabling an invalid resource
+
+When a workspace or login flips to `invalid`, fix the underlying cause (re-upload a matching cert, complete a user's interactive login, un-suspend the account), then re-enable it with a `PATCH` (`PATCH /v2/meet-workspaces/{workspace_id}` or `PATCH /v2/meet-logins/{credential_id}`). Check `last_error_message` for the reason.
+
+### Deleting a workspace
+
+`DELETE /v2/meet-workspaces/{workspace_id}` **cascades to all of its logins**. Delete a single login with `DELETE /v2/meet-logins/{credential_id}`.

@@ -1,0 +1,116 @@
+---
+title: Google Meet Authentication
+description: Send authenticated Google Meet bots that sign in as Google Workspace users via SAML SSO, bypass the waiting room, and join sign-in-restricted meetings
+icon: Video
+---
+
+# Authenticated Google Meet Bots
+
+By default, Meeting BaaS bots join Google Meet as anonymous guests. That works for open meetings, but it falls short when a meeting is **restricted to signed-in users**, restricted to a host's organization, or configured to send guests to a waiting room.
+
+Authenticated Meet bots solve this. Each bot signs in as a real **Google Workspace user** from a domain you control, using **SAML SSO**, before it joins the call. To Meet, the bot looks like any other signed-in participant.
+
+<Callout type="info">
+This feature is Google Meet–only. For Zoom authentication, see [Zoom Integration](/docs/api-v2/getting-started/zoom). For Microsoft Teams, anonymous joins are used and no extra configuration is required. Leave `meet_config` `null` for anonymous Meet joins.
+</Callout>
+
+## Why authenticate
+
+| Scenario | Anonymous bot | Authenticated bot |
+|----------|---------------|-------------------|
+| Open meeting, anyone with link | ✅ Joins | ✅ Joins |
+| "Only people in the organization can join" | ❌ `MEET_LOGIN_REQUIRED` | ✅ Joins as a Workspace user |
+| Guests sent to a waiting room | ⏳ Waits for admit | ✅ Bypasses via verified queue (with `email_group`) |
+| Calendar-invited participants auto-admitted | ❌ Not invited | ✅ Invite the Google Group, land in the verified queue |
+
+## How it works
+
+Authentication is built on three resources. You configure the first two once, then reference them per bot.
+
+<Steps>
+<Step>
+**Meet Workspace** — the parent resource representing one Google Workspace's SAML SSO configuration. It holds the SAML signing certificate and private key shared by every login under it. You create one per Google Workspace domain. See [Setup](/docs/api-v2/getting-started/meet/setup).
+</Step>
+<Step>
+**Meet Logins** — one per Google Workspace user the bots sign in as. Many logins can share a single workspace. Logins can be grouped into round-robin pools by `email_group`.
+</Step>
+<Step>
+**`meet_config` on the bot** — when you create a bot, you tell it which login (or pool) to use. The dispatcher signs the bot in via SAML SSO using the workspace's keypair, then joins the meeting.
+</Step>
+</Steps>
+
+```text
+Meet Workspace (domain + SAML cert/key)
+        │
+        ├── Meet Login  bot1@bots.acme.com   ┐
+        ├── Meet Login  bot2@bots.acme.com   ├─ email_group: bots@bots.acme.com (round-robin pool)
+        └── Meet Login  bot3@bots.acme.com   ┘
+                                │
+        POST /v2/bots  { meet_config: { email_group: "bots@bots.acme.com" } }
+                                │
+                 least-loaded active login is assigned → bot signs in → joins Meet
+```
+
+## The `meet_config` object
+
+All Meet authentication options are passed in a single `meet_config` object on `POST /v2/bots`:
+
+```json
+{
+  "bot_name": "Recording Bot",
+  "meeting_url": "https://meet.google.com/abc-defg-hij",
+  "meet_config": {
+    "email_group": "bots@bots.acme.com",
+    "fallback": "fail"
+  }
+}
+```
+
+| Parameter | Description |
+|-----------|-------------|
+| `email_group` | Round-robin pool selector. The bot is assigned the **least-loaded active login** in this pool. Preferred for most use cases — **takes priority over `credential_id`**. Pass `""` to round-robin across all of the team's active logins. |
+| `credential_id` | Pin one specific login (UUID) for this bot. |
+| `fallback` | What to do when no login slot is available: `fail` (default) fails bot creation with `MEET_LOGIN_UNAVAILABLE`; `anonymous` silently falls back to an anonymous join. |
+
+Leave `meet_config` `null` for anonymous Meet joins, Zoom, or Microsoft Teams.
+
+## Key concepts
+
+### The verified queue and the waiting room
+
+When you put a login's `email_group` (a Google Group address) on the **calendar invite** for a meeting, the assigned bot lands in Meet's **verified queue** and bypasses the waiting room — it is treated as an invited participant. This is the recommended pattern for unattended recording. Without an invite, an authenticated bot still benefits from being a signed-in organizational user, but may still hit the host's admission rules.
+
+### Round-robin pools and concurrency
+
+Each login supports up to **20 concurrent SSO sessions** by default (configurable per environment). When you dispatch bots with an `email_group`, the assigner picks the least-loaded active login and skips any login at capacity. If every login in a pool is saturated, bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, per your `fallback` setting). Create more logins to raise the ceiling and monitor headroom with the [utilization endpoint](/docs/api-v2/getting-started/meet/sending-authenticated-bots#monitoring-pool-utilization).
+
+### States
+
+Both workspaces and logins track health with a `state` field:
+
+- **`active`** — healthy and usable.
+- **`invalid`** — the system auto-disabled the resource after a failure (a SAML rejection for workspaces; a bot login failure such as a suspended user or a pending first-time interactive login for logins). Re-enable manually via `PATCH` after fixing the underlying issue.
+
+When a resource flips to `invalid`, `last_error_message` and `last_error_at` explain why.
+
+### Security
+
+The SAML certificate and private key are encrypted at rest using **AES-256-GCM**. The `private_key_pem` is **never returned** in any API response — not on create, and not on subsequent reads. If you lose it, rotate the keypair via `PATCH /v2/meet-workspaces/{workspace_id}`.
+
+## Pages in this section
+
+<Cards>
+  <Card title="Setup" href="/docs/api-v2/getting-started/meet/setup">
+    Create a meet workspace, configure the Legacy SSO profile in Google Admin Console, prepare Workspace users, and add logins.
+  </Card>
+  <Card title="Sending Authenticated Bots" href="/docs/api-v2/getting-started/meet/sending-authenticated-bots">
+    Use `meet_config` to send authenticated bots, manage pools, configure fallback, and monitor utilization.
+  </Card>
+</Cards>
+
+## Related resources
+
+- [Meet Workspaces API](/docs/api-v2/reference/meet-workspaces/createMeetWorkspace) — manage SAML SSO configurations
+- [Meet Logins API](/docs/api-v2/reference/meet-logins/createMeetLogin) — manage the Workspace user identities bots sign in as
+- [Error Codes](/docs/api-v2/error-codes#google-meet-authentication-errors) — `MEET_LOGIN_*` failure reasons
+- [Alerts](/docs/api-v2/alerts#alert-types) — monitor pool utilization and saturation
