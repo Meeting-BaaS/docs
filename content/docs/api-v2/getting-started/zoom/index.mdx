@@ -110,19 +110,19 @@ All credentials are encrypted at rest using AES-256-GCM. Client secrets and OAut
 
 <Accordions type="single">
 
-<Accordion id="faq-migrate-v1" title="Can I migrate my v1 Zoom OAuth connections to v2?">
+<Accordion title="Can I migrate my v1 Zoom OAuth connections to v2?">
 Yes, but you'll need to create new credentials in v2 using the `/v2/zoom-credentials` endpoint. We recommend having users re-authorize to ensure fresh tokens.
 </Accordion>
 
-<Accordion id="faq-app-config" title="Do I need to change my Zoom app configuration?">
+<Accordion title="Do I need to change my Zoom app configuration?">
 No, your existing Zoom app works with v2. The scopes and settings remain the same.
 </Accordion>
 
-<Accordion id="faq-invalid-credential" title="What happens if a credential becomes invalid?">
+<Accordion title="What happens if a credential becomes invalid?">
 Bots using that credential will fail to join meetings. You'll see the error in the credential's `last_error_message` field and in the bot's failure webhook.
 </Accordion>
 
-<Accordion id="faq-v1-v2-simultaneous" title="Can I use both v1 and v2 APIs simultaneously?">
+<Accordion title="Can I use both v1 and v2 APIs simultaneously?">
 Yes, during migration you can use both APIs. However, credentials are not shared between v1 and v2—you'll need to set them up separately.
 </Accordion>
 

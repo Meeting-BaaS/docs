@@ -600,19 +600,19 @@ If a user revokes your app in their Zoom settings, the credential becomes invali
 
 <Accordions type="single">
 
-<Accordion id="faq-same-redirect-uri" title="Can I use the same redirect URI for development and production?">
+<Accordion title="Can I use the same redirect URI for development and production?">
 No, use environment-specific URIs. Add both to your Zoom app's allowed redirect URIs.
 </Accordion>
 
-<Accordion id="faq-multiple-accounts" title="What if the user has multiple Zoom accounts?">
+<Accordion title="What if the user has multiple Zoom accounts?">
 They'll authorize with whichever account they're logged into. The credential response includes `zoom_email` and `zoom_display_name` (captured from Zoom's `/users/me` API at OAuth time, requires the `user:read:user` scope) — surface these in your UI so the user can verify which Zoom account is connected and disconnect/reconnect if it's the wrong one.
 </Accordion>
 
-<Accordion id="faq-reauthorization" title="How do I handle re-authorization?">
+<Accordion title="How do I handle re-authorization?">
 When creating a new credential for an existing Zoom user, the old credential becomes orphaned. Delete it after successful re-auth to avoid confusion.
 </Accordion>
 
-<Accordion id="faq-customize-consent" title="Can I customize what users see on Zoom's authorization page?">
+<Accordion title="Can I customize what users see on Zoom's authorization page?">
 Limited customization is available in your Zoom app settings (app name, icon, description).
 </Accordion>
 
