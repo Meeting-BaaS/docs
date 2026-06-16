@@ -27,13 +27,6 @@ _openapi:
               
               Returns 200 with update results. Returns 404 if the event or calendar bot schedule is not found, or 409 if the bot's status does not allow update.
       - content: >-
-          series_id: The UUID of the event series to schedule bots for.
-
-
-          Both one-off and recurring events have a series_id. For recurring
-          events, use 'all_occurrences' to schedule bots for all future
-          occurrences.
-      - content: >-
           all_occurrences: Whether to schedule bots for all occurrences of the
           event series.
 
@@ -51,10 +44,13 @@ _openapi:
           Required when `all_occurrences` is `false`. Use this to schedule a bot
           for a single occurrence of a recurring event or a specific one-off
           event. If `all_occurrences` is `true`, this parameter is ignored.
-      - content: |-
-          bot_name: The name of the bot.
+      - content: >-
+          series_id: The UUID of the event series to schedule bots for.
 
-          This name will be displayed as the bot's name in the meeting.
+
+          Both one-off and recurring events have a series_id. For recurring
+          events, use 'all_occurrences' to schedule bots for all future
+          occurrences.
       - content: >-
           bot_image: The bot's avatar image(s).
 
@@ -66,6 +62,93 @@ _openapi:
           bot_image_config: Configuration for how bot avatar images are
           displayed. Only relevant when multiple images are provided in
           bot_image.
+      - content: |-
+          bot_name: The name of the bot.
+
+          This name will be displayed as the bot's name in the meeting.
+      - content: >-
+          callback_config: The callback configuration for the bot.
+
+
+          Required when `callback_enabled` is `true`. Must not be provided when
+          `callback_enabled` is `false`.
+
+
+          - `url`: The URL to be called upon completion or failure of the bot
+
+          - `secret`: Secret for HMAC validation (sent in `x-mb-secret` header)
+
+          - `method`: HTTP method (`POST` or `PUT`, default: `POST`)
+
+
+          Omit this field to leave callback configuration unchanged.
+      - content: >-
+          callback_config.method: The HTTP method to use for the callback.
+          Allowed values are 'POST' or 'PUT'.
+      - content: >-
+          callback_config.secret: To ensure that you can validate the callback,
+          this secret will be added to the request in the 'x-mb-secret' header
+      - content: >-
+          callback_config.url: The URL to be called upon the completion or
+          failure of the bot.
+      - content: >-
+          callback_enabled: Enable or disable callback for this bot.
+
+
+          - Set to `true` to enable callback (requires `callback_config`)
+
+          - Set to `false` to disable callback (do not provide
+          `callback_config`)
+
+          - Omit this field to leave callback configuration unchanged
+
+
+          If you want to change callback settings, you must provide both
+          `callback_enabled` and `callback_config` together.
+      - content: >-
+          entry_message: The message that the bot will send when it joins the
+          meeting.
+
+
+          This message will be posted in the meeting chat when the bot
+          successfully joins.
+
+
+          Available for Google Meet, Microsoft Teams, and Zoom meetings.
+
+
+          Maximum: 4096 characters
+      - content: >-
+          extra: An optional extra configuration object for the bot.
+
+
+          This object can contain any custom key-value pairs that you want to
+          associate with the bot. The data will be:
+
+
+          - Included in all webhook event payloads (if a webhook endpoint is
+          configured)
+
+          - Part of the callback payload (if callback is enabled)
+
+          - Returned when fetching the bot's details via the API
+
+
+          Useful for storing custom metadata, tracking information, or any other
+          data you need to correlate with the bot.
+      - content: >-
+          meet_config: Meet-only configuration for authenticated bots via SAML
+          SSO.
+
+
+          - credential_id: pin a specific login.
+
+          - email_group: pool selector (preferred — takes priority).
+
+          - fallback: 'fail' (default) or 'anonymous' on saturation.
+
+
+          Leave null for anonymous Meet joins, Zoom, or Microsoft Teams.
       - content: >-
           recording_mode: The recording mode of the bot.
 
@@ -83,18 +166,56 @@ _openapi:
 
           Default: `speaker_view`
       - content: >-
-          entry_message: The message that the bot will send when it joins the
+          streaming_config: The streaming configuration for the bot.
+
+
+          Required when `streaming_enabled` is `true`. Must not be provided when
+          `streaming_enabled` is `false`.
+
+
+          - `input_url`: Websocket stream URL that receives audio sent to the
+          bot
+
+          - `output_url`: Websocket stream URL where the bot sends audio
+
+          - `audio_frequency`: Audio frequency in Hz (default: 24000)
+
+
+          Omit this field to leave streaming configuration unchanged.
+      - content: >-
+          streaming_config.audio_frequency: The audio frequency in Hz. Supported
+          values: 24000 (default), 32000, 48000 Hz.
+      - content: >-
+          streaming_config.input_url: Websocket stream URL, which receives the
+          audio sent to the bot, and the bot will stream the audio to the
           meeting.
+      - content: >-
+          streaming_config.mode: The streaming mode. 'audio' (default) streams
+          raw audio to output_url via WebSocket. 'transcription' runs real-time
+          speech-to-text and POSTs transcript events to output_url via HTTP
+          webhooks.
+      - content: >-
+          streaming_config.output_url: When mode is 'audio': WebSocket URL where
+          the bot sends raw audio. When mode is 'transcription': HTTP URL where
+          transcript events are POSTed.
+      - content: >-
+          streaming_config.transcription: Transcription provider configuration
+          for real-time streaming STT. Required when mode is 'transcription'.
+          Supports all batch providers plus 'elevenlabs' (streaming-only).
+      - content: >-
+          streaming_enabled: Enable or disable audio streaming for this bot.
 
 
-          This message will be posted in the meeting chat when the bot
-          successfully joins.
+          - Set to `true` to enable streaming (requires `streaming_config`)
+
+          - Set to `false` to disable streaming (do not provide
+          `streaming_config`)
+
+          - Omit this field to leave streaming configuration unchanged
 
 
-          Available for Google Meet, Microsoft Teams, and Zoom meetings.
-
-
-          Maximum: 4096 characters
+          If you want to change streaming settings, you must provide both
+          `streaming_enabled` and `streaming_config` together.
       - content: >-
           timeout_config: Configuration for automatic meeting exit behavior. For
           Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to
@@ -103,25 +224,14 @@ _openapi:
           silence_timeout monitoring once participants are detected. Zoom only
           uses waiting_room_timeout.
       - content: >-
-          timeout_config.waiting_room_timeout: The timeout in seconds for the
-          bot to wait in the waiting room before leaving the meeting.
+          timeout_config.grace_period: The grace period in seconds at the start
+          of the meeting during which no timeout conditions (waiting room, no
+          participants, silence) will trigger.
 
 
-          If the bot is placed in a waiting room and not admitted within this
-          time, it will leave the meeting.
+          Default: 0 (disabled)
 
-
-          Note: Google Meet has its own waiting room timeout (approximately 10
-          minutes). Setting a higher value for Google Meet meetings will have no
-          effect, as Google Meet will deny entry to the bot after its own
-          timeout.
-
-
-          Default: 600 seconds (10 minutes)
-
-          Minimum: 2 minutes
-
-          Maximum: 30 minutes
+          Maximum: 600 seconds (10 minutes)
       - content: >-
           timeout_config.no_one_joined_timeout: The timeout in seconds for the
           bot to wait for participants to join before leaving the meeting.
@@ -153,14 +263,80 @@ _openapi:
 
           Maximum: 30 minutes
       - content: >-
-          timeout_config.grace_period: The grace period in seconds at the start
-          of the meeting during which no timeout conditions (waiting room, no
-          participants, silence) will trigger.
+          timeout_config.waiting_room_timeout: The timeout in seconds for the
+          bot to wait in the waiting room before leaving the meeting.
 
 
-          Default: 0 (disabled)
+          If the bot is placed in a waiting room and not admitted within this
+          time, it will leave the meeting.
 
-          Maximum: 600 seconds (10 minutes)
+
+          Note: Google Meet has its own waiting room timeout (approximately 10
+          minutes). Setting a higher value for Google Meet meetings will have no
+          effect, as Google Meet will deny entry to the bot after its own
+          timeout.
+
+
+          Default: 600 seconds (10 minutes)
+
+          Minimum: 2 minutes
+
+          Maximum: 30 minutes
+      - content: >-
+          transcription_config: The transcription configuration for the bot.
+
+
+          Required when `transcription_enabled` is `true`. Must not be provided
+          when `transcription_enabled` is `false`.
+
+
+          - `provider`: Speech-to-text provider (default: "gladia"). Supported:
+          gladia, deepgram, assemblyai, speechmatics, soniox
+
+          - `api_key`: Your own API key for the provider (BYOK - available on
+          Pro plans and above)
+
+          - `region`: Provider region (e.g. "eu", "us"). Required for some
+          providers like Speechmatics
+
+          - `custom_params`: Custom parameters for the transcription provider
+
+
+          Omit this field to leave transcription configuration unchanged.
+      - content: >-
+          transcription_config.api_key: The API key to use for the speech to
+          text provider. This can be provided to use your own API key for the
+          speech to text provider. It consumes less tokens than using the
+          default API key. It is available on 'Pro' plans and above.
+      - content: >-
+          transcription_config.custom_params: Custom parameters for the
+          transcription provider. See your provider's documentation for
+          available options. Validated against provider-specific schemas at
+          creation time.
+      - content: >-
+          transcription_config.provider: The speech to text provider to use for
+          batch transcription. Supported providers: 'gladia', 'deepgram',
+          'assemblyai', 'speechmatics', 'soniox'.
+      - content: >-
+          transcription_config.region: Region for the transcription provider API
+          endpoint. When omitted, provider-specific defaults are used:
+          deepgram='eu', assemblyai='eu', speechmatics='eu1', soniox='us'.
+          Gladia does not support region for batch transcription.
+      - content: >-
+          transcription_enabled: Enable or disable transcription for this bot.
+
+
+          - Set to `true` to enable transcription (requires
+          `transcription_config`)
+
+          - Set to `false` to disable transcription (do not provide
+          `transcription_config`)
+
+          - Omit this field to leave transcription configuration unchanged
+
+
+          If you want to change transcription settings, you must provide both
+          `transcription_enabled` and `transcription_config` together.
       - content: >-
           zoom_config: Zoom-only configuration for authentication and join
           method.
@@ -180,188 +356,42 @@ _openapi:
 
 
           Leave `null` for Google Meet and Microsoft Teams.
-      - content: >-
-          extra: An optional extra configuration object for the bot.
-
-
-          This object can contain any custom key-value pairs that you want to
-          associate with the bot. The data will be:
-
-
-          - Included in all webhook event payloads (if a webhook endpoint is
-          configured)
-
-          - Part of the callback payload (if callback is enabled)
-
-          - Returned when fetching the bot's details via the API
-
-
-          Useful for storing custom metadata, tracking information, or any other
-          data you need to correlate with the bot.
-      - content: >-
-          streaming_enabled: Enable or disable audio streaming for this bot.
-
-
-          - Set to `true` to enable streaming (requires `streaming_config`)
-
-          - Set to `false` to disable streaming (do not provide
-          `streaming_config`)
-
-          - Omit this field to leave streaming configuration unchanged
-
-
-          If you want to change streaming settings, you must provide both
-          `streaming_enabled` and `streaming_config` together.
-      - content: >-
-          streaming_config: The streaming configuration for the bot.
-
-
-          Required when `streaming_enabled` is `true`. Must not be provided when
-          `streaming_enabled` is `false`.
-
-
-          - `input_url`: Websocket stream URL that receives audio sent to the
-          bot
-
-          - `output_url`: Websocket stream URL where the bot sends audio
-
-          - `audio_frequency`: Audio frequency in Hz (default: 24000)
-
-
-          Omit this field to leave streaming configuration unchanged.
-      - content: >-
-          streaming_config.input_url: Websocket stream URL, which receives the
-          audio sent to the bot, and the bot will stream the audio to the
-          meeting.
-      - content: >-
-          streaming_config.output_url: Websocket stream URL, which the bot sends
-          the audio to. This is used to stream the output audio to a
-          destination.
-      - content: >-
-          streaming_config.audio_frequency: The audio frequency in Hz. Supported
-          values: 24000 (default), 32000, 48000 Hz.
-      - content: >-
-          transcription_enabled: Enable or disable transcription for this bot.
-
-
-          - Set to `true` to enable transcription (requires
-          `transcription_config`)
-
-          - Set to `false` to disable transcription (do not provide
-          `transcription_config`)
-
-          - Omit this field to leave transcription configuration unchanged
-
-
-          If you want to change transcription settings, you must provide both
-          `transcription_enabled` and `transcription_config` together.
-      - content: >-
-          transcription_config: The transcription configuration for the bot.
-
-
-          Required when `transcription_enabled` is `true`. Must not be provided
-          when `transcription_enabled` is `false`.
-
-
-          - `provider`: Speech-to-text provider (default: "gladia")
-
-          - `api_key`: Your own API key for the provider (BYOK - available on
-          Pro plans and above)
-
-          - `custom_params`: Custom parameters for transcription (see Gladia API
-          documentation)
-
-
-          Omit this field to leave transcription configuration unchanged.
-      - content: >-
-          transcription_config.provider: The speech to text provider to use for
-          the bot. The default and only supported provider is 'gladia'. More
-          providers will be supported in the future.
-      - content: >-
-          transcription_config.api_key: The API key to use for the speech to
-          text provider. This can be provided to use your own API key for the
-          speech to text provider. It consumes less tokens than using the
-          default API key. It is available on 'Pro' plans and above.
-      - content: >-
-          transcription_config.custom_params: Custom parameters for the
-          transcription provider. See the transcription provider's documentation
-          for available options. For Gladia, see
-          https://docs.gladia.io/api-reference/v2/pre-recorded/init
-      - content: >-
-          callback_enabled: Enable or disable callback for this bot.
-
-
-          - Set to `true` to enable callback (requires `callback_config`)
-
-          - Set to `false` to disable callback (do not provide
-          `callback_config`)
-
-          - Omit this field to leave callback configuration unchanged
-
-
-          If you want to change callback settings, you must provide both
-          `callback_enabled` and `callback_config` together.
-      - content: >-
-          callback_config: The callback configuration for the bot.
-
-
-          Required when `callback_enabled` is `true`. Must not be provided when
-          `callback_enabled` is `false`.
-
-
-          - `url`: The URL to be called upon completion or failure of the bot
-
-          - `secret`: Secret for HMAC validation (sent in `x-mb-secret` header)
-
-          - `method`: HTTP method (`POST` or `PUT`, default: `POST`)
-
-
-          Omit this field to leave callback configuration unchanged.
-      - content: >-
-          callback_config.url: The URL to be called upon the completion or
-          failure of the bot.
-      - content: >-
-          callback_config.secret: To ensure that you can validate the callback,
-          this secret will be added to the request in the 'x-mb-secret' header
-      - content: >-
-          callback_config.method: The HTTP method to use for the callback.
-          Allowed values are 'POST' or 'PUT'.
-      - content: success
       - content: 'data: Event instances whose calendar bots were successfully updated'
       - content: >-
           errors: Array of errors for event instances whose calendar bots could
           not be updated. This array is empty if all requested event instances
           were successfully updated
       - content: success
+      - content: 'code: Error code for programmatic handling'
       - content: 'error: Error name'
-      - content: 'code: Error code for programmatic handling'
-      - content: 'statusCode: HTTP status code'
       - content: 'message: Human-readable error message'
+      - content: 'statusCode: HTTP status code'
       - content: success
-      - content: 'error: Human-readable error message'
       - content: 'code: Error code for programmatic handling'
-      - content: 'statusCode: HTTP status code'
-      - content: 'message: Human-readable error message'
       - content: 'details: Additional error details (string or null)'
+      - content: 'error: Human-readable error message'
+      - content: 'message: Human-readable error message'
+      - content: 'statusCode: HTTP status code'
       - content: success
-      - content: 'error: Human-readable error message'
       - content: 'code: Error code for programmatic handling'
-      - content: 'statusCode: HTTP status code'
-      - content: 'message: Human-readable error message'
       - content: 'details: Additional error details (string or null)'
+      - content: 'error: Human-readable error message'
+      - content: 'message: Human-readable error message'
+      - content: 'statusCode: HTTP status code'
       - content: success
-      - content: 'error: Human-readable error message'
       - content: 'code: Error code for programmatic handling'
-      - content: 'statusCode: HTTP status code'
-      - content: 'message: Human-readable error message'
       - content: 'details: Additional error details (string or null)'
+      - content: 'error: Human-readable error message'
+      - content: 'message: Human-readable error message'
       - content: 'retryAfter: Number of seconds to wait before retrying'
-      - content: success
-      - content: 'error: Human-readable error message'
-      - content: 'code: Error code for programmatic handling'
       - content: 'statusCode: HTTP status code'
-      - content: 'message: Human-readable error message'
+      - content: success
+      - content: 'code: Error code for programmatic handling'
       - content: 'details: Additional error details (string or null)'
+      - content: 'error: Human-readable error message'
+      - content: 'message: Human-readable error message'
+      - content: 'statusCode: HTTP status code'
+      - content: success
 ---
 
 {/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}

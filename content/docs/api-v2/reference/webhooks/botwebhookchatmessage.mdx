@@ -9,14 +9,11 @@ description: Bot Chat Message payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 | `extra` | object | null | Yes | Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
@@ -30,18 +27,21 @@ description: Bot Chat Message payload structure
     - **`message_id`** (string) **Required**
       Unique identifier of the chat message
 
-    - **`sender_name`** (string) **Required**
-      Display name of the message sender
-
     - **`sender_id`** (integer | null) **Required**
       Sequential participant ID of the sender. Null if the sender could not be resolved to a participant
 
-    - **`text`** (string) **Required**
-      Text content of the chat message
+    - **`sender_name`** (string) **Required**
+      Display name of the message sender
 
     - **`sent_at`** (string (date-time)) **Required**
       ISO 8601 timestamp when this webhook was sent
 
+    - **`text`** (string) **Required**
+      Text content of the chat message
+
+
+- **`event`** (string) **Required**
+  The webhook event type
 
 - **`extra`** (object | null) **Required**
   Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking
@@ -51,16 +51,16 @@ description: Bot Chat Message payload structure
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
     "bot_id": "examplebot_id",
     "event_id": null,
     "message_id": "examplemessage_id",
-    "sender_name": "examplesender_name",
     "sender_id": null,
-    "text": "exampletext",
-    "sent_at": "examplesent_at"
+    "sender_name": "examplesender_name",
+    "sent_at": "examplesent_at",
+    "text": "exampletext"
   },
+  "event": "exampleevent",
   "extra": null
 }
 ```

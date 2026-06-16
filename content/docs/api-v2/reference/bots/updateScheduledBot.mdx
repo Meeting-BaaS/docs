@@ -25,31 +25,6 @@ _openapi:
               **Validation:** All updated fields are validated using the same rules as bot creation. Invalid configurations will result in a 400 Bad Request error.
               
               Returns 404 if the scheduled bot is not found, or 409 if the bot's status does not allow update or the join time is too close.
-      - content: |-
-          bot_name: The name of the bot.
-
-          This name will be displayed as the bot's name in the meeting.
-      - content: >-
-          bot_image: The bot's avatar image(s).
-
-
-          Accepts a single HTTPS URL or an array of up to 5 HTTPS URLs pointing
-          to image files (JPEG, PNG, or WebP). When multiple images are
-          provided, they will be cycled based on the bot_image_config settings.
-      - content: >-
-          bot_image_config: Configuration for how bot avatar images are
-          displayed. Only relevant when multiple images are provided in
-          bot_image.
-      - content: >-
-          meeting_url: The URL of the meeting to join.
-
-
-          Must be a valid HTTPS URL for a Microsoft Teams, Google Meet, or Zoom
-          meeting.
-
-
-          Example: "https://zoom.us/j/123456789" or
-          "https://meet.google.com/abc-defg-hij"
       - content: >-
           allow_multiple_bots: Whether to allow multiple bots to join the same
           meeting.
@@ -66,6 +41,88 @@ _openapi:
 
           Default: `true`
       - content: >-
+          bot_image: The bot's avatar image(s).
+
+
+          Accepts a single HTTPS URL or an array of up to 5 HTTPS URLs pointing
+          to image files (JPEG, PNG, or WebP). When multiple images are
+          provided, they will be cycled based on the bot_image_config settings.
+      - content: >-
+          bot_image_config: Configuration for how bot avatar images are
+          displayed. Only relevant when multiple images are provided in
+          bot_image.
+      - content: |-
+          bot_name: The name of the bot.
+
+          This name will be displayed as the bot's name in the meeting.
+      - content: callback_config
+      - content: >-
+          callback_enabled: Enable callback for this bot. When enabled, the
+          callback_config property is used to provide the configuration.
+      - content: >-
+          entry_message: The message that the bot will send when it joins the
+          meeting.
+
+
+          This message will be posted in the meeting chat when the bot
+          successfully joins.
+
+
+          Available for Google Meet, Microsoft Teams, and Zoom meetings.
+
+
+          Maximum: 4096 characters
+      - content: >-
+          extra: An optional extra configuration object for the bot.
+
+
+          This object can contain any custom key-value pairs that you want to
+          associate with the bot. The data will be:
+
+
+          - Included in all webhook event payloads (if a webhook endpoint is
+          configured)
+
+          - Part of the callback payload (if callback is enabled)
+
+          - Returned when fetching the bot's details via the API
+
+
+          Useful for storing custom metadata, tracking information, or any other
+          data you need to correlate with the bot.
+      - content: >-
+          join_at: Update the scheduled join time.
+
+
+          ISO8601 format. Must be at least 4 minutes in the future and cannot be
+          more than 90 days in the future.
+
+
+          Example: "2025-12-25T10:00:00Z"
+      - content: >-
+          meet_config: Meet-only configuration for authenticated bots via SAML
+          SSO.
+
+
+          - credential_id: pin a specific login.
+
+          - email_group: pool selector (preferred — takes priority).
+
+          - fallback: 'fail' (default) or 'anonymous' on saturation.
+
+
+          Leave null for anonymous Meet joins, Zoom, or Microsoft Teams.
+      - content: >-
+          meeting_url: The URL of the meeting to join.
+
+
+          Must be a valid HTTPS URL for a Microsoft Teams, Google Meet, or Zoom
+          meeting.
+
+
+          Example: "https://zoom.us/j/123456789" or
+          "https://meet.google.com/abc-defg-hij"
+      - content: >-
           recording_mode: The recording mode of the bot.
 
 
@@ -81,19 +138,10 @@ _openapi:
 
 
           Default: `speaker_view`
+      - content: streaming_config
       - content: >-
-          entry_message: The message that the bot will send when it joins the
-          meeting.
-
-
-          This message will be posted in the meeting chat when the bot
-          successfully joins.
-
-
-          Available for Google Meet, Microsoft Teams, and Zoom meetings.
-
-
-          Maximum: 4096 characters
+          streaming_enabled: Enable audio streaming for this bot. When enabled,
+          the streaming_config property is used to provide the configuration.
       - content: >-
           timeout_config: Configuration for automatic meeting exit behavior. For
           Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to
@@ -102,25 +150,14 @@ _openapi:
           silence_timeout monitoring once participants are detected. Zoom only
           uses waiting_room_timeout.
       - content: >-
-          timeout_config.waiting_room_timeout: The timeout in seconds for the
-          bot to wait in the waiting room before leaving the meeting.
+          timeout_config.grace_period: The grace period in seconds at the start
+          of the meeting during which no timeout conditions (waiting room, no
+          participants, silence) will trigger.
 
 
-          If the bot is placed in a waiting room and not admitted within this
-          time, it will leave the meeting.
+          Default: 0 (disabled)
 
-
-          Note: Google Meet has its own waiting room timeout (approximately 10
-          minutes). Setting a higher value for Google Meet meetings will have no
-          effect, as Google Meet will deny entry to the bot after its own
-          timeout.
-
-
-          Default: 600 seconds (10 minutes)
-
-          Minimum: 2 minutes
-
-          Maximum: 30 minutes
+          Maximum: 600 seconds (10 minutes)
       - content: >-
           timeout_config.no_one_joined_timeout: The timeout in seconds for the
           bot to wait for participants to join before leaving the meeting.
@@ -152,14 +189,30 @@ _openapi:
 
           Maximum: 30 minutes
       - content: >-
-          timeout_config.grace_period: The grace period in seconds at the start
-          of the meeting during which no timeout conditions (waiting room, no
-          participants, silence) will trigger.
+          timeout_config.waiting_room_timeout: The timeout in seconds for the
+          bot to wait in the waiting room before leaving the meeting.
 
 
-          Default: 0 (disabled)
+          If the bot is placed in a waiting room and not admitted within this
+          time, it will leave the meeting.
 
-          Maximum: 600 seconds (10 minutes)
+
+          Note: Google Meet has its own waiting room timeout (approximately 10
+          minutes). Setting a higher value for Google Meet meetings will have no
+          effect, as Google Meet will deny entry to the bot after its own
+          timeout.
+
+
+          Default: 600 seconds (10 minutes)
+
+          Minimum: 2 minutes
+
+          Maximum: 30 minutes
+      - content: transcription_config
+      - content: >-
+          transcription_enabled: Enable transcription for this bot. When
+          enabled, the transcription_config property is used to customise the
+          transcription provider and parameters.
       - content: >-
           zoom_config: Zoom-only configuration for authentication and join
           method.
@@ -179,79 +232,39 @@ _openapi:
 
 
           Leave `null` for Google Meet and Microsoft Teams.
-      - content: >-
-          extra: An optional extra configuration object for the bot.
-
-
-          This object can contain any custom key-value pairs that you want to
-          associate with the bot. The data will be:
-
-
-          - Included in all webhook event payloads (if a webhook endpoint is
-          configured)
-
-          - Part of the callback payload (if callback is enabled)
-
-          - Returned when fetching the bot's details via the API
-
-
-          Useful for storing custom metadata, tracking information, or any other
-          data you need to correlate with the bot.
-      - content: >-
-          streaming_enabled: Enable audio streaming for this bot. When enabled,
-          the streaming_config property is used to provide the configuration.
-      - content: streaming_config
-      - content: >-
-          transcription_enabled: Enable transcription for this bot. When
-          enabled, the transcription_config property is used to customise the
-          transcription provider and parameters.
-      - content: transcription_config
-      - content: >-
-          callback_enabled: Enable callback for this bot. When enabled, the
-          callback_config property is used to provide the configuration.
-      - content: callback_config
-      - content: >-
-          join_at: Update the scheduled join time.
-
-
-          ISO8601 format. Must be at least 4 minutes in the future and cannot be
-          more than 90 days in the future.
-
-
-          Example: "2025-12-25T10:00:00Z"
-      - content: success
       - content: data
       - content: 'data.message: Success message'
       - content: success
+      - content: 'code: Error code for programmatic handling'
       - content: 'error: Error name'
-      - content: 'code: Error code for programmatic handling'
-      - content: 'statusCode: HTTP status code'
       - content: 'message: Human-readable error message'
+      - content: 'statusCode: HTTP status code'
       - content: success
-      - content: 'error: Human-readable error message'
       - content: 'code: Error code for programmatic handling'
-      - content: 'statusCode: HTTP status code'
-      - content: 'message: Human-readable error message'
       - content: 'details: Additional error details (string or null)'
+      - content: 'error: Human-readable error message'
+      - content: 'message: Human-readable error message'
+      - content: 'statusCode: HTTP status code'
       - content: success
-      - content: 'error: Human-readable error message'
       - content: 'code: Error code for programmatic handling'
-      - content: 'statusCode: HTTP status code'
-      - content: 'message: Human-readable error message'
       - content: 'details: Additional error details (string or null)'
+      - content: 'error: Human-readable error message'
+      - content: 'message: Human-readable error message'
+      - content: 'statusCode: HTTP status code'
       - content: success
-      - content: 'error: Human-readable error message'
       - content: 'code: Error code for programmatic handling'
-      - content: 'statusCode: HTTP status code'
-      - content: 'message: Human-readable error message'
       - content: 'details: Additional error details (string or null)'
+      - content: 'error: Human-readable error message'
+      - content: 'message: Human-readable error message'
       - content: 'retryAfter: Number of seconds to wait before retrying'
-      - content: success
-      - content: 'error: Human-readable error message'
-      - content: 'code: Error code for programmatic handling'
       - content: 'statusCode: HTTP status code'
-      - content: 'message: Human-readable error message'
+      - content: success
+      - content: 'code: Error code for programmatic handling'
       - content: 'details: Additional error details (string or null)'
+      - content: 'error: Human-readable error message'
+      - content: 'message: Human-readable error message'
+      - content: 'statusCode: HTTP status code'
+      - content: success
 ---
 
 {/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}

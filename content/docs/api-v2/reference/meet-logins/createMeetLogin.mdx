@@ -1,0 +1,122 @@
+---
+title: Create a meet login
+full: true
+_openapi:
+  method: POST
+  toc: []
+  structuredData:
+    headings: []
+    contents:
+      - content: >-
+          Create a meet login — a Google Workspace user identity attached to a
+          parent meet workspace.
+
+              Each login represents one Workspace user that bots can sign in as. Many logins can share one workspace; they all use the workspace's cert/key for SAML signing. Round-robin assignment picks the least-loaded active login when a bot is dispatched with `meet_config.email_group` (or `credential_id`) on `POST /v2/bots`.
+
+              **Prerequisites:** Create a meet workspace first via `POST /v2/meet-workspaces`. Pass the returned `workspace_id` here.
+
+              **Domain Validation:** The `email` must belong to the parent workspace's domain (or a subdomain). For example, if the workspace domain is `bots.acme.com`, valid emails include `bot1@bots.acme.com` or `bot2@dev.bots.acme.com`, but not `bot1@acme.com`. The same rule applies to `email_group` if provided.
+
+              **Email Group (optional but encouraged):** Set `email_group` to a Google Group address that contains the bot users as members. When you put this group address on a calendar invite, the assigned bot lands in Meet's verified queue and bypasses the waiting room. Logins sharing the same `email_group` form one round-robin pool.
+
+              **Per-team Uniqueness on Email:** Each `email` may exist at most once per team. Attempting to register the same email twice returns 409.
+
+              **Concurrency:** Each login supports up to 20 concurrent SSO sessions by default (configurable per environment). When a login hits its capacity, the round-robin assigner skips it and tries the next one in the pool. If all logins in a pool are saturated, the bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, depending on your `fallback` setting).
+
+              **Error Scenarios:**
+              - `404 Not Found`: `workspace_id` is unknown or does not belong to your team.
+              - `409 Conflict`: A login for this `email` already exists.
+              - `422 Unprocessable Entity`: `email` or `email_group` domain does not match the parent workspace's domain.
+      - content: >-
+          email: Email of the Google Workspace user this login signs in as.
+          Domain must match the parent workspace's domain.
+      - content: >-
+          email_group: Optional Google Group address used for round-robin
+          pooling. Logins sharing the same email_group form one round-robin
+          pool. If you put this group on calendar invites, the assigned bot will
+          land in the verified queue and bypass the waiting room.
+      - content: extra
+      - content: >-
+          name: User-friendly label for this credential. Not unique — names can
+          repeat within a team.
+      - content: >-
+          workspace_id: UUID of the parent meet_workspace. Create one via POST
+          /v2/meet-workspaces first.
+      - content: data
+      - content: data.active_session_count
+      - content: data.created_at
+      - content: 'data.credential_id: The unique identifier (UUID) of the meet login'
+      - content: data.email
+      - content: data.email_group
+      - content: data.extra
+      - content: data.failure_data
+      - content: data.last_error_at
+      - content: data.last_error_message
+      - content: data.last_used_at
+      - content: data.name
+      - content: >-
+          data.state: The current state of the meet login.
+
+
+          - `active`: Login is healthy and can be assigned to bots
+
+          - `invalid`: System auto-flipped this on bot login failure (suspended
+          user, first-time interactive login required, etc.). Manual re-enable
+          required.
+      - content: data.updated_at
+      - content: data.workspace_id
+      - content: success
+      - content: 'code: Error code for programmatic handling'
+      - content: 'error: Error name'
+      - content: 'message: Human-readable error message'
+      - content: 'statusCode: HTTP status code'
+      - content: success
+      - content: 'code: Error code for programmatic handling'
+      - content: 'details: Additional error details (string or null)'
+      - content: 'error: Human-readable error message'
+      - content: 'message: Human-readable error message'
+      - content: 'statusCode: HTTP status code'
+      - content: success
+      - content: 'code: Error code for programmatic handling'
+      - content: 'details: Additional error details (string or null)'
+      - content: 'error: Human-readable error message'
+      - content: 'message: Human-readable error message'
+      - content: 'statusCode: HTTP status code'
+      - content: success
+      - content: 'code: Error code for programmatic handling'
+      - content: 'details: Additional error details (string or null)'
+      - content: 'error: Human-readable error message'
+      - content: 'message: Human-readable error message'
+      - content: 'retryAfter: Number of seconds to wait before retrying'
+      - content: 'statusCode: HTTP status code'
+      - content: success
+      - content: 'code: Error code for programmatic handling'
+      - content: 'details: Additional error details (string or null)'
+      - content: 'error: Human-readable error message'
+      - content: 'message: Human-readable error message'
+      - content: 'statusCode: HTTP status code'
+      - content: success
+---
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Create a meet login — a Google Workspace user identity attached to a parent meet workspace.
+
+    Each login represents one Workspace user that bots can sign in as. Many logins can share one workspace; they all use the workspace's cert/key for SAML signing. Round-robin assignment picks the least-loaded active login when a bot is dispatched with `meet_config.email_group` (or `credential_id`) on `POST /v2/bots`.
+
+    **Prerequisites:** Create a meet workspace first via `POST /v2/meet-workspaces`. Pass the returned `workspace_id` here.
+
+    **Domain Validation:** The `email` must belong to the parent workspace's domain (or a subdomain). For example, if the workspace domain is `bots.acme.com`, valid emails include `bot1@bots.acme.com` or `bot2@dev.bots.acme.com`, but not `bot1@acme.com`. The same rule applies to `email_group` if provided.
+
+    **Email Group (optional but encouraged):** Set `email_group` to a Google Group address that contains the bot users as members. When you put this group address on a calendar invite, the assigned bot lands in Meet's verified queue and bypasses the waiting room. Logins sharing the same `email_group` form one round-robin pool.
+
+    **Per-team Uniqueness on Email:** Each `email` may exist at most once per team. Attempting to register the same email twice returns 409.
+
+    **Concurrency:** Each login supports up to 20 concurrent SSO sessions by default (configurable per environment). When a login hits its capacity, the round-robin assigner skips it and tries the next one in the pool. If all logins in a pool are saturated, the bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, depending on your `fallback` setting).
+
+    **Error Scenarios:**
+    - `404 Not Found`: `workspace_id` is unknown or does not belong to your team.
+    - `409 Conflict`: A login for this `email` already exists.
+    - `422 Unprocessable Entity`: `email` or `email_group` domain does not match the parent workspace's domain.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/meet-logins","method":"post"}]} />

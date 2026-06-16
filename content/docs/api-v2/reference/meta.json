@@ -6,6 +6,8 @@
         "calendars",
         "webhooks",
         "callbacks",
-        "zoom-credentials"
+        "zoom-credentials",
+        "meet-workspaces",
+        "meet-logins"
     ]
 }

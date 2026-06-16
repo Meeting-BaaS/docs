@@ -9,13 +9,10 @@ description: Calendar Event Created payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
@@ -26,28 +23,31 @@ description: Calendar Event Created payload structure
     - **`event_type`** ("one_off" | "recurring") **Required**
       The type of event. 'one_off' for single events, 'recurring' for events that are part of a recurring series
 
-    - **`series_id`** (string (uuid) | null) **Required**
-      The UUID of the event series. Null only in rare cases where the series relationship could not be established
+    - **`instances`** (object[]) **Required**
+      Array of event instances that were created. For one-off events, this contains a single instance. For recurring events, this contains all instances that were created
 
     - **`series_bot_scheduled`** (boolean) **Required**
       Whether a bot has been scheduled for all occurrences of this series. True if a calendar bot schedule exists for the entire series
 
-    - **`instances`** (object[]) **Required**
-      Array of event instances that were created. For one-off events, this contains a single instance. For recurring events, this contains all instances that were created
+    - **`series_id`** (string (uuid) | null) **Required**
+      The UUID of the event series. Null only in rare cases where the series relationship could not be established
 
+
+- **`event`** (string) **Required**
+  The webhook event type
 
 
 ## Example
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
     "calendar_id": "examplecalendar_id",
     "event_type": "exampleevent_type",
-    "series_id": null,
+    "instances": [],
     "series_bot_scheduled": true,
-    "instances": []
-  }
+    "series_id": null
+  },
+  "event": "exampleevent"
 }
 ```

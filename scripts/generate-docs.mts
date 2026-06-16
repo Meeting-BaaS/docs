@@ -20,6 +20,41 @@ async function flattenUnknownFolder(referenceDir: string) {
   if (remaining.length === 0) fs.rmdirSync(unknownDir);
 }
 
+/**
+ * Remove reference pages generated for operations that have no `tags`.
+ *
+ * fumadocs groups output by tag; untagged operations land under an `unknown`
+ * folder and are then flattened to a folder named after the first URL path
+ * segment (e.g. `/v2/meet-sso/sign-in` → `<referenceDir>/v2/…`). These are
+ * internal, non-customer-facing endpoints — such as the `/v2/meet-sso/*` SAML
+ * IdP callback URLs that Google calls during sign-in — and must not appear in
+ * the public API reference. Tagged operations are never placed in these
+ * folders, so removing them is safe and keeps every rebuild clean.
+ */
+async function removeUntaggedReferencePages(specPath: string, referenceDir: string) {
+  if (!fs.existsSync(specPath) || !fs.existsSync(referenceDir)) return;
+
+  const spec = JSON.parse(fs.readFileSync(specPath, 'utf-8'));
+  const httpMethods = ['get', 'post', 'put', 'patch', 'delete'];
+  const orphanDirs = new Set<string>();
+
+  for (const [route, pathItem] of Object.entries<any>(spec.paths ?? {})) {
+    for (const [method, op] of Object.entries<any>(pathItem ?? {})) {
+      if (!httpMethods.includes(method)) continue;
+      const tags: unknown[] = op?.tags ?? [];
+      if (tags.length === 0) {
+        const firstSegment = route.split('/').filter(Boolean)[0];
+        if (firstSegment) orphanDirs.add(firstSegment);
+      }
+    }
+  }
+
+  for (const dir of orphanDirs) {
+    await rimraf(path.join(referenceDir, dir));
+  }
+  await rimraf(path.join(referenceDir, 'unknown'));
+}
+
 function resolveRef(schema: any, components: any): any {
   if (schema?.$ref) {
     const refName = schema.$ref.split('/').pop();
@@ -140,6 +175,11 @@ export async function generateDocs() {
   await flattenUnknownFolder('./content/docs/api/reference');
   await flattenUnknownFolder('./content/docs/api-v2/reference');
   await flattenUnknownFolder('./content/docs/speaking-bots/reference');
+
+  console.log('Removing reference pages for untagged internal endpoints...');
+  // Scoped to api-v2: every v2 path is under `/v2/`, so untagged operations
+  // always land in a `v2/` folder that never collides with a tag folder.
+  await removeUntaggedReferencePages('./openapi-v2.json', './content/docs/api-v2/reference');
 
   console.log('Enriching reference files with per-property search content...');
   enrichReferenceFiles('./openapi.json', './content/docs/api/reference');
