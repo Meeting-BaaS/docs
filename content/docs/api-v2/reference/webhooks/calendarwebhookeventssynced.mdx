@@ -9,13 +9,10 @@ description: Calendar Events Synced payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
@@ -27,15 +24,18 @@ description: Calendar Events Synced payload structure
       Array of event series that were synced. Each series contains its event instances
 
 
+- **`event`** (string) **Required**
+  The webhook event type
+
 
 ## Example
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
     "calendar_id": "examplecalendar_id",
     "events": []
-  }
+  },
+  "event": "exampleevent"
 }
 ```

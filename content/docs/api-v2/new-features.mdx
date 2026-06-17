@@ -6,6 +6,28 @@ icon: Sparkles
 
 Meeting BaaS v2 introduces significant improvements across security, transparency, developer experience, and feature availability. This document highlights the key enhancements that make v2 a compelling upgrade from v1.
 
+## Google Meet Authenticated Bots
+
+v2 lets bots join Google Meet as **authenticated Google Workspace users** via SAML SSO, instead of only as anonymous guests.
+
+**v1**: Anonymous Meet joins only — bots failed on meetings restricted to signed-in or in-organization users and had to wait for manual admission.
+
+**v2**:
+- **Authenticated joins**: Bots sign in as a real Google Workspace user from a domain you control, so they can join meetings restricted to signed-in / organizational users.
+- **Waiting-room bypass**: Invite a login's Google Group (`email_group`) to a meeting and the assigned bot lands in Meet's verified queue, skipping the waiting room.
+- **Meet Workspaces & Meet Logins**: New `/v2/meet-workspaces` and `/v2/meet-logins` resources manage your SAML SSO configuration and the Workspace user identities bots sign in as. Meeting BaaS acts as the SAML IdP; keys are encrypted at rest with AES-256-GCM and the private key is never returned.
+- **Round-robin pools**: Group logins by `email_group` and the dispatcher assigns the least-loaded active login (up to 20 concurrent sessions each by default). Add logins to scale capacity linearly.
+- **Configurable fallback**: Per bot, choose to `fail` (default) or fall back to an `anonymous` join when the pool is saturated.
+- **Utilization & alerts**: `GET /v2/meet-logins/utilization` reports live pool concurrency, with `Meet Login Utilization` and `Meet Login Unavailable` alert types to warn you before saturation.
+
+### Benefits
+
+- Record meetings that block anonymous guests
+- Skip waiting rooms for fully unattended recording
+- Scale authenticated capacity by adding logins, with visibility into headroom
+
+See the [Google Meet Authentication guide](/docs/api-v2/getting-started/meet) to get started.
+
 ## Enhanced Webhook Management
 
 v2 provides enterprise-grade webhook management with multiple endpoints, signing, and rotation capabilities.

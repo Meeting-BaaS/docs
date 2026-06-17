@@ -13,6 +13,7 @@
         "getBotStatus",
         "leaveBot",
         "listBots",
+        "retranscribeBot",
         "resendFinalWebhook",
         "retryCallback",
         "batchCreateScheduledBots",

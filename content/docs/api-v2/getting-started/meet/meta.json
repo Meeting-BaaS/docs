@@ -1,0 +1,8 @@
+{
+    "title": "Google Meet Authentication",
+    "icon": "Video",
+    "pages": [
+        "setup",
+        "sending-authenticated-bots"
+    ]
+}

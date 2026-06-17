@@ -15,14 +15,11 @@ Bot Chat Message payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 | `extra` | object | null | Yes | Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
@@ -36,18 +33,21 @@ Bot Chat Message payload structure
     - **`message_id`** (string) **Required**
       Unique identifier of the chat message
 
-    - **`sender_name`** (string) **Required**
-      Display name of the message sender
-
     - **`sender_id`** (integer | null) **Required**
       Sequential participant ID of the sender. Null if the sender could not be resolved to a participant
 
-    - **`text`** (string) **Required**
-      Text content of the chat message
+    - **`sender_name`** (string) **Required**
+      Display name of the message sender
 
     - **`sent_at`** (string (date-time)) **Required**
       ISO 8601 timestamp when this webhook was sent
 
+    - **`text`** (string) **Required**
+      Text content of the chat message
+
+
+- **`event`** (string) **Required**
+  The webhook event type
 
 - **`extra`** (object | null) **Required**
   Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking
@@ -57,16 +57,16 @@ Bot Chat Message payload structure
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
     "bot_id": "examplebot_id",
     "event_id": null,
     "message_id": "examplemessage_id",
-    "sender_name": "examplesender_name",
     "sender_id": null,
-    "text": "exampletext",
-    "sent_at": "examplesent_at"
+    "sender_name": "examplesender_name",
+    "sent_at": "examplesent_at",
+    "text": "exampletext"
   },
+  "event": "exampleevent",
   "extra": null
 }
 ```
@@ -87,65 +87,65 @@ Bot Completed payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 | `extra` | object | null | Yes | Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking |
 
 ## Field Details
 
-- **`event`** (string) **Required**
-  The webhook event type
-
 - **`data`** (object) **Required**
 
   Properties:
+    - **`audio`** (string (uri) | null) **Required**
+      Signed URL to download the audio recording. Valid for 4 hours. Null if audio recording is not available or has been deleted
+
     - **`bot_id`** (string (uuid)) **Required**
       The UUID of the bot that completed
-
-    - **`event_id`** (string (uuid) | null) **Required**
-      The UUID of the calendar event associated with this bot. Null for non-calendar bots
-
-    - **`participants`** (object[]) **Required**
-      List of participants who joined the meeting with their names and metadata. Empty array if participant information is not available
-
-    - **`speakers`** (object[]) **Required**
-      List of speakers detected in the meeting with their names and metadata. Empty array if speaker information is not available
-
-    - **`duration_seconds`** (integer | null) **Required**
-
-    - **`joined_at`** (string (date-time) | null) **Required**
-      ISO 8601 timestamp when the bot joined the meeting. Null if join time is not available
-
-    - **`exited_at`** (string (date-time) | null) **Required**
-      ISO 8601 timestamp when the bot exited the meeting. Null if exit time is not available
 
     - **`data_deleted`** (boolean) **Required**
       Whether the bot's data (artifacts, recordings) has been deleted. True if data has been permanently removed
 
-    - **`video`** (string (uri) | null) **Required**
-      Signed URL to download the video recording. Valid for 4 hours. Null if video recording is not available or has been deleted
-
-    - **`audio`** (string (uri) | null) **Required**
-      Signed URL to download the audio recording. Valid for 4 hours. Null if audio recording is not available or has been deleted
-
     - **`diarization`** (string (uri) | null) **Required**
       Signed URL to download the speaker diarization data. Valid for 4 hours. Null if diarization is not available or has been deleted
+
+    - **`duration_seconds`** (integer | null) **Required**
+
+    - **`event_id`** (string (uuid) | null) **Required**
+      The UUID of the calendar event associated with this bot. Null for non-calendar bots
+
+    - **`exited_at`** (string (date-time) | null) **Required**
+      ISO 8601 timestamp when the bot exited the meeting. Null if exit time is not available
+
+    - **`joined_at`** (string (date-time) | null) **Required**
+      ISO 8601 timestamp when the bot joined the meeting. Null if join time is not available
+
+    - **`participants`** (object[]) **Required**
+      List of participants who joined the meeting with their names and metadata. Empty array if participant information is not available
 
     - **`raw_transcription`** (string (uri) | null) **Required**
       Signed URL to download the raw transcription file. Valid for 4 hours. Null if raw transcription is not available or has been deleted
 
+    - **`sent_at`** (string (date-time)) **Required**
+      ISO 8601 timestamp when this webhook was sent
+
+    - **`speakers`** (object[]) **Required**
+      List of speakers detected in the meeting with their names and metadata. Empty array if speaker information is not available
+
     - **`transcription`** (string (uri) | null) **Required**
       Signed URL to download the processed transcription file. Valid for 4 hours. Null if transcription is not available or has been deleted
-
-    - **`transcription_provider`** (string | null) **Required**
-      The transcription provider used (e.g., 'gladia'). Null if transcription was not enabled or if provider information is not available
 
     - **`transcription_ids`** (string[] | null) **Required**
       Array of transcription job IDs from the transcription provider. Null if transcription was not enabled or if IDs are not available
 
-    - **`sent_at`** (string (date-time)) **Required**
-      ISO 8601 timestamp when this webhook was sent
+    - **`transcription_provider`** (string | null) **Required**
+      The transcription provider used (e.g., 'gladia', 'deepgram', 'assemblyai'). Null if transcription was not enabled or if provider information is not available
 
+    - **`video`** (string (uri) | null) **Required**
+      Signed URL to download the video recording. Valid for 4 hours. Null if video recording is not available or has been deleted
+
+
+- **`event`** (string) **Required**
+  The webhook event type
 
 - **`extra`** (object | null) **Required**
   Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking
@@ -155,25 +155,25 @@ Bot Completed payload structure
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
-    "bot_id": "examplebot_id",
-    "event_id": null,
-    "participants": [],
-    "speakers": [],
-    "duration_seconds": null,
-    "joined_at": null,
-    "exited_at": null,
-    "data_deleted": true,
-    "video": null,
     "audio": null,
+    "bot_id": "examplebot_id",
+    "data_deleted": true,
     "diarization": null,
+    "duration_seconds": null,
+    "event_id": null,
+    "exited_at": null,
+    "joined_at": null,
+    "participants": [],
     "raw_transcription": null,
+    "sent_at": "examplesent_at",
+    "speakers": [],
     "transcription": null,
-    "transcription_provider": null,
     "transcription_ids": [],
-    "sent_at": "examplesent_at"
+    "transcription_provider": null,
+    "video": null
   },
+  "event": "exampleevent",
   "extra": null
 }
 ```
@@ -194,14 +194,11 @@ Bot Failed payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 | `extra` | object | null | Yes | Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
@@ -209,18 +206,21 @@ Bot Failed payload structure
     - **`bot_id`** (string (uuid)) **Required**
       The UUID of the bot that failed
 
-    - **`event_id`** (string (uuid) | null) **Required**
-      The UUID of the calendar event associated with this bot. Null for non-calendar bots
+    - **`error_code`** (string) **Required**
+      Machine-readable error code for programmatic handling. Common codes include 'MEETING_NOT_FOUND', 'MEETING_ENDED', 'BOT_CRASHED', etc.
 
     - **`error_message`** (string) **Required**
       Human-readable error message describing why the bot failed
 
-    - **`error_code`** (string) **Required**
-      Machine-readable error code for programmatic handling. Common codes include 'MEETING_NOT_FOUND', 'MEETING_ENDED', 'BOT_CRASHED', etc.
+    - **`event_id`** (string (uuid) | null) **Required**
+      The UUID of the calendar event associated with this bot. Null for non-calendar bots
 
     - **`sent_at`** (string (date-time)) **Required**
       ISO 8601 timestamp when this webhook was sent
 
+
+- **`event`** (string) **Required**
+  The webhook event type
 
 - **`extra`** (object | null) **Required**
   Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking
@@ -230,14 +230,14 @@ Bot Failed payload structure
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
     "bot_id": "examplebot_id",
-    "event_id": null,
-    "error_message": "exampleerror_message",
     "error_code": "exampleerror_code",
+    "error_message": "exampleerror_message",
+    "event_id": null,
     "sent_at": "examplesent_at"
   },
+  "event": "exampleevent",
   "extra": null
 }
 ```
@@ -258,14 +258,11 @@ Bot Status Change payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 | `extra` | object | null | Yes | Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
@@ -280,6 +277,9 @@ Bot Status Change payload structure
       Status information with code, timestamp, and optional status-specific fields
 
 
+- **`event`** (string) **Required**
+  The webhook event type
+
 - **`extra`** (object | null) **Required**
   Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking
 
@@ -288,17 +288,17 @@ Bot Status Change payload structure
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
     "bot_id": "examplebot_id",
     "event_id": null,
     "status": {
       "code": "examplecode",
       "created_at": "examplecreated_at",
-      "start_time": 0,
-      "error_message": "exampleerror_message"
+      "error_message": "exampleerror_message",
+      "start_time": 0
     }
   },
+  "event": "exampleevent",
   "extra": null
 }
 ```
@@ -319,46 +319,46 @@ Calendar Connection Created payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
   Properties:
+    - **`account_email`** (string) **Required**
+      The email address associated with the calendar account
+
     - **`calendar_id`** (string (uuid)) **Required**
       The UUID of the newly created calendar connection
 
     - **`calendar_platform`** ("google" | "microsoft") **Required**
       The calendar platform. Either 'google' for Google Calendar or 'microsoft' for Microsoft Outlook/365
 
-    - **`account_email`** (string) **Required**
-      The email address associated with the calendar account
+    - **`created_at`** (string (date-time)) **Required**
+      ISO 8601 timestamp when the calendar connection was created
 
     - **`status`** ("active" | "error" | "revoked" | "permission_denied") **Required**
       The current status of the calendar connection. Possible values: 'active' (connection is working), 'error' (connection has errors), 'revoked' (OAuth access was revoked), 'permission_denied' (insufficient permissions)
 
-    - **`created_at`** (string (date-time)) **Required**
-      ISO 8601 timestamp when the calendar connection was created
 
+- **`event`** (string) **Required**
+  The webhook event type
 
 
 ## Example
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
+    "account_email": "exampleaccount_email",
     "calendar_id": "examplecalendar_id",
     "calendar_platform": "examplecalendar_platform",
-    "account_email": "exampleaccount_email",
-    "status": "examplestatus",
-    "created_at": "examplecreated_at"
-  }
+    "created_at": "examplecreated_at",
+    "status": "examplestatus"
+  },
+  "event": "exampleevent"
 }
 ```
 
@@ -378,13 +378,10 @@ Calendar Connection Deleted payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
@@ -399,17 +396,20 @@ Calendar Connection Deleted payload structure
       ISO 8601 timestamp when the calendar connection was deleted
 
 
+- **`event`** (string) **Required**
+  The webhook event type
+
 
 ## Example
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
     "calendar_id": "examplecalendar_id",
     "calendar_platform": "examplecalendar_platform",
     "deleted_at": "exampledeleted_at"
-  }
+  },
+  "event": "exampleevent"
 }
 ```
 
@@ -429,50 +429,50 @@ Calendar Connection Updated payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
   Properties:
+    - **`account_email`** (string) **Required**
+      The email address associated with the calendar account
+
     - **`calendar_id`** (string (uuid)) **Required**
       The UUID of the updated calendar connection
 
     - **`calendar_platform`** ("google" | "microsoft") **Required**
       The calendar platform. Either 'google' for Google Calendar or 'microsoft' for Microsoft Outlook/365
 
-    - **`account_email`** (string) **Required**
-      The email address associated with the calendar account
+    - **`created_at`** (string (date-time)) **Required**
+      ISO 8601 timestamp when the calendar connection was originally created
 
     - **`status`** ("active" | "error" | "revoked" | "permission_denied") **Required**
       The current status of the calendar connection after the update. Possible values: 'active' (connection is working), 'error' (connection has errors), 'revoked' (OAuth access was revoked), 'permission_denied' (insufficient permissions)
 
-    - **`created_at`** (string (date-time)) **Required**
-      ISO 8601 timestamp when the calendar connection was originally created
-
     - **`updated_at`** (string (date-time)) **Required**
       ISO 8601 timestamp when the calendar connection was updated
 
+
+- **`event`** (string) **Required**
+  The webhook event type
 
 
 ## Example
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
+    "account_email": "exampleaccount_email",
     "calendar_id": "examplecalendar_id",
     "calendar_platform": "examplecalendar_platform",
-    "account_email": "exampleaccount_email",
-    "status": "examplestatus",
     "created_at": "examplecreated_at",
+    "status": "examplestatus",
     "updated_at": "exampleupdated_at"
-  }
+  },
+  "event": "exampleevent"
 }
 ```
 
@@ -492,13 +492,10 @@ Calendar Event Cancelled payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
@@ -506,28 +503,31 @@ Calendar Event Cancelled payload structure
     - **`calendar_id`** (string (uuid)) **Required**
       The UUID of the calendar connection where the event was cancelled
 
+    - **`cancelled_instances`** (object[]) **Required**
+      Array of event instances that were cancelled. For one-off events, this contains a single instance. For recurring events, this contains all instances that were cancelled
+
     - **`event_type`** ("one_off" | "recurring") **Required**
       The type of event. 'one_off' for single events, 'recurring' for events that are part of a recurring series
 
     - **`series_id`** (string (uuid) | null) **Required**
       The UUID of the event series. Null only in rare cases where the series relationship could not be established
 
-    - **`cancelled_instances`** (object[]) **Required**
-      Array of event instances that were cancelled. For one-off events, this contains a single instance. For recurring events, this contains all instances that were cancelled
 
+- **`event`** (string) **Required**
+  The webhook event type
 
 
 ## Example
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
     "calendar_id": "examplecalendar_id",
+    "cancelled_instances": [],
     "event_type": "exampleevent_type",
-    "series_id": null,
-    "cancelled_instances": []
-  }
+    "series_id": null
+  },
+  "event": "exampleevent"
 }
 ```
 
@@ -547,13 +547,10 @@ Calendar Event Created payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
@@ -564,29 +561,32 @@ Calendar Event Created payload structure
     - **`event_type`** ("one_off" | "recurring") **Required**
       The type of event. 'one_off' for single events, 'recurring' for events that are part of a recurring series
 
-    - **`series_id`** (string (uuid) | null) **Required**
-      The UUID of the event series. Null only in rare cases where the series relationship could not be established
+    - **`instances`** (object[]) **Required**
+      Array of event instances that were created. For one-off events, this contains a single instance. For recurring events, this contains all instances that were created
 
     - **`series_bot_scheduled`** (boolean) **Required**
       Whether a bot has been scheduled for all occurrences of this series. True if a calendar bot schedule exists for the entire series
 
-    - **`instances`** (object[]) **Required**
-      Array of event instances that were created. For one-off events, this contains a single instance. For recurring events, this contains all instances that were created
+    - **`series_id`** (string (uuid) | null) **Required**
+      The UUID of the event series. Null only in rare cases where the series relationship could not be established
 
+
+- **`event`** (string) **Required**
+  The webhook event type
 
 
 ## Example
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
     "calendar_id": "examplecalendar_id",
     "event_type": "exampleevent_type",
-    "series_id": null,
+    "instances": [],
     "series_bot_scheduled": true,
-    "instances": []
-  }
+    "series_id": null
+  },
+  "event": "exampleevent"
 }
 ```
 
@@ -606,13 +606,10 @@ Calendar Events Synced payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
@@ -624,16 +621,19 @@ Calendar Events Synced payload structure
       Array of event series that were synced. Each series contains its event instances
 
 
+- **`event`** (string) **Required**
+  The webhook event type
+
 
 ## Example
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
     "calendar_id": "examplecalendar_id",
     "events": []
-  }
+  },
+  "event": "exampleevent"
 }
 ```
 
@@ -653,50 +653,50 @@ Calendar Event Updated payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
   Properties:
+    - **`affected_instances`** (object[]) **Required**
+      Array of event instances that were affected by the update. This includes the instance that was directly updated and any related instances
+
     - **`calendar_id`** (string (uuid)) **Required**
       The UUID of the calendar connection where the event was updated
 
     - **`event_type`** ("one_off" | "recurring") **Required**
       The type of event. 'one_off' for single events, 'recurring' for events that are part of a recurring series
 
-    - **`series_id`** (string (uuid) | null) **Required**
-      The UUID of the event series. Null only in rare cases where the series relationship could not be established
+    - **`is_exception`** (boolean) **Required**
+      Whether the updated instance is an exception to a recurring series. True if this instance has been modified differently from the recurring pattern
 
     - **`series_bot_scheduled`** (boolean) **Required**
       Whether a bot has been scheduled for all occurrences of this series. True if a calendar bot schedule exists for the entire series
 
-    - **`is_exception`** (boolean) **Required**
-      Whether the updated instance is an exception to a recurring series. True if this instance has been modified differently from the recurring pattern
+    - **`series_id`** (string (uuid) | null) **Required**
+      The UUID of the event series. Null only in rare cases where the series relationship could not be established
 
-    - **`affected_instances`** (object[]) **Required**
-      Array of event instances that were affected by the update. This includes the instance that was directly updated and any related instances
 
+- **`event`** (string) **Required**
+  The webhook event type
 
 
 ## Example
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
+    "affected_instances": [],
     "calendar_id": "examplecalendar_id",
     "event_type": "exampleevent_type",
-    "series_id": null,
-    "series_bot_scheduled": true,
     "is_exception": true,
-    "affected_instances": []
-  }
+    "series_bot_scheduled": true,
+    "series_id": null
+  },
+  "event": "exampleevent"
 }
 ```
 
@@ -714,20 +714,20 @@ This section contains reference documentation for all webhook payload structures
 
 ## Bot Webhooks
 
-- [Bot Webhook Status Change](/docs/api-v2/reference/webhooks/botwebhookstatuschange)
+- [Bot Webhook Chat Message](/docs/api-v2/reference/webhooks/botwebhookchatmessage)
 - [Bot Webhook Completed](/docs/api-v2/reference/webhooks/botwebhookcompleted)
 - [Bot Webhook Failed](/docs/api-v2/reference/webhooks/botwebhookfailed)
-- [Bot Webhook Chat Message](/docs/api-v2/reference/webhooks/botwebhookchatmessage)
+- [Bot Webhook Status Change](/docs/api-v2/reference/webhooks/botwebhookstatuschange)
 
 ## Calendar Webhooks
 
 - [Calendar Webhook Connection Created](/docs/api-v2/reference/webhooks/calendarwebhookconnectioncreated)
-- [Calendar Webhook Connection Updated](/docs/api-v2/reference/webhooks/calendarwebhookconnectionupdated)
 - [Calendar Webhook Connection Deleted](/docs/api-v2/reference/webhooks/calendarwebhookconnectiondeleted)
-- [Calendar Webhook Events Synced](/docs/api-v2/reference/webhooks/calendarwebhookeventssynced)
+- [Calendar Webhook Connection Updated](/docs/api-v2/reference/webhooks/calendarwebhookconnectionupdated)
+- [Calendar Webhook Event Cancelled](/docs/api-v2/reference/webhooks/calendarwebhookeventcancelled)
 - [Calendar Webhook Event Created](/docs/api-v2/reference/webhooks/calendarwebhookeventcreated)
 - [Calendar Webhook Event Updated](/docs/api-v2/reference/webhooks/calendarwebhookeventupdated)
-- [Calendar Webhook Event Cancelled](/docs/api-v2/reference/webhooks/calendarwebhookeventcancelled)
+- [Calendar Webhook Events Synced](/docs/api-v2/reference/webhooks/calendarwebhookeventssynced)
 
 
 ---

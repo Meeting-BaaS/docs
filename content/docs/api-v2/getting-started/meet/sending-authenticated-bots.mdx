@@ -1,0 +1,142 @@
+---
+title: Sending Authenticated Bots
+description: Use meet_config to send authenticated Google Meet bots, manage round-robin pools, configure fallback behavior, and monitor login pool utilization
+icon: Send
+---
+
+# Sending Authenticated Bots
+
+Once you have at least one **active** meet workspace and login (see [Setup](/docs/api-v2/getting-started/meet/setup)), add a `meet_config` object to your `POST /v2/bots` request to make the bot sign in before joining.
+
+## Round-robin pool (recommended)
+
+Assign the bot to the least-loaded active login in a pool by passing `email_group`. This spreads load across all logins sharing that group and is the right default for unattended recording at scale.
+
+```bash
+curl -X POST https://api.meetingbaas.com/v2/bots \
+  -H "x-meeting-baas-api-key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "bot_name": "Recording Bot",
+    "meeting_url": "https://meet.google.com/abc-defg-hij",
+    "meet_config": {
+      "email_group": "bots@bots.acme.com",
+      "fallback": "fail"
+    }
+  }'
+```
+
+To round-robin across **all** of your team's active logins without filtering by group, pass an empty string:
+
+```json
+{ "meet_config": { "email_group": "" } }
+```
+
+## Pin a specific login
+
+Use `credential_id` to force the bot to use one particular login.
+
+```json
+{
+  "bot_name": "Recording Bot",
+  "meeting_url": "https://meet.google.com/abc-defg-hij",
+  "meet_config": {
+    "credential_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  }
+}
+```
+
+<Callout type="info">
+If you set both `email_group` and `credential_id`, **`email_group` wins** — the pool selector takes priority. Use `credential_id` alone when you need a deterministic, fixed identity.
+</Callout>
+
+## Fallback behavior
+
+`fallback` controls what happens when no login slot is available (the whole pool is saturated, or no matching active login exists):
+
+| Value | Behavior |
+|-------|----------|
+| `fail` (default) | Bot creation fails immediately with `MEET_LOGIN_UNAVAILABLE`. Use this when an authenticated identity is mandatory. |
+| `anonymous` | The bot silently falls back to an anonymous (non-authenticated) join. Use this when getting *a* bot in matters more than its identity. |
+
+```json
+{ "meet_config": { "email_group": "bots@bots.acme.com", "fallback": "anonymous" } }
+```
+
+## Landing in the verified queue
+
+Signing in is only half the story for restricted meetings. To **bypass the waiting room**, the bot's identity must be recognized as invited:
+
+1. Put the login's `email_group` (the Google Group) on the meeting's **calendar invite**.
+2. Dispatch the bot with that same `email_group`.
+
+The assigned bot is then a member of an invited group and lands in Meet's **verified queue** instead of the waiting room. This is the recommended pattern for fully unattended recording.
+
+## Concurrency and capacity
+
+Each login supports up to **20 concurrent SSO sessions**. The dispatcher:
+
+1. Filters to **active** logins matching your selector.
+2. Picks the one with the lowest `active_session_count`.
+3. Skips any login already at capacity.
+
+If every candidate is saturated, the request fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous). To raise the ceiling, **add more logins** to the pool — capacity scales linearly with the number of active logins.
+
+## Monitoring pool utilization
+
+### Configure a utilization alert first (recommended)
+
+Don't wait until bots start failing. Set up a [**Meet Login Utilization** threshold alert](/docs/api-v2/alerts#meet-login-alerts) so you're notified automatically as your pool fills up — for example, alert when utilization reaches **70%**, giving you time to add logins before you hit the ceiling. Pair it with a [**Meet Login Unavailable** operational alert](/docs/api-v2/alerts#meet-login-alerts) so you also hear about it the moment a bot actually fails to get an authenticated slot (`MEET_LOGIN_UNAVAILABLE`).
+
+Both are configured from the **Alerts** section of your dashboard. See [Alerts](/docs/api-v2/alerts#meet-login-alerts) for setup.
+
+### Check utilization on demand
+
+For an ad-hoc or programmatic view, call `GET /v2/meet-logins/utilization` to see live concurrency across your pool. It's cheap to poll and returns uncached, live counters.
+
+```bash
+curl https://api.meetingbaas.com/v2/meet-logins/utilization \
+  -H "x-meeting-baas-api-key: $API_KEY"
+```
+
+```json
+{
+  "success": true,
+  "data": {
+    "logins_total": 5,
+    "logins_active": 5,
+    "logins_invalid": 0,
+    "concurrent_sessions": 42,
+    "concurrent_capacity": 100,
+    "utilization_pct": 42,
+    "by_email_group": [
+      { "email_group": "bots@bots.acme.com", "logins": 5, "concurrent": 42, "capacity": 100 }
+    ]
+  }
+}
+```
+
+| Field | Meaning |
+|-------|---------|
+| `logins_total` / `logins_active` / `logins_invalid` | Login counts for your team by state. |
+| `concurrent_sessions` | Bots currently in flight using your auth pool (sum of `active_session_count` across active logins). |
+| `concurrent_capacity` | `logins_active × 20` (the per-login session limit). |
+| `utilization_pct` | `concurrent_sessions / concurrent_capacity`, as a percentage. |
+| `by_email_group` | The same metrics broken down per pool. |
+
+## Troubleshooting
+
+| Error code | Meaning | What to do |
+|------------|---------|------------|
+| `MEET_LOGIN_UNAVAILABLE` | No login slot was available (pool saturated or no matching active login) and `fallback` was `fail`. | Add logins, lower concurrency, or set `fallback: "anonymous"`. Watch utilization. |
+| `MEET_LOGIN_REQUIRED` | The meeting required a signed-in user but the bot could not authenticate. | Ensure `meet_config` is set and the selected login is `active`. |
+| `MEET_LOGIN_FAILED_SAML_REJECTED` | Google rejected the SAML assertion. | Verify the certificate uploaded to Google Admin matches the workspace cert and the SSO profile is configured and assigned. The workspace auto-flips to `invalid`; re-enable after fixing. |
+| `MEET_LOGIN_FAILED_TIMEOUT` | The SSO sign-in did not complete in time. | Confirm the user completed the first-time interactive login and the account isn't suspended; retry. |
+
+See [Error Codes](/docs/api-v2/error-codes#google-meet-authentication-errors) for the full list. These appear in the bot's `bot.failed` webhook and in the bot details `error_code` field.
+
+## Related resources
+
+- [Setup](/docs/api-v2/getting-started/meet/setup) — one-time workspace and login configuration
+- [Create a bot](/docs/api-v2/reference/bots/createBot) — full bot creation reference
+- [Meet Logins utilization](/docs/api-v2/reference/meet-logins/getMeetLoginUtilization) — pool metrics endpoint

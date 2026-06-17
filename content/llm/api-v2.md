@@ -45,6 +45,7 @@ Operational alerts count error occurrences and fire when the count reaches your 
 | Bot Crash | Bot process exited unexpectedly | Out of memory, force killed, general error |
 | Transcription Failed | Transcription service error | Provider returned an error after recording completed |
 | Calendar Sync Error | Calendar synchronization failure | OAuth token expired, provider API error |
+| Meet Login Unavailable | No authenticated Google Meet login slot was available | Round-robin pool saturated, no active login matched, bot failed with `MEET_LOGIN_UNAVAILABLE` |
 | Webhook Delivery Exhausted | All webhook retry attempts failed | Endpoint unreachable, returning errors consistently |
 
 <Callout type="info">
@@ -60,6 +61,18 @@ Threshold alerts fire when a resource metric crosses a configured boundary. They
 | Daily Bot Cap | Number of bots created today | "Alert me when daily bots reach 90% of my plan limit" |
 | Token Balance | Current token balance | "Alert me when tokens drop below 1000" |
 | Calendar Connections | Number of connected calendars | "Alert me when calendar connections reach my plan limit" |
+| Meet Login Utilization | Concurrency used across your Google Meet login pool | "Alert me when meet login utilization reaches 70%" |
+
+### Meet login alerts
+
+If you run [authenticated Google Meet bots](/docs/api-v2/getting-started/meet), two alert types help you keep the authentication pool healthy. Configure these **before** you rely on the pool in production — together they warn you as it fills up and tell you the moment it overflows.
+
+| Alert | Category | What it tracks | Recommended setup |
+|-------|----------|----------------|-------------------|
+| **Meet Login Utilization** | Threshold | The percentage of your pool's concurrent capacity in use (`utilization_pct` from [`GET /v2/meet-logins/utilization`](/docs/api-v2/reference/meet-logins/getMeetLoginUtilization)). | `>= 70%`, so you have time to add logins before saturation. |
+| **Meet Login Unavailable** | Operational | Bots that failed to get an authenticated login slot because the pool was saturated (`MEET_LOGIN_UNAVAILABLE`). | `>= 1` occurrence, to hear about saturation immediately. |
+
+Use the **Meet Login Utilization** alert as the early warning and **Meet Login Unavailable** as the safety net. When either fires, add more meet logins to the pool (each login adds capacity) or reduce concurrent bot dispatch. See [Sending Authenticated Bots → Monitoring pool utilization](/docs/api-v2/getting-started/meet/sending-authenticated-bots#monitoring-pool-utilization) for how capacity and round-robin assignment work.
 
 ## Delivery Channels
 
@@ -1517,6 +1530,34 @@ These errors are specific to Zoom meetings:
 
 **Resolution:** This is a limitation of certain Zoom clients. The host would need to join from a standard Zoom desktop or mobile client to grant recording permission.
 
+## Google Meet Authentication Errors
+
+These errors apply to [authenticated Google Meet bots](/docs/api-v2/getting-started/meet) that sign in as a Google Workspace user via SAML SSO (`meet_config`).
+
+### `MEET_LOGIN_UNAVAILABLE`
+**Title:** Meet Login Unavailable
+**Description:** No meet login slot was available to authenticate the bot — every matching login was saturated (at its concurrent-session capacity) or no active login matched the selector — and `meet_config.fallback` was `fail`.
+
+**Resolution:** Add more logins to the pool, reduce concurrency, or set `meet_config.fallback` to `anonymous`. Monitor headroom with `GET /v2/meet-logins/utilization` and the **Meet Login Utilization** alert.
+
+### `MEET_LOGIN_REQUIRED`
+**Title:** Meet Login Required
+**Description:** The meeting required a signed-in user, but the bot could not authenticate (no `meet_config` was supplied, or the selected login could not be used).
+
+**Resolution:** Send the bot with a valid `meet_config` and ensure the selected login's state is `active` via `GET /v2/meet-logins/{credential_id}`.
+
+### `MEET_LOGIN_FAILED_SAML_REJECTED`
+**Title:** Meet Login Failed — SAML Rejected
+**Description:** Google rejected the SAML assertion during sign-in. Usually the certificate uploaded to Google Admin Console no longer matches the workspace's certificate, or the Legacy SSO profile is misconfigured or unassigned.
+
+**Resolution:** Verify the certificate in Google Admin matches the workspace `cert_pem` and that the SSO profile points at the `/v2/meet-sso/*` endpoints and is assigned to all users. The workspace auto-flips to `invalid`; re-enable it via `PATCH /v2/meet-workspaces/{workspace_id}` after fixing the configuration.
+
+### `MEET_LOGIN_FAILED_TIMEOUT`
+**Title:** Meet Login Failed — Timeout
+**Description:** The SSO sign-in flow did not complete within the expected time.
+
+**Resolution:** Confirm the Workspace user completed its first-time interactive "Welcome to Workspace" login and is not suspended, then retry. The login may auto-flip to `invalid`; re-enable it via `PATCH /v2/meet-logins/{credential_id}` after resolving the cause.
+
 ## System Errors
 
 These errors occur when the system attempts to create a bot instance. For immediate bots, this happens at creation time and the error is returned in the API response. For scheduled and calendar bots, these errors can appear in `bot.failed` webhook events when the bot is being queued to join the meeting (at its scheduled join time).
@@ -1771,12 +1812,11 @@ Most applications use the API endpoints for initial reconciliation, as they may 
 
 See the [Webhooks documentation](/docs/api-v2/webhooks) for details on all calendar webhook events and their payloads.
 
-## Frequently Asked Questions
+## FAQ
 
 <Accordions type="single">
 
 <Accordion
-  id="faq-updated-close-to-start"
   title="What happens if a calendar event is updated close to its start time?"
 >
 
@@ -1795,7 +1835,6 @@ If an event is updated more than 4 minutes before its start time, the bot schedu
 </Accordion>
 
 <Accordion
-  id="faq-deleted-close-to-start"
   title="What happens if a calendar event is deleted close to its start time?"
 >
 
@@ -1806,7 +1845,6 @@ No tokens are consumed if the bot hadn't started recording yet.
 </Accordion>
 
 <Accordion
-  id="faq-meeting-url-removed"
   title="What happens if the meeting URL is removed from an event?"
 >
 
@@ -1820,7 +1858,7 @@ No tokens are consumed if the bot hadn't started recording yet.
 
 </Accordion>
 
-<Accordion id="faq-sync-frequency" title="How often are calendar events synced?">
+<Accordion title="How often are calendar events synced?">
 
 Calendar events are synced via **push notifications (real-time)**:
 - **Google Calendar**: Push notifications via watch channels (renewed every 7 days)
@@ -1830,7 +1868,6 @@ Calendar events are synced via **push notifications (real-time)**:
 </Accordion>
 
 <Accordion
-  id="faq-materialization-window"
   title="What is the event materialization window?"
 >
 
@@ -1841,7 +1878,7 @@ Meeting BaaS maintains a **30-day rolling window** of calendar events:
 
 </Accordion>
 
-<Accordion id="faq-recurring-events" title="How are recurring events handled?">
+<Accordion title="How are recurring events handled?">
 
 **Series-Level Bot Scheduling:**
 - You can schedule a bot for all occurrences of a recurring event using `all_occurrences: true` or by providing the `series_id`
@@ -1860,7 +1897,7 @@ This behavior is inline with how calendar platforms handle major changes to recu
 
 </Accordion>
 
-<Accordion id="faq-decline-event" title="What happens if I decline a calendar event?">
+<Accordion title="What happens if I decline a calendar event?">
 
 If you decline a calendar event (as the calendar owner):
 - The event is treated as **cancelled** in Meeting BaaS
@@ -1869,7 +1906,7 @@ If you decline a calendar event (as the calendar owner):
 
 </Accordion>
 
-<Accordion id="faq-all-day-events" title="Can I schedule bots for all-day events?">
+<Accordion title="Can I schedule bots for all-day events?">
 
 All-day events are synced and stored, but:
 - They typically don't have meeting URLs
@@ -1879,7 +1916,6 @@ All-day events are synced and stored, but:
 </Accordion>
 
 <Accordion
-  id="faq-meeting-platforms"
   title="What meeting platforms are supported?"
 >
 
@@ -1897,7 +1933,6 @@ The meeting platform is detected from:
 </Accordion>
 
 <Accordion
-  id="faq-event-exceptions"
   title="How are event exceptions handled?"
 >
 
@@ -1913,7 +1948,7 @@ Exceptions are:
 
 </Accordion>
 
-<Accordion id="faq-oauth-expire" title="What if my OAuth credentials expire?">
+<Accordion title="What if my OAuth credentials expire?">
 
 **Refresh Token Expiration:**
 - Google: Refresh tokens don't expire unless revoked by the user
@@ -1927,7 +1962,6 @@ Exceptions are:
 </Accordion>
 
 <Accordion
-  id="faq-connection-errors"
   title="How do I handle calendar connection errors?"
 >
 
@@ -1942,7 +1976,6 @@ You'll receive webhook notifications for connection status changes.
 </Accordion>
 
 <Accordion
-  id="faq-multiple-calendars"
   title="Can I connect multiple calendars from the same account?"
 >
 
@@ -2058,6 +2091,558 @@ Instead of polling the API, we recommend:
 3. **Poll only when necessary**: If you must poll, use a judicious interval (e.g., every 5-10 minutes) and only for reconciliation purposes
 
 For more details, see the [Webhooks documentation](/docs/api-v2/webhooks).
+
+
+---
+
+## Google Meet Authentication
+
+Send authenticated Google Meet bots that sign in as Google Workspace users via SAML SSO, bypass the waiting room, and join sign-in-restricted meetings
+
+### Source: ./content/docs/api-v2/getting-started/meet/index.mdx
+
+
+# Authenticated Google Meet Bots
+
+By default, Meeting BaaS bots join Google Meet as anonymous guests. That works for open meetings, but it falls short when a meeting is **restricted to signed-in users**, restricted to a host's organization, or configured to send guests to a waiting room.
+
+Authenticated Meet bots solve this. Each bot signs in as a real **Google Workspace user** from a domain you control, using **SAML SSO**, before it joins the call. To Meet, the bot looks like any other signed-in participant.
+
+<Callout type="info">
+This feature is Google Meet–only. For Zoom authentication, see [Zoom Integration](/docs/api-v2/getting-started/zoom). For Microsoft Teams, anonymous joins are used and no extra configuration is required. Leave `meet_config` `null` for anonymous Meet joins.
+</Callout>
+
+## Why authenticate
+
+| Scenario | Anonymous bot | Authenticated bot |
+|----------|---------------|-------------------|
+| Open meeting, anyone with link | ✅ Joins | ✅ Joins |
+| "Only people in the organization can join" | ❌ `MEET_LOGIN_REQUIRED` | ✅ Joins as a Workspace user |
+| Guests sent to a waiting room | ⏳ Waits for admit | ✅ Bypasses via verified queue (with `email_group`) |
+| Calendar-invited participants auto-admitted | ❌ Not invited | ✅ Invite the Google Group, land in the verified queue |
+
+## How it works
+
+Authentication is built on three resources. You configure the first two once, then reference them per bot.
+
+<Steps>
+<Step>
+**Meet Workspace** — the parent resource representing one Google Workspace's SAML SSO configuration. It holds the SAML signing certificate and private key shared by every login under it. You create one per Google Workspace domain. See [Setup](/docs/api-v2/getting-started/meet/setup).
+</Step>
+<Step>
+**Meet Logins** — one per Google Workspace user the bots sign in as. Many logins can share a single workspace. Logins can be grouped into round-robin pools by `email_group`.
+</Step>
+<Step>
+**`meet_config` on the bot** — when you create a bot, you tell it which login (or pool) to use. The dispatcher signs the bot in via SAML SSO using the workspace's keypair, then joins the meeting.
+</Step>
+</Steps>
+
+```text
+Meet Workspace (domain + SAML cert/key)
+        │
+        ├── Meet Login  bot1@bots.acme.com   ┐
+        ├── Meet Login  bot2@bots.acme.com   ├─ email_group: bots@bots.acme.com (round-robin pool)
+        └── Meet Login  bot3@bots.acme.com   ┘
+                                │
+        POST /v2/bots  { meet_config: { email_group: "bots@bots.acme.com" } }
+                                │
+                 least-loaded active login is assigned → bot signs in → joins Meet
+```
+
+## The `meet_config` object
+
+All Meet authentication options are passed in a single `meet_config` object on `POST /v2/bots`:
+
+```json
+{
+  "bot_name": "Recording Bot",
+  "meeting_url": "https://meet.google.com/abc-defg-hij",
+  "meet_config": {
+    "email_group": "bots@bots.acme.com",
+    "fallback": "fail"
+  }
+}
+```
+
+| Parameter | Description |
+|-----------|-------------|
+| `email_group` | Round-robin pool selector. The bot is assigned the **least-loaded active login** in this pool. Preferred for most use cases — **takes priority over `credential_id`**. Pass `""` to round-robin across all of the team's active logins. |
+| `credential_id` | Pin one specific login (UUID) for this bot. |
+| `fallback` | What to do when no login slot is available: `fail` (default) fails bot creation with `MEET_LOGIN_UNAVAILABLE`; `anonymous` silently falls back to an anonymous join. |
+
+Leave `meet_config` `null` for anonymous Meet joins, Zoom, or Microsoft Teams.
+
+## Key concepts
+
+### The verified queue and the waiting room
+
+When you put a login's `email_group` (a Google Group address) on the **calendar invite** for a meeting, the assigned bot lands in Meet's **verified queue** and bypasses the waiting room — it is treated as an invited participant. This is the recommended pattern for unattended recording. Without an invite, an authenticated bot still benefits from being a signed-in organizational user, but may still hit the host's admission rules.
+
+### Round-robin pools and concurrency
+
+Each login supports up to **20 concurrent SSO sessions**. When you dispatch bots with an `email_group`, the assigner picks the least-loaded active login and skips any login at capacity. If every login in a pool is saturated, bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, per your `fallback` setting). Create more logins to raise the ceiling, and configure a [**Meet Login Utilization** alert](/docs/api-v2/alerts#meet-login-alerts) to stay ahead of saturation (the [utilization endpoint](/docs/api-v2/getting-started/meet/sending-authenticated-bots#monitoring-pool-utilization) gives an on-demand view).
+
+### States
+
+Both workspaces and logins track health with a `state` field:
+
+- **`active`** — healthy and usable.
+- **`invalid`** — the system auto-disabled the resource after a failure (a SAML rejection for workspaces; a bot login failure such as a suspended user or a pending first-time interactive login for logins). Re-enable manually via `PATCH` after fixing the underlying issue.
+
+When a resource flips to `invalid`, `last_error_message` and `last_error_at` explain why.
+
+### Security
+
+The SAML certificate and private key are encrypted at rest using **AES-256-GCM**. The `private_key_pem` is **never returned** in any API response — not on create, and not on subsequent reads. If you lose it, rotate the keypair via `PATCH /v2/meet-workspaces/{workspace_id}`.
+
+## Pages in this section
+
+<Cards>
+  <Card title="Setup" href="/docs/api-v2/getting-started/meet/setup">
+    Create a meet workspace, configure the Legacy SSO profile in Google Admin Console, prepare Workspace users, and add logins.
+  </Card>
+  <Card title="Sending Authenticated Bots" href="/docs/api-v2/getting-started/meet/sending-authenticated-bots">
+    Use `meet_config` to send authenticated bots, manage pools, configure fallback, and monitor utilization.
+  </Card>
+</Cards>
+
+## FAQ
+
+<Accordions type="single">
+
+<Accordion title="Do I need authenticated bots for every Google Meet?">
+No. Anonymous bots join open meetings fine. Use authenticated bots only when a meeting is **restricted to signed-in or in-organization users**, or when you need to **bypass the waiting room**. Leave `meet_config` `null` for everything else.
+</Accordion>
+
+<Accordion title="Can I use my company's main Google Workspace domain?">
+Yes — you don't need a separate domain. The rule is that the **Legacy SSO profile must be scoped to a bot-only group or organizational unit**, never applied to your real users (assigning it org-wide would redirect everyone through the bot IdP). Put your bot accounts in a dedicated group/OU and assign the SSO profile to only that scope. A dedicated subdomain like `bots.acme.com` is one clean way to keep bots isolated, but it's optional. See [Setup](/docs/api-v2/getting-started/meet/setup).
+</Accordion>
+
+<Accordion title="How many bots can join at once?">
+Each meet login supports up to **20 concurrent SSO sessions**, and capacity scales linearly with the number of active logins in a pool. To raise the ceiling, add more logins. Configure a [Meet Login Utilization alert](/docs/api-v2/alerts#meet-login-alerts) so you're warned before you saturate.
+</Accordion>
+
+<Accordion title="How do I get bots past the waiting room?">
+Put the login's `email_group` (a Google Group) on the meeting's **calendar invite**, and dispatch the bot with that same `email_group`. The bot is then treated as an invited participant and lands in Meet's **verified queue** instead of the waiting room.
+</Accordion>
+
+<Accordion title="When should I use credential_id vs email_group?">
+Use `email_group` for round-robin load balancing across a pool (recommended — it takes priority when both are set). Use `credential_id` when you need a specific, fixed login for a bot.
+</Accordion>
+
+<Accordion title="What happens if the whole pool is busy?">
+Bot creation returns `MEET_LOGIN_UNAVAILABLE` when `meet_config.fallback` is `fail` (the default), or the bot silently joins anonymously when `fallback` is `anonymous`. Add logins or set the fallback based on whether an authenticated identity is mandatory.
+</Accordion>
+
+<Accordion title="A workspace or login flipped to invalid — what do I do?">
+The system auto-disables a resource after a failure (a SAML rejection for workspaces; a bot login failure for logins). Check `last_error_message`, fix the cause (re-upload a matching cert, complete a user's first-time interactive login, un-suspend the account), then re-enable it with a `PATCH`.
+</Accordion>
+
+<Accordion title="Can I retrieve the private key later?">
+No. `private_key_pem` is encrypted at rest and **never returned** in any response. If you need a new key, rotate the keypair via `PATCH /v2/meet-workspaces/{workspace_id}` and upload the new certificate to Google at the same time.
+</Accordion>
+
+<Accordion title="Does this work for Zoom or Microsoft Teams?">
+No — `meet_config` is Google Meet only. For Zoom authentication, see [Zoom Integration](/docs/api-v2/getting-started/zoom). Microsoft Teams uses anonymous joins and needs no extra configuration.
+</Accordion>
+
+</Accordions>
+
+## Related resources
+
+- [Meet Workspaces API](/docs/api-v2/reference/meet-workspaces/createMeetWorkspace) — manage SAML SSO configurations
+- [Meet Logins API](/docs/api-v2/reference/meet-logins/createMeetLogin) — manage the Workspace user identities bots sign in as
+- [Error Codes](/docs/api-v2/error-codes#google-meet-authentication-errors) — `MEET_LOGIN_*` failure reasons
+- [Alerts](/docs/api-v2/alerts#meet-login-alerts) — monitor pool utilization and saturation
+
+
+---
+
+## Sending Authenticated Bots
+
+Use meet_config to send authenticated Google Meet bots, manage round-robin pools, configure fallback behavior, and monitor login pool utilization
+
+### Source: ./content/docs/api-v2/getting-started/meet/sending-authenticated-bots.mdx
+
+
+# Sending Authenticated Bots
+
+Once you have at least one **active** meet workspace and login (see [Setup](/docs/api-v2/getting-started/meet/setup)), add a `meet_config` object to your `POST /v2/bots` request to make the bot sign in before joining.
+
+## Round-robin pool (recommended)
+
+Assign the bot to the least-loaded active login in a pool by passing `email_group`. This spreads load across all logins sharing that group and is the right default for unattended recording at scale.
+
+```bash
+curl -X POST https://api.meetingbaas.com/v2/bots \
+  -H "x-meeting-baas-api-key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "bot_name": "Recording Bot",
+    "meeting_url": "https://meet.google.com/abc-defg-hij",
+    "meet_config": {
+      "email_group": "bots@bots.acme.com",
+      "fallback": "fail"
+    }
+  }'
+```
+
+To round-robin across **all** of your team's active logins without filtering by group, pass an empty string:
+
+```json
+{ "meet_config": { "email_group": "" } }
+```
+
+## Pin a specific login
+
+Use `credential_id` to force the bot to use one particular login.
+
+```json
+{
+  "bot_name": "Recording Bot",
+  "meeting_url": "https://meet.google.com/abc-defg-hij",
+  "meet_config": {
+    "credential_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  }
+}
+```
+
+<Callout type="info">
+If you set both `email_group` and `credential_id`, **`email_group` wins** — the pool selector takes priority. Use `credential_id` alone when you need a deterministic, fixed identity.
+</Callout>
+
+## Fallback behavior
+
+`fallback` controls what happens when no login slot is available (the whole pool is saturated, or no matching active login exists):
+
+| Value | Behavior |
+|-------|----------|
+| `fail` (default) | Bot creation fails immediately with `MEET_LOGIN_UNAVAILABLE`. Use this when an authenticated identity is mandatory. |
+| `anonymous` | The bot silently falls back to an anonymous (non-authenticated) join. Use this when getting *a* bot in matters more than its identity. |
+
+```json
+{ "meet_config": { "email_group": "bots@bots.acme.com", "fallback": "anonymous" } }
+```
+
+## Landing in the verified queue
+
+Signing in is only half the story for restricted meetings. To **bypass the waiting room**, the bot's identity must be recognized as invited:
+
+1. Put the login's `email_group` (the Google Group) on the meeting's **calendar invite**.
+2. Dispatch the bot with that same `email_group`.
+
+The assigned bot is then a member of an invited group and lands in Meet's **verified queue** instead of the waiting room. This is the recommended pattern for fully unattended recording.
+
+## Concurrency and capacity
+
+Each login supports up to **20 concurrent SSO sessions**. The dispatcher:
+
+1. Filters to **active** logins matching your selector.
+2. Picks the one with the lowest `active_session_count`.
+3. Skips any login already at capacity.
+
+If every candidate is saturated, the request fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous). To raise the ceiling, **add more logins** to the pool — capacity scales linearly with the number of active logins.
+
+## Monitoring pool utilization
+
+### Configure a utilization alert first (recommended)
+
+Don't wait until bots start failing. Set up a [**Meet Login Utilization** threshold alert](/docs/api-v2/alerts#meet-login-alerts) so you're notified automatically as your pool fills up — for example, alert when utilization reaches **70%**, giving you time to add logins before you hit the ceiling. Pair it with a [**Meet Login Unavailable** operational alert](/docs/api-v2/alerts#meet-login-alerts) so you also hear about it the moment a bot actually fails to get an authenticated slot (`MEET_LOGIN_UNAVAILABLE`).
+
+Both are configured from the **Alerts** section of your dashboard. See [Alerts](/docs/api-v2/alerts#meet-login-alerts) for setup.
+
+### Check utilization on demand
+
+For an ad-hoc or programmatic view, call `GET /v2/meet-logins/utilization` to see live concurrency across your pool. It's cheap to poll and returns uncached, live counters.
+
+```bash
+curl https://api.meetingbaas.com/v2/meet-logins/utilization \
+  -H "x-meeting-baas-api-key: $API_KEY"
+```
+
+```json
+{
+  "success": true,
+  "data": {
+    "logins_total": 5,
+    "logins_active": 5,
+    "logins_invalid": 0,
+    "concurrent_sessions": 42,
+    "concurrent_capacity": 100,
+    "utilization_pct": 42,
+    "by_email_group": [
+      { "email_group": "bots@bots.acme.com", "logins": 5, "concurrent": 42, "capacity": 100 }
+    ]
+  }
+}
+```
+
+| Field | Meaning |
+|-------|---------|
+| `logins_total` / `logins_active` / `logins_invalid` | Login counts for your team by state. |
+| `concurrent_sessions` | Bots currently in flight using your auth pool (sum of `active_session_count` across active logins). |
+| `concurrent_capacity` | `logins_active × 20` (the per-login session limit). |
+| `utilization_pct` | `concurrent_sessions / concurrent_capacity`, as a percentage. |
+| `by_email_group` | The same metrics broken down per pool. |
+
+## Troubleshooting
+
+| Error code | Meaning | What to do |
+|------------|---------|------------|
+| `MEET_LOGIN_UNAVAILABLE` | No login slot was available (pool saturated or no matching active login) and `fallback` was `fail`. | Add logins, lower concurrency, or set `fallback: "anonymous"`. Watch utilization. |
+| `MEET_LOGIN_REQUIRED` | The meeting required a signed-in user but the bot could not authenticate. | Ensure `meet_config` is set and the selected login is `active`. |
+| `MEET_LOGIN_FAILED_SAML_REJECTED` | Google rejected the SAML assertion. | Verify the certificate uploaded to Google Admin matches the workspace cert and the SSO profile is configured and assigned. The workspace auto-flips to `invalid`; re-enable after fixing. |
+| `MEET_LOGIN_FAILED_TIMEOUT` | The SSO sign-in did not complete in time. | Confirm the user completed the first-time interactive login and the account isn't suspended; retry. |
+
+See [Error Codes](/docs/api-v2/error-codes#google-meet-authentication-errors) for the full list. These appear in the bot's `bot.failed` webhook and in the bot details `error_code` field.
+
+## Related resources
+
+- [Setup](/docs/api-v2/getting-started/meet/setup) — one-time workspace and login configuration
+- [Create a bot](/docs/api-v2/reference/bots/createBot) — full bot creation reference
+- [Meet Logins utilization](/docs/api-v2/reference/meet-logins/getMeetLoginUtilization) — pool metrics endpoint
+
+
+---
+
+## Setup
+
+Create a meet workspace, configure the Legacy SSO profile in Google Admin Console, prepare Workspace users, and register meet logins
+
+### Source: ./content/docs/api-v2/getting-started/meet/setup.mdx
+
+
+# Setting Up Google Meet Authentication
+
+Authenticated Meet bots sign in to a Google Workspace **you control** via SAML SSO. Meeting BaaS acts as the SAML Identity Provider (IdP); your Google Workspace is the Service Provider. This guide walks through the one-time setup.
+
+<Callout type="warn">
+**Never route real users through the bot IdP.** The Legacy SSO profile you configure below redirects sign-in to Meeting BaaS, so it must apply **only** to your bot accounts — never to your human users. Scope it one of two ways:
+
+- **Dedicated domain or subdomain (recommended):** Use a domain or subdomain you own that is reserved for bots — for example `bots.acme.com` — and configure SSO there.
+- **Dedicated organizational unit or group:** If you keep bots on an existing domain, move the bot accounts into a separate organizational unit (or group) and assign the Legacy SSO profile to **only that OU/group**, leaving everyone else on normal sign-in.
+
+Either way, the SSO profile must target the bot accounts exclusively.
+</Callout>
+
+## Prerequisites
+
+- A Google Workspace with **super admin** access to the Admin Console.
+- Bot accounts isolated from your human users — either on a dedicated domain/subdomain you own and have verified, or in a dedicated organizational unit/group.
+- A Meeting BaaS v2 API key with full access.
+
+## Overview
+
+<Steps>
+<Step>Create a **meet workspace** (holds the SAML certificate + key).</Step>
+<Step>Upload the certificate and configure the **Legacy SSO profile** in Google Admin Console.</Step>
+<Step>Create the **Google Workspace users** the bots will sign in as, and complete their first interactive login.</Step>
+<Step>Register a **meet login** for each user.</Step>
+</Steps>
+
+## Step 1 — Create a meet workspace
+
+A meet workspace is the parent resource for one Google Workspace domain. It stores the SAML signing keypair shared by every login attached to it.
+
+You have two options for the keypair:
+
+### Option A — Let the server generate the keypair (recommended)
+
+Pass `generate_keypair: true`. The server creates a self-signed RSA-2048 keypair with 10-year validity.
+
+```bash
+curl -X POST https://api.meetingbaas.com/v2/meet-workspaces \
+  -H "x-meeting-baas-api-key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Acme Production Workspace",
+    "domain": "bots.acme.com",
+    "generate_keypair": true
+  }'
+```
+
+### Option B — Bring your own keypair
+
+Provide `cert_pem` and `private_key_pem` together (mutually exclusive with `generate_keypair`).
+
+```bash
+curl -X POST https://api.meetingbaas.com/v2/meet-workspaces \
+  -H "x-meeting-baas-api-key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Acme Production Workspace",
+    "domain": "bots.acme.com",
+    "cert_pem": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----",
+    "private_key_pem": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+  }'
+```
+
+Either way, the response includes the `workspace_id` and the `cert_pem` you'll upload to Google. **`private_key_pem` is never returned** — it is encrypted at rest and only retrievable by rotating the keypair.
+
+```json
+{
+  "success": true,
+  "data": {
+    "workspace_id": "f0e1d2c3-b4a5-6789-0123-456789abcdef",
+    "name": "Acme Production Workspace",
+    "domain": "bots.acme.com",
+    "cert_pem": "-----BEGIN CERTIFICATE-----\n...\n-----END CERTIFICATE-----",
+    "state": "active",
+    "created_at": "2026-06-15T10:00:00.000Z",
+    "updated_at": "2026-06-15T10:00:00.000Z"
+  }
+}
+```
+
+<Callout type="info">
+Each `domain` may exist at most once per team. Creating a second workspace for the same domain returns `409 Conflict`.
+</Callout>
+
+## Step 2 — Configure the Legacy SSO profile in Google Admin Console
+
+This is the step that points your Google Workspace at Meeting BaaS as a SAML Identity Provider. You'll do it once per workspace, signed in to the [Google Admin Console](https://admin.google.com) as a **super admin**.
+
+<Steps>
+
+<Step>
+### Open the third-party SSO settings
+
+In the Admin Console left nav, go to **Security → Authentication → SSO with third party IdP**.
+
+<ImageZoom
+  src={'/assets/meet-sso/1-find-sso-setting.png'}
+  alt="Google Admin Console: Security → Authentication → SSO with third party IdP"
+  width={3028}
+  height={1722}
+  className="rounded-lg border"
+/>
+
+Under **Third-party SSO profiles**, open the **Legacy SSO Profile** (type `SAML` — it starts out *Disabled*).
+
+<ImageZoom
+  src={'/assets/meet-sso/2-open-legacy-profile.png'}
+  alt="Third-party SSO profiles list with the Legacy SSO Profile (SAML)"
+  width={3024}
+  height={1126}
+  className="rounded-lg border"
+/>
+</Step>
+
+<Step>
+### Enable the profile and enter the IdP details
+
+On the **Legacy SSO profile** page, fill in the following and **Save**:
+
+| Field | Value |
+|-------|-------|
+| Enable legacy SSO profile | ✅ Checked |
+| Sign-in page URL | `https://api.meetingbaas.com/v2/meet-sso/sign-in` |
+| Sign-out page URL | `https://api.meetingbaas.com/v2/meet-sso/sign-out` |
+| Verification certificate | Upload the `cert_pem` from [Step 1](#step-1--create-a-meet-workspace) (use **Replace certificate** / **Or upload**) |
+| Use a domain specific issuer | ✅ Checked |
+
+<ImageZoom
+  src={'/assets/meet-sso/3-configure-profile.png'}
+  alt="Legacy SSO profile form: enabled, Meeting BaaS sign-in/sign-out URLs, certificate uploaded, domain-specific issuer enabled"
+  width={3012}
+  height={1721}
+  className="rounded-lg border"
+/>
+
+<Callout type="info">
+These `/v2/meet-sso/*` URLs are SAML endpoints that Google calls during sign-in — you configure them in Google, you never call them yourself. The certificate you upload here must always match the one stored on the workspace. If you [rotate the keypair](#rotating-the-keypair), upload the new certificate at the same time.
+</Callout>
+</Step>
+
+<Step>
+### Assign the profile to your bot group (or OU) only
+
+Open **Manage SSO profile assignments**. Under **Groups**, pick the group that contains your bot accounts (for example `bots@bots.acme.com`) — or choose the bot **organizational unit**. A new scope starts with **Select SSO profile: None**.
+
+<ImageZoom
+  src={'/assets/meet-sso/4-assign-select-group.png'}
+  alt="Manage SSO profile assignments: selecting the bots group as the scope"
+  width={3020}
+  height={1708}
+  className="rounded-lg border"
+/>
+
+Set **Select SSO profile** to **Legacy SSO profile**, then click **Override** (or **Save**). This applies the bot IdP to that group/OU only and overrides the inherited organization setting.
+
+<ImageZoom
+  src={'/assets/meet-sso/5-assign-legacy-profile.png'}
+  alt="Assigning the Legacy SSO profile to the bots group and clicking Override"
+  width={3026}
+  height={1722}
+  className="rounded-lg border"
+/>
+
+<Callout type="warn">
+Assign the profile to the bot group/OU **only**. Never assign it to a scope that contains real users, or they will be redirected through the bot IdP. Changes take a few minutes to take effect.
+</Callout>
+</Step>
+
+</Steps>
+
+## Step 3 — Prepare the Workspace users
+
+For **each** Google account the bots will sign in as:
+
+1. Create the user in Google Admin Console (for example `bot1@bots.acme.com`).
+2. Sign in to that account once interactively and complete the **"Welcome to Workspace"** flow. This first-time interactive login is required before the account can be used programmatically — skipping it causes the login to flip to `invalid` on first use.
+3. Set the account language to **English (United States)** to ensure the sign-in and Meet UIs are in the expected state.
+
+<Callout type="tip">
+Create a **Google Group** (for example `bots@bots.acme.com`) and add the bot users as members. Putting this group on a calendar invite lets the assigned bot land in Meet's **verified queue** and bypass the waiting room. You'll reference this group as `email_group` in Step 4.
+</Callout>
+
+## Step 4 — Register a meet login per user
+
+Create one meet login for each Workspace user, referencing the `workspace_id` from Step 1.
+
+```bash
+curl -X POST https://api.meetingbaas.com/v2/meet-logins \
+  -H "x-meeting-baas-api-key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "workspace_id": "f0e1d2c3-b4a5-6789-0123-456789abcdef",
+    "name": "Production Bot Pool — Account 1",
+    "email": "bot1@bots.acme.com",
+    "email_group": "bots@bots.acme.com"
+  }'
+```
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `workspace_id` | ✅ | UUID of the parent workspace. |
+| `name` | ✅ | Friendly label. Not unique. |
+| `email` | ✅ | The Workspace user's email. Its domain must match the workspace domain (or a subdomain — e.g. `bot1@dev.bots.acme.com` is valid for workspace domain `bots.acme.com`). |
+| `email_group` | optional | Google Group address for round-robin pooling and verified-queue admission. Logins sharing the same `email_group` form one pool. Same domain rule applies. |
+| `extra` | optional | Free-form JSON for your own tags (filterable on the list endpoint). |
+
+<Callout type="info">
+Each `email` may exist at most once per team (`409 Conflict` on duplicates). An `email`/`email_group` whose domain doesn't match the workspace returns `422 Unprocessable Entity`. An unknown `workspace_id` returns `404 Not Found`.
+</Callout>
+
+Repeat for each user. Logins sharing an `email_group` form a round-robin pool — add more logins to increase concurrent capacity (each login handles up to 20 concurrent sessions by default).
+
+## You're ready
+
+With at least one **active** workspace and one **active** login, you can send authenticated bots. Continue to [Sending Authenticated Bots](/docs/api-v2/getting-started/meet/sending-authenticated-bots).
+
+## Maintenance
+
+### Rotating the keypair
+
+Rotate a workspace's certificate and key by sending **both** `cert_pem` and `private_key_pem` to `PATCH /v2/meet-workspaces/{workspace_id}`. The new pair takes effect immediately for all logins under the workspace, so **upload the new certificate to Google Admin Console at the same time** — there is a brief window where the stored cert and Google's cert must match.
+
+### Re-enabling an invalid resource
+
+When a workspace or login flips to `invalid`, fix the underlying cause (re-upload a matching cert, complete a user's interactive login, un-suspend the account), then re-enable it with a `PATCH` (`PATCH /v2/meet-workspaces/{workspace_id}` or `PATCH /v2/meet-logins/{credential_id}`). Check `last_error_message` for the reason.
+
+### Deleting a workspace
+
+`DELETE /v2/meet-workspaces/{workspace_id}` **cascades to all of its logins**. Delete a single login with `DELETE /v2/meet-logins/{credential_id}`.
 
 
 ---
@@ -3120,26 +3705,30 @@ Users can revoke your app's access in their Zoom settings. When this happens:
 
 ## FAQ
 
-**Q: How many credentials can I store?**
+<Accordions type="single">
 
+<Accordion title="How many credentials can I store?">
 There's no hard limit. Store as many as you need for your users.
+</Accordion>
 
-**Q: What can I update on an existing credential?**
-
+<Accordion title="What can I update on an existing credential?">
 You can update the name, SDK credentials (client ID and secret together), or re-authorize with new OAuth tokens using `PATCH /v2/zoom-credentials/{id}`. Re-authorizing is useful when a credential becomes invalid.
+</Accordion>
 
-**Q: What happens to bots when a credential becomes invalid?**
-
+<Accordion title="What happens to bots when a credential becomes invalid?">
 Bots created with that credential will fail to join with a `ZOOM_ACCESS_TOKEN_ERROR` or similar error. Already-running bots are not affected.
+</Accordion>
 
-**Q: How long are OAuth tokens valid?**
-
+<Accordion title="How long are OAuth tokens valid?">
 Zoom access tokens expire after 1 hour. Meeting BaaS automatically refreshes them using the refresh token. If refresh fails, the credential becomes invalid.
+</Accordion>
 
-**Q: Do I need separate credentials for SDK and OBF?**
-
+<Accordion title="Do I need separate credentials for SDK and OBF?">
 For internal meetings: App-only credentials are sufficient.
 For external meetings: You need user credentials (with OAuth) for OBF token support.
+</Accordion>
+
+</Accordions>
 
 ## Next Steps
 
@@ -3261,21 +3850,25 @@ All credentials are encrypted at rest using AES-256-GCM. Client secrets and OAut
 
 ## FAQ
 
-**Q: Can I migrate my v1 Zoom OAuth connections to v2?**
+<Accordions type="single">
 
+<Accordion title="Can I migrate my v1 Zoom OAuth connections to v2?">
 Yes, but you'll need to create new credentials in v2 using the `/v2/zoom-credentials` endpoint. We recommend having users re-authorize to ensure fresh tokens.
+</Accordion>
 
-**Q: Do I need to change my Zoom app configuration?**
-
+<Accordion title="Do I need to change my Zoom app configuration?">
 No, your existing Zoom app works with v2. The scopes and settings remain the same.
+</Accordion>
 
-**Q: What happens if a credential becomes invalid?**
-
+<Accordion title="What happens if a credential becomes invalid?">
 Bots using that credential will fail to join meetings. You'll see the error in the credential's `last_error_message` field and in the bot's failure webhook.
+</Accordion>
 
-**Q: Can I use both v1 and v2 APIs simultaneously?**
-
+<Accordion title="Can I use both v1 and v2 APIs simultaneously?">
 Yes, during migration you can use both APIs. However, credentials are not shared between v1 and v2—you'll need to set them up separately.
+</Accordion>
+
+</Accordions>
 
 ## Related Resources
 
@@ -3888,21 +4481,25 @@ If a user revokes your app in their Zoom settings, the credential becomes invali
 
 ## FAQ
 
-**Q: Can I use the same redirect URI for development and production?**
+<Accordions type="single">
 
+<Accordion title="Can I use the same redirect URI for development and production?">
 No, use environment-specific URIs. Add both to your Zoom app's allowed redirect URIs.
+</Accordion>
 
-**Q: What if the user has multiple Zoom accounts?**
-
+<Accordion title="What if the user has multiple Zoom accounts?">
 They'll authorize with whichever account they're logged into. The credential response includes `zoom_email` and `zoom_display_name` (captured from Zoom's `/users/me` API at OAuth time, requires the `user:read:user` scope) — surface these in your UI so the user can verify which Zoom account is connected and disconnect/reconnect if it's the wrong one.
+</Accordion>
 
-**Q: How do I handle re-authorization?**
-
+<Accordion title="How do I handle re-authorization?">
 When creating a new credential for an existing Zoom user, the old credential becomes orphaned. Delete it after successful re-auth to avoid confusion.
+</Accordion>
 
-**Q: Can I customize what users see on Zoom's authorization page?**
-
+<Accordion title="Can I customize what users see on Zoom's authorization page?">
 Limited customization is available in your Zoom app settings (app name, icon, description).
+</Accordion>
+
+</Accordions>
 
 ## Next Steps
 
@@ -4445,29 +5042,33 @@ Test with real Zoom meetings before the enforcement date.
 
 ## FAQ
 
-**Q: What happens if I don't implement OBF tokens by March 2, 2026?**
+<Accordions type="single">
 
+<Accordion title="What happens if I don't implement OBF tokens by March 2, 2026?">
 Bots joining external Zoom meetings will fail. You'll receive a join failure error. Internal meetings with SDK credentials are not affected.
+</Accordion>
 
-**Q: Can one OBF token be used for multiple meetings?**
-
+<Accordion title="Can one OBF token be used for multiple meetings?">
 Yes, OBF tokens are not meeting-specific when fetched without specifying a meeting number.
+</Accordion>
 
-**Q: Do Google Meet and Teams bots need OBF tokens?**
-
+<Accordion title="Do Google Meet and Teams bots need OBF tokens?">
 No, OBF tokens are Zoom-specific.
+</Accordion>
 
-**Q: What if the authorized user's Zoom account is deactivated?**
-
+<Accordion title="What if the authorized user's Zoom account is deactivated?">
 The stored credential becomes invalid. The user would need to re-authorize your app.
+</Accordion>
 
-**Q: Is there an alternative for continuous recording without user presence?**
-
+<Accordion title="Is there an alternative for continuous recording without user presence?">
 Zoom is developing Real-Time Media Streams (RTMS) for this use case. We're working on RTMS support, but it has different constraints and capabilities.
+</Accordion>
 
-**Q: How does v2 differ from v1 for OBF tokens?**
-
+<Accordion title="How does v2 differ from v1 for OBF tokens?">
 v2 introduces the Credentials API for secure token storage, the `zoom_config` object for cleaner configuration, and better error tracking with credential states.
+</Accordion>
+
+</Accordions>
 
 ## Resources
 
@@ -5286,6 +5887,28 @@ Discover all the enhancements and improvements in Meeting BaaS API v2
 
 Meeting BaaS v2 introduces significant improvements across security, transparency, developer experience, and feature availability. This document highlights the key enhancements that make v2 a compelling upgrade from v1.
 
+## Google Meet Authenticated Bots
+
+v2 lets bots join Google Meet as **authenticated Google Workspace users** via SAML SSO, instead of only as anonymous guests.
+
+**v1**: Anonymous Meet joins only — bots failed on meetings restricted to signed-in or in-organization users and had to wait for manual admission.
+
+**v2**:
+- **Authenticated joins**: Bots sign in as a real Google Workspace user from a domain you control, so they can join meetings restricted to signed-in / organizational users.
+- **Waiting-room bypass**: Invite a login's Google Group (`email_group`) to a meeting and the assigned bot lands in Meet's verified queue, skipping the waiting room.
+- **Meet Workspaces & Meet Logins**: New `/v2/meet-workspaces` and `/v2/meet-logins` resources manage your SAML SSO configuration and the Workspace user identities bots sign in as. Meeting BaaS acts as the SAML IdP; keys are encrypted at rest with AES-256-GCM and the private key is never returned.
+- **Round-robin pools**: Group logins by `email_group` and the dispatcher assigns the least-loaded active login (up to 20 concurrent sessions each by default). Add logins to scale capacity linearly.
+- **Configurable fallback**: Per bot, choose to `fail` (default) or fall back to an `anonymous` join when the pool is saturated.
+- **Utilization & alerts**: `GET /v2/meet-logins/utilization` reports live pool concurrency, with `Meet Login Utilization` and `Meet Login Unavailable` alert types to warn you before saturation.
+
+### Benefits
+
+- Record meetings that block anonymous guests
+- Skip waiting rooms for fully unattended recording
+- Scale authenticated capacity by adding logins, with visibility into headroom
+
+See the [Google Meet Authentication guide](/docs/api-v2/getting-started/meet) to get started.
+
 ## Enhanced Webhook Management
 
 v2 provides enterprise-grade webhook management with multiple endpoints, signing, and rotation capabilities.
@@ -5815,7 +6438,7 @@ Permanently delete all bot data including recordings, transcripts, summaries, an
     - Artifact URLs will return `null` in subsequent API calls
     - Bot metadata remains accessible but all associated data is removed
     
-    **Transcription Provider Deletion:** If `delete_transcription=true` is provided, the transcription data will also be deleted from the transcription provider (e.g., Gladia). This requires the bot to have transcription enabled and a transcription provider configured. If the bot uses BYOK transcription, you must have access to the transcription provider API key.
+    **Transcription Provider Deletion:** If `delete_transcription=true` is provided, the transcription data will also be deleted from the transcription provider. This requires the bot to have transcription enabled and a transcription provider configured. If the bot uses BYOK transcription, you must have access to the transcription provider API key.
     
     **Irreversible Operation:** Once data is deleted, it cannot be recovered. Make sure you have downloaded or backed up any data you need before calling this endpoint.
     
@@ -5925,7 +6548,7 @@ Get the current status of a bot, including the latest status code, transcription
     - `transcription_status`: The current transcription status (not-applicable, not-started, queued, processing, done, error)
     - `updated_at`: ISO 8601 timestamp when the status was last updated
     
-    **Transcription Status:** The transcription status is fetched in real-time from the transcription provider (e.g., Gladia) if transcription is enabled. This allows you to track transcription progress separately from the bot's overall status.
+    **Transcription Status:** The transcription status is fetched in real-time from the transcription provider if transcription is enabled. This allows you to track transcription progress separately from the bot's overall status.
     
     **Polling Considerations:** 
     - **Not Recommended for Active Monitoring:** Due to the nature of meetings running for extended periods (often hours), frequent polling is not recommended. Instead, use `callback_config` when creating bots or configure webhooks at the account level to receive real-time status updates.
@@ -6123,6 +6746,20 @@ Resume a bot's recording after it was paused.
     Returns 404 if the bot is not found, or 409 if the bot's status does not allow this operation.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/resume-recording","method":"post"}]} />
+
+
+---
+
+## Retranscribe bot
+
+### Source: ./content/docs/api-v2/reference/bots/retranscribeBot.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Retry transcription for a bot that has audio recordings. Optionally override the transcription provider.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/retranscribe","method":"post"}]} />
 
 
 ---
@@ -6685,65 +7322,65 @@ Completed payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 | `extra` | object | null | Yes | Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking |
 
 ## Field Details
 
-- **`event`** (string) **Required**
-  The webhook event type
-
 - **`data`** (object) **Required**
 
   Properties:
+    - **`audio`** (string (uri) | null) **Required**
+      Signed URL to download the audio recording. Valid for 4 hours. Null if audio recording is not available or has been deleted
+
     - **`bot_id`** (string (uuid)) **Required**
       The UUID of the bot that completed
-
-    - **`event_id`** (string (uuid) | null) **Required**
-      The UUID of the calendar event associated with this bot. Null for non-calendar bots
-
-    - **`participants`** (object[]) **Required**
-      List of participants who joined the meeting with their names and metadata. Empty array if participant information is not available
-
-    - **`speakers`** (object[]) **Required**
-      List of speakers detected in the meeting with their names and metadata. Empty array if speaker information is not available
-
-    - **`duration_seconds`** (integer | null) **Required**
-
-    - **`joined_at`** (string (date-time) | null) **Required**
-      ISO 8601 timestamp when the bot joined the meeting. Null if join time is not available
-
-    - **`exited_at`** (string (date-time) | null) **Required**
-      ISO 8601 timestamp when the bot exited the meeting. Null if exit time is not available
 
     - **`data_deleted`** (boolean) **Required**
       Whether the bot's data (artifacts, recordings) has been deleted. True if data has been permanently removed
 
-    - **`video`** (string (uri) | null) **Required**
-      Signed URL to download the video recording. Valid for 4 hours. Null if video recording is not available or has been deleted
-
-    - **`audio`** (string (uri) | null) **Required**
-      Signed URL to download the audio recording. Valid for 4 hours. Null if audio recording is not available or has been deleted
-
     - **`diarization`** (string (uri) | null) **Required**
       Signed URL to download the speaker diarization data. Valid for 4 hours. Null if diarization is not available or has been deleted
+
+    - **`duration_seconds`** (integer | null) **Required**
+
+    - **`event_id`** (string (uuid) | null) **Required**
+      The UUID of the calendar event associated with this bot. Null for non-calendar bots
+
+    - **`exited_at`** (string (date-time) | null) **Required**
+      ISO 8601 timestamp when the bot exited the meeting. Null if exit time is not available
+
+    - **`joined_at`** (string (date-time) | null) **Required**
+      ISO 8601 timestamp when the bot joined the meeting. Null if join time is not available
+
+    - **`participants`** (object[]) **Required**
+      List of participants who joined the meeting with their names and metadata. Empty array if participant information is not available
 
     - **`raw_transcription`** (string (uri) | null) **Required**
       Signed URL to download the raw transcription file. Valid for 4 hours. Null if raw transcription is not available or has been deleted
 
+    - **`sent_at`** (string (date-time)) **Required**
+      ISO 8601 timestamp when this webhook was sent
+
+    - **`speakers`** (object[]) **Required**
+      List of speakers detected in the meeting with their names and metadata. Empty array if speaker information is not available
+
     - **`transcription`** (string (uri) | null) **Required**
       Signed URL to download the processed transcription file. Valid for 4 hours. Null if transcription is not available or has been deleted
-
-    - **`transcription_provider`** (string | null) **Required**
-      The transcription provider used (e.g., 'gladia'). Null if transcription was not enabled or if provider information is not available
 
     - **`transcription_ids`** (string[] | null) **Required**
       Array of transcription job IDs from the transcription provider. Null if transcription was not enabled or if IDs are not available
 
-    - **`sent_at`** (string (date-time)) **Required**
-      ISO 8601 timestamp when this webhook was sent
+    - **`transcription_provider`** (string | null) **Required**
+      The transcription provider used (e.g., 'gladia', 'deepgram', 'assemblyai'). Null if transcription was not enabled or if provider information is not available
 
+    - **`video`** (string (uri) | null) **Required**
+      Signed URL to download the video recording. Valid for 4 hours. Null if video recording is not available or has been deleted
+
+
+- **`event`** (string) **Required**
+  The webhook event type
 
 - **`extra`** (object | null) **Required**
   Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking
@@ -6753,25 +7390,25 @@ Completed payload structure
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
-    "bot_id": "examplebot_id",
-    "event_id": null,
-    "participants": [],
-    "speakers": [],
-    "duration_seconds": null,
-    "joined_at": null,
-    "exited_at": null,
-    "data_deleted": true,
-    "video": null,
     "audio": null,
+    "bot_id": "examplebot_id",
+    "data_deleted": true,
     "diarization": null,
+    "duration_seconds": null,
+    "event_id": null,
+    "exited_at": null,
+    "joined_at": null,
+    "participants": [],
     "raw_transcription": null,
+    "sent_at": "examplesent_at",
+    "speakers": [],
     "transcription": null,
-    "transcription_provider": null,
     "transcription_ids": [],
-    "sent_at": "examplesent_at"
+    "transcription_provider": null,
+    "video": null
   },
+  "event": "exampleevent",
   "extra": null
 }
 ```
@@ -6792,14 +7429,11 @@ Failed payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 | `extra` | object | null | Yes | Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
@@ -6807,18 +7441,21 @@ Failed payload structure
     - **`bot_id`** (string (uuid)) **Required**
       The UUID of the bot that failed
 
-    - **`event_id`** (string (uuid) | null) **Required**
-      The UUID of the calendar event associated with this bot. Null for non-calendar bots
+    - **`error_code`** (string) **Required**
+      Machine-readable error code for programmatic handling. Common codes include 'MEETING_NOT_FOUND', 'MEETING_ENDED', 'BOT_CRASHED', etc.
 
     - **`error_message`** (string) **Required**
       Human-readable error message describing why the bot failed
 
-    - **`error_code`** (string) **Required**
-      Machine-readable error code for programmatic handling. Common codes include 'MEETING_NOT_FOUND', 'MEETING_ENDED', 'BOT_CRASHED', etc.
+    - **`event_id`** (string (uuid) | null) **Required**
+      The UUID of the calendar event associated with this bot. Null for non-calendar bots
 
     - **`sent_at`** (string (date-time)) **Required**
       ISO 8601 timestamp when this webhook was sent
 
+
+- **`event`** (string) **Required**
+  The webhook event type
 
 - **`extra`** (object | null) **Required**
   Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking
@@ -6828,14 +7465,14 @@ Failed payload structure
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
     "bot_id": "examplebot_id",
-    "event_id": null,
-    "error_message": "exampleerror_message",
     "error_code": "exampleerror_code",
+    "error_message": "exampleerror_message",
+    "event_id": null,
     "sent_at": "examplesent_at"
   },
+  "event": "exampleevent",
   "extra": null
 }
 ```
@@ -6877,6 +7514,287 @@ Reference documentation for all webhook and callback payload structures is avail
 
 ---
 
+## Create a meet login
+
+### Source: ./content/docs/api-v2/reference/meet-logins/createMeetLogin.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Create a meet login — a Google Workspace user identity attached to a parent meet workspace.
+
+    Each login represents one Workspace user that bots can sign in as. Many logins can share one workspace; they all use the workspace's cert/key for SAML signing. Round-robin assignment picks the least-loaded active login when a bot is dispatched with `meet_config.email_group` (or `credential_id`) on `POST /v2/bots`.
+
+    **Prerequisites:** Create a meet workspace first via `POST /v2/meet-workspaces`. Pass the returned `workspace_id` here.
+
+    **Domain Validation:** The `email` must belong to the parent workspace's domain (or a subdomain). For example, if the workspace domain is `bots.acme.com`, valid emails include `bot1@bots.acme.com` or `bot2@dev.bots.acme.com`, but not `bot1@acme.com`. The same rule applies to `email_group` if provided.
+
+    **Email Group (optional but encouraged):** Set `email_group` to a Google Group address that contains the bot users as members. When you put this group address on a calendar invite, the assigned bot lands in Meet's verified queue and bypasses the waiting room. Logins sharing the same `email_group` form one round-robin pool.
+
+    **Per-team Uniqueness on Email:** Each `email` may exist at most once per team. Attempting to register the same email twice returns 409.
+
+    **Concurrency:** Each login supports up to 20 concurrent SSO sessions. When a login hits its capacity, the round-robin assigner skips it and tries the next one in the pool. If all logins in a pool are saturated, the bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, depending on your `fallback` setting).
+
+    **Error Scenarios:**
+    - `404 Not Found`: `workspace_id` is unknown or does not belong to your team.
+    - `409 Conflict`: A login for this `email` already exists.
+    - `422 Unprocessable Entity`: `email` or `email_group` domain does not match the parent workspace's domain.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/meet-logins","method":"post"}]} />
+
+
+---
+
+## Delete a meet login
+
+### Source: ./content/docs/api-v2/reference/meet-logins/deleteMeetLogin.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Delete a meet login.
+
+    **In-Use Guard:** If the login has any active SSO sessions in flight (`active_session_count > 0`), the request returns 409. Wait for the bots to finish or stop them first.
+
+    **Bot Reference Handling:** Bots that previously used this login keep their reference in `assigned_meet_login_id` until the row is deleted, then the FK is set to `null` (no historical bot record is removed; just the link).
+
+    Returns 404 if the login is not found or does not belong to your team.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/meet-logins/{credential_id}","method":"delete"}]} />
+
+
+---
+
+## Get a meet login
+
+### Source: ./content/docs/api-v2/reference/meet-logins/getMeetLogin.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Get full details for a single meet login.
+
+    Returns the same fields as the list endpoint, scoped to one login.
+
+    Returns 404 if the login is not found or does not belong to your team.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/meet-logins/{credential_id}","method":"get"}]} />
+
+
+---
+
+## Get current login pool utilization
+
+### Source: ./content/docs/api-v2/reference/meet-logins/getMeetLoginUtilization.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Get current concurrency utilization for your team's meet login pool.
+
+    Returns aggregate metrics across all your active logins:
+
+    - `logins_total`: total number of logins for your team
+    - `logins_active`: number with `state: "active"`
+    - `logins_invalid`: number with `state: "invalid"`
+    - `concurrent_sessions`: current sum of `active_session_count` across active logins (i.e., bots in flight using your auth pool)
+    - `concurrent_capacity`: `logins_active × per-login-capacity` (defaults to 20 per login)
+    - `utilization_pct`: `concurrent_sessions / concurrent_capacity` as a percentage
+    - `by_email_group`: per-pool breakdown of the same metrics
+
+    **Use this with alert rules.** Configure a `meet_login_utilization` threshold alert at e.g. 70% to get notified before saturation, and configure `meet_login_unavailable` operational alerts to know when bots have actually hit the ceiling.
+
+    **Polling:** Cheap to call. Numbers reflect live counters — no caching.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/meet-logins/utilization","method":"get"}]} />
+
+
+---
+
+## List meet logins
+
+### Source: ./content/docs/api-v2/reference/meet-logins/listMeetLogins.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+List all meet logins for your team across every workspace.
+
+    Each row includes its parent `workspace_id` so you can correlate logins to their workspace without re-fetching. Sensitive fields (cert, key) live on the workspace, not the login, and are never returned through this endpoint.
+
+    **State Field:** Logins can independently be `active` or `invalid`. A login flipping to `invalid` is rare in v1 — most SSO failures are workspace-scoped (cert mismatch) and disable the parent workspace instead. If a specific login is misbehaving (e.g., the Workspace user got suspended), you can manually delete and re-create it.
+
+    **Filtering by workspace:** Not currently supported as a query param. Filter client-side using the `workspace_id` field on each row, or fetch the workspace and use `GET /v2/meet-workspaces/:id` for inventory.
+
+    **Round-Robin Tracking:** `active_session_count` (current concurrent bots using this login) and `last_used_at` (last assignment timestamp) reflect the round-robin scheduler's view. Use these to sanity-check load distribution.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/meet-logins","method":"get"}]} />
+
+
+---
+
+## Update a meet login
+
+### Source: ./content/docs/api-v2/reference/meet-logins/updateMeetLogin.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Update a meet login — rename it, change its email_group, or re-enable it after auto-disable.
+
+    **Rename:** pass only `name`.
+
+    **Update email_group:** pass `email_group` to change the round-robin pool the login belongs to. Pass an empty string to clear it (the login becomes pool-less and is only assignable via explicit `credential_id`). The new `email_group` value must satisfy the same domain rule as create — its domain must match (or be a subdomain of) the parent workspace's domain.
+
+    **Re-enable after auto-disable:** pass `state: "active"`. Only valid if the login is currently `invalid`. Clears `failure_data`, `last_error_message`, and `last_error_at`.
+
+    `email` and `workspace_id` are immutable. To change either, delete the login and create a new one.
+
+    **State Restrictions:** PATCH cannot set `state` to `invalid` — that's system-only.
+
+    **Error Scenarios:**
+    - `400 Bad Request`: Attempted to set `state` to a value other than `active`.
+    - `404 Not Found`: Login not found or does not belong to your team.
+    - `422 Unprocessable Entity`: `email_group` domain does not match the parent workspace's domain.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/meet-logins/{credential_id}","method":"patch"}]} />
+
+
+---
+
+## Create a meet workspace
+
+### Source: ./content/docs/api-v2/reference/meet-workspaces/createMeetWorkspace.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Create a meet workspace — the parent resource that holds your SAML cert + private key for one Google Workspace's SSO config.
+
+    A meet workspace represents one Google Workspace whose Legacy SSO profile points at our `/v2/meet-sso/*` endpoints. The cert and key on the workspace are shared by every `meet_login` (Workspace user identity) you attach to it, mirroring how Google Workspace stores a single verification certificate per SSO profile.
+
+    **Two creation paths, same response shape:**
+
+    - **Server-generated keypair** — pass `generate_keypair: true`. The server creates a self-signed RSA-2048 keypair with 10-year validity. Use this if you don't already have a SAML cert and want the simplest setup.
+    - **Bring-your-own keypair** — pass `cert_pem` and `private_key_pem` together. Use this if you want to manage your own crypto or already have a cert/key pair you trust.
+
+    Mutually exclusive: provide either `generate_keypair: true` OR (`cert_pem` + `private_key_pem`), not both.
+
+    **Response always includes `cert_pem`** so you can upload it to Google's Legacy SSO profile in your Workspace admin console. `private_key_pem` is never returned.
+
+    **After creation, you must:**
+    1. Upload the returned `cert_pem` to Google Admin Console → Security → Set up SSO with third-party IdP → Legacy SSO profile.
+    2. Set Sign-in URL to `https://api.meetingbaas.com/v2/meet-sso/sign-in` and Sign-out URL to `https://api.meetingbaas.com/v2/meet-sso/sign-out` in the same SSO profile. Enable "Use a domain-specific issuer" and assign the SSO profile to all users.
+    3. Create one or more Workspace users that bots will sign in as, complete the "Welcome to Workspace" interactive login for each, and set language to "English (United States)".
+    4. Add `meet_logins` (one per Workspace user) referencing this `workspace_id`.
+    5. Optionally call `POST /v2/meet-workspaces/:workspace_id/verify` to run pre-flight checks.
+
+    **Security:** The cert and key are encrypted at rest using AES-256-GCM. `private_key_pem` is never echoed in any response — including subsequent GETs. If you need it back, you must rotate via PATCH.
+
+    **Per-team uniqueness:** Each `domain` may exist at most once per team. Attempting to create a duplicate returns 409.
+
+    **Error Scenarios:**
+    - `409 Conflict`: A workspace for this `domain` already exists.
+    - `422 Unprocessable Entity`: Invalid cert/key (parse failure or modulus mismatch); both `generate_keypair` and `cert_pem` provided; neither provided.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/meet-workspaces","method":"post"}]} />
+
+
+---
+
+## Delete a meet workspace (cascades to its logins)
+
+### Source: ./content/docs/api-v2/reference/meet-workspaces/deleteMeetWorkspace.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Delete a meet workspace.
+
+    **This cascades to every `meet_login` under the workspace.** All login rows are removed from the database in the same transaction; any bots currently assigned to those logins will have their `assigned_meet_login_id` set to `null` (the row deletion does not stop in-flight bots, but their post-bot accounting will reference a now-deleted login).
+
+    **In-Use Guard:** If any login under this workspace has an active SSO session in flight (`active_session_count > 0`), the request returns 409 instead of deleting. Wait for the bots to finish or stop them first via the bots API. The aggregate count across all child logins is shown in the error message.
+
+    **Operational Note:** This is a hard delete. Any reference to deleted login `credential_id` values from old bot records becomes a dangling reference. The cascade is irreversible — re-creating a workspace gives you a new `workspace_id` even if you reuse the same domain.
+
+    Returns 404 if the workspace is not found or does not belong to your team.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/meet-workspaces/{workspace_id}","method":"delete"}]} />
+
+
+---
+
+## Get a meet workspace
+
+### Source: ./content/docs/api-v2/reference/meet-workspaces/getMeetWorkspace.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Get full details for a single meet workspace.
+
+    Returns the same fields as the list endpoint, scoped to one workspace. Useful for confirming the cert that was uploaded to Google matches the one we have on file (compare `cert_pem` against the Verification Certificate in your Google Admin Console).
+
+    **Failure Context:** If `state` is `invalid`, the response includes `last_error_message`, `last_error_at`, and a structured `failure_data` object describing the bot run that triggered the auto-disable. Use this to investigate before re-enabling.
+
+    Returns 404 if the workspace is not found or does not belong to your team.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/meet-workspaces/{workspace_id}","method":"get"}]} />
+
+
+---
+
+## List meet workspaces
+
+### Source: ./content/docs/api-v2/reference/meet-workspaces/listMeetWorkspaces.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+List all meet workspaces for your team.
+
+    Returns each workspace's metadata including `workspace_id`, `name`, `domain`, `state`, the `cert_pem` (so you can re-upload to Google admin if needed), and any recent failure context. `private_key_pem` is never included.
+
+    **State Field:**
+    - `active`: workspace is healthy; bots assigned to logins under this workspace will sign in successfully.
+    - `invalid`: the system auto-disabled the workspace because Google rejected our SAML assertion (typically a cert mismatch). Every login under an invalid workspace is blocked from being assigned. Re-upload the correct cert to Google admin and use PATCH to set `state` back to `active`.
+
+    Use this endpoint to inventory your SAML SSO setup or build a dashboard listing workspaces by health.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/meet-workspaces","method":"get"}]} />
+
+
+---
+
+## Update a meet workspace
+
+### Source: ./content/docs/api-v2/reference/meet-workspaces/updateMeetWorkspace.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Update a meet workspace — rename it, rotate its keypair, or re-enable it after auto-disable.
+
+    **Rename:** pass only `name`.
+
+    **Rotate cert/key:** pass both `cert_pem` and `private_key_pem` together. The new pair takes effect immediately for all logins under this workspace. You must upload the new cert to Google Admin Console at the same time — there is a brief window where the cert in our system and the cert in Google admin can diverge, during which bot sign-ins fail. Coordinate the swap.
+
+    **Re-enable after auto-disable:** pass `state: "active"`. Only valid if the workspace is currently `invalid`. This clears `failure_data`, `last_error_message`, and `last_error_at` atomically. Only do this after fixing the underlying issue (e.g., re-uploading the correct cert to Google admin).
+
+    `domain` is immutable. To change the domain, delete the workspace (after draining its logins) and create a new one.
+
+    **State Restrictions:** PATCH cannot set `state` to `invalid` — that's system-only. Returns 400 if you try.
+
+    **Error Scenarios:**
+    - `400 Bad Request`: Attempted to set `state` to a value other than `active`.
+    - `404 Not Found`: Workspace not found or does not belong to your team.
+    - `422 Unprocessable Entity`: Cert/key parse failure or mismatched pair; `cert_pem` provided without `private_key_pem` (or vice versa).
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/meet-workspaces/{workspace_id}","method":"patch"}]} />
+
+
+---
+
 ## Bot Chat Message
 
 Bot Chat Message payload structure
@@ -6890,14 +7808,11 @@ Bot Chat Message payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 | `extra` | object | null | Yes | Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
@@ -6911,18 +7826,21 @@ Bot Chat Message payload structure
     - **`message_id`** (string) **Required**
       Unique identifier of the chat message
 
-    - **`sender_name`** (string) **Required**
-      Display name of the message sender
-
     - **`sender_id`** (integer | null) **Required**
       Sequential participant ID of the sender. Null if the sender could not be resolved to a participant
 
-    - **`text`** (string) **Required**
-      Text content of the chat message
+    - **`sender_name`** (string) **Required**
+      Display name of the message sender
 
     - **`sent_at`** (string (date-time)) **Required**
       ISO 8601 timestamp when this webhook was sent
 
+    - **`text`** (string) **Required**
+      Text content of the chat message
+
+
+- **`event`** (string) **Required**
+  The webhook event type
 
 - **`extra`** (object | null) **Required**
   Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking
@@ -6932,16 +7850,16 @@ Bot Chat Message payload structure
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
     "bot_id": "examplebot_id",
     "event_id": null,
     "message_id": "examplemessage_id",
-    "sender_name": "examplesender_name",
     "sender_id": null,
-    "text": "exampletext",
-    "sent_at": "examplesent_at"
+    "sender_name": "examplesender_name",
+    "sent_at": "examplesent_at",
+    "text": "exampletext"
   },
+  "event": "exampleevent",
   "extra": null
 }
 ```
@@ -6962,65 +7880,65 @@ Bot Completed payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 | `extra` | object | null | Yes | Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking |
 
 ## Field Details
 
-- **`event`** (string) **Required**
-  The webhook event type
-
 - **`data`** (object) **Required**
 
   Properties:
+    - **`audio`** (string (uri) | null) **Required**
+      Signed URL to download the audio recording. Valid for 4 hours. Null if audio recording is not available or has been deleted
+
     - **`bot_id`** (string (uuid)) **Required**
       The UUID of the bot that completed
-
-    - **`event_id`** (string (uuid) | null) **Required**
-      The UUID of the calendar event associated with this bot. Null for non-calendar bots
-
-    - **`participants`** (object[]) **Required**
-      List of participants who joined the meeting with their names and metadata. Empty array if participant information is not available
-
-    - **`speakers`** (object[]) **Required**
-      List of speakers detected in the meeting with their names and metadata. Empty array if speaker information is not available
-
-    - **`duration_seconds`** (integer | null) **Required**
-
-    - **`joined_at`** (string (date-time) | null) **Required**
-      ISO 8601 timestamp when the bot joined the meeting. Null if join time is not available
-
-    - **`exited_at`** (string (date-time) | null) **Required**
-      ISO 8601 timestamp when the bot exited the meeting. Null if exit time is not available
 
     - **`data_deleted`** (boolean) **Required**
       Whether the bot's data (artifacts, recordings) has been deleted. True if data has been permanently removed
 
-    - **`video`** (string (uri) | null) **Required**
-      Signed URL to download the video recording. Valid for 4 hours. Null if video recording is not available or has been deleted
-
-    - **`audio`** (string (uri) | null) **Required**
-      Signed URL to download the audio recording. Valid for 4 hours. Null if audio recording is not available or has been deleted
-
     - **`diarization`** (string (uri) | null) **Required**
       Signed URL to download the speaker diarization data. Valid for 4 hours. Null if diarization is not available or has been deleted
+
+    - **`duration_seconds`** (integer | null) **Required**
+
+    - **`event_id`** (string (uuid) | null) **Required**
+      The UUID of the calendar event associated with this bot. Null for non-calendar bots
+
+    - **`exited_at`** (string (date-time) | null) **Required**
+      ISO 8601 timestamp when the bot exited the meeting. Null if exit time is not available
+
+    - **`joined_at`** (string (date-time) | null) **Required**
+      ISO 8601 timestamp when the bot joined the meeting. Null if join time is not available
+
+    - **`participants`** (object[]) **Required**
+      List of participants who joined the meeting with their names and metadata. Empty array if participant information is not available
 
     - **`raw_transcription`** (string (uri) | null) **Required**
       Signed URL to download the raw transcription file. Valid for 4 hours. Null if raw transcription is not available or has been deleted
 
+    - **`sent_at`** (string (date-time)) **Required**
+      ISO 8601 timestamp when this webhook was sent
+
+    - **`speakers`** (object[]) **Required**
+      List of speakers detected in the meeting with their names and metadata. Empty array if speaker information is not available
+
     - **`transcription`** (string (uri) | null) **Required**
       Signed URL to download the processed transcription file. Valid for 4 hours. Null if transcription is not available or has been deleted
-
-    - **`transcription_provider`** (string | null) **Required**
-      The transcription provider used (e.g., 'gladia'). Null if transcription was not enabled or if provider information is not available
 
     - **`transcription_ids`** (string[] | null) **Required**
       Array of transcription job IDs from the transcription provider. Null if transcription was not enabled or if IDs are not available
 
-    - **`sent_at`** (string (date-time)) **Required**
-      ISO 8601 timestamp when this webhook was sent
+    - **`transcription_provider`** (string | null) **Required**
+      The transcription provider used (e.g., 'gladia', 'deepgram', 'assemblyai'). Null if transcription was not enabled or if provider information is not available
 
+    - **`video`** (string (uri) | null) **Required**
+      Signed URL to download the video recording. Valid for 4 hours. Null if video recording is not available or has been deleted
+
+
+- **`event`** (string) **Required**
+  The webhook event type
 
 - **`extra`** (object | null) **Required**
   Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking
@@ -7030,25 +7948,25 @@ Bot Completed payload structure
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
-    "bot_id": "examplebot_id",
-    "event_id": null,
-    "participants": [],
-    "speakers": [],
-    "duration_seconds": null,
-    "joined_at": null,
-    "exited_at": null,
-    "data_deleted": true,
-    "video": null,
     "audio": null,
+    "bot_id": "examplebot_id",
+    "data_deleted": true,
     "diarization": null,
+    "duration_seconds": null,
+    "event_id": null,
+    "exited_at": null,
+    "joined_at": null,
+    "participants": [],
     "raw_transcription": null,
+    "sent_at": "examplesent_at",
+    "speakers": [],
     "transcription": null,
-    "transcription_provider": null,
     "transcription_ids": [],
-    "sent_at": "examplesent_at"
+    "transcription_provider": null,
+    "video": null
   },
+  "event": "exampleevent",
   "extra": null
 }
 ```
@@ -7069,14 +7987,11 @@ Bot Failed payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 | `extra` | object | null | Yes | Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
@@ -7084,18 +7999,21 @@ Bot Failed payload structure
     - **`bot_id`** (string (uuid)) **Required**
       The UUID of the bot that failed
 
-    - **`event_id`** (string (uuid) | null) **Required**
-      The UUID of the calendar event associated with this bot. Null for non-calendar bots
+    - **`error_code`** (string) **Required**
+      Machine-readable error code for programmatic handling. Common codes include 'MEETING_NOT_FOUND', 'MEETING_ENDED', 'BOT_CRASHED', etc.
 
     - **`error_message`** (string) **Required**
       Human-readable error message describing why the bot failed
 
-    - **`error_code`** (string) **Required**
-      Machine-readable error code for programmatic handling. Common codes include 'MEETING_NOT_FOUND', 'MEETING_ENDED', 'BOT_CRASHED', etc.
+    - **`event_id`** (string (uuid) | null) **Required**
+      The UUID of the calendar event associated with this bot. Null for non-calendar bots
 
     - **`sent_at`** (string (date-time)) **Required**
       ISO 8601 timestamp when this webhook was sent
 
+
+- **`event`** (string) **Required**
+  The webhook event type
 
 - **`extra`** (object | null) **Required**
   Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking
@@ -7105,14 +8023,14 @@ Bot Failed payload structure
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
     "bot_id": "examplebot_id",
-    "event_id": null,
-    "error_message": "exampleerror_message",
     "error_code": "exampleerror_code",
+    "error_message": "exampleerror_message",
+    "event_id": null,
     "sent_at": "examplesent_at"
   },
+  "event": "exampleevent",
   "extra": null
 }
 ```
@@ -7133,14 +8051,11 @@ Bot Status Change payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 | `extra` | object | null | Yes | Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
@@ -7155,6 +8070,9 @@ Bot Status Change payload structure
       Status information with code, timestamp, and optional status-specific fields
 
 
+- **`event`** (string) **Required**
+  The webhook event type
+
 - **`extra`** (object | null) **Required**
   Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking
 
@@ -7163,17 +8081,17 @@ Bot Status Change payload structure
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
     "bot_id": "examplebot_id",
     "event_id": null,
     "status": {
       "code": "examplecode",
       "created_at": "examplecreated_at",
-      "start_time": 0,
-      "error_message": "exampleerror_message"
+      "error_message": "exampleerror_message",
+      "start_time": 0
     }
   },
+  "event": "exampleevent",
   "extra": null
 }
 ```
@@ -7194,46 +8112,46 @@ Calendar Connection Created payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
   Properties:
+    - **`account_email`** (string) **Required**
+      The email address associated with the calendar account
+
     - **`calendar_id`** (string (uuid)) **Required**
       The UUID of the newly created calendar connection
 
     - **`calendar_platform`** ("google" | "microsoft") **Required**
       The calendar platform. Either 'google' for Google Calendar or 'microsoft' for Microsoft Outlook/365
 
-    - **`account_email`** (string) **Required**
-      The email address associated with the calendar account
+    - **`created_at`** (string (date-time)) **Required**
+      ISO 8601 timestamp when the calendar connection was created
 
     - **`status`** ("active" | "error" | "revoked" | "permission_denied") **Required**
       The current status of the calendar connection. Possible values: 'active' (connection is working), 'error' (connection has errors), 'revoked' (OAuth access was revoked), 'permission_denied' (insufficient permissions)
 
-    - **`created_at`** (string (date-time)) **Required**
-      ISO 8601 timestamp when the calendar connection was created
 
+- **`event`** (string) **Required**
+  The webhook event type
 
 
 ## Example
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
+    "account_email": "exampleaccount_email",
     "calendar_id": "examplecalendar_id",
     "calendar_platform": "examplecalendar_platform",
-    "account_email": "exampleaccount_email",
-    "status": "examplestatus",
-    "created_at": "examplecreated_at"
-  }
+    "created_at": "examplecreated_at",
+    "status": "examplestatus"
+  },
+  "event": "exampleevent"
 }
 ```
 
@@ -7253,13 +8171,10 @@ Calendar Connection Deleted payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
@@ -7274,17 +8189,20 @@ Calendar Connection Deleted payload structure
       ISO 8601 timestamp when the calendar connection was deleted
 
 
+- **`event`** (string) **Required**
+  The webhook event type
+
 
 ## Example
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
     "calendar_id": "examplecalendar_id",
     "calendar_platform": "examplecalendar_platform",
     "deleted_at": "exampledeleted_at"
-  }
+  },
+  "event": "exampleevent"
 }
 ```
 
@@ -7304,50 +8222,50 @@ Calendar Connection Updated payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
   Properties:
+    - **`account_email`** (string) **Required**
+      The email address associated with the calendar account
+
     - **`calendar_id`** (string (uuid)) **Required**
       The UUID of the updated calendar connection
 
     - **`calendar_platform`** ("google" | "microsoft") **Required**
       The calendar platform. Either 'google' for Google Calendar or 'microsoft' for Microsoft Outlook/365
 
-    - **`account_email`** (string) **Required**
-      The email address associated with the calendar account
+    - **`created_at`** (string (date-time)) **Required**
+      ISO 8601 timestamp when the calendar connection was originally created
 
     - **`status`** ("active" | "error" | "revoked" | "permission_denied") **Required**
       The current status of the calendar connection after the update. Possible values: 'active' (connection is working), 'error' (connection has errors), 'revoked' (OAuth access was revoked), 'permission_denied' (insufficient permissions)
 
-    - **`created_at`** (string (date-time)) **Required**
-      ISO 8601 timestamp when the calendar connection was originally created
-
     - **`updated_at`** (string (date-time)) **Required**
       ISO 8601 timestamp when the calendar connection was updated
 
+
+- **`event`** (string) **Required**
+  The webhook event type
 
 
 ## Example
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
+    "account_email": "exampleaccount_email",
     "calendar_id": "examplecalendar_id",
     "calendar_platform": "examplecalendar_platform",
-    "account_email": "exampleaccount_email",
-    "status": "examplestatus",
     "created_at": "examplecreated_at",
+    "status": "examplestatus",
     "updated_at": "exampleupdated_at"
-  }
+  },
+  "event": "exampleevent"
 }
 ```
 
@@ -7367,13 +8285,10 @@ Calendar Event Cancelled payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
@@ -7381,28 +8296,31 @@ Calendar Event Cancelled payload structure
     - **`calendar_id`** (string (uuid)) **Required**
       The UUID of the calendar connection where the event was cancelled
 
+    - **`cancelled_instances`** (object[]) **Required**
+      Array of event instances that were cancelled. For one-off events, this contains a single instance. For recurring events, this contains all instances that were cancelled
+
     - **`event_type`** ("one_off" | "recurring") **Required**
       The type of event. 'one_off' for single events, 'recurring' for events that are part of a recurring series
 
     - **`series_id`** (string (uuid) | null) **Required**
       The UUID of the event series. Null only in rare cases where the series relationship could not be established
 
-    - **`cancelled_instances`** (object[]) **Required**
-      Array of event instances that were cancelled. For one-off events, this contains a single instance. For recurring events, this contains all instances that were cancelled
 
+- **`event`** (string) **Required**
+  The webhook event type
 
 
 ## Example
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
     "calendar_id": "examplecalendar_id",
+    "cancelled_instances": [],
     "event_type": "exampleevent_type",
-    "series_id": null,
-    "cancelled_instances": []
-  }
+    "series_id": null
+  },
+  "event": "exampleevent"
 }
 ```
 
@@ -7422,13 +8340,10 @@ Calendar Event Created payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
@@ -7439,29 +8354,32 @@ Calendar Event Created payload structure
     - **`event_type`** ("one_off" | "recurring") **Required**
       The type of event. 'one_off' for single events, 'recurring' for events that are part of a recurring series
 
-    - **`series_id`** (string (uuid) | null) **Required**
-      The UUID of the event series. Null only in rare cases where the series relationship could not be established
+    - **`instances`** (object[]) **Required**
+      Array of event instances that were created. For one-off events, this contains a single instance. For recurring events, this contains all instances that were created
 
     - **`series_bot_scheduled`** (boolean) **Required**
       Whether a bot has been scheduled for all occurrences of this series. True if a calendar bot schedule exists for the entire series
 
-    - **`instances`** (object[]) **Required**
-      Array of event instances that were created. For one-off events, this contains a single instance. For recurring events, this contains all instances that were created
+    - **`series_id`** (string (uuid) | null) **Required**
+      The UUID of the event series. Null only in rare cases where the series relationship could not be established
 
+
+- **`event`** (string) **Required**
+  The webhook event type
 
 
 ## Example
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
     "calendar_id": "examplecalendar_id",
     "event_type": "exampleevent_type",
-    "series_id": null,
+    "instances": [],
     "series_bot_scheduled": true,
-    "instances": []
-  }
+    "series_id": null
+  },
+  "event": "exampleevent"
 }
 ```
 
@@ -7481,13 +8399,10 @@ Calendar Events Synced payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
@@ -7499,16 +8414,19 @@ Calendar Events Synced payload structure
       Array of event series that were synced. Each series contains its event instances
 
 
+- **`event`** (string) **Required**
+  The webhook event type
+
 
 ## Example
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
     "calendar_id": "examplecalendar_id",
     "events": []
-  }
+  },
+  "event": "exampleevent"
 }
 ```
 
@@ -7528,50 +8446,50 @@ Calendar Event Updated payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
   Properties:
+    - **`affected_instances`** (object[]) **Required**
+      Array of event instances that were affected by the update. This includes the instance that was directly updated and any related instances
+
     - **`calendar_id`** (string (uuid)) **Required**
       The UUID of the calendar connection where the event was updated
 
     - **`event_type`** ("one_off" | "recurring") **Required**
       The type of event. 'one_off' for single events, 'recurring' for events that are part of a recurring series
 
-    - **`series_id`** (string (uuid) | null) **Required**
-      The UUID of the event series. Null only in rare cases where the series relationship could not be established
+    - **`is_exception`** (boolean) **Required**
+      Whether the updated instance is an exception to a recurring series. True if this instance has been modified differently from the recurring pattern
 
     - **`series_bot_scheduled`** (boolean) **Required**
       Whether a bot has been scheduled for all occurrences of this series. True if a calendar bot schedule exists for the entire series
 
-    - **`is_exception`** (boolean) **Required**
-      Whether the updated instance is an exception to a recurring series. True if this instance has been modified differently from the recurring pattern
+    - **`series_id`** (string (uuid) | null) **Required**
+      The UUID of the event series. Null only in rare cases where the series relationship could not be established
 
-    - **`affected_instances`** (object[]) **Required**
-      Array of event instances that were affected by the update. This includes the instance that was directly updated and any related instances
 
+- **`event`** (string) **Required**
+  The webhook event type
 
 
 ## Example
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
+    "affected_instances": [],
     "calendar_id": "examplecalendar_id",
     "event_type": "exampleevent_type",
-    "series_id": null,
-    "series_bot_scheduled": true,
     "is_exception": true,
-    "affected_instances": []
-  }
+    "series_bot_scheduled": true,
+    "series_id": null
+  },
+  "event": "exampleevent"
 }
 ```
 
@@ -7589,20 +8507,20 @@ This section contains reference documentation for all webhook payload structures
 
 ## Bot Webhooks
 
-- [Bot Webhook Status Change](/docs/api-v2/reference/webhooks/botwebhookstatuschange)
+- [Bot Webhook Chat Message](/docs/api-v2/reference/webhooks/botwebhookchatmessage)
 - [Bot Webhook Completed](/docs/api-v2/reference/webhooks/botwebhookcompleted)
 - [Bot Webhook Failed](/docs/api-v2/reference/webhooks/botwebhookfailed)
-- [Bot Webhook Chat Message](/docs/api-v2/reference/webhooks/botwebhookchatmessage)
+- [Bot Webhook Status Change](/docs/api-v2/reference/webhooks/botwebhookstatuschange)
 
 ## Calendar Webhooks
 
 - [Calendar Webhook Connection Created](/docs/api-v2/reference/webhooks/calendarwebhookconnectioncreated)
-- [Calendar Webhook Connection Updated](/docs/api-v2/reference/webhooks/calendarwebhookconnectionupdated)
 - [Calendar Webhook Connection Deleted](/docs/api-v2/reference/webhooks/calendarwebhookconnectiondeleted)
-- [Calendar Webhook Events Synced](/docs/api-v2/reference/webhooks/calendarwebhookeventssynced)
+- [Calendar Webhook Connection Updated](/docs/api-v2/reference/webhooks/calendarwebhookconnectionupdated)
+- [Calendar Webhook Event Cancelled](/docs/api-v2/reference/webhooks/calendarwebhookeventcancelled)
 - [Calendar Webhook Event Created](/docs/api-v2/reference/webhooks/calendarwebhookeventcreated)
 - [Calendar Webhook Event Updated](/docs/api-v2/reference/webhooks/calendarwebhookeventupdated)
-- [Calendar Webhook Event Cancelled](/docs/api-v2/reference/webhooks/calendarwebhookeventcancelled)
+- [Calendar Webhook Events Synced](/docs/api-v2/reference/webhooks/calendarwebhookeventssynced)
 
 
 ---

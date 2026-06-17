@@ -9,14 +9,11 @@ description: Bot Status Change payload structure
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `event` | string | Yes | The webhook event type |
 | `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
 | `extra` | object | null | Yes | Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking |
 
 ## Field Details
-
-- **`event`** (string) **Required**
-  The webhook event type
 
 - **`data`** (object) **Required**
 
@@ -31,6 +28,9 @@ description: Bot Status Change payload structure
       Status information with code, timestamp, and optional status-specific fields
 
 
+- **`event`** (string) **Required**
+  The webhook event type
+
 - **`extra`** (object | null) **Required**
   Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking
 
@@ -39,17 +39,17 @@ description: Bot Status Change payload structure
 
 ```json
 {
-  "event": "exampleevent",
   "data": {
     "bot_id": "examplebot_id",
     "event_id": null,
     "status": {
       "code": "examplecode",
       "created_at": "examplecreated_at",
-      "start_time": 0,
-      "error_message": "exampleerror_message"
+      "error_message": "exampleerror_message",
+      "start_time": 0
     }
   },
+  "event": "exampleevent",
   "extra": null
 }
 ```

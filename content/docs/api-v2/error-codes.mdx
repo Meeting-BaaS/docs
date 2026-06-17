@@ -187,6 +187,34 @@ These errors are specific to Zoom meetings:
 
 **Resolution:** This is a limitation of certain Zoom clients. The host would need to join from a standard Zoom desktop or mobile client to grant recording permission.
 
+## Google Meet Authentication Errors
+
+These errors apply to [authenticated Google Meet bots](/docs/api-v2/getting-started/meet) that sign in as a Google Workspace user via SAML SSO (`meet_config`).
+
+### `MEET_LOGIN_UNAVAILABLE`
+**Title:** Meet Login Unavailable
+**Description:** No meet login slot was available to authenticate the bot — every matching login was saturated (at its concurrent-session capacity) or no active login matched the selector — and `meet_config.fallback` was `fail`.
+
+**Resolution:** Add more logins to the pool, reduce concurrency, or set `meet_config.fallback` to `anonymous`. Monitor headroom with `GET /v2/meet-logins/utilization` and the **Meet Login Utilization** alert.
+
+### `MEET_LOGIN_REQUIRED`
+**Title:** Meet Login Required
+**Description:** The meeting required a signed-in user, but the bot could not authenticate (no `meet_config` was supplied, or the selected login could not be used).
+
+**Resolution:** Send the bot with a valid `meet_config` and ensure the selected login's state is `active` via `GET /v2/meet-logins/{credential_id}`.
+
+### `MEET_LOGIN_FAILED_SAML_REJECTED`
+**Title:** Meet Login Failed — SAML Rejected
+**Description:** Google rejected the SAML assertion during sign-in. Usually the certificate uploaded to Google Admin Console no longer matches the workspace's certificate, or the Legacy SSO profile is misconfigured or unassigned.
+
+**Resolution:** Verify the certificate in Google Admin matches the workspace `cert_pem` and that the SSO profile points at the `/v2/meet-sso/*` endpoints and is assigned to all users. The workspace auto-flips to `invalid`; re-enable it via `PATCH /v2/meet-workspaces/{workspace_id}` after fixing the configuration.
+
+### `MEET_LOGIN_FAILED_TIMEOUT`
+**Title:** Meet Login Failed — Timeout
+**Description:** The SSO sign-in flow did not complete within the expected time.
+
+**Resolution:** Confirm the Workspace user completed its first-time interactive "Welcome to Workspace" login and is not suspended, then retry. The login may auto-flip to `invalid`; re-enable it via `PATCH /v2/meet-logins/{credential_id}` after resolving the cause.
+
 ## System Errors
 
 These errors occur when the system attempts to create a bot instance. For immediate bots, this happens at creation time and the error is returned in the API response. For scheduled and calendar bots, these errors can appear in `bot.failed` webhook events when the bot is being queued to join the meeting (at its scheduled join time).

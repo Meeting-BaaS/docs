@@ -1,0 +1,10 @@
+{
+    "title": "Meet Workspaces",
+    "pages": [
+        "listMeetWorkspaces",
+        "createMeetWorkspace",
+        "getMeetWorkspace",
+        "updateMeetWorkspace",
+        "deleteMeetWorkspace"
+    ]
+}

@@ -1,0 +1,11 @@
+{
+    "title": "Meet Logins",
+    "pages": [
+        "listMeetLogins",
+        "createMeetLogin",
+        "getMeetLogin",
+        "updateMeetLogin",
+        "deleteMeetLogin",
+        "getMeetLoginUtilization"
+    ]
+}

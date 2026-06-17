@@ -186,12 +186,11 @@ Most applications use the API endpoints for initial reconciliation, as they may 
 
 See the [Webhooks documentation](/docs/api-v2/webhooks) for details on all calendar webhook events and their payloads.
 
-## Frequently Asked Questions
+## FAQ
 
 <Accordions type="single">
 
 <Accordion
-  id="faq-updated-close-to-start"
   title="What happens if a calendar event is updated close to its start time?"
 >
 
@@ -210,7 +209,6 @@ If an event is updated more than 4 minutes before its start time, the bot schedu
 </Accordion>
 
 <Accordion
-  id="faq-deleted-close-to-start"
   title="What happens if a calendar event is deleted close to its start time?"
 >
 
@@ -221,7 +219,6 @@ No tokens are consumed if the bot hadn't started recording yet.
 </Accordion>
 
 <Accordion
-  id="faq-meeting-url-removed"
   title="What happens if the meeting URL is removed from an event?"
 >
 
@@ -235,7 +232,7 @@ No tokens are consumed if the bot hadn't started recording yet.
 
 </Accordion>
 
-<Accordion id="faq-sync-frequency" title="How often are calendar events synced?">
+<Accordion title="How often are calendar events synced?">
 
 Calendar events are synced via **push notifications (real-time)**:
 - **Google Calendar**: Push notifications via watch channels (renewed every 7 days)
@@ -245,7 +242,6 @@ Calendar events are synced via **push notifications (real-time)**:
 </Accordion>
 
 <Accordion
-  id="faq-materialization-window"
   title="What is the event materialization window?"
 >
 
@@ -256,7 +252,7 @@ Meeting BaaS maintains a **30-day rolling window** of calendar events:
 
 </Accordion>
 
-<Accordion id="faq-recurring-events" title="How are recurring events handled?">
+<Accordion title="How are recurring events handled?">
 
 **Series-Level Bot Scheduling:**
 - You can schedule a bot for all occurrences of a recurring event using `all_occurrences: true` or by providing the `series_id`
@@ -275,7 +271,7 @@ This behavior is inline with how calendar platforms handle major changes to recu
 
 </Accordion>
 
-<Accordion id="faq-decline-event" title="What happens if I decline a calendar event?">
+<Accordion title="What happens if I decline a calendar event?">
 
 If you decline a calendar event (as the calendar owner):
 - The event is treated as **cancelled** in Meeting BaaS
@@ -284,7 +280,7 @@ If you decline a calendar event (as the calendar owner):
 
 </Accordion>
 
-<Accordion id="faq-all-day-events" title="Can I schedule bots for all-day events?">
+<Accordion title="Can I schedule bots for all-day events?">
 
 All-day events are synced and stored, but:
 - They typically don't have meeting URLs
@@ -294,7 +290,6 @@ All-day events are synced and stored, but:
 </Accordion>
 
 <Accordion
-  id="faq-meeting-platforms"
   title="What meeting platforms are supported?"
 >
 
@@ -312,7 +307,6 @@ The meeting platform is detected from:
 </Accordion>
 
 <Accordion
-  id="faq-event-exceptions"
   title="How are event exceptions handled?"
 >
 
@@ -328,7 +322,7 @@ Exceptions are:
 
 </Accordion>
 
-<Accordion id="faq-oauth-expire" title="What if my OAuth credentials expire?">
+<Accordion title="What if my OAuth credentials expire?">
 
 **Refresh Token Expiration:**
 - Google: Refresh tokens don't expire unless revoked by the user
@@ -342,7 +336,6 @@ Exceptions are:
 </Accordion>
 
 <Accordion
-  id="faq-connection-errors"
   title="How do I handle calendar connection errors?"
 >
 
@@ -357,7 +350,6 @@ You'll receive webhook notifications for connection status changes.
 </Accordion>
 
 <Accordion
-  id="faq-multiple-calendars"
   title="Can I connect multiple calendars from the same account?"
 >
 
