@@ -13,6 +13,11 @@ import {
 //
 // Schemas use jsonSchema() (raw JSON Schema) rather than zod so they're
 // independent of the project's zod major version.
+
+// Categories the chat assistant may request — everything except 'all' (the
+// ~200k-token full corpus), which would blow the model's context/cost.
+const CHAT_CATEGORY_VALUES = ALL_CATEGORY_VALUES.filter((c) => c !== 'all');
+
 export const docsTools = {
   listCategories: tool({
     description:
@@ -53,7 +58,7 @@ export const docsTools = {
       properties: {
         category: {
           type: 'string',
-          enum: ALL_CATEGORY_VALUES,
+          enum: CHAT_CATEGORY_VALUES,
           description: 'Category to fetch (v2-first; `api` is legacy v1)',
         },
       },

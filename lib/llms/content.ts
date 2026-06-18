@@ -27,8 +27,9 @@ export async function getCategoryContent(categoryKey: string): Promise<string> {
     return `# Error: Unknown Category\n\nNo configuration found for category: ${categoryKey}`;
   }
 
-  const patterns = [...config.patterns, ...(config.excludePatterns ?? [])];
-  const files = await glob(patterns);
+  // excludePatterns are exclusions — pass them to fast-glob's `ignore`, not the
+  // include list.
+  const files = await glob(config.patterns, { ignore: config.excludePatterns ?? [] });
 
   if (files.length === 0) {
     return `# ${config.title}\n\n${config.description}\n\nNo content found for this category.`;

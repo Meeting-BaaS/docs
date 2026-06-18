@@ -16,9 +16,16 @@ export const runtime = 'nodejs';
 type RequestProps = { messages: Array<Message> };
 
 export async function POST(request: NextRequest) {
-  const { messages }: RequestProps = (await request.json()) as RequestProps;
-
   try {
+    const body = (await request.json()) as Partial<RequestProps>;
+    const messages = body?.messages;
+    if (!Array.isArray(messages)) {
+      return Response.json(
+        { error: 'Invalid request: "messages" must be an array' },
+        { status: 400 },
+      );
+    }
+
     // The docs MCP tools, called in-process (no transport hop) — the assistant
     // answers from this site's own documentation content.
     const tools = docsTools;
@@ -34,7 +41,10 @@ export async function POST(request: NextRequest) {
         }),
       ],
       onStepFinish: async ({ toolResults }) => {
-        console.log(`Step Results: ${JSON.stringify(toolResults, null, 2)}`);
+        // Log only tool names — the full results are whole doc bundles and
+        // would flood logs.
+        const names = toolResults?.map((r) => r.toolName).join(', ');
+        if (names) console.log(`Step tools: ${names}`);
       },
       system:
         'You are the MeetingBaas documentation assistant. Answer using the documentation tools ' +
