@@ -34,7 +34,6 @@
     "@ai-sdk/react": "^1.2.5",
     "@ai-sdk/ui-utils": "^1.2.4",
     "@fumadocs/mdx-remote": "^1.4.4",
-    "@inkeep/ai-api": "^0.8.0",
     "@meeting-baas/sdk": "^5.0.0",
     "@modelcontextprotocol/sdk": "1.29.0",
     "@openrouter/ai-sdk-provider": "^0.4.5",
