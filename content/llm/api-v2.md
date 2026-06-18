@@ -8678,6 +8678,7 @@ Streaming provides:
 - **Output Streaming**: Receive the meeting's mixed audio in real time via WebSocket
 - **Input Streaming**: Send audio into the meeting so participants can hear it (for speaking bots, AI agents, etc.)
 - **Bidirectional Streaming**: Combine both - receive meeting audio and speak back - using a single or two separate WebSocket connections
+- **Managed Real-Time Transcription**: Let Meeting BaaS run real-time speech-to-text and POST transcript events to your endpoint, with a choice of providers
 - **Speaker Diarization**: Receive real-time speaker state updates as JSON messages alongside the audio stream
 - **Configurable Sample Rate**: Choose from 16,000 Hz, 24,000 Hz (default), 32,000 Hz, or 48,000 Hz
 - **Works on All Platforms**: Google Meet, Microsoft Teams, and Zoom
@@ -8703,9 +8704,11 @@ To enable streaming, include `streaming_enabled` and `streaming_config` in your 
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `output_url` | `string \| null` | `null` | WebSocket URL where the bot sends meeting audio |
+| `mode` | `string` | `audio` | Streaming mode. `audio` streams raw audio over WebSocket; `transcription` runs managed real-time speech-to-text and POSTs transcript events to `output_url` |
+| `output_url` | `string \| null` | `null` | When `mode` is `audio`: WebSocket URL where the bot sends meeting audio. When `mode` is `transcription`: HTTP(S) URL where transcript events are POSTed |
 | `input_url` | `string \| null` | `null` | WebSocket URL from which the bot receives audio to play into the meeting |
 | `audio_frequency` | `integer` | `24000` | Sample rate in Hz. Supported: `16000`, `24000`, `32000`, `48000` |
+| `transcription` | `object \| null` | `null` | Real-time STT provider configuration. Required when `mode` is `transcription` (see [Managed Real-Time Transcription](#managed-real-time-transcription)) |
 
 <Callout type="info">
   Provide `output_url` to receive meeting audio, `input_url` to send audio into the meeting, or both for bidirectional streaming. Set either to `null` if you only need one direction.
@@ -8783,6 +8786,39 @@ When the URLs differ, the bot opens two separate WebSocket connections - one for
   }
 }
 ```
+
+### Managed Real-Time Transcription
+
+Set `mode` to `"transcription"` to have Meeting BaaS run real-time speech-to-text for you and **POST transcript events to your `output_url` over HTTP(S)** as the meeting happens - no need to run your own STT engine on the audio stream.
+
+```json
+{
+  "streaming_enabled": true,
+  "streaming_config": {
+    "mode": "transcription",
+    "output_url": "https://your-server.com/transcripts",
+    "transcription": {
+      "provider": "gladia",
+      "api_key": null,
+      "custom_params": null,
+      "region": null
+    }
+  }
+}
+```
+
+The `streaming_config.transcription` object configures the real-time STT provider:
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `provider` | `string` | `gladia` | Real-time STT provider: `gladia`, `deepgram`, `assemblyai`, `speechmatics`, `soniox`, or `elevenlabs` (streaming-only) |
+| `api_key` | `string \| null` | `null` | Your provider API key (BYOK). Leave `null` to use the platform key |
+| `custom_params` | `object \| null` | `null` | Provider-specific advanced options |
+| `region` | `string \| null` | `null` | Provider API region. When omitted, provider defaults apply (`gladia=eu-west`, `deepgram=eu`, `assemblyai=eu`, `speechmatics=eu1`, `soniox=us`, `elevenlabs=global`) |
+
+<Callout type="info">
+  All [batch transcription providers](/docs/api-v2/transcription#transcription-providers) are available for real-time streaming, plus **ElevenLabs**, which is streaming-only. When `mode` is `transcription`, `output_url` is treated as an HTTP(S) webhook endpoint rather than a WebSocket.
+</Callout>
 
 ## WebSocket Protocol
 
