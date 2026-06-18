@@ -53,20 +53,25 @@ export async function POST(request: NextRequest) {
         '(getApiDocs for the v2 API index, then getDocsPage or getDocsByCategory). Prefer the v2 API. ' +
         'Cite the Source: links you receive. Do not use emojis. Format code blocks with a language/title.',
       messages,
+      // Surface the real cause in server logs — otherwise provider/setup
+      // failures (e.g. a missing ANTHROPIC_API_KEY) are masked as a generic
+      // stream error.
+      onError: ({ error }) => {
+        console.error('[chat] streamText error:', error);
+      },
     });
 
     return result.toDataStreamResponse({
       getErrorMessage: (error) => {
+        console.error('[chat] stream error:', error);
         if (NoSuchToolError.isInstance(error)) {
           return 'The model tried to call a unknown tool.';
         } else if (InvalidToolArgumentsError.isInstance(error)) {
           return 'The model called a tool with invalid arguments.';
         } else if (ToolExecutionError.isInstance(error)) {
-          console.log(error);
           return 'An error occurred during tool execution.';
-        } else {
-          return 'An unknown error occurred.';
         }
+        return error instanceof Error ? error.message : 'An unknown error occurred.';
       },
     });
   } catch (error) {
