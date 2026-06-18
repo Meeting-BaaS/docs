@@ -41,7 +41,7 @@ export interface MessageReference {
   url: string;
 }
 
-export type EngineType = 'inkeep' | 'orama' | 'ai-sdk';
+export type EngineType = 'inkeep' | 'ai-sdk';
 
 const Context = createContext<{
   engine?: Engine;
@@ -97,12 +97,6 @@ export function AIProvider({
       if (type === 'inkeep') {
         void import('./engines/inkeep').then(async (res) => {
           setEngine(await res.createInkeepEngine());
-        });
-      }
-
-      if (type === 'orama') {
-        void import('./engines/orama').then(async (res) => {
-          setEngine(await res.createOramaEngine());
         });
       }
     } catch (error) {
