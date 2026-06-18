@@ -34,7 +34,6 @@ import {
   type DialogProps,
   DialogTitle,
 } from '@radix-ui/react-dialog';
-import { cva } from 'class-variance-authority';
 
 function SearchAIMessages() {
   const messages = useAIMessages();
@@ -321,20 +320,9 @@ function ShowOnMessages({ children }: { children: ReactNode }) {
   return children;
 }
 
-const typeButtonVariants = cva(
-  'inline-flex items-center justify-center rounded-lg px-2 py-1 text-sm font-medium transition-colors duration-100',
-  {
-    variants: {
-      active: {
-        true: 'bg-fd-primary/10 text-fd-primary',
-        false: 'text-fd-muted-foreground',
-      },
-    },
-  },
-);
-
 export default function AISearch(props: DialogProps) {
-  const [type, setType] = useState<EngineType>('orama');
+  // Single engine: the in-process docs tools (app/api/chat → lib/llms).
+  const [type] = useState<EngineType>('ai-sdk');
 
   return (
     <Dialog {...props}>
@@ -359,48 +347,10 @@ export default function AISearch(props: DialogProps) {
             </ShowOnMessages>
             <SearchAIInput className="rounded-b-none border-b-0" />
             <div className="bg-fd-muted text-fd-muted-foreground flex flex-row flex-wrap items-center justify-between gap-2 rounded-b-xl border-x border-b px-3 py-1.5 shadow-lg">
-              <div className="flex flex-row items-center">
-                <button
-                  className={cn(
-                    typeButtonVariants({ active: type === 'orama' }),
-                  )}
-                  onClick={() => {
-                    setType('orama');
-                  }}
-                >
-                  Search
-                </button>
-                <button
-                  className={cn(
-                    typeButtonVariants({ active: type === 'ai-sdk' }),
-                  )}
-                  onClick={() => {
-                    setType('ai-sdk');
-                  }}
-                >
-                  Agent
-                </button>
-              </div>
               <div className="flex flex-row items-center gap-2">
                 <DialogTitle className="flex-1 text-xs">
-                  Powered by{' '}
-                  <a
-                    href={
-                      type === 'orama'
-                        ? 'https://orama.com'
-                        : type === 'inkeep'
-                          ? 'https://inkeep.com'
-                          : 'https://sdk.vercel.ai'
-                    }
-                    target="_blank"
-                    className="text-fd-popover-foreground font-medium"
-                    rel="noreferrer noopener"
-                  >
-                    {type === 'orama' && 'Orama AI'}
-                    {type === 'inkeep' && 'Inkeep'}
-                    {type === 'ai-sdk' && 'AI SDK'}
-                  </a>
-                  . AI can be inaccurate, please verify the information.
+                  Answers from the MeetingBaas docs. AI can be inaccurate, please
+                  verify against the cited sources.
                 </DialogTitle>
 
                 <DialogClose
