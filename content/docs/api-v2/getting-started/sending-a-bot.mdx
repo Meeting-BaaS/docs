@@ -159,7 +159,7 @@ To schedule a bot to join at a specific time, use `POST /v2/bots/scheduled`:
 
 - `transcription_enabled`: Set to `true` to enable transcription
 - `transcription_config`: Required if `transcription_enabled` is `true`:
-  - `provider`: `"gladia"` (default) (More providers coming soon)
+  - `provider`: `"gladia"` (default), `"deepgram"`, `"assemblyai"`, `"speechmatics"`, or `"soniox"` (plus `"elevenlabs"` for real-time streaming)
   - `api_key`: Optional. Your transcription provider API key (for BYOK transcription)
   - `custom_params`: Optional. Custom parameters for the transcription provider
 

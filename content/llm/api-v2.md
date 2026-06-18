@@ -533,7 +533,7 @@ Each element in the `transcriptions` array contains the Gladia transcription pay
 
 #### Additional Providers
 
-Support for additional transcription providers (Assembly AI, Deepgram, etc.) is coming soon. Each provider will have its own structure documented here.
+Meeting BaaS also supports Deepgram, AssemblyAI, Speechmatics, and Soniox (plus ElevenLabs for real-time streaming). When you use a non-Gladia provider, the raw transcription artifact mirrors that provider's native response structure. Refer to the selected provider's documentation for the exact shape of its output.
 
 ## Diarization Artifact
 
@@ -2971,7 +2971,7 @@ To schedule a bot to join at a specific time, use `POST /v2/bots/scheduled`:
 
 - `transcription_enabled`: Set to `true` to enable transcription
 - `transcription_config`: Required if `transcription_enabled` is `true`:
-  - `provider`: `"gladia"` (default) (More providers coming soon)
+  - `provider`: `"gladia"` (default), `"deepgram"`, `"assemblyai"`, `"speechmatics"`, or `"soniox"` (plus `"elevenlabs"` for real-time streaming)
   - `api_key`: Optional. Your transcription provider API key (for BYOK transcription)
   - `custom_params`: Optional. Custom parameters for the transcription provider
 
@@ -9360,7 +9360,7 @@ Meeting BaaS v2 provides powerful transcription capabilities with support for cu
 
 Transcription in v2 offers:
 
-- **Multiple Providers**: Currently supports Gladia, with Assembly AI and Deepgram coming soon
+- **Multiple Providers**: Choose from Gladia (default), Deepgram, AssemblyAI, Speechmatics, and Soniox — plus ElevenLabs for real-time streaming
 - **BYOK Support**: Use your own transcription provider API keys to save on token costs
 - **Custom Parameters**: Configure LLM summaries, translation, language detection, and more
 - **Raw & Processed Output**: Access both raw provider responses and standardized transcriptions
@@ -9387,7 +9387,7 @@ To enable transcription for a bot, include `transcription_config` in your bot cr
 
 **Required Fields:**
 - `transcription_enabled`: Set to `true` to enable transcription
-- `transcription_config.provider`: Currently `"gladia"` (default). Assembly AI and Deepgram support coming soon.
+- `transcription_config.provider`: One of `"gladia"` (default), `"deepgram"`, `"assemblyai"`, `"speechmatics"`, or `"soniox"`.
 
 **Optional Fields:**
 - `transcription_config.api_key`: Your transcription provider API key (for BYOK - see below)
@@ -9395,20 +9395,25 @@ To enable transcription for a bot, include `transcription_config` in your bot cr
 
 ## Transcription Providers
 
-### Current Provider
+Select a provider via the `provider` field in `transcription_config` (batch) or `streaming_config.transcription` (real-time streaming).
 
-**Gladia** (Default)
-- High-accuracy transcription
-- Speaker diarization
-- Multi-language support
-- Advanced features (summarization, translation, etc.)
+### Batch Transcription
 
-### Coming Soon
+- **Gladia** (default) — high-accuracy transcription with speaker diarization, multi-language support, and advanced features (summarization, translation, etc.)
+- **Deepgram**
+- **AssemblyAI**
+- **Speechmatics**
+- **Soniox**
 
-- **Assembly AI**: Additional transcription provider option
-- **Deepgram**: Additional transcription provider option
+### Real-Time Streaming
 
-Provider selection will be available via the `provider` field in `transcription_config`.
+In addition to all of the batch providers above, real-time streaming transcription also supports:
+
+- **ElevenLabs**
+
+<Callout type="info">
+  Provider-specific advanced options are passed through `custom_params`. The available options depend on the provider you select.
+</Callout>
 
 ## Bring Your Own Key (BYOK)
 
