@@ -42,7 +42,7 @@ const DOC_CATEGORIES = {
   SELF_HOSTING: 'self-hosting',
   UPDATES: 'updates',
 } as const;
-const ALL_CATEGORY_VALUES = Object.values(DOC_CATEGORIES) as [string, ...string[]];
+export const ALL_CATEGORY_VALUES = Object.values(DOC_CATEGORIES) as [string, ...string[]];
 
 // The v2 API sections, for the index and slug→section routing.
 const V2_SECTIONS: { cat: string; tool: string; label: string }[] = [
@@ -128,33 +128,60 @@ const categoryForSlug = (slug: string): string | null => {
   return m ? `api-v2/${m[1]}` : null;
 };
 
-async function fetchDoc(category: string) {
+// --- Core doc operations (string in, string out). Shared by the MCP tools
+// below and the in-process AI-SDK tools in ./ai-tools. ---
+
+export async function getCategoryDoc(category: string): Promise<string> {
   try {
-    const text = enrich(await loadCategory(category));
-    return { content: [{ type: 'text' as const, text }] };
+    return enrich(await loadCategory(category));
   } catch (error) {
     const stale = cache.get(category);
-    if (stale) return { content: [{ type: 'text' as const, text: enrich(stale.body) }] };
+    if (stale) return enrich(stale.body);
     const msg = error instanceof Error ? error.message : 'Unknown error occurred';
-    console.error(`[mcp] documentation error for '${category}':`, error);
-    return {
-      content: [
-        { type: 'text' as const, text: `Error retrieving documentation for '${category}'. Error: ${msg}` },
-      ],
-    };
+    console.error(`[docs-mcp] documentation error for '${category}':`, error);
+    return `Error retrieving documentation for '${category}'. Error: ${msg}`;
   }
 }
 
-export function registerDocsTools(server: McpServer): McpServer {
-  server.tool(
-    'listCategories',
-    'List MeetingBaas documentation categories. The current API is v2 (api-v2); prefer it. Use getApiDocs for a small v2 index, then a section tool or getDocsPage for detail.',
-    {},
-    async () => ({
-      content: [
-        {
-          type: 'text' as const,
-          text: `MeetingBaas Documentation (v2-first):
+export async function buildApiIndex(): Promise<string> {
+  const blocks: string[] = [
+    '# MeetingBaas API v2 — Index',
+    'Use a section tool for full detail, or getDocsPage({ slug }) for one endpoint.',
+    '',
+  ];
+  for (const s of V2_SECTIONS) {
+    blocks.push(`## ${s.label} — \`${s.tool}\``);
+    try {
+      const pages = parsePages(await loadCategory(s.cat));
+      for (const p of pages) blocks.push(`- ${p.title} — ${p.url}  \`slug: ${p.slug}\``);
+    } catch {
+      blocks.push(`- (index unavailable; call \`${s.tool}\`)`);
+    }
+    blocks.push('');
+  }
+  return blocks.join('\n');
+}
+
+export async function getPageBySlug(slug: string): Promise<string> {
+  const norm = slug.replace(/^\/?(docs\/)?/, '').replace(/\/$/, '').replace(/\.mdx$/, '');
+  const cat = categoryForSlug(norm) || DOC_CATEGORIES.API_V2;
+  try {
+    let pages = parsePages(await loadCategory(cat));
+    let page = pages.find((p) => p.slug === norm) || pages.find((p) => p.slug.endsWith(norm));
+    if (!page && cat !== DOC_CATEGORIES.API_V2) {
+      pages = parsePages(await loadCategory(DOC_CATEGORIES.API_V2));
+      page = pages.find((p) => p.slug === norm) || pages.find((p) => p.slug.endsWith(norm));
+    }
+    if (!page) return `No page found for slug '${norm}'. Call getApiDocs to list valid slugs.`;
+    return `# ${page.title}\n\n**Source:** ${page.url}\n\n${page.body}`;
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    return `Error fetching page '${norm}': ${msg}`;
+  }
+}
+
+export function listCategoriesText(): string {
+  return `MeetingBaas Documentation (v2-first):
 
 START HERE: getApiDocs → a small INDEX of the v2 API (sections + endpoints + links).
 Then drill in with a section tool, or getDocsPage({ slug }) for ONE endpoint.
@@ -163,63 +190,34 @@ v2 section tools: ${V2_SECTIONS.map((s) => s.tool).join(', ')}
 Full v2 dump (large, last resort): getApiV2FullDocs
 Other: getTypeScriptSdkDocs, getMcpServersDocs, getSelfHostingDocs, getTranscriptSeekerDocs, getSpeakingBotsDocs, getUpdatesDocs
 Legacy v1 (only if explicitly asked): getApiV1Docs
-Everything in one bundle (very large): getAllDocs`,
-        },
-      ],
-    }),
+Everything in one bundle (very large): getAllDocs`;
+}
+
+const fetchDoc = (category: string) =>
+  getCategoryDoc(category).then((text) => ({ content: [{ type: 'text' as const, text }] }));
+
+export function registerDocsTools(server: McpServer): McpServer {
+  server.tool(
+    'listCategories',
+    'List MeetingBaas documentation categories. The current API is v2 (api-v2); prefer it. Use getApiDocs for a small v2 index, then a section tool or getDocsPage for detail.',
+    {},
+    async () => ({ content: [{ type: 'text' as const, text: listCategoriesText() }] }),
   );
 
   server.tool(
     'getApiDocs',
     'Get an INDEX of the current MeetingBaas v2 API: sections and their endpoints with links — small and fast. Use this first, then call a section tool (e.g. getApiV2BotsDocs) or getDocsPage({ slug }) for the actual content. For the full v2 dump use getApiV2FullDocs (large).',
     {},
-    async () => {
-      const blocks: string[] = [
-        '# MeetingBaas API v2 — Index',
-        'Use a section tool for full detail, or getDocsPage({ slug }) for one endpoint.',
-        '',
-      ];
-      for (const s of V2_SECTIONS) {
-        blocks.push(`## ${s.label} — \`${s.tool}\``);
-        try {
-          const pages = parsePages(await loadCategory(s.cat));
-          for (const p of pages) blocks.push(`- ${p.title} — ${p.url}  \`slug: ${p.slug}\``);
-        } catch {
-          blocks.push(`- (index unavailable; call \`${s.tool}\`)`);
-        }
-        blocks.push('');
-      }
-      return { content: [{ type: 'text' as const, text: blocks.join('\n') }] };
-    },
+    async () => ({ content: [{ type: 'text' as const, text: await buildApiIndex() }] }),
   );
 
   server.tool(
     'getDocsPage',
     'Fetch a SINGLE documentation page by slug (cheapest option). Get slugs from getApiDocs. Example slug: api-v2/reference/bots/createBot.',
     { slug: z.string().describe("Page slug, e.g. 'api-v2/reference/bots/createBot' (as shown by getApiDocs)") },
-    async ({ slug }: { slug: string }) => {
-      const norm = slug.replace(/^\/?(docs\/)?/, '').replace(/\/$/, '').replace(/\.mdx$/, '');
-      const cat = categoryForSlug(norm) || DOC_CATEGORIES.API_V2;
-      try {
-        let pages = parsePages(await loadCategory(cat));
-        let page = pages.find((p) => p.slug === norm) || pages.find((p) => p.slug.endsWith(norm));
-        if (!page && cat !== DOC_CATEGORIES.API_V2) {
-          pages = parsePages(await loadCategory(DOC_CATEGORIES.API_V2));
-          page = pages.find((p) => p.slug === norm) || pages.find((p) => p.slug.endsWith(norm));
-        }
-        if (!page) {
-          return {
-            content: [{ type: 'text' as const, text: `No page found for slug '${norm}'. Call getApiDocs to list valid slugs.` }],
-          };
-        }
-        return {
-          content: [{ type: 'text' as const, text: `# ${page.title}\n\n**Source:** ${page.url}\n\n${page.body}` }],
-        };
-      } catch (error) {
-        const msg = error instanceof Error ? error.message : 'Unknown error';
-        return { content: [{ type: 'text' as const, text: `Error fetching page '${norm}': ${msg}` }] };
-      }
-    },
+    async ({ slug }: { slug: string }) => ({
+      content: [{ type: 'text' as const, text: await getPageBySlug(slug) }],
+    }),
   );
 
   server.tool('getApiV2BotsDocs', "Get v2 Bots API docs — create/list/manage bots, recording, chat. Start here for 'how do I send a bot?'.", {}, async () => fetchDoc(DOC_CATEGORIES.API_V2_BOTS));

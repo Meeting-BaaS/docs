@@ -1,6 +1,5 @@
 import { openai } from '@ai-sdk/openai';
 import {
-  experimental_createMCPClient as createMCPClient,
   InvalidToolArgumentsError,
   Message,
   NoSuchToolError,
@@ -9,6 +8,10 @@ import {
   ToolExecutionError,
 } from 'ai';
 import { NextRequest } from 'next/server';
+import { docsTools } from '@/lib/llms/ai-tools';
+
+// Reads MDX off disk → must run on the Node runtime.
+export const runtime = 'nodejs';
 
 type RequestProps = { messages: Array<Message> };
 
@@ -16,18 +19,9 @@ export async function POST(request: NextRequest) {
   const { messages }: RequestProps = (await request.json()) as RequestProps;
 
   try {
-    const client = await createMCPClient({
-      transport: {
-        type: 'sse',
-        url: 'https://mcp.meetingbaas.com/sse',
-      },
-      onUncaughtError: (error) => {
-        console.error('MCP Client error:', error);
-      },
-    });
-
-    const toolSet = await client.tools();
-    const tools = { ...toolSet };
+    // The docs MCP tools, called in-process (no transport hop) — the assistant
+    // answers from this site's own documentation content.
+    const tools = docsTools;
 
     const result = streamText({
       // todo: add models.ts file
@@ -42,16 +36,10 @@ export async function POST(request: NextRequest) {
       onStepFinish: async ({ toolResults }) => {
         console.log(`Step Results: ${JSON.stringify(toolResults, null, 2)}`);
       },
-      onFinish: async () => {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        await client.close();
-      },
-      onError: async () => {
-        // eslint-disable-next-line @typescript-eslint/no-floating-promises
-        await client.close();
-      },
       system:
-        'You are a friendly assistant. Do not use emojis in your responses. Make sure to format code blocks, and add language/title to it',
+        'You are the MeetingBaas documentation assistant. Answer using the documentation tools ' +
+        '(getApiDocs for the v2 API index, then getDocsPage or getDocsByCategory). Prefer the v2 API. ' +
+        'Cite the Source: links you receive. Do not use emojis. Format code blocks with a language/title.',
       messages,
     });
 
