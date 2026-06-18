@@ -533,7 +533,7 @@ Each element in the `transcriptions` array contains the Gladia transcription pay
 
 #### Additional Providers
 
-Support for additional transcription providers (Assembly AI, Deepgram, etc.) is coming soon. Each provider will have its own structure documented here.
+Meeting BaaS also supports Deepgram, AssemblyAI, Speechmatics, and Soniox (plus ElevenLabs for real-time streaming). When you use a non-Gladia provider, the raw transcription artifact mirrors that provider's native response structure. Refer to the selected provider's documentation for the exact shape of its output.
 
 ## Diarization Artifact
 
@@ -2971,7 +2971,7 @@ To schedule a bot to join at a specific time, use `POST /v2/bots/scheduled`:
 
 - `transcription_enabled`: Set to `true` to enable transcription
 - `transcription_config`: Required if `transcription_enabled` is `true`:
-  - `provider`: `"gladia"` (default) (More providers coming soon)
+  - `provider`: `"gladia"` (default), `"deepgram"`, `"assemblyai"`, `"speechmatics"`, or `"soniox"` (plus `"elevenlabs"` for real-time streaming)
   - `api_key`: Optional. Your transcription provider API key (for BYOK transcription)
   - `custom_params`: Optional. Custom parameters for the transcription provider
 
@@ -8678,6 +8678,7 @@ Streaming provides:
 - **Output Streaming**: Receive the meeting's mixed audio in real time via WebSocket
 - **Input Streaming**: Send audio into the meeting so participants can hear it (for speaking bots, AI agents, etc.)
 - **Bidirectional Streaming**: Combine both - receive meeting audio and speak back - using a single or two separate WebSocket connections
+- **Managed Real-Time Transcription**: Let Meeting BaaS run real-time speech-to-text and POST transcript events to your endpoint, with a choice of providers
 - **Speaker Diarization**: Receive real-time speaker state updates as JSON messages alongside the audio stream
 - **Configurable Sample Rate**: Choose from 16,000 Hz, 24,000 Hz (default), 32,000 Hz, or 48,000 Hz
 - **Works on All Platforms**: Google Meet, Microsoft Teams, and Zoom
@@ -8703,9 +8704,11 @@ To enable streaming, include `streaming_enabled` and `streaming_config` in your 
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `output_url` | `string \| null` | `null` | WebSocket URL where the bot sends meeting audio |
+| `mode` | `string` | `audio` | Streaming mode. `audio` streams raw audio over WebSocket; `transcription` runs managed real-time speech-to-text and POSTs transcript events to `output_url` |
+| `output_url` | `string \| null` | `null` | When `mode` is `audio`: WebSocket URL where the bot sends meeting audio. When `mode` is `transcription`: HTTP(S) URL where transcript events are POSTed |
 | `input_url` | `string \| null` | `null` | WebSocket URL from which the bot receives audio to play into the meeting |
 | `audio_frequency` | `integer` | `24000` | Sample rate in Hz. Supported: `16000`, `24000`, `32000`, `48000` |
+| `transcription` | `object \| null` | `null` | Real-time STT provider configuration. Required when `mode` is `transcription` (see [Managed Real-Time Transcription](#managed-real-time-transcription)) |
 
 <Callout type="info">
   Provide `output_url` to receive meeting audio, `input_url` to send audio into the meeting, or both for bidirectional streaming. Set either to `null` if you only need one direction.
@@ -8783,6 +8786,39 @@ When the URLs differ, the bot opens two separate WebSocket connections - one for
   }
 }
 ```
+
+### Managed Real-Time Transcription
+
+Set `mode` to `"transcription"` to have Meeting BaaS run real-time speech-to-text for you and **POST transcript events to your `output_url` over HTTP(S)** as the meeting happens - no need to run your own STT engine on the audio stream.
+
+```json
+{
+  "streaming_enabled": true,
+  "streaming_config": {
+    "mode": "transcription",
+    "output_url": "https://your-server.com/transcripts",
+    "transcription": {
+      "provider": "gladia",
+      "api_key": null,
+      "custom_params": null,
+      "region": null
+    }
+  }
+}
+```
+
+The `streaming_config.transcription` object configures the real-time STT provider:
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `provider` | `string` | `gladia` | Real-time STT provider: `gladia`, `deepgram`, `assemblyai`, `speechmatics`, `soniox`, or `elevenlabs` (streaming-only) |
+| `api_key` | `string \| null` | `null` | Your provider API key (BYOK). Leave `null` to use the platform key |
+| `custom_params` | `object \| null` | `null` | Provider-specific advanced options |
+| `region` | `string \| null` | `null` | Provider API region. When omitted, provider defaults apply (`gladia=eu-west`, `deepgram=eu`, `assemblyai=eu`, `speechmatics=eu1`, `soniox=us`, `elevenlabs=global`) |
+
+<Callout type="info">
+  All [batch transcription providers](/docs/api-v2/transcription#transcription-providers) are available for real-time streaming, plus **ElevenLabs**, which is streaming-only. When `mode` is `transcription`, `output_url` is treated as an HTTP(S) webhook endpoint rather than a WebSocket.
+</Callout>
 
 ## WebSocket Protocol
 
@@ -9360,7 +9396,7 @@ Meeting BaaS v2 provides powerful transcription capabilities with support for cu
 
 Transcription in v2 offers:
 
-- **Multiple Providers**: Currently supports Gladia, with Assembly AI and Deepgram coming soon
+- **Multiple Providers**: Choose from Gladia (default), Deepgram, AssemblyAI, Speechmatics, and Soniox — plus ElevenLabs for real-time streaming
 - **BYOK Support**: Use your own transcription provider API keys to save on token costs
 - **Custom Parameters**: Configure LLM summaries, translation, language detection, and more
 - **Raw & Processed Output**: Access both raw provider responses and standardized transcriptions
@@ -9387,7 +9423,7 @@ To enable transcription for a bot, include `transcription_config` in your bot cr
 
 **Required Fields:**
 - `transcription_enabled`: Set to `true` to enable transcription
-- `transcription_config.provider`: Currently `"gladia"` (default). Assembly AI and Deepgram support coming soon.
+- `transcription_config.provider`: One of `"gladia"` (default), `"deepgram"`, `"assemblyai"`, `"speechmatics"`, or `"soniox"`.
 
 **Optional Fields:**
 - `transcription_config.api_key`: Your transcription provider API key (for BYOK - see below)
@@ -9395,20 +9431,25 @@ To enable transcription for a bot, include `transcription_config` in your bot cr
 
 ## Transcription Providers
 
-### Current Provider
+Select a provider via the `provider` field in `transcription_config` (batch) or `streaming_config.transcription` (real-time streaming).
 
-**Gladia** (Default)
-- High-accuracy transcription
-- Speaker diarization
-- Multi-language support
-- Advanced features (summarization, translation, etc.)
+### Batch Transcription
 
-### Coming Soon
+- **Gladia** (default) — high-accuracy transcription with speaker diarization, multi-language support, and advanced features (summarization, translation, etc.)
+- **Deepgram**
+- **AssemblyAI**
+- **Speechmatics**
+- **Soniox**
 
-- **Assembly AI**: Additional transcription provider option
-- **Deepgram**: Additional transcription provider option
+### Real-Time Streaming
 
-Provider selection will be available via the `provider` field in `transcription_config`.
+In addition to all of the batch providers above, real-time streaming transcription also supports:
+
+- **ElevenLabs**
+
+<Callout type="info">
+  Provider-specific advanced options are passed through `custom_params`. The available options depend on the provider you select.
+</Callout>
 
 ## Bring Your Own Key (BYOK)
 
