@@ -1,4 +1,4 @@
-import { openai } from '@ai-sdk/openai';
+import { anthropic } from '@ai-sdk/anthropic';
 import {
   InvalidToolArgumentsError,
   Message,
@@ -31,8 +31,10 @@ export async function POST(request: NextRequest) {
     const tools = docsTools;
 
     const result = streamText({
-      // todo: add models.ts file
-      model: openai('gpt-4o-mini'),
+      // Anthropic via the AI SDK provider (reads ANTHROPIC_API_KEY).
+      // Haiku 4.5: fast/cheap, good for docs search; swap to claude-sonnet-4-6
+      // for higher-quality answers.
+      model: anthropic('claude-haiku-4-5'),
       tools,
       maxSteps: 10,
       experimental_transform: [
