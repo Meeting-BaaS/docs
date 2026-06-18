@@ -143,6 +143,28 @@ export async function getCategoryDoc(category: string): Promise<string> {
   }
 }
 
+// Parse a category's pages, falling back to stale cache if a fresh load fails
+// (mirrors getCategoryDoc). Throws only if there's no cached copy either.
+async function pagesFor(category: string): Promise<DocPage[]> {
+  try {
+    return parsePages(await loadCategory(category));
+  } catch (error) {
+    const stale = cache.get(category);
+    if (stale) return parsePages(stale.body);
+    throw error;
+  }
+}
+
+// Match a normalized slug to a page: exact match first, then a suffix match
+// only if it's unambiguous (exactly one). Avoids returning the wrong page when
+// a partial slug ends several pages.
+function matchPage(pages: DocPage[], norm: string): DocPage | undefined {
+  const exact = pages.find((p) => p.slug === norm);
+  if (exact) return exact;
+  const suffix = pages.filter((p) => p.slug.endsWith(norm));
+  return suffix.length === 1 ? suffix[0] : undefined;
+}
+
 export async function buildApiIndex(): Promise<string> {
   const blocks: string[] = [
     '# MeetingBaas API v2 — Index',
@@ -152,8 +174,9 @@ export async function buildApiIndex(): Promise<string> {
   for (const s of V2_SECTIONS) {
     blocks.push(`## ${s.label} — \`${s.tool}\``);
     try {
-      const pages = parsePages(await loadCategory(s.cat));
-      for (const p of pages) blocks.push(`- ${p.title} — ${p.url}  \`slug: ${p.slug}\``);
+      for (const p of await pagesFor(s.cat)) {
+        blocks.push(`- ${p.title} — ${p.url}  \`slug: ${p.slug}\``);
+      }
     } catch {
       blocks.push(`- (index unavailable; call \`${s.tool}\`)`);
     }
@@ -164,13 +187,12 @@ export async function buildApiIndex(): Promise<string> {
 
 export async function getPageBySlug(slug: string): Promise<string> {
   const norm = slug.replace(/^\/?(docs\/)?/, '').replace(/\/$/, '').replace(/\.mdx$/, '');
+  if (!norm) return 'No slug provided. Call getApiDocs to list valid slugs.';
   const cat = categoryForSlug(norm) || DOC_CATEGORIES.API_V2;
   try {
-    let pages = parsePages(await loadCategory(cat));
-    let page = pages.find((p) => p.slug === norm) || pages.find((p) => p.slug.endsWith(norm));
+    let page = matchPage(await pagesFor(cat), norm);
     if (!page && cat !== DOC_CATEGORIES.API_V2) {
-      pages = parsePages(await loadCategory(DOC_CATEGORIES.API_V2));
-      page = pages.find((p) => p.slug === norm) || pages.find((p) => p.slug.endsWith(norm));
+      page = matchPage(await pagesFor(DOC_CATEGORIES.API_V2), norm);
     }
     if (!page) return `No page found for slug '${norm}'. Call getApiDocs to list valid slugs.`;
     return `# ${page.title}\n\n**Source:** ${page.url}\n\n${page.body}`;
