@@ -22,7 +22,9 @@ const slugFromSource = (p: string) =>
     .replace(/^\.?\/?content\/docs\//, '')
     .replace(/\.mdx$/, '')
     .replace(/\/index$/, '');
-const pageUrl = (slug: string) => `${PUBLIC_DOCS}/docs/${slug}`;
+// The public docs serve pages at the root (the site 301-redirects /docs/* → /*),
+// so cite the canonical URL without the /docs prefix.
+const pageUrl = (slug: string) => `${PUBLIC_DOCS}/${slug}`;
 
 const DOC_CATEGORIES = {
   ALL: 'all',
@@ -165,23 +167,60 @@ function matchPage(pages: DocPage[], norm: string): DocPage | undefined {
   return suffix.length === 1 ? suffix[0] : undefined;
 }
 
+// reference-section → section tool, for the hint in the index.
+const SECTION_TOOL: Record<string, string> = {
+  bots: 'getApiV2BotsDocs',
+  calendars: 'getApiV2CalendarsDocs',
+  callbacks: 'getApiV2CallbacksDocs',
+  webhooks: 'getApiV2WebhooksDocs',
+  'zoom-credentials': 'getApiV2ZoomCredentialsDocs',
+};
+
+// Build a complete index of EVERY v2 page (loaded once from the api-v2 bundle),
+// grouped into guides/concepts + each reference section — so nothing is
+// invisible to the model. Fetch any line with getDocsPage({ slug }).
 export async function buildApiIndex(): Promise<string> {
   const blocks: string[] = [
-    '# MeetingBaas API v2 — Index',
-    'Use a section tool for full detail, or getDocsPage({ slug }) for one endpoint.',
+    '# MeetingBaas API v2 — Index (all pages)',
+    'Fetch any page with getDocsPage({ slug }), or a whole section with getDocsByCategory({ category }).',
     '',
   ];
-  for (const s of V2_SECTIONS) {
-    blocks.push(`## ${s.label} — \`${s.tool}\``);
-    try {
-      for (const p of await pagesFor(s.cat)) {
-        blocks.push(`- ${p.title} — ${p.url}  \`slug: ${p.slug}\``);
-      }
-    } catch {
-      blocks.push(`- (index unavailable; call \`${s.tool}\`)`);
-    }
-    blocks.push('');
+
+  let pages: DocPage[];
+  try {
+    pages = await pagesFor(DOC_CATEGORIES.API_V2);
+  } catch {
+    blocks.push('(index unavailable; call getApiV2FullDocs)');
+    return blocks.join('\n');
   }
+
+  // Group by section: api-v2/reference/<section>/… → <section>; everything else
+  // (getting-started, batch-operations, streaming, …) → guides.
+  const groups = new Map<string, DocPage[]>();
+  for (const p of pages) {
+    const m = p.slug.match(/^api-v2\/reference\/([^/]+)/);
+    const key = m ? m[1] : 'guides';
+    (groups.get(key) ?? groups.set(key, []).get(key)!).push(p);
+  }
+
+  const emit = (heading: string, list: DocPage[]) => {
+    if (!list.length) return;
+    blocks.push(`## ${heading}`);
+    for (const p of list) blocks.push(`- ${p.title} — ${p.url}  \`slug: ${p.slug}\``);
+    blocks.push('');
+  };
+
+  // Guides first (how-to / conceptual), then reference sections (known order, then any others).
+  emit('Guides & Concepts — fetch with `getDocsPage({ slug })`', groups.get('guides') ?? []);
+  groups.delete('guides');
+
+  const known = Object.keys(SECTION_TOOL).filter((k) => groups.has(k));
+  const rest = [...groups.keys()].filter((k) => !(k in SECTION_TOOL)).sort();
+  for (const sec of [...known, ...rest]) {
+    const tool = SECTION_TOOL[sec];
+    emit(`${sec} (reference)${tool ? ` — \`${tool}\`` : ''}`, groups.get(sec) ?? []);
+  }
+
   return blocks.join('\n');
 }
 
