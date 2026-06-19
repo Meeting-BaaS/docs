@@ -8,6 +8,14 @@ const withAnalyzer = createBundleAnalyzer({
 
 const config: NextConfig = {
   reactStrictMode: true,
+  // The /mcp and /api/chat routes read the docs MDX off disk at runtime
+  // (fast-glob over content/**). Next can't statically trace a dynamic glob, so
+  // force those files into the serverless function bundles — otherwise the docs
+  // tools find zero files on Vercel and return empty results.
+  outputFileTracingIncludes: {
+    '/mcp': ['./content/**/*.mdx'],
+    '/api/chat': ['./content/**/*.mdx'],
+  },
   logging: {
     fetches: {
       fullUrl: true,
