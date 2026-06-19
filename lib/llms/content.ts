@@ -21,6 +21,20 @@ export const llmCategoryKeys = Object.keys(llmCategoryConfig);
  * `content/**` must be present in the runtime working directory (it is in the
  * repo and is copied into the Docker image — see Dockerfile).
  */
+// Fumadocs OpenAPI pages stash the rendered parameter/field/response docs in
+// frontmatter under `_openapi.structuredData.contents` (an array of { content }).
+// Pull that prose out as plain text so it's part of the bundle.
+function extractStructuredText(data: unknown): string {
+  const sd =
+    (data as any)?._openapi?.structuredData?.contents ??
+    (data as any)?.structuredData?.contents;
+  if (!Array.isArray(sd)) return '';
+  return sd
+    .map((c) => (typeof c === 'string' ? c : c?.content))
+    .filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
+    .join('\n\n');
+}
+
 export async function getCategoryContent(categoryKey: string): Promise<string> {
   const config = llmCategoryConfig[categoryKey];
   if (!config) {
@@ -45,7 +59,16 @@ export async function getCategoryContent(categoryKey: string): Promise<string> {
       out += `## ${title}\n\n`;
       if (description) out += `${description}\n\n`;
       out += `### Source: ${filePath}\n\n`;
-      out += content;
+      // Body, minus the Fumadocs <APIPage/> component — it renders the
+      // parameter/field docs from the OpenAPI spec at build time, so it
+      // contributes no text here.
+      out += content.replace(/<APIPage[\s\S]*?\/>/g, '').trim();
+      // OpenAPI reference pages keep their actual parameter/field docs in the
+      // frontmatter's structuredData (NOT the body). Include them so
+      // field-level questions (e.g. timeout_config.grace_period) are answerable
+      // instead of the model concluding the field doesn't exist.
+      const structured = extractStructuredText(data);
+      if (structured) out += `\n\n${structured}`;
       out += '\n\n---\n\n';
     } catch (error) {
       console.error(`[llms] error processing ${filePath}:`, error);
