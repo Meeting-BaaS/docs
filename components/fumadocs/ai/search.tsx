@@ -223,7 +223,7 @@ const map = new Map<string, ReactNode>();
 
 const roleName: Record<string, string> = {
   user: 'you',
-  assistant: 'basstheprogrammingfish',
+  assistant: 'Bass The Programming Fish',
 };
 
 function Message({ message }: { message: MessageRecord }) {
