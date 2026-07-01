@@ -53,7 +53,7 @@ export default function CustomSearchDialog(
           value: 'mcp-servers',
         },
       ]}
-      client={client}
+      client={client as any}
       showOrama
     />
   )
