@@ -2085,7 +2085,7 @@ To schedule a bot to join at a specific time, use `POST /v2/bots/scheduled`:
 - `timeout_config`: Optional object:
   - `waiting_room_timeout`: Seconds to wait in waiting room (default: 600, min: 120, max: 1800)
   - `no_one_joined_timeout`: Seconds to wait if no one joins (default: 600, min: 120, max: 1800, isn't used by Zoom)
-  - `silence_timeout`: Once a participant has been identified, no_one_joined_timeout stops and silence_timeout kicks in. When there is continued silence for the seconds provided, the bot leaves the meeting (default: 600, min: 300, max: 1800, isn't used by Zoom)
+  - `silence_timeout`: Once a participant has been identified, no_one_joined_timeout stops and silence_timeout kicks in. When there is continued silence for the seconds provided, the bot leaves the meeting (default: 600, min: 300, max: 3600, isn't used by Zoom)
 
 ### Advanced Options
 
@@ -3715,7 +3715,7 @@ Retry sending the transcription callback for a bot.
     
     **Idempotency:** This operation is idempotent. You can call it multiple times with the same or different configurations.
     
-    Returns 404 if the bot is not found, or 409 if the bot's status does not allow this operation or if no callback was configured.
+    Returns 404 if the bot is not found, 400 if no callback is configured for the bot, or 409 if the bot's status does not allow this operation.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/{bot_id}/retry-callback","method":"post"}]} />
 
@@ -5551,7 +5551,7 @@ To verify webhooks, use SVIX's verification libraries or verify the signature ma
 
 ### `bot.status_change`
 
-Triggered whenever a bot's status changes (e.g., from `queued` to `joining`, from `joining` to `in_call_recording`, etc.).
+Triggered whenever a bot's status changes (e.g., from `queued` to `joining_call`, from `joining_call` to `in_call_recording`, etc.).
 
 **Use Cases:**
 
@@ -5582,12 +5582,31 @@ Triggered whenever a bot's status changes (e.g., from `queued` to `joining`, fro
 
 **Status Codes:**
 
-- `queued`: Bot is queued and waiting to join
-- `joining`: Bot is attempting to join the meeting
+Lifecycle:
+
+- `queued`: Bot is queued and waiting to be picked up
+- `pickup_delayed`: Bot has stayed queued past the pickup threshold (see below)
+- `joining_call`: Bot is attempting to join the meeting
+- `in_waiting_room`: Bot is in the meeting's waiting room
+- `in_waiting_for_host`: Bot is waiting for the host to start the meeting
+- `in_call_not_recording`: Bot is in the call but not recording yet
 - `in_call_recording`: Bot is in the meeting and recording
+- `recording_paused`: Recording was paused
+- `recording_resumed`: Recording resumed after a pause
+- `call_ended`: The call ended
+- `recording_succeeded`: Recording completed successfully
 - `transcribing`: Bot has exited and transcription is in progress
 - `completed`: Bot has completed successfully
-- `failed`: Bot has failed
+
+Failure:
+
+- `failed`: Bot failed
+- `recording_failed`: Recording failed
+- `transcription_failed`: Recording succeeded but transcription failed
+
+<Callout type="info">
+  **`pickup_delayed`** is emitted when a bot remains in `queued` longer than the pickup threshold (**default 5 minutes**, configurable). It is a **transient** status: if a worker later picks the bot up, the normal flow resumes (`pickup_delayed → joining_call → ...`). Use it to detect a slow start early and take action — for example, stop the bot via `POST /v2/bots/{bot_id}/leave` and re-create it.
+</Callout>
 
 ### `bot.completed`
 
