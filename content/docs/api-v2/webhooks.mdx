@@ -92,6 +92,16 @@ Failure:
 - `recording_failed`: Recording failed
 - `transcription_failed`: Recording succeeded but transcription failed
 
+Intermediate errors (informational; these precede `recording_failed`):
+
+- `api_request_stop`: Bot was stopped via the API
+- `bot_rejected`: Bot was rejected from the meeting
+- `bot_removed`: Bot was removed from the meeting
+- `bot_removed_too_early`: Bot was removed before recording could complete
+- `waiting_room_timeout`: Bot timed out waiting to be admitted from the waiting room
+- `invalid_meeting_url`: The meeting URL was invalid
+- `meeting_error`: A general meeting error occurred
+
 <Callout type="info">
   **`pickup_delayed`** is emitted when a bot remains in `queued` longer than the pickup threshold (**default 5 minutes**, configurable). It is a **transient** status: if a worker later picks the bot up, the normal flow resumes (`pickup_delayed → joining_call → ...`). Use it to detect a slow start early and take action — for example, stop the bot via `POST /v2/bots/{bot_id}/leave` and re-create it.
 </Callout>
@@ -167,6 +177,13 @@ Triggered when a bot fails to complete successfully.
 - `DAILY_BOT_CAP_REACHED`: Daily bot creation limit reached
 - `INVALID_MEETING_PLATFORM`: Could not determine meeting platform from URL
 - `TRANSCRIPTION_ERROR`: Error occurred during transcription
+
+Google Meet authenticated (SSO) bots:
+
+- `MEET_LOGIN_UNAVAILABLE`: No authenticated Meet login was available when the bot was dispatched
+- `MEET_LOGIN_REQUIRED`: The meeting requires sign-in but the bot was dispatched without an authenticated login
+- `MEET_LOGIN_FAILED_SAML_REJECTED`: Google rejected the SSO sign-in (commonly a certificate mismatch in your Workspace SSO configuration)
+- `MEET_LOGIN_FAILED_TIMEOUT`: The bot's SSO sign-in with Google timed out (usually transient; the bot retries)
 
 ## Calendar Webhooks
 
