@@ -2489,7 +2489,7 @@
             "minLength": 1
           },
           "oauth_tenant_id": {
-            "description": "Azure AD tenant ID (required for Microsoft only, defaults to 'common'). Find it in Azure Portal \u003E Azure Active Directory \u003E Overview. Example: '12345678-1234-1234-1234-123456789012'. You can also use 'common', 'organizations', or 'consumers' for multi-tenant scenarios.",
+            "description": "Azure AD tenant ID (required for Microsoft only, defaults to 'common'). Find it in Azure Portal > Azure Active Directory > Overview. Example: '12345678-1234-1234-1234-123456789012'. You can also use 'common', 'organizations', or 'consumers' for multi-tenant scenarios.",
             "default": "common",
             "type": "string"
           }
@@ -2530,7 +2530,7 @@
             "minLength": 1
           },
           "oauth_tenant_id": {
-            "description": "Azure AD tenant ID (required for Microsoft only, defaults to 'common'). Find it in Azure Portal \u003E Azure Active Directory \u003E Overview. Example: '12345678-1234-1234-1234-123456789012'. You can also use 'common', 'organizations', or 'consumers' for multi-tenant scenarios.",
+            "description": "Azure AD tenant ID (required for Microsoft only, defaults to 'common'). Find it in Azure Portal > Azure Active Directory > Overview. Example: '12345678-1234-1234-1234-123456789012'. You can also use 'common', 'organizations', or 'consumers' for multi-tenant scenarios.",
             "default": "common",
             "type": "string"
           },
@@ -2569,7 +2569,7 @@
             "minLength": 1
           },
           "oauth_tenant_id": {
-            "description": "Azure AD tenant ID (required for Microsoft only, defaults to 'common'). Find it in Azure Portal \u003E Azure Active Directory \u003E Overview. Example: '12345678-1234-1234-1234-123456789012'. You can also use 'common', 'organizations', or 'consumers' for multi-tenant scenarios.",
+            "description": "Azure AD tenant ID (required for Microsoft only, defaults to 'common'). Find it in Azure Portal > Azure Active Directory > Overview. Example: '12345678-1234-1234-1234-123456789012'. You can also use 'common', 'organizations', or 'consumers' for multi-tenant scenarios.",
             "default": "common",
             "type": "string"
           }
@@ -7455,6 +7455,52 @@
                     "type": "null"
                   }
                 ]
+              },
+              "callback_config": {
+                "description": "Callback configuration (null if callback is disabled)",
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean",
+                        "const": true
+                      },
+                      "url": {
+                        "description": "Callback URL",
+                        "type": "string"
+                      },
+                      "secret": {
+                        "description": "Secret for validating callbacks (null if not set)",
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "method": {
+                        "description": "HTTP method for callback",
+                        "type": "string",
+                        "enum": [
+                          "POST",
+                          "PUT"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "enabled",
+                      "url",
+                      "secret",
+                      "method"
+                    ]
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
               }
             },
             "required": [
@@ -7480,7 +7526,8 @@
               "transcription_provider",
               "error_code",
               "error_message",
-              "extra"
+              "extra",
+              "callback_config"
             ],
             "additionalProperties": false
           }
@@ -8833,7 +8880,7 @@
             "minLength": 1
           },
           "oauth_tenant_id": {
-            "description": "Azure AD tenant ID (required for Microsoft only, defaults to 'common'). Find it in Azure Portal \u003E Azure Active Directory \u003E Overview. Example: '12345678-1234-1234-1234-123456789012'. You can also use 'common', 'organizations', or 'consumers' for multi-tenant scenarios.",
+            "description": "Azure AD tenant ID (required for Microsoft only, defaults to 'common'). Find it in Azure Portal > Azure Active Directory > Overview. Example: '12345678-1234-1234-1234-123456789012'. You can also use 'common', 'organizations', or 'consumers' for multi-tenant scenarios.",
             "default": "common",
             "type": "string"
           }
@@ -8876,7 +8923,7 @@
             "minLength": 1
           },
           "oauth_tenant_id": {
-            "description": "Azure AD tenant ID (required for Microsoft only, defaults to 'common'). Find it in Azure Portal \u003E Azure Active Directory \u003E Overview. Example: '12345678-1234-1234-1234-123456789012'. You can also use 'common', 'organizations', or 'consumers' for multi-tenant scenarios.",
+            "description": "Azure AD tenant ID (required for Microsoft only, defaults to 'common'). Find it in Azure Portal > Azure Active Directory > Overview. Example: '12345678-1234-1234-1234-123456789012'. You can also use 'common', 'organizations', or 'consumers' for multi-tenant scenarios.",
             "default": "common",
             "type": "string"
           },
@@ -8917,7 +8964,7 @@
             "minLength": 1
           },
           "oauth_tenant_id": {
-            "description": "Azure AD tenant ID (required for Microsoft only, defaults to 'common'). Find it in Azure Portal \u003E Azure Active Directory \u003E Overview. Example: '12345678-1234-1234-1234-123456789012'. You can also use 'common', 'organizations', or 'consumers' for multi-tenant scenarios.",
+            "description": "Azure AD tenant ID (required for Microsoft only, defaults to 'common'). Find it in Azure Portal > Azure Active Directory > Overview. Example: '12345678-1234-1234-1234-123456789012'. You can also use 'common', 'organizations', or 'consumers' for multi-tenant scenarios.",
             "default": "common",
             "type": "string"
           }
@@ -13355,7 +13402,7 @@
             "in": "query",
             "name": "cursor",
             "required": false,
-            "description": "The cursor to use for pagination.\n\nObtained from the `cursor` or `prev_cursor` field in the previous response.\n\nThe cursor is a base64-encoded string containing `\u003CisoDate\u003E::\u003Cid\u003E`. To paginate backward, prefix the cursor with a `-` (minus sign).\n\nLeave as `null` to get the first page of results.\n\nExample: \"MjAyNS0wMS0xNVQxMDozMDowMFo6OjEyMzQ1\" or \"LU1qQXlOM1UxTmpVME5qVXhNakUwTkRrPQ==\" (for backward pagination)"
+            "description": "The cursor to use for pagination.\n\nObtained from the `cursor` or `prev_cursor` field in the previous response.\n\nThe cursor is a base64-encoded string containing `<isoDate>::<id>`. To paginate backward, prefix the cursor with a `-` (minus sign).\n\nLeave as `null` to get the first page of results.\n\nExample: \"MjAyNS0wMS0xNVQxMDozMDowMFo6OjEyMzQ1\" or \"LU1qQXlOM1UxTmpVME5qVXhNakUwTkRrPQ==\" (for backward pagination)"
           },
           {
             "schema": {
@@ -15050,7 +15097,7 @@
             "in": "query",
             "name": "cursor",
             "required": false,
-            "description": "The cursor to use for pagination.\n\nObtained from the `cursor` or `prev_cursor` field in the previous response.\n\nThe cursor is a base64-encoded string containing `\u003CisoDate\u003E::\u003Cid\u003E`. To paginate backward, prefix the cursor with a `-` (minus sign).\n\nLeave as `null` to get the first page of results.\n\nExample: \"MjAyNS0wMS0xNVQxMDozMDowMFo6OjEyMzQ1\" or \"LU1qQXlOM1UxTmpVME5qVXhNakUwTkRrPQ==\" (for backward pagination)"
+            "description": "The cursor to use for pagination.\n\nObtained from the `cursor` or `prev_cursor` field in the previous response.\n\nThe cursor is a base64-encoded string containing `<isoDate>::<id>`. To paginate backward, prefix the cursor with a `-` (minus sign).\n\nLeave as `null` to get the first page of results.\n\nExample: \"MjAyNS0wMS0xNVQxMDozMDowMFo6OjEyMzQ1\" or \"LU1qQXlOM1UxTmpVME5qVXhNakUwTkRrPQ==\" (for backward pagination)"
           },
           {
             "schema": {
@@ -15088,7 +15135,7 @@
             "in": "query",
             "name": "scheduled_before",
             "required": false,
-            "description": "Filter scheduled bots with join_at before this timestamp.\n\nReturns only scheduled bots that are scheduled to join before the specified date.\n\nISO 8601 format. Must be within ±90 days from today.\n\nExample: \"2025-12-25T10:00:00Z\""
+            "description": "Filter scheduled bots with join_at before this timestamp.\n\nReturns only scheduled bots that are scheduled to join before the specified date.\n\nISO 8601 format. Must be within \u00c2\u00b190 days from today.\n\nExample: \"2025-12-25T10:00:00Z\""
           },
           {
             "schema": {
@@ -15108,7 +15155,7 @@
             "in": "query",
             "name": "scheduled_after",
             "required": false,
-            "description": "Filter scheduled bots with join_at after this timestamp.\n\nReturns only scheduled bots that are scheduled to join after the specified date.\n\nISO 8601 format. Must be within ±90 days from today.\n\nExample: \"2025-12-25T10:00:00Z\""
+            "description": "Filter scheduled bots with join_at after this timestamp.\n\nReturns only scheduled bots that are scheduled to join after the specified date.\n\nISO 8601 format. Must be within \u00c2\u00b190 days from today.\n\nExample: \"2025-12-25T10:00:00Z\""
           },
           {
             "schema": {
@@ -16160,7 +16207,7 @@
             "in": "query",
             "name": "cursor",
             "required": false,
-            "description": "The cursor to use for pagination.\n\nObtained from the `cursor` or `prev_cursor` field in the previous response.\n\nThe cursor is a base64-encoded string containing `\u003CisoDate\u003E::\u003Cid\u003E`. To paginate backward, prefix the cursor with a `-` (minus sign).\n\nLeave as `null` to get the first page of results.\n\nExample: \"MjAyNS0wMS0xNVQxMDozMDowMFo6OjEyMzQ1\" or \"LU1qQXlOM1UxTmpVME5qVXhNakUwTkRrPQ==\" (for backward pagination)"
+            "description": "The cursor to use for pagination.\n\nObtained from the `cursor` or `prev_cursor` field in the previous response.\n\nThe cursor is a base64-encoded string containing `<isoDate>::<id>`. To paginate backward, prefix the cursor with a `-` (minus sign).\n\nLeave as `null` to get the first page of results.\n\nExample: \"MjAyNS0wMS0xNVQxMDozMDowMFo6OjEyMzQ1\" or \"LU1qQXlOM1UxTmpVME5qVXhNakUwTkRrPQ==\" (for backward pagination)"
           },
           {
             "schema": {
@@ -17093,7 +17140,7 @@
             "in": "query",
             "name": "cursor",
             "required": false,
-            "description": "The cursor to use for pagination.\n\nObtained from the `cursor` or `prev_cursor` field in the previous response.\n\nThe cursor is a base64-encoded string containing `\u003CisoDate\u003E::\u003Cid\u003E`. To paginate backward, prefix the cursor with a `-` (minus sign).\n\nLeave as `null` to get the first page of results.\n\nExample: \"MjAyNS0wMS0xNVQxMDozMDowMFo6OjEyMzQ1\" or \"LU1qQXlOM1UxTmpVME5qVXhNakUwTkRrPQ==\" (for backward pagination)"
+            "description": "The cursor to use for pagination.\n\nObtained from the `cursor` or `prev_cursor` field in the previous response.\n\nThe cursor is a base64-encoded string containing `<isoDate>::<id>`. To paginate backward, prefix the cursor with a `-` (minus sign).\n\nLeave as `null` to get the first page of results.\n\nExample: \"MjAyNS0wMS0xNVQxMDozMDowMFo6OjEyMzQ1\" or \"LU1qQXlOM1UxTmpVME5qVXhNakUwTkRrPQ==\" (for backward pagination)"
           },
           {
             "schema": {
@@ -17319,7 +17366,7 @@
             "in": "query",
             "name": "cursor",
             "required": false,
-            "description": "The cursor to use for pagination.\n\nObtained from the `cursor` or `prev_cursor` field in the previous response.\n\nThe cursor is a base64-encoded string containing `\u003CisoDate\u003E::\u003Cid\u003E`. To paginate backward, prefix the cursor with a `-` (minus sign).\n\nLeave as `null` to get the first page of results.\n\nExample: \"MjAyNS0wMS0xNVQxMDozMDowMFo6OjEyMzQ1\" or \"LU1qQXlOM1UxTmpVME5qVXhNakUwTkRrPQ==\" (for backward pagination)"
+            "description": "The cursor to use for pagination.\n\nObtained from the `cursor` or `prev_cursor` field in the previous response.\n\nThe cursor is a base64-encoded string containing `<isoDate>::<id>`. To paginate backward, prefix the cursor with a `-` (minus sign).\n\nLeave as `null` to get the first page of results.\n\nExample: \"MjAyNS0wMS0xNVQxMDozMDowMFo6OjEyMzQ1\" or \"LU1qQXlOM1UxTmpVME5qVXhNakUwTkRrPQ==\" (for backward pagination)"
           },
           {
             "schema": {
