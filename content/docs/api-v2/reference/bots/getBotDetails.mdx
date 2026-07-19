@@ -29,6 +29,9 @@ _openapi:
       - content: 'data.bot_id: The UUID of the bot'
       - content: 'data.bot_name: The name of the bot'
       - content: >-
+          data.callback_config: Callback configuration (null if callback is
+          disabled)
+      - content: >-
           data.chat_messages: Signed URL to the chat messages JSON file (valid
           for 4 hours, null if not available)
       - content: 'data.created_at: ISO 8601 timestamp when the bot was created'

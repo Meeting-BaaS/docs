@@ -4105,6 +4105,18 @@
             "description": "An optional extra configuration object for the bot.\n\nThis object can contain any custom key-value pairs that you want to associate with the bot. The data will be:\n\n- Included in all webhook event payloads (if a webhook endpoint is configured)\n- Part of the callback payload (if callback is enabled)\n- Returned when fetching the bot's details via the API\n\nUseful for storing custom metadata, tracking information, or any other data you need to correlate with the bot.",
             "example": null
           },
+          "ignored_participant_names": {
+            "default": [],
+            "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants matching these names when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging).\n\nBy ignoring other bots' participant names, each bot can correctly detect when human participants have left and leave the meeting rather than remaining indefinitely.",
+            "example": [
+              "Sandbox Bot",
+              "Staging Bot"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "meet_config": {
             "anyOf": [
               {
@@ -4218,7 +4230,7 @@
                   },
                   "mode": {
                     "default": "audio",
-                    "description": "The streaming mode. 'audio' (default) streams raw audio to output_url via WebSocket. 'transcription' runs real-time speech-to-text and POSTs transcript events to output_url via HTTP webhooks.",
+                    "description": "The streaming mode. 'audio' (default) streams raw audio to output_url via WebSocket. 'transcription' runs real-time speech-to-text and sends transcript events to output_url over a WebSocket connection, as JSON messages with event 'transcript.segment'.",
                     "enum": [
                       "audio",
                       "transcription"
@@ -4236,7 +4248,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': HTTP URL where transcript events are POSTed.",
+                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends transcript events as JSON messages with event 'transcript.segment'.",
                     "example": null
                   },
                   "transcription": {
@@ -4357,9 +4369,9 @@
               },
               "silence_timeout": {
                 "default": 600,
-                "description": "The timeout in seconds for the bot to wait for silence before leaving the meeting.\n\nIf no audio is detected for this duration after the bot joins, the bot will leave the meeting. Only applicable for Google Meet and Microsoft Teams meetings.\n\nDefault: 600 seconds (10 minutes)\nMinimum: 5 minutes\nMaximum: 30 minutes",
+                "description": "The timeout in seconds for the bot to wait for silence before leaving the meeting.\n\nIf no audio is detected for this duration after the bot joins, the bot will leave the meeting. Only applicable for Google Meet and Microsoft Teams meetings.\n\nDefault: 600 seconds (10 minutes)\nMinimum: 5 minutes\nMaximum: 60 minutes",
                 "example": 600,
-                "maximum": 1800,
+                "maximum": 3600,
                 "minimum": 300,
                 "type": "integer"
               },
@@ -4718,6 +4730,18 @@
                 "description": "An optional extra configuration object for the bot.\n\nThis object can contain any custom key-value pairs that you want to associate with the bot. The data will be:\n\n- Included in all webhook event payloads (if a webhook endpoint is configured)\n- Part of the callback payload (if callback is enabled)\n- Returned when fetching the bot's details via the API\n\nUseful for storing custom metadata, tracking information, or any other data you need to correlate with the bot.",
                 "example": null
               },
+              "ignored_participant_names": {
+                "default": [],
+                "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants matching these names when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging).\n\nBy ignoring other bots' participant names, each bot can correctly detect when human participants have left and leave the meeting rather than remaining indefinitely.",
+                "example": [
+                  "Sandbox Bot",
+                  "Staging Bot"
+                ],
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
               "meet_config": {
                 "anyOf": [
                   {
@@ -4827,7 +4851,7 @@
                       },
                       "mode": {
                         "default": "audio",
-                        "description": "The streaming mode. 'audio' (default) streams raw audio to output_url via WebSocket. 'transcription' runs real-time speech-to-text and POSTs transcript events to output_url via HTTP webhooks.",
+                        "description": "The streaming mode. 'audio' (default) streams raw audio to output_url via WebSocket. 'transcription' runs real-time speech-to-text and sends transcript events to output_url over a WebSocket connection, as JSON messages with event 'transcript.segment'.",
                         "enum": [
                           "audio",
                           "transcription"
@@ -4845,7 +4869,7 @@
                           }
                         ],
                         "default": null,
-                        "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': HTTP URL where transcript events are POSTed.",
+                        "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends transcript events as JSON messages with event 'transcript.segment'.",
                         "example": null
                       },
                       "transcription": {
@@ -4981,9 +5005,9 @@
                   },
                   "silence_timeout": {
                     "default": 600,
-                    "description": "The timeout in seconds for the bot to wait for silence before leaving the meeting.\n\nIf no audio is detected for this duration after the bot joins, the bot will leave the meeting. Only applicable for Google Meet and Microsoft Teams meetings.\n\nDefault: 600 seconds (10 minutes)\nMinimum: 5 minutes\nMaximum: 30 minutes",
+                    "description": "The timeout in seconds for the bot to wait for silence before leaving the meeting.\n\nIf no audio is detected for this duration after the bot joins, the bot will leave the meeting. Only applicable for Google Meet and Microsoft Teams meetings.\n\nDefault: 600 seconds (10 minutes)\nMinimum: 5 minutes\nMaximum: 60 minutes",
                     "example": 600,
-                    "maximum": 1800,
+                    "maximum": 3600,
                     "minimum": 300,
                     "type": "integer"
                   },
@@ -5135,6 +5159,7 @@
               "bot_name",
               "bot_image",
               "bot_image_config",
+              "ignored_participant_names",
               "recording_mode",
               "entry_message",
               "timeout_config",
@@ -5330,6 +5355,18 @@
                 "description": "An optional extra configuration object for the bot.\n\nThis object can contain any custom key-value pairs that you want to associate with the bot. The data will be:\n\n- Included in all webhook event payloads (if a webhook endpoint is configured)\n- Part of the callback payload (if callback is enabled)\n- Returned when fetching the bot's details via the API\n\nUseful for storing custom metadata, tracking information, or any other data you need to correlate with the bot.",
                 "example": null
               },
+              "ignored_participant_names": {
+                "default": [],
+                "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants matching these names when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging).\n\nBy ignoring other bots' participant names, each bot can correctly detect when human participants have left and leave the meeting rather than remaining indefinitely.",
+                "example": [
+                  "Sandbox Bot",
+                  "Staging Bot"
+                ],
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
               "meet_config": {
                 "anyOf": [
                   {
@@ -5437,7 +5474,7 @@
                       },
                       "mode": {
                         "default": "audio",
-                        "description": "The streaming mode. 'audio' (default) streams raw audio to output_url via WebSocket. 'transcription' runs real-time speech-to-text and POSTs transcript events to output_url via HTTP webhooks.",
+                        "description": "The streaming mode. 'audio' (default) streams raw audio to output_url via WebSocket. 'transcription' runs real-time speech-to-text and sends transcript events to output_url over a WebSocket connection, as JSON messages with event 'transcript.segment'.",
                         "enum": [
                           "audio",
                           "transcription"
@@ -5455,7 +5492,7 @@
                           }
                         ],
                         "default": null,
-                        "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': HTTP URL where transcript events are POSTed.",
+                        "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends transcript events as JSON messages with event 'transcript.segment'.",
                         "example": null
                       },
                       "transcription": {
@@ -5576,9 +5613,9 @@
                   },
                   "silence_timeout": {
                     "default": 600,
-                    "description": "The timeout in seconds for the bot to wait for silence before leaving the meeting.\n\nIf no audio is detected for this duration after the bot joins, the bot will leave the meeting. Only applicable for Google Meet and Microsoft Teams meetings.\n\nDefault: 600 seconds (10 minutes)\nMinimum: 5 minutes\nMaximum: 30 minutes",
+                    "description": "The timeout in seconds for the bot to wait for silence before leaving the meeting.\n\nIf no audio is detected for this duration after the bot joins, the bot will leave the meeting. Only applicable for Google Meet and Microsoft Teams meetings.\n\nDefault: 600 seconds (10 minutes)\nMinimum: 5 minutes\nMaximum: 60 minutes",
                     "example": 600,
-                    "maximum": 1800,
+                    "maximum": 3600,
                     "minimum": 300,
                     "type": "integer"
                   },
@@ -6709,6 +6746,53 @@
                 "description": "The name of the bot",
                 "type": "string"
               },
+              "callback_config": {
+                "anyOf": [
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "enabled": {
+                        "const": true,
+                        "type": "boolean"
+                      },
+                      "method": {
+                        "description": "HTTP method for callback",
+                        "enum": [
+                          "POST",
+                          "PUT"
+                        ],
+                        "type": "string"
+                      },
+                      "secret": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Secret for validating callbacks (null if not set)"
+                      },
+                      "url": {
+                        "description": "Callback URL",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "enabled",
+                      "url",
+                      "secret",
+                      "method"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Callback configuration (null if callback is disabled)"
+              },
               "chat_messages": {
                 "anyOf": [
                   {
@@ -7166,7 +7250,8 @@
               "tokens",
               "extra",
               "zoom_config",
-              "meet_login_credential_id"
+              "meet_login_credential_id",
+              "callback_config"
             ],
             "type": "object"
           },
@@ -7213,6 +7298,52 @@
                 "description": "The name of the bot",
                 "type": "string"
               },
+              "callback_config": {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "enabled": {
+                        "const": true,
+                        "type": "boolean"
+                      },
+                      "method": {
+                        "description": "HTTP method for callback",
+                        "enum": [
+                          "POST",
+                          "PUT"
+                        ],
+                        "type": "string"
+                      },
+                      "secret": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Secret for validating callbacks (null if not set)"
+                      },
+                      "url": {
+                        "description": "Callback URL",
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "enabled",
+                      "url",
+                      "secret",
+                      "method"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Callback configuration (null if callback is disabled)"
+              },
               "chat_messages": {
                 "anyOf": [
                   {
@@ -7666,7 +7797,8 @@
               "tokens",
               "extra",
               "zoom_config",
-              "meet_login_credential_id"
+              "meet_login_credential_id",
+              "callback_config"
             ],
             "type": "object"
           },
@@ -11660,7 +11792,7 @@
                       "type": "number"
                     },
                     "language": {
-                      "description": "ISO 639-1 language code (e.g., 'en', 'es')",
+                      "description": "ISO 639-1 language code (e.g., 'en', 'es'). Only present when the transcription provider reported a language for this utterance.",
                       "type": "string"
                     },
                     "speaker": {
@@ -11712,7 +11844,6 @@
                   },
                   "required": [
                     "text",
-                    "language",
                     "start",
                     "end",
                     "confidence",
@@ -11801,7 +11932,7 @@
                       "type": "number"
                     },
                     "language": {
-                      "description": "ISO 639-1 language code (e.g., 'en', 'es')",
+                      "description": "ISO 639-1 language code (e.g., 'en', 'es'). Only present when the transcription provider reported a language for this utterance.",
                       "type": "string"
                     },
                     "speaker": {
@@ -11852,7 +11983,6 @@
                   },
                   "required": [
                     "text",
-                    "language",
                     "start",
                     "end",
                     "confidence",
@@ -12842,6 +12972,18 @@
                 "description": "An optional extra configuration object for the bot.\n\nThis object can contain any custom key-value pairs that you want to associate with the bot. The data will be:\n\n- Included in all webhook event payloads (if a webhook endpoint is configured)\n- Part of the callback payload (if callback is enabled)\n- Returned when fetching the bot's details via the API\n\nUseful for storing custom metadata, tracking information, or any other data you need to correlate with the bot.",
                 "example": null
               },
+              "ignored_participant_names": {
+                "default": [],
+                "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants matching these names when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging).\n\nBy ignoring other bots' participant names, each bot can correctly detect when human participants have left and leave the meeting rather than remaining indefinitely.",
+                "example": [
+                  "Sandbox Bot",
+                  "Staging Bot"
+                ],
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
               "meet_config": {
                 "anyOf": [
                   {
@@ -12950,7 +13092,7 @@
                   },
                   "mode": {
                     "default": "audio",
-                    "description": "The streaming mode. 'audio' (default) streams raw audio to output_url via WebSocket. 'transcription' runs real-time speech-to-text and POSTs transcript events to output_url via HTTP webhooks.",
+                    "description": "The streaming mode. 'audio' (default) streams raw audio to output_url via WebSocket. 'transcription' runs real-time speech-to-text and sends transcript events to output_url over a WebSocket connection, as JSON messages with event 'transcript.segment'.",
                     "enum": [
                       "audio",
                       "transcription"
@@ -12968,7 +13110,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': HTTP URL where transcript events are POSTed.",
+                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends transcript events as JSON messages with event 'transcript.segment'.",
                     "example": null
                   },
                   "transcription": {
@@ -13097,9 +13239,9 @@
                   },
                   "silence_timeout": {
                     "default": 600,
-                    "description": "The timeout in seconds for the bot to wait for silence before leaving the meeting.\n\nIf no audio is detected for this duration after the bot joins, the bot will leave the meeting. Only applicable for Google Meet and Microsoft Teams meetings.\n\nDefault: 600 seconds (10 minutes)\nMinimum: 5 minutes\nMaximum: 30 minutes",
+                    "description": "The timeout in seconds for the bot to wait for silence before leaving the meeting.\n\nIf no audio is detected for this duration after the bot joins, the bot will leave the meeting. Only applicable for Google Meet and Microsoft Teams meetings.\n\nDefault: 600 seconds (10 minutes)\nMinimum: 5 minutes\nMaximum: 60 minutes",
                     "example": 600,
-                    "maximum": 1800,
+                    "maximum": 3600,
                     "minimum": 300,
                     "type": "integer"
                   },
@@ -13413,6 +13555,18 @@
                 "description": "An optional extra configuration object for the bot.\n\nThis object can contain any custom key-value pairs that you want to associate with the bot. The data will be:\n\n- Included in all webhook event payloads (if a webhook endpoint is configured)\n- Part of the callback payload (if callback is enabled)\n- Returned when fetching the bot's details via the API\n\nUseful for storing custom metadata, tracking information, or any other data you need to correlate with the bot.",
                 "example": null
               },
+              "ignored_participant_names": {
+                "default": [],
+                "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants matching these names when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging).\n\nBy ignoring other bots' participant names, each bot can correctly detect when human participants have left and leave the meeting rather than remaining indefinitely.",
+                "example": [
+                  "Sandbox Bot",
+                  "Staging Bot"
+                ],
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
               "meet_config": {
                 "anyOf": [
                   {
@@ -13519,7 +13673,7 @@
                   },
                   "mode": {
                     "default": "audio",
-                    "description": "The streaming mode. 'audio' (default) streams raw audio to output_url via WebSocket. 'transcription' runs real-time speech-to-text and POSTs transcript events to output_url via HTTP webhooks.",
+                    "description": "The streaming mode. 'audio' (default) streams raw audio to output_url via WebSocket. 'transcription' runs real-time speech-to-text and sends transcript events to output_url over a WebSocket connection, as JSON messages with event 'transcript.segment'.",
                     "enum": [
                       "audio",
                       "transcription"
@@ -13537,7 +13691,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': HTTP URL where transcript events are POSTed.",
+                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends transcript events as JSON messages with event 'transcript.segment'.",
                     "example": null
                   },
                   "transcription": {
@@ -13651,9 +13805,9 @@
                   },
                   "silence_timeout": {
                     "default": 600,
-                    "description": "The timeout in seconds for the bot to wait for silence before leaving the meeting.\n\nIf no audio is detected for this duration after the bot joins, the bot will leave the meeting. Only applicable for Google Meet and Microsoft Teams meetings.\n\nDefault: 600 seconds (10 minutes)\nMinimum: 5 minutes\nMaximum: 30 minutes",
+                    "description": "The timeout in seconds for the bot to wait for silence before leaving the meeting.\n\nIf no audio is detected for this duration after the bot joins, the bot will leave the meeting. Only applicable for Google Meet and Microsoft Teams meetings.\n\nDefault: 600 seconds (10 minutes)\nMinimum: 5 minutes\nMaximum: 60 minutes",
                     "example": 600,
-                    "maximum": 1800,
+                    "maximum": 3600,
                     "minimum": 300,
                     "type": "integer"
                   },
@@ -14287,6 +14441,18 @@
             "description": "An optional extra configuration object for the bot.\n\nThis object can contain any custom key-value pairs that you want to associate with the bot. The data will be:\n\n- Included in all webhook event payloads (if a webhook endpoint is configured)\n- Part of the callback payload (if callback is enabled)\n- Returned when fetching the bot's details via the API\n\nUseful for storing custom metadata, tracking information, or any other data you need to correlate with the bot.",
             "example": null
           },
+          "ignored_participant_names": {
+            "default": [],
+            "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants matching these names when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging).\n\nBy ignoring other bots' participant names, each bot can correctly detect when human participants have left and leave the meeting rather than remaining indefinitely.",
+            "example": [
+              "Sandbox Bot",
+              "Staging Bot"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "join_at": {
             "description": "Update the scheduled join time.\n\nISO8601 format. Must be at least 4 minutes in the future and cannot be more than 90 days in the future.\n\nExample: \"2025-12-25T10:00:00Z\"",
             "format": "date-time",
@@ -14408,7 +14574,7 @@
                   },
                   "mode": {
                     "default": "audio",
-                    "description": "The streaming mode. 'audio' (default) streams raw audio to output_url via WebSocket. 'transcription' runs real-time speech-to-text and POSTs transcript events to output_url via HTTP webhooks.",
+                    "description": "The streaming mode. 'audio' (default) streams raw audio to output_url via WebSocket. 'transcription' runs real-time speech-to-text and sends transcript events to output_url over a WebSocket connection, as JSON messages with event 'transcript.segment'.",
                     "enum": [
                       "audio",
                       "transcription"
@@ -14426,7 +14592,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': HTTP URL where transcript events are POSTed.",
+                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends transcript events as JSON messages with event 'transcript.segment'.",
                     "example": null
                   },
                   "transcription": {
@@ -14562,9 +14728,9 @@
               },
               "silence_timeout": {
                 "default": 600,
-                "description": "The timeout in seconds for the bot to wait for silence before leaving the meeting.\n\nIf no audio is detected for this duration after the bot joins, the bot will leave the meeting. Only applicable for Google Meet and Microsoft Teams meetings.\n\nDefault: 600 seconds (10 minutes)\nMinimum: 5 minutes\nMaximum: 30 minutes",
+                "description": "The timeout in seconds for the bot to wait for silence before leaving the meeting.\n\nIf no audio is detected for this duration after the bot joins, the bot will leave the meeting. Only applicable for Google Meet and Microsoft Teams meetings.\n\nDefault: 600 seconds (10 minutes)\nMinimum: 5 minutes\nMaximum: 60 minutes",
                 "example": 600,
-                "maximum": 1800,
+                "maximum": 3600,
                 "minimum": 300,
                 "type": "integer"
               },
@@ -14868,6 +15034,18 @@
             "description": "An optional extra configuration object for the bot.\n\nThis object can contain any custom key-value pairs that you want to associate with the bot. The data will be:\n\n- Included in all webhook event payloads (if a webhook endpoint is configured)\n- Part of the callback payload (if callback is enabled)\n- Returned when fetching the bot's details via the API\n\nUseful for storing custom metadata, tracking information, or any other data you need to correlate with the bot.",
             "example": null
           },
+          "ignored_participant_names": {
+            "default": [],
+            "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants matching these names when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging).\n\nBy ignoring other bots' participant names, each bot can correctly detect when human participants have left and leave the meeting rather than remaining indefinitely.",
+            "example": [
+              "Sandbox Bot",
+              "Staging Bot"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          },
           "join_at": {
             "description": "Update the scheduled join time.\n\nISO8601 format. Must be at least 4 minutes in the future and cannot be more than 90 days in the future.\n\nExample: \"2025-12-25T10:00:00Z\"",
             "format": "date-time",
@@ -14987,7 +15165,7 @@
                   },
                   "mode": {
                     "default": "audio",
-                    "description": "The streaming mode. 'audio' (default) streams raw audio to output_url via WebSocket. 'transcription' runs real-time speech-to-text and POSTs transcript events to output_url via HTTP webhooks.",
+                    "description": "The streaming mode. 'audio' (default) streams raw audio to output_url via WebSocket. 'transcription' runs real-time speech-to-text and sends transcript events to output_url over a WebSocket connection, as JSON messages with event 'transcript.segment'.",
                     "enum": [
                       "audio",
                       "transcription"
@@ -15005,7 +15183,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': HTTP URL where transcript events are POSTed.",
+                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends transcript events as JSON messages with event 'transcript.segment'.",
                     "example": null
                   },
                   "transcription": {
@@ -15126,9 +15304,9 @@
               },
               "silence_timeout": {
                 "default": 600,
-                "description": "The timeout in seconds for the bot to wait for silence before leaving the meeting.\n\nIf no audio is detected for this duration after the bot joins, the bot will leave the meeting. Only applicable for Google Meet and Microsoft Teams meetings.\n\nDefault: 600 seconds (10 minutes)\nMinimum: 5 minutes\nMaximum: 30 minutes",
+                "description": "The timeout in seconds for the bot to wait for silence before leaving the meeting.\n\nIf no audio is detected for this duration after the bot joins, the bot will leave the meeting. Only applicable for Google Meet and Microsoft Teams meetings.\n\nDefault: 600 seconds (10 minutes)\nMinimum: 5 minutes\nMaximum: 60 minutes",
                 "example": 600,
-                "maximum": 1800,
+                "maximum": 3600,
                 "minimum": 300,
                 "type": "integer"
               },
@@ -21639,7 +21817,7 @@
         ]
       },
       "post": {
-        "description": "Create a meet login — a Google Workspace user identity attached to a parent meet workspace.\n\n    Each login represents one Workspace user that bots can sign in as. Many logins can share one workspace; they all use the workspace's cert/key for SAML signing. Round-robin assignment picks the least-loaded active login when a bot is dispatched with `meet_config.email_group` (or `credential_id`) on `POST /v2/bots`.\n\n    **Prerequisites:** Create a meet workspace first via `POST /v2/meet-workspaces`. Pass the returned `workspace_id` here.\n\n    **Domain Validation:** The `email` must belong to the parent workspace's domain (or a subdomain). For example, if the workspace domain is `bots.acme.com`, valid emails include `bot1@bots.acme.com` or `bot2@dev.bots.acme.com`, but not `bot1@acme.com`. The same rule applies to `email_group` if provided.\n\n    **Email Group (optional but encouraged):** Set `email_group` to a Google Group address that contains the bot users as members. When you put this group address on a calendar invite, the assigned bot lands in Meet's verified queue and bypasses the waiting room. Logins sharing the same `email_group` form one round-robin pool.\n\n    **Per-team Uniqueness on Email:** Each `email` may exist at most once per team. Attempting to register the same email twice returns 409.\n\n    **Concurrency:** Each login supports up to 20 concurrent SSO sessions. When a login hits its capacity, the round-robin assigner skips it and tries the next one in the pool. If all logins in a pool are saturated, the bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, depending on your `fallback` setting).\n\n    **Error Scenarios:**\n    - `404 Not Found`: `workspace_id` is unknown or does not belong to your team.\n    - `409 Conflict`: A login for this `email` already exists.\n    - `422 Unprocessable Entity`: `email` or `email_group` domain does not match the parent workspace's domain.",
+        "description": "Create a meet login — a Google Workspace user identity attached to a parent meet workspace.\n\n    Each login represents one Workspace user that bots can sign in as. Many logins can share one workspace; they all use the workspace's cert/key for SAML signing. Round-robin assignment picks the least-loaded active login when a bot is dispatched with `meet_config.email_group` (or `credential_id`) on `POST /v2/bots`.\n\n    **Prerequisites:** Create a meet workspace first via `POST /v2/meet-workspaces`. Pass the returned `workspace_id` here.\n\n    **Domain Validation:** The `email` must belong to the parent workspace's domain (or a subdomain). For example, if the workspace domain is `bots.acme.com`, valid emails include `bot1@bots.acme.com` or `bot2@dev.bots.acme.com`, but not `bot1@acme.com`. The same rule applies to `email_group` if provided.\n\n    **Email Group (optional but encouraged):** Set `email_group` to a Google Group address that contains the bot users as members. When you put this group address on a calendar invite, the assigned bot lands in Meet's verified queue and bypasses the waiting room. Logins sharing the same `email_group` form one round-robin pool.\n\n    **Per-team Uniqueness on Email:** Each `email` may exist at most once per team. Attempting to register the same email twice returns 409.\n\n    **Concurrency:** Each login supports up to 20 concurrent SSO sessions by default. When a login hits its capacity, the round-robin assigner skips it and tries the next one in the pool. If all logins in a pool are saturated, the bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, depending on your `fallback` setting).\n\n    **Error Scenarios:**\n    - `404 Not Found`: `workspace_id` is unknown or does not belong to your team.\n    - `409 Conflict`: A login for this `email` already exists.\n    - `422 Unprocessable Entity`: `email` or `email_group` domain does not match the parent workspace's domain.",
         "operationId": "createMeetLogin",
         "requestBody": {
           "content": {

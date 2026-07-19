@@ -13,7 +13,7 @@ Streaming provides:
 - **Output Streaming**: Receive the meeting's mixed audio in real time via WebSocket
 - **Input Streaming**: Send audio into the meeting so participants can hear it (for speaking bots, AI agents, etc.)
 - **Bidirectional Streaming**: Combine both - receive meeting audio and speak back - using a single or two separate WebSocket connections
-- **Managed Real-Time Transcription**: Let Meeting BaaS run real-time speech-to-text and POST transcript events to your endpoint, with a choice of providers
+- **Managed Real-Time Transcription**: Let Meeting BaaS run real-time speech-to-text and stream transcript events to your WebSocket endpoint, with a choice of providers
 - **Speaker Diarization**: Receive real-time speaker state updates as JSON messages alongside the audio stream
 - **Configurable Sample Rate**: Choose from 16,000 Hz, 24,000 Hz (default), 32,000 Hz, or 48,000 Hz
 - **Works on All Platforms**: Google Meet, Microsoft Teams, and Zoom
@@ -39,8 +39,8 @@ To enable streaming, include `streaming_enabled` and `streaming_config` in your 
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `mode` | `string` | `audio` | Streaming mode. `audio` streams raw audio over WebSocket; `transcription` runs managed real-time speech-to-text and POSTs transcript events to `output_url` |
-| `output_url` | `string \| null` | `null` | When `mode` is `audio`: WebSocket URL where the bot sends meeting audio. When `mode` is `transcription`: HTTP(S) URL where transcript events are POSTed |
+| `mode` | `string` | `audio` | Streaming mode. `audio` streams raw audio over WebSocket; `transcription` runs managed real-time speech-to-text and streams JSON transcript events to `output_url` over WebSocket |
+| `output_url` | `string \| null` | `null` | When `mode` is `audio`: WebSocket URL where the bot sends meeting audio. When `mode` is `transcription`: WebSocket URL where the bot sends transcript events as JSON messages |
 | `input_url` | `string \| null` | `null` | WebSocket URL from which the bot receives audio to play into the meeting |
 | `audio_frequency` | `integer` | `24000` | Sample rate in Hz. Supported: `16000`, `24000`, `32000`, `48000` |
 | `transcription` | `object \| null` | `null` | Real-time STT provider configuration. Required when `mode` is `transcription` (see [Managed Real-Time Transcription](#managed-real-time-transcription)) |
@@ -124,14 +124,14 @@ When the URLs differ, the bot opens two separate WebSocket connections - one for
 
 ### Managed Real-Time Transcription
 
-Set `mode` to `"transcription"` to have Meeting BaaS run real-time speech-to-text for you and **POST transcript events to your `output_url` over HTTP(S)** as the meeting happens - no need to run your own STT engine on the audio stream.
+Set `mode` to `"transcription"` to have Meeting BaaS run real-time speech-to-text for you and **stream transcript events to your `output_url` over WebSocket** as the meeting happens - no need to run your own STT engine on the audio stream.
 
 ```json
 {
   "streaming_enabled": true,
   "streaming_config": {
     "mode": "transcription",
-    "output_url": "https://your-server.com/transcripts",
+    "output_url": "wss://your-server.com/transcripts",
     "transcription": {
       "provider": "gladia",
       "api_key": null,
@@ -152,8 +152,46 @@ The `streaming_config.transcription` object configures the real-time STT provide
 | `region` | `string \| null` | `null` | Provider API region. When omitted, provider defaults apply (`gladia=eu-west`, `deepgram=eu`, `assemblyai=eu`, `speechmatics=eu1`, `soniox=us`, `elevenlabs=global`) |
 
 <Callout type="info">
-  All [batch transcription providers](/docs/api-v2/transcription#transcription-providers) are available for real-time streaming, plus **ElevenLabs**, which is streaming-only. When `mode` is `transcription`, `output_url` is treated as an HTTP(S) webhook endpoint rather than a WebSocket.
+  All [batch transcription providers](/docs/api-v2/transcription#transcription-providers) are available for real-time streaming, plus **ElevenLabs**, which is streaming-only. In `transcription` mode, `output_url` is still a **WebSocket** endpoint (`wss://`) - the bot opens a WebSocket connection to it and sends JSON text messages. It does not send HTTP POST requests.
 </Callout>
+
+#### Transcript Events
+
+Your WebSocket server receives JSON text messages, one per transcript segment. Every message has the same envelope:
+
+```json
+{
+  "event": "transcript.segment",
+  "bot_id": "123e4567-e89b-12d3-a456-426614174000",
+  "data": {
+    "text": "Hello everyone, let's get started.",
+    "isFinal": true,
+    "utteranceStart": 12.34,
+    "utteranceEnd": 15.02,
+    "confidence": 0.97,
+    "words": [
+      { "text": "Hello", "start": 12.34, "end": 12.61, "confidence": 0.98 }
+    ],
+    "speaker": { "name": "John Doe", "id": 1 }
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `event` | `string` | Always `"transcript.segment"` - the only event type sent in transcription mode |
+| `bot_id` | `string` | UUID of the bot |
+| `data.text` | `string` | Transcribed text for this segment |
+| `data.isFinal` | `boolean` | `false` for partial (interim) segments, `true` for final segments. Partial segments may be revised by a later message covering the same utterance |
+| `data.utteranceStart` | `number` | Utterance start time in seconds |
+| `data.utteranceEnd` | `number` | Utterance end time in seconds |
+| `data.confidence` | `number` | Overall confidence score for the segment (0-1), when the provider reports one |
+| `data.words` | `array` | Word-level timings: `{ text, start, end, confidence?, speaker? }` |
+| `data.speaker` | `object \| null` | Active speaker at the time of the segment: `{ name, id }`, or `null` when unknown |
+
+Fields other than `event` may be absent depending on the STT provider - treat them as optional.
+
+If the WebSocket connection drops, the bot reconnects with exponential backoff (1s doubling up to 60s) and buffers up to 100 transcript events while disconnected, flushing them on reconnect. Events beyond the buffer limit are dropped.
 
 ## WebSocket Protocol
 
