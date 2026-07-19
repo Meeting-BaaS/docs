@@ -40,13 +40,13 @@ To enable streaming, include `streaming_enabled` and `streaming_config` in your 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
 | `mode` | `string` | `audio` | Streaming mode. `audio` streams raw audio over WebSocket; `transcription` runs managed real-time speech-to-text and streams JSON transcript events to `output_url` over WebSocket |
-| `output_url` | `string \| null` | `null` | When `mode` is `audio`: WebSocket URL where the bot sends meeting audio. When `mode` is `transcription`: WebSocket URL where the bot sends transcript events as JSON messages |
+| `output_url` | `string \| null` | `null` | When `mode` is `audio`: WebSocket URL where the bot sends meeting audio (optional). When `mode` is `transcription`: WebSocket URL where the bot sends transcript events as JSON messages - **required and non-null** in this mode |
 | `input_url` | `string \| null` | `null` | WebSocket URL from which the bot receives audio to play into the meeting |
 | `audio_frequency` | `integer` | `24000` | Sample rate in Hz. Supported: `16000`, `24000`, `32000`, `48000` |
 | `transcription` | `object \| null` | `null` | Real-time STT provider configuration. Required when `mode` is `transcription` (see [Managed Real-Time Transcription](#managed-real-time-transcription)) |
 
 <Callout type="info">
-  Provide `output_url` to receive meeting audio, `input_url` to send audio into the meeting, or both for bidirectional streaming. Set either to `null` if you only need one direction.
+  In `audio` mode, provide `output_url` to receive meeting audio, `input_url` to send audio into the meeting, or both for bidirectional streaming - set either to `null` if you only need one direction. In `transcription` mode, `output_url` is required (bot creation fails without it) and receives JSON transcript messages instead of raw audio.
 </Callout>
 
 ## Streaming Modes
@@ -182,14 +182,18 @@ Your WebSocket server receives JSON text messages, one per transcript segment. E
 | `event` | `string` | Always `"transcript.segment"` - the only event type sent in transcription mode |
 | `bot_id` | `string` | UUID of the bot |
 | `data.text` | `string` | Transcribed text for this segment |
-| `data.isFinal` | `boolean` | `false` for partial (interim) segments, `true` for final segments. Partial segments may be revised by a later message covering the same utterance |
+| `data.isFinal` | `boolean` | `false` for partial (interim) segments, `true` for final segments (see [Partial vs. Final Segments](#partial-vs-final-segments)) |
 | `data.utteranceStart` | `number` | Utterance start time in seconds |
 | `data.utteranceEnd` | `number` | Utterance end time in seconds |
 | `data.confidence` | `number` | Overall confidence score for the segment (0-1), when the provider reports one |
 | `data.words` | `array` | Word-level timings: `{ text, start, end, confidence?, speaker? }` |
 | `data.speaker` | `object \| null` | Active speaker at the time of the segment: `{ name, id }`, or `null` when unknown |
 
-Fields other than `event` may be absent depending on the STT provider - treat them as optional.
+The `event` and `bot_id` envelope fields are always present. Fields under `data` are provider-dependent - treat all of them as optional.
+
+#### Partial vs. Final Segments
+
+Messages carry no explicit segment or utterance identifier. Partial segments (`isFinal: false`) are progressive snapshots of the utterance currently being spoken - each new partial for that utterance replaces the previous one, and the final segment (`isFinal: true`) supersedes all partials for it. Correlate them by time: partials and their final cover overlapping `utteranceStart`/`utteranceEnd` ranges. The simplest robust approach is to use partials for live display only (always replacing the last partial shown) and build your stored transcript exclusively from `isFinal: true` segments.
 
 If the WebSocket connection drops, the bot reconnects with exponential backoff (1s doubling up to 60s) and buffers up to 100 transcript events while disconnected, flushing them on reconnect. Events beyond the buffer limit are dropped.
 
