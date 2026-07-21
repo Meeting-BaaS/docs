@@ -90,6 +90,20 @@ _openapi:
           Useful for storing custom metadata, tracking information, or any other
           data you need to correlate with the bot.
       - content: >-
+          ignored_participant_names: Participant names to ignore when evaluating
+          auto-leave conditions.
+
+
+          The bot will not count participants matching these names when
+          determining whether to leave a meeting. This is useful when multiple
+          bots may join the same meeting across different environments (e.g.,
+          sandbox, staging).
+
+
+          By ignoring other bots' participant names, each bot can correctly
+          detect when human participants have left and leave the meeting rather
+          than remaining indefinitely.
+      - content: >-
           meet_config: Meet-only configuration for authenticated bots via SAML
           SSO.
 
@@ -177,7 +191,7 @@ _openapi:
 
           Minimum: 5 minutes
 
-          Maximum: 30 minutes
+          Maximum: 60 minutes
       - content: >-
           timeout_config.waiting_room_timeout: The timeout in seconds for the
           bot to wait in the waiting room before leaving the meeting.

@@ -176,11 +176,12 @@ To schedule a bot to join at a specific time, use `POST /v2/bots/scheduled`:
 - `timeout_config`: Optional object:
   - `waiting_room_timeout`: Seconds to wait in waiting room (default: 600, min: 120, max: 1800)
   - `no_one_joined_timeout`: Seconds to wait if no one joins (default: 600, min: 120, max: 1800, isn't used by Zoom)
-  - `silence_timeout`: Once a participant has been identified, no_one_joined_timeout stops and silence_timeout kicks in. When there is continued silence for the seconds provided, the bot leaves the meeting (default: 600, min: 300, max: 1800, isn't used by Zoom)
+  - `silence_timeout`: Once a participant has been identified, no_one_joined_timeout stops and silence_timeout kicks in. When there is continued silence for the seconds provided, the bot leaves the meeting (default: 600, min: 300, max: 3600, isn't used by Zoom)
 
 ### Advanced Options
 
 - `allow_multiple_bots`: `true` (default) to allow multiple bots in the same meeting, `false` to prevent duplicates
+- `ignored_participant_names`: Optional list of participant names to ignore when evaluating auto-leave conditions. Useful when multiple bots may join the same meeting (e.g., sandbox and staging bots) - each bot can then correctly detect when human participants have left instead of staying because it sees the other bot
 - `entry_message`: Optional message the bot sends when joining
 - `extra`: Optional custom metadata (included in webhooks and callbacks)
 - `streaming_enabled`: Enable audio streaming
