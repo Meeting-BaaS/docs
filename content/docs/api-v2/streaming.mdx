@@ -180,6 +180,17 @@ The `streaming_config.transcription` object configures the real-time STT provide
 
 `custom_params` is validated against the provider's live schema when you create the bot - unknown fields are rejected with a `400` that points at the correct live-API location where one exists (e.g. `translation_config` → `realtime_processing.translation_config`).
 
+The same batch-vs-live distinction applies to every provider - always use the provider's **real-time/streaming** parameter reference, not the pre-recorded one:
+
+| Provider | Live API parameters |
+|----------|--------------------|
+| Gladia | [Live init](https://docs.gladia.io/api-reference/v2/live/init) |
+| Deepgram | [Streaming API](https://developers.deepgram.com/docs/streaming) |
+| AssemblyAI | [Streaming Speech-to-Text](https://www.assemblyai.com/docs/speech-to-text/streaming) |
+| Speechmatics | [Real-Time API](https://docs.speechmatics.com/rt-api-ref) |
+| Soniox | [Real-Time API](https://soniox.com/docs) |
+| ElevenLabs | [Speech-to-Text](https://elevenlabs.io/docs/capabilities/speech-to-text) (params not validated at creation - errors surface via the `error` event) |
+
 <Callout type="warn">
   `encoding`, `sample_rate`, `bit_depth` and `channels` are set by the platform and cannot be overridden through `custom_params`. To control the audio sample rate, use `streaming_config.audio_frequency`.
 </Callout>
