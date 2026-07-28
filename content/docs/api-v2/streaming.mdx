@@ -148,12 +148,55 @@ The `streaming_config.transcription` object configures the real-time STT provide
 |-------|------|---------|-------------|
 | `provider` | `string` | `gladia` | Real-time STT provider: `gladia`, `deepgram`, `assemblyai`, `speechmatics`, `soniox`, or `elevenlabs` (streaming-only) |
 | `api_key` | `string \| null` | `null` | Your provider API key (BYOK). Leave `null` to use the platform key |
-| `custom_params` | `object \| null` | `null` | Provider-specific advanced options |
+| `custom_params` | `object \| null` | `null` | Provider-specific advanced options, forwarded to the provider's **live session API** (see [Custom Parameters](#custom-parameters-live-vs-batch)) |
 | `region` | `string \| null` | `null` | Provider API region. When omitted, provider defaults apply (`gladia=eu-west`, `deepgram=eu`, `assemblyai=eu`, `speechmatics=eu1`, `soniox=us`, `elevenlabs=global`) |
 
 <Callout type="info">
   All [batch transcription providers](/docs/api-v2/transcription#transcription-providers) are available for real-time streaming, plus **ElevenLabs**, which is streaming-only. In `transcription` mode, `output_url` is still a **WebSocket** endpoint (`wss://`) - the bot opens a WebSocket connection to it and sends JSON text messages. It does not send HTTP POST requests.
 </Callout>
+
+#### Custom Parameters (live vs. batch)
+
+`custom_params` is forwarded to the provider's **live session API** - for Gladia, that is [`POST /v2/live`](https://docs.gladia.io/api-reference/v2/live/init), not the [pre-recorded API](https://docs.gladia.io/api-reference/v2/pre-recorded/init) used for [batch transcription](/docs/api-v2/transcription). The two APIs accept **different shapes**, and reusing batch-shaped params is the most common mistake: for example, Gladia's live API nests translation under `realtime_processing`, while the batch API takes `translation_config` at the top level.
+
+```json
+{
+  "streaming_config": {
+    "mode": "transcription",
+    "output_url": "wss://your-server.com/transcripts",
+    "transcription": {
+      "provider": "gladia",
+      "custom_params": {
+        "language_config": { "languages": ["ru"] },
+        "realtime_processing": {
+          "translation": true,
+          "translation_config": { "target_languages": ["en", "de", "it"] }
+        }
+      }
+    }
+  }
+}
+```
+
+`custom_params` is validated against the provider's live schema when you create the bot - unknown fields are rejected with a `400` that points at the correct live-API location where one exists (e.g. `translation_config` → `realtime_processing.translation_config`).
+
+<Callout type="warn">
+  `encoding`, `sample_rate`, `bit_depth` and `channels` are set by the platform and cannot be overridden through `custom_params`. To control the audio sample rate, use `streaming_config.audio_frequency`.
+</Callout>
+
+#### Transcription Session Events
+
+In `transcription` mode, the bot sends three event types to `output_url`, all sharing the `{ "event", "bot_id", "data" }` envelope:
+
+| Event | When | `data` |
+|-------|------|--------|
+| `session.started` | The provider transcription session is live - transcript segments will follow | `{ "provider": "gladia" }` |
+| `transcript.segment` | One per transcript piece (partial and final) | See [Transcript Events](#transcript-events) |
+| `error` | The transcription session failed to start or died mid-meeting | `{ "code": "transcription_session_failed", "message": "..." }` |
+
+If you receive `error`, live transcription is down for the rest of the meeting - the `message` field carries the provider's reason (e.g. rejected parameters). Recording and [batch transcription](/docs/api-v2/transcription) are unaffected. Treat a connection that never receives `session.started` as not yet live rather than silent.
+
+The bot also sends standard WebSocket ping frames roughly every 30 seconds so intermediaries (e.g. Cloudflare tunnels, which drop idle connections after ~100s) keep the connection open through quiet stretches of the meeting. Most WebSocket libraries answer pings automatically - no action needed.
 
 #### Transcript Events
 
@@ -179,7 +222,7 @@ Your WebSocket server receives JSON text messages, one per transcript segment. E
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `event` | `string` | Always `"transcript.segment"` - the only event type sent in transcription mode |
+| `event` | `string` | `"transcript.segment"` for transcript messages (see [Transcription Session Events](#transcription-session-events) for the other event types) |
 | `bot_id` | `string` | UUID of the bot |
 | `data.text` | `string` | Transcribed text for this segment |
 | `data.isFinal` | `boolean` | `false` for partial (interim) segments, `true` for final segments (see [Partial vs. Final Segments](#partial-vs-final-segments)) |

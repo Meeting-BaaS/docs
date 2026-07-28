@@ -61,8 +61,8 @@ In addition to all of the batch providers above, real-time streaming transcripti
 
 - **ElevenLabs**
 
-<Callout type="info">
-  Provider-specific advanced options are passed through `custom_params`. The available options depend on the provider you select.
+<Callout type="warn">
+  Batch and real-time streaming use **different provider APIs with different `custom_params` shapes**. The parameters documented on this page apply to **batch** transcription (e.g. Gladia's [pre-recorded API](https://docs.gladia.io/api-reference/v2/pre-recorded/init)). For `streaming_config.transcription.custom_params`, use the provider's **live API** shape instead (e.g. Gladia's [live API](https://docs.gladia.io/api-reference/v2/live/init), where translation is nested under `realtime_processing`) - see [Streaming: Custom Parameters](/docs/api-v2/streaming#custom-parameters-live-vs-batch).
 </Callout>
 
 ## Bring Your Own Key (BYOK)
@@ -99,7 +99,7 @@ BYOK transcription is available on **Pro plans and above**. Pay-as-you-go plans 
 
 v2 supports advanced transcription features through custom parameters. These are provider-specific options that enhance transcription capabilities.
 
-For complete documentation on all available custom parameters, see the [Gladia API Reference](https://docs.gladia.io/api-reference/v2/pre-recorded/init).
+For complete documentation on all available custom parameters, see the [Gladia API Reference](https://docs.gladia.io/api-reference/v2/pre-recorded/init). These shapes apply to **batch** transcription only - for real-time streaming, see [Streaming: Custom Parameters](/docs/api-v2/streaming#custom-parameters-live-vs-batch).
 
 ### Available Custom Parameters
 
