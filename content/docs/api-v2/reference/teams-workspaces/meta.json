@@ -1,0 +1,10 @@
+{
+    "title": "Teams Workspaces",
+    "pages": [
+        "listTeamsWorkspaces",
+        "createTeamsWorkspace",
+        "getTeamsWorkspace",
+        "updateTeamsWorkspace",
+        "deleteTeamsWorkspace"
+    ]
+}

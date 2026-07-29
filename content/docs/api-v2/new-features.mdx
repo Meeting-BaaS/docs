@@ -6,6 +6,28 @@ icon: Sparkles
 
 Meeting BaaS v2 introduces significant improvements across security, transparency, developer experience, and feature availability. This document highlights the key enhancements that make v2 a compelling upgrade from v1.
 
+## Microsoft Teams Authenticated Bots
+
+v2 lets bots join Microsoft Teams as **authenticated Microsoft 365 users** with stored credentials, instead of only as anonymous guests.
+
+**v1**: Anonymous Teams joins only — bots failed on meetings restricted to signed-in users and waited in the lobby as guests.
+
+**v2**:
+- **Authenticated joins**: Bots sign in as a real Microsoft 365 user (email + password) from a tenant you control, so they can join meetings restricted to signed-in / in-organization users and get admitted past the lobby.
+- **No SAML, no certificates**: Teams sign-in is credential-based — there's no identity provider, keypair, or SSO profile to configure. The one requirement is an MFA-free account.
+- **Teams Workspaces & Teams Logins**: New `/v2/teams-workspaces` and `/v2/teams-logins` resources group your Microsoft 365 tenant and the accounts bots sign in as. Passwords are encrypted at rest with AES-256-GCM and are never returned.
+- **Round-robin pools**: Group logins by `email_group` and the dispatcher assigns the least-loaded active login (up to 20 concurrent sessions each by default). Add logins to scale capacity linearly.
+- **Configurable fallback**: Per bot, choose to `fail` (default) or fall back to an `anonymous` join when the pool is saturated.
+- **Utilization**: `GET /v2/teams-logins/utilization` reports live pool concurrency so you can stay ahead of saturation.
+
+### Benefits
+
+- Record Teams meetings that block anonymous guests
+- Get admitted past the lobby as an organization member
+- Scale authenticated capacity by adding logins
+
+See the [Microsoft Teams Authentication guide](/docs/api-v2/authenticated-bots/teams) to get started.
+
 ## Google Meet Authenticated Bots
 
 v2 lets bots join Google Meet as **authenticated Google Workspace users** via SAML SSO, instead of only as anonymous guests.
@@ -26,7 +48,7 @@ v2 lets bots join Google Meet as **authenticated Google Workspace users** via SA
 - Skip waiting rooms for fully unattended recording
 - Scale authenticated capacity by adding logins, with visibility into headroom
 
-See the [Google Meet Authentication guide](/docs/api-v2/getting-started/meet) to get started.
+See the [Google Meet Authentication guide](/docs/api-v2/authenticated-bots/meet) to get started.
 
 ## Enhanced Webhook Management
 

@@ -1,0 +1,11 @@
+{
+    "title": "Teams Logins",
+    "pages": [
+        "listTeamsLogins",
+        "createTeamsLogin",
+        "getTeamsLogin",
+        "updateTeamsLogin",
+        "deleteTeamsLogin",
+        "getTeamsLoginUtilization"
+    ]
+}

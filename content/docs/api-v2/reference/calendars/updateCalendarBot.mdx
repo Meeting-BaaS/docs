@@ -212,8 +212,11 @@ _openapi:
       - content: >-
           streaming_config.output_url: When mode is 'audio': WebSocket URL where
           the bot sends raw audio. When mode is 'transcription': WebSocket URL
-          where the bot sends transcript events as JSON messages with event
-          'transcript.segment'.
+          where the bot sends JSON messages: 'session.started' once live
+          transcription is up, 'transcript.segment' for each transcript piece,
+          and 'error' if the transcription session fails (e.g. invalid
+          custom_params or provider outage). The connection is kept alive with
+          WebSocket pings (~30s).
       - content: >-
           streaming_config.transcription: Transcription provider configuration
           for real-time streaming STT. Required when mode is 'transcription'.
@@ -232,6 +235,19 @@ _openapi:
 
           If you want to change streaming settings, you must provide both
           `streaming_enabled` and `streaming_config` together.
+      - content: >-
+          teams_config: Teams-only configuration for authenticated bots via a
+          signed-in Microsoft account.
+
+
+          - credential_id: pin a specific login.
+
+          - email_group: pool selector (preferred — takes priority).
+
+          - fallback: 'fail' (default) or 'anonymous' on saturation.
+
+
+          Leave null for anonymous Teams joins, Zoom, or Google Meet.
       - content: >-
           timeout_config: Configuration for automatic meeting exit behavior. For
           Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to

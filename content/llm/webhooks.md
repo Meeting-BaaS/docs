@@ -292,9 +292,11 @@ Bot Status Change payload structure
     "bot_id": "examplebot_id",
     "event_id": null,
     "status": {
+      "attempt": 0,
       "code": "examplecode",
       "created_at": "examplecreated_at",
       "error_message": "exampleerror_message",
+      "max": 0,
       "start_time": 0
     }
   },

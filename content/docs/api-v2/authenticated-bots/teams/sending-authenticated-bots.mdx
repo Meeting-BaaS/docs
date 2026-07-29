@@ -1,0 +1,136 @@
+---
+title: Sending Authenticated Bots
+description: Use teams_config to send authenticated Microsoft Teams bots, manage round-robin pools, configure fallback behavior, and monitor login pool utilization
+icon: Send
+---
+
+# Sending Authenticated Bots
+
+Once you have at least one **active** teams workspace and login (see [Setup](/docs/api-v2/authenticated-bots/teams/setup)), add a `teams_config` object to your `POST /v2/bots` request to make the bot sign in before joining.
+
+## Round-robin pool (recommended)
+
+Assign the bot to the least-loaded active login in a pool by passing `email_group`. This spreads load across all logins sharing that group and is the right default for unattended recording at scale.
+
+```bash
+curl -X POST https://api.meetingbaas.com/v2/bots \
+  -H "x-meeting-baas-api-key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "bot_name": "Recording Bot",
+    "meeting_url": "https://teams.microsoft.com/meet/1234567890?p=AbCdEfGhIj",
+    "teams_config": {
+      "email_group": "bots@acme.onmicrosoft.com",
+      "fallback": "fail"
+    }
+  }'
+```
+
+To round-robin across **all** of your team's active logins without filtering by group, pass an empty string:
+
+```json
+{ "teams_config": { "email_group": "" } }
+```
+
+## Pin a specific login
+
+Use `credential_id` to force the bot to use one particular login.
+
+```json
+{
+  "bot_name": "Recording Bot",
+  "meeting_url": "https://teams.microsoft.com/meet/1234567890?p=AbCdEfGhIj",
+  "teams_config": {
+    "credential_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  }
+}
+```
+
+<Callout type="info">
+If you set both `email_group` and `credential_id`, **`email_group` wins** — the pool selector takes priority. Use `credential_id` alone when you need a deterministic, fixed identity.
+</Callout>
+
+## Fallback behavior
+
+`fallback` controls what happens when no login slot is available (the whole pool is saturated, or no matching active login exists):
+
+| Value | Behavior |
+|-------|----------|
+| `fail` (default) | Bot creation fails immediately with `TEAMS_LOGIN_UNAVAILABLE`. Use this when an authenticated identity is mandatory. |
+| `anonymous` | The bot silently falls back to an anonymous (non-authenticated) join. Use this when getting *a* bot in matters more than its identity. |
+
+```json
+{ "teams_config": { "email_group": "bots@acme.onmicrosoft.com", "fallback": "anonymous" } }
+```
+
+## Getting admitted past the lobby
+
+Signing in is what gets the bot admitted. When the login account belongs to the **organizer's organization** — or the meeting's lobby policy admits people in the org — the authenticated bot is let in automatically instead of waiting as an anonymous guest. For meetings restricted to signed-in users, an authenticated bot is the only way in; an anonymous bot fails with `TEAMS_LOGIN_REQUIRED`. Use accounts in (or federated with) the organizer's tenant when you need reliable, unattended admission.
+
+## Concurrency and capacity
+
+Each login supports up to **20 concurrent sessions**. The dispatcher:
+
+1. Filters to **active** logins matching your selector.
+2. Picks the one with the lowest `active_session_count`.
+3. Skips any login already at capacity.
+
+If every candidate is saturated, the request fails with `TEAMS_LOGIN_UNAVAILABLE` (or falls back to anonymous). To raise the ceiling, **add more logins** to the pool — capacity scales linearly with the number of active logins.
+
+## Monitoring pool utilization
+
+### Configure a utilization alert first (recommended)
+
+Don't wait until bots start failing. Set up a **login utilization** threshold alert so you're notified automatically as your pool fills up — for example, alert when utilization reaches **70%**, giving you time to add logins before you hit the ceiling. Pair it with an operational alert on `TEAMS_LOGIN_UNAVAILABLE` so you also hear about it the moment a bot actually fails to get an authenticated slot. Both are configured from the **Alerts** section of your dashboard. See [Alerts](/docs/api-v2/alerts).
+
+### Check utilization on demand
+
+For an ad-hoc or programmatic view, call `GET /v2/teams-logins/utilization` to see live concurrency across your pool. It's cheap to poll and returns uncached, live counters.
+
+```bash
+curl https://api.meetingbaas.com/v2/teams-logins/utilization \
+  -H "x-meeting-baas-api-key: $API_KEY"
+```
+
+```json
+{
+  "success": true,
+  "data": {
+    "logins_total": 5,
+    "logins_active": 5,
+    "logins_invalid": 0,
+    "concurrent_sessions": 42,
+    "concurrent_capacity": 100,
+    "utilization_pct": 42,
+    "by_email_group": [
+      { "email_group": "bots@acme.onmicrosoft.com", "logins": 5, "concurrent": 42, "capacity": 100 }
+    ]
+  }
+}
+```
+
+| Field | Meaning |
+|-------|---------|
+| `logins_total` / `logins_active` / `logins_invalid` | Login counts for your team by state. |
+| `concurrent_sessions` | Bots currently in flight using your auth pool (sum of `active_session_count` across active logins). |
+| `concurrent_capacity` | `logins_active × 20` (the per-login session limit). |
+| `utilization_pct` | `concurrent_sessions / concurrent_capacity`, as a percentage. |
+| `by_email_group` | The same metrics broken down per pool. |
+
+## Troubleshooting
+
+| Error code | Meaning | What to do |
+|------------|---------|------------|
+| `TEAMS_LOGIN_UNAVAILABLE` | No login slot was available (pool saturated or no matching active login) and `fallback` was `fail`. | Add logins, lower concurrency, or set `fallback: "anonymous"`. Watch utilization. |
+| `TEAMS_LOGIN_REQUIRED` | The meeting required a signed-in user but the bot could not authenticate. | Ensure `teams_config` is set and the selected login is `active`. |
+| `TEAMS_LOGIN_FAILED_BAD_CREDENTIALS` | Microsoft rejected the email/password. | Update the stored `password` via `PATCH /v2/teams-logins/{credential_id}` and confirm the account isn't locked. The login auto-flips to `invalid`; re-enable after fixing. |
+| `TEAMS_LOGIN_FAILED_MFA_REQUIRED` | Sign-in hit the "Let's keep your account secure" / MFA page. | Make the account MFA-free (turn off Security Defaults or exclude it from your MFA policy), complete one interactive sign-in, then re-enable the login. |
+| `TEAMS_LOGIN_FAILED_TIMEOUT` | The sign-in did not complete in time. | Confirm the account isn't suspended and MFA is off; retry. |
+
+See [Error Codes](/docs/api-v2/error-codes) for the full list. These appear in the bot's `bot.failed` webhook and in the bot details `error_code` field.
+
+## Related resources
+
+- [Setup](/docs/api-v2/authenticated-bots/teams/setup) — one-time workspace and login configuration
+- [Create a bot](/docs/api-v2/reference/bots/createBot) — full bot creation reference
+- [Teams Logins utilization](/docs/api-v2/reference/teams-logins/getTeamsLoginUtilization) — pool metrics endpoint

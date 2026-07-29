@@ -65,14 +65,14 @@ Threshold alerts fire when a resource metric crosses a configured boundary. They
 
 ### Meet login alerts
 
-If you run [authenticated Google Meet bots](/docs/api-v2/getting-started/meet), two alert types help you keep the authentication pool healthy. Configure these **before** you rely on the pool in production — together they warn you as it fills up and tell you the moment it overflows.
+If you run [authenticated Google Meet bots](/docs/api-v2/authenticated-bots/meet), two alert types help you keep the authentication pool healthy. Configure these **before** you rely on the pool in production — together they warn you as it fills up and tell you the moment it overflows.
 
 | Alert | Category | What it tracks | Recommended setup |
 |-------|----------|----------------|-------------------|
 | **Meet Login Utilization** | Threshold | The percentage of your pool's concurrent capacity in use (`utilization_pct` from [`GET /v2/meet-logins/utilization`](/docs/api-v2/reference/meet-logins/getMeetLoginUtilization)). | `>= 70%`, so you have time to add logins before saturation. |
 | **Meet Login Unavailable** | Operational | Bots that failed to get an authenticated login slot because the pool was saturated (`MEET_LOGIN_UNAVAILABLE`). | `>= 1` occurrence, to hear about saturation immediately. |
 
-Use the **Meet Login Utilization** alert as the early warning and **Meet Login Unavailable** as the safety net. When either fires, add more meet logins to the pool (each login adds capacity) or reduce concurrent bot dispatch. See [Sending Authenticated Bots → Monitoring pool utilization](/docs/api-v2/getting-started/meet/sending-authenticated-bots#monitoring-pool-utilization) for how capacity and round-robin assignment work.
+Use the **Meet Login Utilization** alert as the early warning and **Meet Login Unavailable** as the safety net. When either fires, add more meet logins to the pool (each login adds capacity) or reduce concurrent bot dispatch. See [Sending Authenticated Bots → Monitoring pool utilization](/docs/api-v2/authenticated-bots/meet/sending-authenticated-bots#monitoring-pool-utilization) for how capacity and round-robin assignment work.
 
 ## Delivery Channels
 
@@ -1016,1081 +1016,64 @@ When a bot completes, you'll receive a webhook with all artifact URLs:
 
 ---
 
-## Batch Operations
+## Authenticated Bots
 
-Learn how to create multiple bots in a single request
+Send bots that sign in as a real Google Workspace or Microsoft 365 user before joining, so they can enter sign-in-restricted meetings and bypass the waiting room
 
-### Source: ./content/docs/api-v2/batch-operations.mdx
+### Source: ./content/docs/api-v2/authenticated-bots/index.mdx
 
 
-Batch operations allow you to create multiple bots in a single API request. This is useful for bulk operations and reduces the number of API calls needed.
+# Authenticated Bots
 
-## Creating Multiple Bots
+By default, Meeting BaaS bots join as **anonymous guests**. That's fine for open meetings, but it falls short when a meeting is **restricted to signed-in users**, restricted to the host's organization, or sends guests to a **waiting room / lobby**.
 
-To create multiple bots at once, use the batch endpoint:
-
-```bash
-curl -X POST "https://api.meetingbaas.com/v2/bots/batch" \
-     -H "Content-Type: application/json" \
-     -H "x-meeting-baas-api-key: YOUR-API-KEY" \
-     -d '[
-           {
-             "meeting_url": "https://meet.google.com/abc-defg-hij",
-             "bot_name": "Bot 1",
-             "recording_mode": "speaker_view"
-           },
-           {
-             "meeting_url": "https://zoom.us/j/123456789",
-             "bot_name": "Bot 2",
-             "recording_mode": "gallery_view"
-           }
-         ]'
-```
-
-## Response Format
-
-The batch endpoint returns a response with both successful and failed items:
-
-```json
-{
-  "success": true,
-  "data": {
-    "success": [
-      {
-        "index": 0,
-        "bot_id": "123e4567-e89b-12d3-a456-426614174000",
-        "extra": null
-      }
-    ],
-    "errors": [
-      {
-        "index": 1,
-        "code": "INSUFFICIENT_TOKENS",
-        "message": "Insufficient tokens. Available: 0, Required: 0.5",
-        "details": null,
-        "extra": null
-      }
-    ]
-  }
-}
-```
-
-## Partial Success
-
-Batch operations support **partial success**. This means:
-
-- Some bots may be created successfully while others fail
-- Each item is processed independently
-- Errors for one item don't prevent other items from being processed
-- The response includes both successful and failed items with their original indices
-
-## Error Handling
-
-Each item in the batch is validated and processed individually. Common errors include:
-
-- `INSUFFICIENT_TOKENS`: Not enough tokens to create the bot
-- `DAILY_BOT_CAP_REACHED`: Daily bot creation limit reached
-- `BOT_ALREADY_EXISTS`: A bot already exists for this meeting URL (if `allow_multiple_bots` is `false`)
-- `INVALID_MEETING_PLATFORM`: Could not determine meeting platform from URL
-- `VALIDATION_ERROR`: Request validation failed
-
-## Use Cases
-
-Batch operations are ideal for:
-
-- Bulk bot creation for multiple meetings
-- Scheduled bot creation for recurring events
-- Migrating bots from another system
-- Creating test bots in bulk
-
-## Batch Size Limits
-
-- **Minimum**: 1 bot per batch
-- **Maximum**: 100 bots per batch
-
-If you exceed 100 items, the request will fail with a validation error.
-
-## Best Practices
-
-1. **Validate data before batching**: Ensure all meeting URLs and configurations are valid
-2. **Handle partial success**: Always check both `success` and `errors` arrays in the response
-3. **Use appropriate batch sizes**: Consider processing in batches of 10-50 items for better error handling and easier debugging
-4. **Monitor token balance**: Ensure you have sufficient tokens for all bots in the batch
-5. **Check daily bot cap**: Make sure you won't exceed your daily bot creation limit
-
-## Scheduled Bot Batch
-
-You can also create multiple scheduled bots in a single request:
-
-```bash
-curl -X POST "https://api.meetingbaas.com/v2/bots/scheduled/batch" \
-     -H "Content-Type: application/json" \
-     -H "x-meeting-baas-api-key: YOUR-API-KEY" \
-     -d '[
-           {
-             "meeting_url": "https://meet.google.com/abc-defg-hij",
-             "bot_name": "Scheduled Bot 1",
-             "join_at": "2025-01-20T14:00:00Z"
-           },
-           {
-             "meeting_url": "https://zoom.us/j/123456789",
-             "bot_name": "Scheduled Bot 2",
-             "join_at": "2025-01-20T15:00:00Z"
-           }
-         ]'
-```
-
-## Token Reservation
-
-Tokens are reserved individually for each bot in the batch. If one bot fails due to insufficient tokens, other bots in the batch may still succeed if tokens are available.
-
-## Daily Bot Cap
-
-The daily bot cap is checked for each bot individually. If you're creating 100 bots but your daily cap is 75, the first 75 will succeed and the remaining 25 will fail with `DAILY_BOT_CAP_REACHED`.
-
-
-
----
-
-## Community & Support
-
-Get help and connect with the Meeting BaaS community
-
-### Source: ./content/docs/api-v2/community-and-support.mdx
-
-
-Need help? We're here for you!
-
-## Support Channels
-
-- **Support Center**: Visit [Support center](https://dashboard.meetingbaas.com/support-center) to create and manage support tickets, view ticket status, and track your support requests
-- **Discord**: Join our [Discord community](https://discord.com/invite/dsvFgDTr6c) for real-time support and discussions
-- **Email**: Contact us at support@meetingbaas.com
-- **Documentation**: Browse our comprehensive documentation
-
-## Resources
-
-- **API Reference**: Complete API documentation with examples
-- **Getting Started Guides**: Step-by-step tutorials
-- **Webhooks Guide**: Learn about webhook events and configuration
-- **Examples**: Code samples in multiple languages
-
-## Contributing
-
-Found an issue or have a suggestion? We welcome contributions!
-
-- Open an issue on GitHub
-- Submit a pull request
-- Share feedback in our Discord
-
-## Status
-
-Check our status page for real-time system status and incident updates.
-
-
-
----
-
-## Deduplication & Rate Limiting
-
-Learn about duplicate bot prevention and rate limiting in Meeting BaaS v2
-
-### Source: ./content/docs/api-v2/deduplication-rate-limiting.mdx
-
-
-Meeting BaaS v2 includes built-in protection against duplicate bots and rate limiting to ensure fair usage.
-
-## Deduplication
-
-Deduplication prevents multiple bots from joining the same meeting within a short time window.
-
-### How It Works
-
-By default, when you create a bot with `allow_multiple_bots: false`, the system:
-
-1. Checks if a bot already exists for the same meeting URL within the last 5 minutes
-2. If a bot exists, the request fails with `BOT_ALREADY_EXISTS`
-3. If no bot exists, a lock is acquired and the bot is created
-
-### Lock Duration
-
-The deduplication lock lasts for **5 minutes**. After this time, you can create another bot for the same meeting URL.
-
-### Allowing Multiple Bots
-
-If you want to allow multiple bots in the same meeting, set `allow_multiple_bots: true` when creating the bot:
-
-```json
-{
-  "meeting_url": "https://meet.google.com/abc-defg-hij",
-  "bot_name": "Bot 1",
-  "allow_multiple_bots": true
-}
-```
-
-With `allow_multiple_bots: true`, no deduplication lock is applied, and multiple bots can join the same meeting.
-
-### Use Cases
-
-**Prevent duplicates (`allow_multiple_bots: false`):**
-- Production environments where duplicate bots are unwanted
-- Preventing accidental double-booking
-- Ensuring only one bot per meeting
-
-**Allow multiple bots (`allow_multiple_bots: true`):**
-- Testing scenarios
-- Multiple recording perspectives
-- Backup bots for reliability
-
-## Rate Limiting
-
-Rate limiting controls how many requests per second your team can make to the API.
-
-### How It Works
-
-- Rate limits are applied **per team** (not per API key)
-- Limits are measured in **requests per second**
-- **GET requests are not rate limited** (list and get endpoints)
-- Only POST, PATCH, and DELETE requests are rate limited
-
-### Default Rate Limits
-
-Default rate limits vary by plan:
-
-- **Pay-as-you-go**: 5 requests/second
-- **Pro**: 10 requests/second
-- **Scale**: 20 requests/second
-- **Enterprise**: 20 requests/second (can be customised)
-
-### Rate Limit Headers
-
-When making requests, the API includes rate limit headers:
-
-- `x-ratelimit-limit`: Maximum requests per second
-- `x-ratelimit-remaining`: Remaining requests in the current window
-- `x-ratelimit-reset`: Time when the rate limit resets
-- `retry-after`: Seconds to wait before retrying (when limit exceeded)
-
-### Rate Limit Errors
-
-When you exceed the rate limit, you'll receive a `429 Too Many Requests` response:
-
-```json
-{
-  "success": false,
-  "error": "Rate Limited",
-  "code": "FST_ERR_TOO_MANY_REQUESTS",
-  "statusCode": 429,
-  "message": "Rate limit exceeded. Maximum <plan_limit> requests per second allowed. Retry after x seconds",
-  "retryAfter": 1
-}
-```
-
-The response includes a `retry-after` header indicating how many seconds to wait before retrying.
-
-### Best Practices
-
-1. **Respect rate limits**: Implement exponential backoff when you receive 429 errors
-2. **Use batch operations**: Create multiple bots in a single request instead of multiple individual requests
-3. **Cache responses**: Cache GET requests to reduce API calls
-4. **Monitor headers**: Check rate limit headers to understand your current usage
-
-## Daily Bot Cap
-
-In addition to rate limiting, each team has a **daily bot creation limit**:
-
-- **Pay-as-you-go**: 75 bots/day
-- **Pro**: 300 bots/day
-- **Scale**: 1,000 bots/day
-- **Enterprise**: 3,000 bots/day
-
-### How It Works
-
-- The daily bot cap is checked **before** creating each bot
-- The limit is based on a 24-hour rolling window
-- If the limit is reached, subsequent bot creation requests fail with `DAILY_BOT_CAP_REACHED`
-- The cap resets based on when bots were created (not a fixed time)
-
-### Error Response
-
-When the daily bot cap is reached:
-
-```json
-{
-  "success": false,
-  "error": "Rate Limited",
-  "message": "Daily bot cap has been reached: 75 bots created within the last 24 hours",
-  "code": "FST_ERR_DAILY_BOT_CAP_REACHED",
-  "statusCode": 429
-}
-```
-
-## Combining Limits
-
-All limits work together:
-
-1. **Rate limiting**: Controls requests per second
-2. **Daily bot cap**: Controls total bots per day
-3. **Token availability**: Controls whether you have tokens to create bots
-4. **Deduplication**: Prevents duplicate bots (if enabled)
-
-Make sure to account for all these limits when designing your integration.
-
-
-
----
-
-## Error Codes
-
-Complete reference for bot process error codes in Meeting BaaS v2
-
-### Source: ./content/docs/api-v2/error-codes.mdx
-
-
-When a bot fails, the error information is included in the `bot.failed` webhook event and in the bot details response. This page documents all possible error codes and their meanings.
-
-## Error Code Structure
-
-Error codes are standardized strings that indicate the reason a bot failed. They are included in:
-
-- `bot.failed` webhook events (`error_code` field)
-- Bot details response (`error_code` field)
-- Bot status history
-
-## Normal End Reasons
-
-These codes indicate the bot ended normally (not a failure):
-
-### `BOT_REMOVED`
-**Title:** Bot Removed  
-**Description:** Bot was removed from the meeting.
-
-### `NO_ATTENDEES`
-**Title:** No Attendees  
-**Description:** No attendees joined the meeting.
-
-### `NO_SPEAKER`
-**Title:** No Speaker  
-**Description:** No speakers detected during recording.
-
-### `RECORDING_TIMEOUT`
-**Title:** Recording Timeout  
-**Description:** Recording timeout reached.
-
-### `API_REQUEST`
-**Title:** API Request  
-**Description:** Recording stopped via API request (using the leave endpoint).
-
-## Error End Reasons
-
-These codes indicate the bot failed due to an error:
-
-### `BOT_NOT_ACCEPTED`
-**Title:** Bot Not Accepted  
-**Description:** Bot was not accepted into the meeting, either by the participants or the meeting platform.
-
-**Token Charging:** Only recording tokens are charged (based on waiting room duration).
-
-### `TIMEOUT_WAITING_TO_START`
-**Title:** Timeout Waiting to Start  
-**Description:** Timeout waiting to start recording.
-
-**Token Charging:** Only recording tokens are charged (based on waiting room duration).
-
-### `CANNOT_JOIN_MEETING`
-**Title:** Cannot Join Meeting  
-**Description:** Cannot join meeting - meeting is not reachable or may not exist.
-
-### `BOT_REMOVED_TOO_EARLY`
-**Title:** Bot Removed Too Early  
-**Description:** Bot was removed too early; the video is too short.
-
-### `INVALID_MEETING_URL`
-**Title:** Invalid Meeting URL  
-**Description:** Invalid meeting URL provided.
-
-### `STREAMING_SETUP_FAILED`
-**Title:** Streaming Setup Failed  
-**Description:** Failed to set up streaming audio.
-
-### `LOGIN_REQUIRED`
-**Title:** Login Required  
-**Description:** Login required to access the meeting.
-
-### `INTERNAL_ERROR`
-**Title:** Internal Error  
-**Description:** Internal error occurred during recording.
-
-## Crash Reasons
-
-These codes indicate the bot process crashed:
-
-### `OOM_KILLED`
-**Title:** Out of Memory  
-**Description:** Bot process was killed due to out of memory.
-
-### `SIGTERM`
-**Title:** Process Terminated  
-**Description:** Bot process was terminated.
-
-### `FORCE_KILLED`
-**Title:** Force Killed  
-**Description:** Bot process was force killed.
-
-### `GENERAL_ERROR`
-**Title:** General Error  
-**Description:** Bot process exited with a general error.
-
-## Pre-Recording Stop
-
-### `EXITING_MEETING_BEFORE_RECORD`
-**Title:** Exiting Meeting Before Record
-**Description:** The bot left the meeting before recording started. This can happen if the bot was requested to leave via the API (leave endpoint, scheduled bot deletion, or calendar bot cancellation), or if the meeting ended before the bot was accepted.
-
-**Token Charging:** No tokens are consumed for pre-recording stops.
-
-## Transcription Errors
-
-### `TRANSCRIPTION_FAILED`
-**Title:** Transcription Failed  
-**Description:** The transcription process failed. Please try again using re-transcribe endpoint or contact support.
-
-**Token Charging:** Recording and streaming tokens are charged, but transcription tokens are not.
-
-## Zoom-Specific Errors
-
-These errors are specific to Zoom meetings:
-
-### `WAITING_FOR_HOST_TIMEOUT`
-**Title:** Waiting for Host Timeout
-**Description:** The bot timed out while waiting for the meeting host to join the meeting.
-
-**Resolution:** Ensure the meeting host joins before the timeout expires. You can increase the timeout via `timeout_config.waiting_room_timeout`.
-
-### `WAITING_FOR_AUTHORIZED_USER_TIMEOUT`
-**Title:** Waiting for Authorized User Timeout
-**Description:** The bot timed out waiting for the authorized user (associated with the OBF token) to join the meeting. When using OBF tokens, the Zoom user who authorized your app must be present in the meeting for the bot to join successfully. The bot retries joining every few seconds, but if the authorized user never appears, this timeout is triggered.
-
-**Resolution:** Ensure the authorized user joins the meeting before or shortly after the bot. You can increase the timeout via `timeout_config.waiting_room_timeout`.
-
-### `UNABLE_JOIN_EXTERNAL_MEETING`
-**Title:** Unable to Join External Meeting
-**Description:** The Zoom SDK app is not authorized to join meetings hosted by a different Zoom organization. This occurs when the SDK app's configuration restricts it to meetings within its own Zoom organization.
-
-**Resolution:** Ensure the Zoom SDK app has permission to join external meetings in its [Zoom Marketplace app settings](https://marketplace.zoom.us/). Alternatively, use an OBF token from a user within the meeting's Zoom organization.
-
-### `RECORDING_RIGHTS_NOT_GRANTED`
-**Title:** Recording Rights Not Granted  
-**Description:** The bot was unable to obtain recording rights from the meeting host.
-
-### `CANNOT_REQUEST_RECORDING_RIGHT`
-**Title:** Cannot Request Recording Right  
-**Description:** The bot could not request recording rights. The meeting may not have recording enabled.
-
-### `MEETING_ENDED_PREMATURELY`
-**Title:** Meeting Ended Prematurely  
-**Description:** The meeting ended before the bot could participate.
-
-### `SET_ZOOM_ID_AND_PWD_TOGETHER`
-**Title:** Zoom SDK Configuration Error  
-**Description:** Zoom SDK ID and password must be set together.
-
-### `CANNOT_GET_JWT_TOKEN`
-**Title:** Cannot Get JWT Token  
-**Description:** Unable to obtain JWT token with the provided Zoom SDK credentials.
-
-### `SDK_AUTH_FAILED`
-**Title:** SDK Authentication Failed  
-**Description:** Zoom SDK authentication failed with the provided credentials.
-
-### `ZOOM_ACCESS_TOKEN_ERROR`
-**Title:** Zoom Access Token Error
-**Description:** An error occurred while obtaining the Zoom access token (ZAK token). This can happen when using `zak_token_url` and the endpoint fails to return a valid token.
-
-### `ZOOM_OBF_TOKEN_ERROR`
-**Title:** Zoom OBF Token Error
-**Description:** An error occurred while obtaining or using the OBF (On Behalf Of) token. This can happen when:
-
-- The `obf_token` provided is invalid or expired
-- The `obf_token_url` endpoint fails to return a valid token
-- The stored credential (`credential_id`) has invalid or expired OAuth tokens
-- Token refresh fails for managed OAuth credentials
-
-**Resolution:** Check your OBF token configuration. If using stored credentials, verify the credential state is "active" via `GET /v2/zoom-credentials/{id}`. If the credential is invalid, prompt the user to re-authorize.
-
-### `RECORDING_START_TIMEOUT`
-**Title:** Recording Start Timeout
-**Description:** Recording privilege was granted by the host, but the recording never started within the expected time. This may indicate an issue with the meeting platform's recording system.
-
-**Token Charging:** Recording tokens are charged based on the time spent waiting.
-
-### `HOST_CLIENT_CANNOT_GRANT_PERMISSION`
-**Title:** Host Client Cannot Grant Permission
-**Description:** The meeting host is using a Zoom client (such as Zoom Rooms) that cannot display the recording permission dialog. The bot cannot record this meeting.
-
-**Resolution:** This is a limitation of certain Zoom clients. The host would need to join from a standard Zoom desktop or mobile client to grant recording permission.
-
-## Google Meet Authentication Errors
-
-These errors apply to [authenticated Google Meet bots](/docs/api-v2/getting-started/meet) that sign in as a Google Workspace user via SAML SSO (`meet_config`).
-
-### `MEET_LOGIN_UNAVAILABLE`
-**Title:** Meet Login Unavailable
-**Description:** No meet login slot was available to authenticate the bot — every matching login was saturated (at its concurrent-session capacity) or no active login matched the selector — and `meet_config.fallback` was `fail`.
-
-**Resolution:** Add more logins to the pool, reduce concurrency, or set `meet_config.fallback` to `anonymous`. Monitor headroom with `GET /v2/meet-logins/utilization` and the **Meet Login Utilization** alert.
-
-### `MEET_LOGIN_REQUIRED`
-**Title:** Meet Login Required
-**Description:** The meeting required a signed-in user, but the bot could not authenticate (no `meet_config` was supplied, or the selected login could not be used).
-
-**Resolution:** Send the bot with a valid `meet_config` and ensure the selected login's state is `active` via `GET /v2/meet-logins/{credential_id}`.
-
-### `MEET_LOGIN_FAILED_SAML_REJECTED`
-**Title:** Meet Login Failed — SAML Rejected
-**Description:** Google rejected the SAML assertion during sign-in. Usually the certificate uploaded to Google Admin Console no longer matches the workspace's certificate, or the Legacy SSO profile is misconfigured or unassigned.
-
-**Resolution:** Verify the certificate in Google Admin matches the workspace `cert_pem` and that the SSO profile points at the `/v2/meet-sso/*` endpoints and is assigned to all users. The workspace auto-flips to `invalid`; re-enable it via `PATCH /v2/meet-workspaces/{workspace_id}` after fixing the configuration.
-
-### `MEET_LOGIN_FAILED_TIMEOUT`
-**Title:** Meet Login Failed — Timeout
-**Description:** The SSO sign-in flow did not complete within the expected time.
-
-**Resolution:** Confirm the Workspace user completed its first-time interactive "Welcome to Workspace" login and is not suspended, then retry. The login may auto-flip to `invalid`; re-enable it via `PATCH /v2/meet-logins/{credential_id}` after resolving the cause.
-
-## System Errors
-
-These errors occur when the system attempts to create a bot instance. For immediate bots, this happens at creation time and the error is returned in the API response. For scheduled and calendar bots, these errors can appear in `bot.failed` webhook events when the bot is being queued to join the meeting (at its scheduled join time).
-
-### `INSUFFICIENT_TOKENS`
-**Title:** Insufficient Tokens  
-**Description:** Not enough tokens were available to launch the bot.
-
-**When it occurs:**
-- **Immediate bots**: When you call `POST /v2/bots` (error returned in API response)
-- **Scheduled bots**: When the bot is being queued at its `join_at` time (error sent via `bot.failed` webhook)
-- **Calendar bots**: When the bot is being queued at its scheduled join time (error sent via `bot.failed` webhook)
-
-### `DAILY_BOT_CAP_REACHED`
-**Title:** Daily Bot Cap Reached  
-**Description:** The daily bot creation limit configured for this team has been reached.
-
-**When it occurs:**
-- **Immediate bots**: When you call `POST /v2/bots` (error returned in API response)
-- **Scheduled bots**: When the bot is being queued at its `join_at` time (error sent via `bot.failed` webhook)
-- **Calendar bots**: When the bot is being queued at its scheduled join time (error sent via `bot.failed` webhook)
-
-**Note:** For scheduled and calendar bots, the daily bot cap is checked when the bot is being queued, not when it's scheduled. This means a bot scheduled for later in the day might fail if the daily cap is reached before its scheduled time.
-
-### `BOT_ALREADY_EXISTS`
-**Title:** Bot Already Exists  
-**Description:** A bot is already running for this meeting URL.
-
-**When it occurs:**
-- **Immediate bots**: When you call `POST /v2/bots` and `allow_multiple_bots` is `false` (error returned in API response)
-- **Scheduled bots**: When the bot is being queued and another bot already exists for the same meeting URL (error sent via `bot.failed` webhook)
-- **Calendar bots**: When the bot is being queued and another bot already exists for the same meeting URL (error sent via `bot.failed` webhook)
-
-## Unknown Error
-
-### `UNKNOWN_ERROR`
-**Title:** Unknown Error  
-**Description:** An unknown error occurred. Please contact support.
-
-This is a fallback error code used when the actual error cannot be determined or mapped to a known error code.
-
-## Token Charging
-
-Different error codes result in different token charges:
-
-- **User-responsible errors** (`BOT_NOT_ACCEPTED`, `TIMEOUT_WAITING_TO_START`): Only recording tokens charged (based on waiting room duration)
-- **Transcription errors** (`TRANSCRIPTION_FAILED`): Recording and streaming tokens charged, transcription tokens not charged
-- **Other errors**: No tokens charged (reserved tokens are released)
-- **Normal end reasons**: Full tokens charged based on meeting duration and features used
-
-## Handling Errors
-
-When you receive a `bot.failed` webhook:
-
-1. Check the `error_code` to understand what went wrong
-2. Review the `error_message` for additional context
-3. For user-responsible errors (`BOT_NOT_ACCEPTED`, `TIMEOUT_WAITING_TO_START`, `WAITING_FOR_AUTHORIZED_USER_TIMEOUT`), ensure meeting settings allow bots and authorized users join promptly
-4. For transcription errors, you can retry transcription using the re-transcribe endpoint
-5. For system errors, check your token balance and daily bot cap
-6. For unknown errors, contact support with the bot ID and error details
-
-
-
----
-
-## Calendar integration
-
-Learn how to integrate calendars and schedule bots automatically
-
-### Source: ./content/docs/api-v2/getting-started/calendars.mdx
-
-
-Meeting BaaS v2 allows you to connect calendars (Google Calendar, Microsoft Outlook) and automatically schedule bots for calendar events. This guide walks you through setting up calendar integration in your application.
-
-## Overview
-
-Calendar integration enables:
-
-- Automatic bot scheduling for calendar events
-- Real-time sync of calendar events via push subscriptions
-- Webhook notifications for calendar changes
-- Support for recurring events
-- Automatic handling of event reschedules and cancellations
-
-## Prerequisites
-
-Before you can integrate calendars, you need to set up OAuth applications with Google and/or Microsoft. Meeting BaaS v2 uses a **bring-your-own-credentials** model, meaning you create and manage your own OAuth applications and provide the credentials when creating calendar connections.
-
-### What You Need
-
-You'll need two sets of credentials:
-
-1. **Your Application's OAuth Credentials** (Service Level):
-   - Google: OAuth 2.0 Client ID and Client Secret
-   - Microsoft: Azure AD Application (Client) ID and Client Secret
-
-2. **User's OAuth Refresh Token** (User Level):
-   - OAuth refresh token obtained when each user authorizes your application to access their calendar
+Authenticated bots solve this. Each bot signs in as a **real user** from an identity you control — a Google Workspace account for Google Meet, or a Microsoft 365 account for Microsoft Teams — before it joins the call. To the meeting, the bot looks like any other signed-in participant.
 
 <Callout type="info">
-  **Best Practice**: Request calendar access as a separate step after initial user signup. Users are more likely to grant calendar access when it's clearly tied to a specific feature they want to use.
+Authentication is configured **per platform** and passed per bot through a platform-specific config object (`meet_config`, `teams_config`, `zoom_config`). Leave all of them `null` for anonymous joins.
 </Callout>
 
-## Create Google Calendar OAuth Application
-
-You'll need to create a Google OAuth application that users can authorize to access their calendar. You can skip this step if your application won't support Google Calendar. We recommend creating separate applications for development and production.
-
-### Steps
-
-1. **Create a Google Cloud Project**: Follow the directions [here](https://support.google.com/cloud/answer/15549257) to create a new Google Cloud project that uses OAuth.
-
-2. **Enable Google Calendar API**: In your Google Cloud project, go to "APIs & Services" > "Library" and enable the [Google Calendar API](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com).
-
-3. **Create OAuth 2.0 Credentials**: 
-   - Go to "APIs & Services" > "Credentials"
-   - Click "Create Credentials" > "OAuth client ID"
-   - Choose "Web application" as the application type
-   - Add your authorized redirect URIs
-   - Use these scopes when requesting authorization:
-     - `https://www.googleapis.com/auth/calendar.readonly` - To read calendar and event data
-     - `https://www.googleapis.com/auth/userinfo.email` - To get the user's email address (optional but recommended)
-
-4. **OAuth Consent Screen**: 
-   - Configure your OAuth consent screen in "APIs & Services" > "OAuth consent screen"
-   - Google will need to approve your application before external users can authorize it. See [here](https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification) for more information
-   - Until your app is approved, only users on your test users list can authorize it. To edit the test users list, go to "OAuth Consent Screen" > "Test Users"
-
-### Important Notes for Google OAuth
-
-- **Refresh Token Requirement**: Calendar connections require offline access. When implementing the OAuth flow, you **must** include:
-  - `access_type=offline` parameter
-  - `prompt=consent` parameter (to force the consent screen and ensure you get a refresh token)
-- Without a refresh token, the connection will expire after ~1 hour and cannot be renewed
-
-## Create Microsoft Calendar OAuth Application
-
-You'll need to create a Microsoft Azure AD application that users can authorize to access their calendar. You can skip this step if your application won't support Microsoft Calendar. We recommend creating separate applications for development and production.
-
-### Steps
-
-1. **Register an Azure AD Application**: Follow the directions [here](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app) to create a new Microsoft Azure Active Directory application. When it asks you to choose "Supported account types", select "Accounts in any organizational directory (Any Microsoft Entra ID tenant - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)".
-
-2. **Configure API Permissions**: 
-   - Go to "API permissions" in your Azure AD app
-   - Add these delegated permissions:
-     - `Calendars.Read` - To read calendar and event data
-     - `User.Read` - To get the user's profile information (optional but recommended)
-   - Click "Add a permission" > "Microsoft Graph" > "Delegated permissions"
-
-3. **Publisher Verification** (Optional but Recommended):
-   - Microsoft can verify your application before external users can authorize it. See [here](https://learn.microsoft.com/en-us/entra/identity-platform/publisher-verification-overview) for more information
-   - This process is automated and should take less than an hour
-   - Steps to get verified:
-     - [Join the Microsoft AI Cloud Partner Program](https://partner.microsoft.com/en-us/partnership)
-     - [Configure your app's publisher domain](https://learn.microsoft.com/en-us/entra/identity-platform/howto-configure-publisher-domain)
-     - [Mark your app as publisher verified](https://learn.microsoft.com/en-us/entra/identity-platform/mark-app-as-publisher-verified)
-
-### Important Notes for Microsoft OAuth
-
-- **Refresh Token Requirement**: Calendar connections require offline access. When implementing the OAuth flow, you **must** include:
-  - `offline_access` scope in your OAuth request
-- Without a refresh token, the connection will expire after ~1 hour and cannot be renewed
-- **Tenant ID**: For Microsoft, you'll need to provide the Azure AD tenant ID. You can find this in Azure Portal > Azure Active Directory > Overview. You can also use `common`, `organizations`, or `consumers` for multi-tenant scenarios
-
-## Implement OAuth Flow
-
-You'll need to add code to handle the OAuth flow for users to authorize your Calendar OAuth applications. The flow is essentially the same for both Google and Microsoft:
-
-1. **Add an authorization endpoint**: Redirect users to the OAuth provider's authorization URL
-2. **Add a callback endpoint**: Handle the OAuth callback and exchange the authorization code for tokens
-3. **Exchange authorization code for refresh token**: In your callback endpoint, exchange the authorization code for an access token and refresh token
-4. **Create calendar connection**: After obtaining the refresh token, make a `POST /v2/calendars` request to create the calendar connection, passing:
-   - `oauth_client_id`: Your OAuth client ID
-   - `oauth_client_secret`: Your OAuth client secret
-   - `oauth_refresh_token`: The refresh token obtained from the user's authorization
-   - `oauth_tenant_id`: (Microsoft only) The Azure AD tenant ID
-   - `raw_calendar_id`: The calendar ID to connect (use `POST /v2/calendars/list-raw` to get available calendars)
-
-## Supported Platforms
-
-- **Google Calendar**: Full support for Google Workspace and personal accounts
-- **Microsoft Outlook**: Full support for Microsoft 365 and personal accounts
-
-## Calendar Events
-
-Once connected, calendar events are automatically synced. You can:
-
-- List all calendars
-- List events for a calendar
-- Get event details
-- Schedule bots for specific events or entire event series
-
-## Scheduling Bots for Calendar Events
-
-To schedule a bot for a calendar event:
-
-```bash
-curl -X POST "https://api.meetingbaas.com/v2/calendars/CALENDAR-ID/bots" \
-     -H "Content-Type: application/json" \
-     -H "x-meeting-baas-api-key: YOUR-API-KEY" \
-     -d '{
-           "event_id": "EVENT-ID",
-           "all_occurrences": false,
-           "bot_name": "AI Notetaker",
-           "recording_mode": "speaker_view"
-         }'
-```
-
-**Options:**
-- `event_id`: The specific event instance ID
-- `all_occurrences`: Set to `true` to schedule for all occurrences of a recurring event
-- `series_id`: Use this instead of `event_id` to schedule for an entire series
-
-## Shared Service Account Use Case (Invite-To-Schedule)
-
-Once the OAuth flow is configured, and if you want to avoid creating calendar connections for every end-user, you can connect a single dedicated "bot mailbox" (for example, `recording@xyz.io`) and reuse it.
-
-<Callout type="info">
-  Meeting BaaS v2 uses a bring-your-own-credentials model and requires OAuth refresh tokens obtained via a normal OAuth consent flow. See [Implement OAuth Flow](#implement-oauth-flow) above. The practical workaround for a "service account" is to use a dedicated mailbox/user account that can complete OAuth once, then reuse its refresh token.
-</Callout>
-
-### How it works
-
-1. Create a dedicated provider account and calendar (the bot mailbox).
-2. Run a single OAuth consent flow for the bot mailbox to obtain its refresh token, then connect that calendar to Meeting BaaS v2 using `POST /v2/calendars` (you'll get one `calendar_id` for this shared connection).
-3. When you need a bot, create the meeting/event and invite the bot mailbox. Make sure the event contains a meeting URL (since bot scheduling depends on it).
-4. Meeting BaaS syncs the event into that connection and emits webhooks for the connection and subsequent event changes.
-5. In your webhook handler, schedule the bot for the relevant `event_id` using `POST /v2/calendars/{calendar_id}/bots`. For recurring meetings, prefer `series_id` or `all_occurrences`.
-
-## Webhooks
-
-Calendar integrations trigger webhook events for:
-- **Connection changes**: When a calendar connection is created, updated, or has a status change
-- **Initial sync**: A `calendar.events_synced` webhook is sent once when a calendar is first connected, containing all events within the 30-day window
-- **Event changes**: Individual webhooks for event creation, updates, and cancellations (sent for all subsequent changes after initial sync)
-
-### Initial Sync Webhook
-
-When a calendar connection is first created, you'll receive a single `calendar.events_synced` webhook containing all events within the 30-day materialization window. This webhook is sent **only once** and will not be triggered again for:
-- Subsequent syncs via push notifications
-- Manual resyncs
-- Periodic background syncs
-
-**How to use it:**
-
-You have two options for handling the initial event data:
-
-1. **Use the webhook payload**: The `calendar.events_synced` webhook contains the complete event data, which you can use for initial reconciliation
-2. **Call the API endpoints**: Alternatively, you can call the `GET /v2/calendars/{calendar_id}/events` or `GET /v2/calendars/{calendar_id}/series` endpoints to fetch the initial event data
-
-Most applications use the API endpoints for initial reconciliation, as they may already be calling these endpoints for other purposes.
-
-See the [Webhooks documentation](/docs/api-v2/webhooks) for details on all calendar webhook events and their payloads.
-
-## FAQ
-
-<Accordions type="single">
-
-<Accordion
-  title="What happens if a calendar event is updated close to its start time?"
->
-
-**Lock Window Behavior (4 minutes before event start):**
-
-When an event is updated within 4 minutes of its start time, the system enters a "lock window" where the original bot schedule is preserved to prevent disruption. Here's what happens:
-
-- **Original bot continues**: The bot that was already scheduled will still attempt to join using the original meeting details
-- **New bot is also created**: A second bot schedule is created with the updated event details
-- **Why this happens**: The original bot may have already been queued for processing before the event update occurred
-
-**Outside Lock Window (more than 4 minutes before start):**
-
-If an event is updated more than 4 minutes before its start time, the bot schedule is safely updated with the new event details, and only one bot will join.
-
-</Accordion>
-
-<Accordion
-  title="What happens if a calendar event is deleted close to its start time?"
->
-
-When a calendar event is deleted, the bot schedule is automatically cancelled. If a bot has already been spawned for the event, it will be stopped — the bot will abort before joining or leave the meeting if it's already in.
-
-No tokens are consumed if the bot hadn't started recording yet.
-
-</Accordion>
-
-<Accordion
-  title="What happens if the meeting URL is removed from an event?"
->
-
-**If the event originally had a meeting URL:**
-- The bot will use the meeting URL from the bot configuration, which was captured when the bot was scheduled
-- The bot will still attempt to join even if the URL is later removed from the calendar event
-
-**If the event never had a meeting URL:**
-- No bot schedule is created
-- Calendar events without meeting URLs are skipped during bot scheduling
-
-</Accordion>
-
-<Accordion title="How often are calendar events synced?">
-
-Calendar events are synced via **push notifications (real-time)**:
-- **Google Calendar**: Push notifications via watch channels (renewed every 7 days)
-- **Microsoft Calendar**: Push notifications via subscriptions (renewed every 2 days)
-- Changes are typically reflected within seconds
-
-</Accordion>
-
-<Accordion
-  title="What is the event materialization window?"
->
-
-Meeting BaaS maintains a **30-day rolling window** of calendar events:
-- Events are synced from **now** to **30 days in the future**
-- Events outside this window are not stored or monitored
-- As time progresses, new events enter the window and old events are removed
-
-</Accordion>
-
-<Accordion title="How are recurring events handled?">
-
-**Series-Level Bot Scheduling:**
-- You can schedule a bot for all occurrences of a recurring event using `all_occurrences: true` or by providing the `series_id`
-- When scheduled at the series level, bots are automatically created for:
-  - All existing instances within the 30-day window
-  - New instances as they enter the window
-
-**Series Invalidation:**
-
-In some cases, the calendar platform may invalidate an event series (such as when the recurrence pattern changes, an event is moved to a significantly different date, etc.). When this happens:
-- All instances of the old series are cancelled
-- A new series is created with the updated details
-- If series-level bot scheduling was enabled, bots are automatically scheduled for the new series
-
-This behavior is inline with how calendar platforms handle major changes to recurring events.
-
-</Accordion>
-
-<Accordion title="What happens if I decline a calendar event?">
-
-If you decline a calendar event (as the calendar owner):
-- The event is treated as **cancelled** in Meeting BaaS
-- No bot will be scheduled for declined events
-- Existing bot schedules for declined events are automatically cancelled
-
-</Accordion>
-
-<Accordion title="Can I schedule bots for all-day events?">
-
-All-day events are synced and stored, but:
-- They typically don't have meeting URLs
-- Bots are only scheduled for events with valid meeting URLs
-- All-day events without meeting URLs are skipped during bot scheduling
-
-</Accordion>
-
-<Accordion
-  title="What meeting platforms are supported?"
->
-
-Meeting BaaS automatically detects meeting URLs for:
-- **Zoom** (`zoom.us`)
-- **Google Meet** (`meet.google.com`)
-- **Microsoft Teams** (`teams.microsoft.com`)
-- **Other platforms**: URLs are stored but may not be automatically detected
-
-The meeting platform is detected from:
-- The event's meeting URL field
-- The event description (for embedded links)
-- Conference data (Google Calendar)
-
-</Accordion>
-
-<Accordion
-  title="How are event exceptions handled?"
->
-
-**Event exceptions** are recurring event instances that have been modified:
-- Modified start time
-- Changed title, description, or location
-- Different meeting URL
-
-Exceptions are:
-- Tracked with an `is_exception: true` flag
-- Synced and stored separately from the series pattern
-- Handled correctly for bot scheduling
-
-</Accordion>
-
-<Accordion title="What if my OAuth credentials expire?">
-
-**Refresh Token Expiration:**
-- Google: Refresh tokens don't expire unless revoked by the user
-- Microsoft: Refresh tokens are valid for 90 days but are automatically renewed with each use
-
-**If credentials become invalid:**
-- The calendar connection status changes to `error` or `revoked`
-- You'll receive a webhook notification
-- Users must re-authorize your application to restore the connection
-
-</Accordion>
-
-<Accordion
-  title="How do I handle calendar connection errors?"
->
-
-Monitor the `status` field on calendar connections:
-- `active`: Connection is working normally
-- `error`: Temporary error (e.g., sync failure) - may recover automatically
-- `revoked`: User revoked access - requires re-authorization
-- `permission_denied`: Missing required permissions - check OAuth scopes
-
-You'll receive webhook notifications for connection status changes.
-
-</Accordion>
-
-<Accordion
-  title="Can I connect multiple calendars from the same account?"
->
-
-Yes! You can create separate calendar connections for:
-- Multiple calendars from the same Google account
-- Multiple calendars from the same Microsoft account
-- Primary calendar + shared calendars
-
-Each connection is independent and has its own:
-- Sync status
-- Bot schedules
-- Webhook events
-
-</Accordion>
-</Accordions>
-
-
-
----
-
-## Getting the data
-
-Learn how to retrieve meeting recordings, transcriptions, and other data from bots
-
-### Source: ./content/docs/api-v2/getting-started/getting-the-data.mdx
-
-
-Once a bot completes recording a meeting, you can retrieve the meeting data including recordings, transcriptions, and metadata.
-
-## Getting Bot Details
-
-To get all information about a bot, including artifact URLs:
-
-```bash
-curl -X GET "https://api.meetingbaas.com/v2/bots/BOT-ID" \
-     -H "x-meeting-baas-api-key: YOUR-API-KEY"
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "bot_id": "123e4567-e89b-12d3-a456-426614174000",
-    "status": "completed",
-    "meeting_url": "https://meet.google.com/...",
-    "video": "https://s3.amazonaws.com/.../video.mp4",
-    "audio": "https://s3.amazonaws.com/.../audio.mp3",
-    "transcription": "https://s3.amazonaws.com/.../transcription.json",
-    "diarization": "https://s3.amazonaws.com/.../diarization.json",
-    "participants": [
-      { "name": "Alice", "id": 1, "display_name": "Alice", "profile_picture": "https://..." },
-      { "name": "Bob", "id": 2 }
-    ],
-    "speakers": [
-      { "name": "Alice", "id": 1, "display_name": "Alice", "profile_picture": "https://..." },
-      { "name": "Bob", "id": 2 }
-    ],
-    "duration_seconds": 3600,
-    "created_at": "2025-01-15T10:00:00Z",
-    "updated_at": "2025-01-15T11:00:00Z"
-  }
-}
-```
-
-## Getting Bot Status
-
-For a lightweight status check:
-
-```bash
-curl -X GET "https://api.meetingbaas.com/v2/bots/BOT-ID/status" \
-     -H "x-meeting-baas-api-key: YOUR-API-KEY"
-```
-
-**Response:**
-
-```json
-{
-  "success": true,
-  "data": {
-    "bot_id": "123e4567-e89b-12d3-a456-426614174000",
-    "status": "in_call_recording",
-    "transcription_status": "processing",
-    "updated_at": "2025-01-15T10:30:00Z"
-  }
-}
-```
-
-## Getting Screenshots
-
-To get screenshots taken during the meeting:
-
-```bash
-curl -X GET "https://api.meetingbaas.com/v2/bots/BOT-ID/screenshots" \
-     -H "x-meeting-baas-api-key: YOUR-API-KEY"
-```
-
-**Note:** Screenshots are only available for Google Meet and Microsoft Teams. Zoom does not support screenshots.
-
-## Artifact URLs
-
-All artifact URLs (video, audio, transcription, diarization) are **presigned S3 URLs** that are valid for **4 hours**. Make sure to download them within this time window.
-
-For detailed information about each artifact type, their formats, and use cases, see the [Artifacts documentation](/docs/api-v2/artifacts).
-
-## Recommended Approach
-
-Instead of polling the API, we recommend:
-
-1. **Use webhooks**: Configure webhooks in your account settings to receive `bot.completed` events automatically
-2. **Use callbacks**: Provide a `callback_config` when creating the bot to receive notifications for that specific bot
-3. **Poll only when necessary**: If you must poll, use a judicious interval (e.g., every 5-10 minutes) and only for reconciliation purposes
-
-For more details, see the [Webhooks documentation](/docs/api-v2/webhooks).
+## Choose your platform
+
+<Cards>
+  <Card title="Microsoft Teams Authentication" href="/docs/api-v2/authenticated-bots/teams">
+    Sign in as a Microsoft 365 user with **stored credentials** (email + password). No SAML, no certificates — just an MFA-free account you provision.
+  </Card>
+  <Card title="Google Meet Authentication" href="/docs/api-v2/authenticated-bots/meet">
+    Sign in as a Google Workspace user via **SAML SSO**. Meeting BaaS acts as the SAML IdP; you configure a Legacy SSO profile in the Google Admin Console.
+  </Card>
+  <Card title="Zoom Integration" href="/docs/api-v2/authenticated-bots/zoom">
+    Authenticate Zoom bots with a stored Zoom credential and OBF/ZAK tokens via `zoom_config`.
+  </Card>
+</Cards>
+
+## How the platforms compare
+
+| | Microsoft Teams | Google Meet | Zoom |
+|---|---|---|---|
+| Config object | `teams_config` | `meet_config` | `zoom_config` |
+| Sign-in mechanism | Username + password on `login.microsoftonline.com` | SAML SSO (Meeting BaaS is the IdP) | Stored Zoom credential + OBF/ZAK tokens |
+| Parent resource | Teams Workspace (M365 domain, no keypair) | Meet Workspace (domain + SAML keypair) | Zoom credential |
+| Per-user identity | Teams Login (`email` + `password`) | Meet Login (`email`) | — |
+| One-time infra setup | Provision an **MFA-free** M365 account; no IdP/cert setup | Configure a Legacy SSO profile in Google Admin Console; upload the signing certificate | Store the Zoom credential |
+| Round-robin pools | `email_group` | `email_group` | — |
+
+## Shared concepts
+
+Both Microsoft Teams and Google Meet authentication share the same operational model:
+
+- **Workspaces group logins.** A workspace is the parent resource for one domain; logins are the individual user identities bots sign in as. Many logins can share one workspace.
+- **Round-robin pools.** Group logins with an `email_group` and dispatch bots against that group — the least-loaded active login is assigned automatically. Capacity scales linearly with the number of active logins.
+- **Fallback.** `fallback: "fail"` (default) fails bot creation when no slot is available; `fallback: "anonymous"` silently joins as a guest instead.
+- **Health states.** Workspaces and logins carry a `state` (`active` / `invalid`). The system auto-disables a resource after a failure and records `last_error_message`; re-enable it with a `PATCH` after fixing the cause.
+- **Secrets are write-only.** SAML private keys (Meet) and account passwords (Teams) are encrypted at rest with **AES-256-GCM** and are **never returned** in any API response.
+
+## Related resources
+
+- [Google Meet Authentication](/docs/api-v2/authenticated-bots/meet) — SAML SSO setup and usage
+- [Microsoft Teams Authentication](/docs/api-v2/authenticated-bots/teams) — credential setup and usage
+- [Alerts](/docs/api-v2/alerts) — monitor login-pool utilization and saturation
+- [Error Codes](/docs/api-v2/error-codes) — `MEET_LOGIN_*` and `TEAMS_LOGIN_*` failure reasons
 
 
 ---
@@ -2099,7 +1082,7 @@ For more details, see the [Webhooks documentation](/docs/api-v2/webhooks).
 
 Send authenticated Google Meet bots that sign in as Google Workspace users via SAML SSO, bypass the waiting room, and join sign-in-restricted meetings
 
-### Source: ./content/docs/api-v2/getting-started/meet/index.mdx
+### Source: ./content/docs/api-v2/authenticated-bots/meet/index.mdx
 
 
 # Authenticated Google Meet Bots
@@ -2109,7 +1092,7 @@ By default, Meeting BaaS bots join Google Meet as anonymous guests. That works f
 Authenticated Meet bots solve this. Each bot signs in as a real **Google Workspace user** from a domain you control, using **SAML SSO**, before it joins the call. To Meet, the bot looks like any other signed-in participant.
 
 <Callout type="info">
-This feature is Google Meet–only. For Zoom authentication, see [Zoom Integration](/docs/api-v2/getting-started/zoom). For Microsoft Teams, anonymous joins are used and no extra configuration is required. Leave `meet_config` `null` for anonymous Meet joins.
+This feature is Google Meet–only. For Zoom authentication, see [Zoom Integration](/docs/api-v2/authenticated-bots/zoom). For Microsoft Teams, see [Microsoft Teams Authentication](/docs/api-v2/authenticated-bots/teams). Leave `meet_config` `null` for anonymous Meet joins.
 </Callout>
 
 ## Why authenticate
@@ -2127,7 +1110,7 @@ Authentication is built on three resources. You configure the first two once, th
 
 <Steps>
 <Step>
-**Meet Workspace** — the parent resource representing one Google Workspace's SAML SSO configuration. It holds the SAML signing certificate and private key shared by every login under it. You create one per Google Workspace domain. See [Setup](/docs/api-v2/getting-started/meet/setup).
+**Meet Workspace** — the parent resource representing one Google Workspace's SAML SSO configuration. It holds the SAML signing certificate and private key shared by every login under it. You create one per Google Workspace domain. See [Setup](/docs/api-v2/authenticated-bots/meet/setup).
 </Step>
 <Step>
 **Meet Logins** — one per Google Workspace user the bots sign in as. Many logins can share a single workspace. Logins can be grouped into round-robin pools by `email_group`.
@@ -2180,7 +1163,7 @@ When you put a login's `email_group` (a Google Group address) on the **calendar 
 
 ### Round-robin pools and concurrency
 
-Each login supports up to **20 concurrent SSO sessions**. When you dispatch bots with an `email_group`, the assigner picks the least-loaded active login and skips any login at capacity. If every login in a pool is saturated, bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, per your `fallback` setting). Create more logins to raise the ceiling, and configure a [**Meet Login Utilization** alert](/docs/api-v2/alerts#meet-login-alerts) to stay ahead of saturation (the [utilization endpoint](/docs/api-v2/getting-started/meet/sending-authenticated-bots#monitoring-pool-utilization) gives an on-demand view).
+Each login supports up to **20 concurrent SSO sessions**. When you dispatch bots with an `email_group`, the assigner picks the least-loaded active login and skips any login at capacity. If every login in a pool is saturated, bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, per your `fallback` setting). Create more logins to raise the ceiling, and configure a [**Meet Login Utilization** alert](/docs/api-v2/alerts#meet-login-alerts) to stay ahead of saturation (the [utilization endpoint](/docs/api-v2/authenticated-bots/meet/sending-authenticated-bots#monitoring-pool-utilization) gives an on-demand view).
 
 ### States
 
@@ -2198,10 +1181,10 @@ The SAML certificate and private key are encrypted at rest using **AES-256-GCM**
 ## Pages in this section
 
 <Cards>
-  <Card title="Setup" href="/docs/api-v2/getting-started/meet/setup">
+  <Card title="Setup" href="/docs/api-v2/authenticated-bots/meet/setup">
     Create a meet workspace, configure the Legacy SSO profile in Google Admin Console, prepare Workspace users, and add logins.
   </Card>
-  <Card title="Sending Authenticated Bots" href="/docs/api-v2/getting-started/meet/sending-authenticated-bots">
+  <Card title="Sending Authenticated Bots" href="/docs/api-v2/authenticated-bots/meet/sending-authenticated-bots">
     Use `meet_config` to send authenticated bots, manage pools, configure fallback, and monitor utilization.
   </Card>
 </Cards>
@@ -2215,7 +1198,7 @@ No. Anonymous bots join open meetings fine. Use authenticated bots only when a m
 </Accordion>
 
 <Accordion title="Can I use my company's main Google Workspace domain?">
-Yes — you don't need a separate domain. The rule is that the **Legacy SSO profile must be scoped to a bot-only group or organizational unit**, never applied to your real users (assigning it org-wide would redirect everyone through the bot IdP). Put your bot accounts in a dedicated group/OU and assign the SSO profile to only that scope. A dedicated subdomain like `bots.acme.com` is one clean way to keep bots isolated, but it's optional. See [Setup](/docs/api-v2/getting-started/meet/setup).
+Yes — you don't need a separate domain. The rule is that the **Legacy SSO profile must be scoped to a bot-only group or organizational unit**, never applied to your real users (assigning it org-wide would redirect everyone through the bot IdP). Put your bot accounts in a dedicated group/OU and assign the SSO profile to only that scope. A dedicated subdomain like `bots.acme.com` is one clean way to keep bots isolated, but it's optional. See [Setup](/docs/api-v2/authenticated-bots/meet/setup).
 </Accordion>
 
 <Accordion title="How many bots can join at once?">
@@ -2243,7 +1226,7 @@ No. `private_key_pem` is encrypted at rest and **never returned** in any respons
 </Accordion>
 
 <Accordion title="Does this work for Zoom or Microsoft Teams?">
-No — `meet_config` is Google Meet only. For Zoom authentication, see [Zoom Integration](/docs/api-v2/getting-started/zoom). Microsoft Teams uses anonymous joins and needs no extra configuration.
+No — `meet_config` is Google Meet only. For Zoom authentication, see [Zoom Integration](/docs/api-v2/authenticated-bots/zoom). For Microsoft Teams authentication, see [Microsoft Teams Authentication](/docs/api-v2/authenticated-bots/teams).
 </Accordion>
 
 </Accordions>
@@ -2262,12 +1245,12 @@ No — `meet_config` is Google Meet only. For Zoom authentication, see [Zoom Int
 
 Use meet_config to send authenticated Google Meet bots, manage round-robin pools, configure fallback behavior, and monitor login pool utilization
 
-### Source: ./content/docs/api-v2/getting-started/meet/sending-authenticated-bots.mdx
+### Source: ./content/docs/api-v2/authenticated-bots/meet/sending-authenticated-bots.mdx
 
 
 # Sending Authenticated Bots
 
-Once you have at least one **active** meet workspace and login (see [Setup](/docs/api-v2/getting-started/meet/setup)), add a `meet_config` object to your `POST /v2/bots` request to make the bot sign in before joining.
+Once you have at least one **active** meet workspace and login (see [Setup](/docs/api-v2/authenticated-bots/meet/setup)), add a `meet_config` object to your `POST /v2/bots` request to make the bot sign in before joining.
 
 ## Round-robin pool (recommended)
 
@@ -2398,7 +1381,7 @@ See [Error Codes](/docs/api-v2/error-codes#google-meet-authentication-errors) fo
 
 ## Related resources
 
-- [Setup](/docs/api-v2/getting-started/meet/setup) — one-time workspace and login configuration
+- [Setup](/docs/api-v2/authenticated-bots/meet/setup) — one-time workspace and login configuration
 - [Create a bot](/docs/api-v2/reference/bots/createBot) — full bot creation reference
 - [Meet Logins utilization](/docs/api-v2/reference/meet-logins/getMeetLoginUtilization) — pool metrics endpoint
 
@@ -2409,7 +1392,7 @@ See [Error Codes](/docs/api-v2/error-codes#google-meet-authentication-errors) fo
 
 Create a meet workspace, configure the Legacy SSO profile in Google Admin Console, prepare Workspace users, and register meet logins
 
-### Source: ./content/docs/api-v2/getting-started/meet/setup.mdx
+### Source: ./content/docs/api-v2/authenticated-bots/meet/setup.mdx
 
 
 # Setting Up Google Meet Authentication
@@ -2628,7 +1611,7 @@ Repeat for each user. Logins sharing an `email_group` form a round-robin pool �
 
 ## You're ready
 
-With at least one **active** workspace and one **active** login, you can send authenticated bots. Continue to [Sending Authenticated Bots](/docs/api-v2/getting-started/meet/sending-authenticated-bots).
+With at least one **active** workspace and one **active** login, you can send authenticated bots. Continue to [Sending Authenticated Bots](/docs/api-v2/authenticated-bots/meet/sending-authenticated-bots).
 
 ## Maintenance
 
@@ -2647,445 +1630,517 @@ When a workspace or login flips to `invalid`, fix the underlying cause (re-uploa
 
 ---
 
-## Removing a bot
+## Microsoft Teams Authentication
 
-Learn how to remove or delete bots from meetings
+Send authenticated Microsoft Teams bots that sign in as a Microsoft 365 user with stored credentials, enter sign-in-restricted meetings, and get admitted past the lobby
 
-### Source: ./content/docs/api-v2/getting-started/removing-a-bot.mdx
+### Source: ./content/docs/api-v2/authenticated-bots/teams/index.mdx
 
 
-You can remove a bot from a meeting or delete bot data using the v2 API. There are two operations:
+# Authenticated Microsoft Teams Bots
 
-1. **Leave meeting**: Instruct a bot to leave the meeting immediately (while it's active)
-2. **Delete data**: Permanently delete a bot and all its data (after it's completed or failed)
+By default, Meeting BaaS bots join Microsoft Teams as anonymous guests. That works for open meetings, but it falls short when a meeting is **restricted to signed-in users**, restricted to the organizer's organization, or sends guests to a **lobby**.
 
-## Leave Meeting
+Authenticated Teams bots solve this. Each bot signs in as a real **Microsoft 365 user** from a tenant you control, using **stored credentials (email + password)**, before it joins the call. To Teams, the bot looks like any other signed-in participant.
 
-To instruct a bot to leave the meeting immediately:
+<Callout type="info">
+Teams authentication uses a **username + password** sign-in on `login.microsoftonline.com` — not SAML SSO like Google Meet. That means **no identity provider, no certificate, and no keypair** to configure. The one requirement is that the account is provisioned **MFA-free** (see [Setup](/docs/api-v2/authenticated-bots/teams/setup)). Leave `teams_config` `null` for anonymous Teams joins.
+</Callout>
 
-```bash
-curl -X POST "https://api.meetingbaas.com/v2/bots/BOT-ID/leave" \
-     -H "x-meeting-baas-api-key: YOUR-API-KEY"
+## Why authenticate
+
+| Scenario | Anonymous bot | Authenticated bot |
+|----------|---------------|-------------------|
+| Open meeting, anyone with link | ✅ Joins | ✅ Joins |
+| "Only people in my org can bypass the lobby" | ⏳ Waits in lobby | ✅ Admitted as an org user |
+| Meeting restricted to signed-in users | ❌ `TEAMS_LOGIN_REQUIRED` | ✅ Joins as a signed-in user |
+| Recording as a named, consistent identity | ❌ Anonymous guest | ✅ Joins under the account's display name |
+
+## How it works
+
+Authentication is built on three resources. You configure the first two once, then reference them per bot.
+
+<Steps>
+<Step>
+**Teams Workspace** — the parent resource representing one Microsoft 365 tenant. It groups the logins under a single tenant domain. Unlike a Meet workspace, it holds **no certificate or keypair** — Teams sign-in is credential-based. You create one per Microsoft 365 tenant. See [Setup](/docs/api-v2/authenticated-bots/teams/setup).
+</Step>
+<Step>
+**Teams Logins** — one per Microsoft 365 account the bots sign in as, storing the account's `email` and `password` (the password is encrypted at rest and never returned). Many logins can share a single workspace, and can be grouped into round-robin pools by `email_group`.
+</Step>
+<Step>
+**`teams_config` on the bot** — when you create a bot, you tell it which login (or pool) to use. The dispatcher resolves the credentials, the bot types them into `login.microsoftonline.com`, and then joins the meeting as the signed-in user.
+</Step>
+</Steps>
+
+```text
+Teams Workspace (Microsoft 365 tenant domain)
+        │
+        ├── Teams Login  bot1@acme.onmicrosoft.com   ┐
+        ├── Teams Login  bot2@acme.onmicrosoft.com   ├─ email_group: bots@acme.onmicrosoft.com (round-robin pool)
+        └── Teams Login  bot3@acme.onmicrosoft.com   ┘
+                                │
+        POST /v2/bots  { teams_config: { email_group: "bots@acme.onmicrosoft.com" } }
+                                │
+                 least-loaded active login is assigned → bot signs in → joins Teams
 ```
 
-**Response:**
+## The `teams_config` object
+
+All Teams authentication options are passed in a single `teams_config` object on `POST /v2/bots`:
+
 ```json
 {
-  "success": true,
-  "data": {
-    "message": "Bot leave request sent successfully."
+  "bot_name": "Recording Bot",
+  "meeting_url": "https://teams.microsoft.com/meet/1234567890?p=AbCdEfGhIj",
+  "teams_config": {
+    "email_group": "bots@acme.onmicrosoft.com",
+    "fallback": "fail"
   }
 }
 ```
 
-### When Can You Leave a Bot?
+| Parameter | Description |
+|-----------|-------------|
+| `email_group` | Round-robin pool selector. The bot is assigned the **least-loaded active login** in this pool. Preferred for most use cases — **takes priority over `credential_id`**. Pass `""` to round-robin across all of the team's active logins. |
+| `credential_id` | Pin one specific login (UUID) for this bot. |
+| `fallback` | What to do when no login slot is available: `fail` (default) fails bot creation with `TEAMS_LOGIN_UNAVAILABLE`; `anonymous` silently falls back to an anonymous join. |
 
-The leave endpoint works for bots in any active (non-terminal) state:
+Leave `teams_config` `null` for anonymous Teams joins, Zoom, or Google Meet.
 
-- `queued`: Bot hasn't started joining yet
-- `pickup_delayed`: Bot has stayed in the `queued` status longer than the expected pickup window
-- `joining_call`: Bot is attempting to join the meeting
-- `in_waiting_room`: Bot is waiting in the meeting's waiting room
-- `in_call_not_recording`: Bot is in the meeting but not recording
-- `in_call_recording`: Bot is actively recording
-- `recording_paused`: Bot recording is paused
-- `recording_resumed`: Bot recording has resumed
+## Key concepts
 
-It also works for **scheduled bots** that haven't spawned yet — the scheduled bot will be cancelled atomically.
+### Getting past the lobby
 
-### Error Responses
+Signing in is what gets the bot admitted. When the account belongs to the **organizer's organization** (or the meeting's lobby policy admits people in the org), the authenticated bot is let in automatically instead of waiting in the lobby as an anonymous guest. For meetings restricted to signed-in users, an authenticated bot is the only way in — an anonymous bot fails with `TEAMS_LOGIN_REQUIRED`.
 
-**404 Not Found:**
-```json
-{
-  "success": false,
-  "error": "Not Found",
-  "message": "Bot with ID 'BOT-ID' not found",
-  "code": "FST_ERR_BOT_NOT_FOUND_BY_ID",
-  "statusCode": 404
-}
-```
+### MFA must be off
 
-**409 Conflict (Bot status doesn't allow leaving):**
-```json
-{
-  "success": false,
-  "error": "Conflict",
-  "message": "Status of bot 'BOT-ID' is: completed. Operation not permitted in this state.",
-  "code": "FST_ERR_BOT_STATUS",
-  "statusCode": 409
-}
-```
+The bot types the account's password on `login.microsoftonline.com`. If the tenant forces multi-factor authentication or security-info registration, sign-in stalls on the **"Let's keep your account secure"** page and the login fails. The bot accounts must therefore be provisioned **MFA-free** — turn off Security Defaults or exclude the bot accounts from your MFA Conditional Access policy. This is the single most important part of [Setup](/docs/api-v2/authenticated-bots/teams/setup).
 
-This error occurs when the bot is in a terminal status:
-- `completed`: Bot has already completed
-- `failed`: Bot has already failed
+### Round-robin pools and concurrency
 
-### How It Works
+Each login supports up to **20 concurrent sessions**. When you dispatch bots with an `email_group`, the assigner picks the least-loaded active login and skips any login at capacity. If every login in a pool is saturated, bot creation fails with `TEAMS_LOGIN_UNAVAILABLE` (or falls back to anonymous, per your `fallback` setting). Create more logins to raise the ceiling, and configure a [utilization alert](/docs/api-v2/alerts) to stay ahead of saturation (the [utilization endpoint](/docs/api-v2/authenticated-bots/teams/sending-authenticated-bots#monitoring-pool-utilization) gives an on-demand view).
 
-When you call the leave endpoint:
-1. The stop signal is delivered to the bot process asynchronously with retries
-2. If the bot hasn't started yet (e.g., still `queued`), it will check for pending stop requests on startup and abort before joining the meeting
-3. **Pre-recording stops** (bot was in `queued`, `joining_call`, `in_waiting_room`, or `in_call_not_recording`): The bot exits with an `EXITING_MEETING_BEFORE_RECORD` error code. No tokens are consumed.
-4. **Recording stops** (bot was in `in_call_recording`, `recording_paused`, or `recording_resumed`): The bot stops recording and transitions to `completed` status. Tokens are consumed based on recording duration.
-5. A final webhook event will be sent when the bot finishes processing.
+### States
 
-## Delete Bot Data
+Both workspaces and logins track health with a `state` field:
 
-To permanently delete a bot and all its associated data (recordings, transcriptions, etc.):
+- **`active`** — healthy and usable.
+- **`invalid`** — the system auto-disabled the resource after a failure (a bad-credentials rejection, an MFA/security-info prompt, or a login timeout). Re-enable manually via `PATCH` after fixing the underlying issue.
 
-```bash
-curl -X DELETE "https://api.meetingbaas.com/v2/bots/BOT-ID/delete-data" \
-     -H "x-meeting-baas-api-key: YOUR-API-KEY"
-```
+When a resource flips to `invalid`, `last_error_message` and `last_error_at` explain why.
 
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "bot_id": "123e4567-e89b-12d3-a456-426614174000",
-    "deleted": true
-  }
-}
-```
+### Security
 
-### When Can You Delete Bot Data?
+Account passwords are encrypted at rest using **AES-256-GCM**. The `password` is **write-only** — never returned in any API response, on create or on subsequent reads. To change it, send a new `password` via `PATCH /v2/teams-logins/{credential_id}`.
 
-The delete endpoint can only be called when the bot is in one of these statuses:
+## Pages in this section
 
-- `completed`: Bot has successfully completed recording and processing
-- `failed`: Bot has failed
+<Cards>
+  <Card title="Setup" href="/docs/api-v2/authenticated-bots/teams/setup">
+    Provision an MFA-free Microsoft 365 account, create a teams workspace, and register teams logins.
+  </Card>
+  <Card title="Sending Authenticated Bots" href="/docs/api-v2/authenticated-bots/teams/sending-authenticated-bots">
+    Use `teams_config` to send authenticated bots, manage pools, configure fallback, and monitor utilization.
+  </Card>
+</Cards>
 
-### Error Responses
+## FAQ
 
-**404 Not Found:**
-```json
-{
-  "success": false,
-  "error": "Not Found",
-  "message": "Bot with ID 'BOT-ID' not found",
-  "code": "FST_ERR_BOT_NOT_FOUND_BY_ID",
-  "statusCode": 404
-}
-```
+<Accordions type="single">
 
-**409 Conflict (Bot status doesn't allow deletion):**
-```json
-{
-  "success": false,
-  "error": "Conflict",
-  "message": "Status of bot 'BOT-ID' is: in_call_recording. Operation not permitted in this state.",
-  "code": "FST_ERR_BOT_STATUS",
-  "statusCode": 409
-}
-```
+<Accordion title="Do I need authenticated bots for every Microsoft Teams meeting?">
+No. Anonymous bots join open meetings fine. Use authenticated bots only when a meeting is **restricted to signed-in or in-organization users**, or when you need to **be admitted past the lobby** as an org member. Leave `teams_config` `null` for everything else.
+</Accordion>
 
-This error occurs when the bot is still active (e.g., `in_call_recording`, `transcribing`, etc.). You must wait for the bot to complete or fail, or use the leave endpoint first.
+<Accordion title="How is this different from Google Meet authentication?">
+Google Meet uses **SAML SSO** — Meeting BaaS acts as an identity provider and you configure a Legacy SSO profile plus a signing certificate in the Google Admin Console. Microsoft Teams uses a plain **username + password** sign-in, so there is no IdP, no certificate, and no keypair. The trade-off is that you must provision the account **MFA-free** and store its password (encrypted at rest).
+</Accordion>
 
-**Note:** This permanently deletes the bot and all its data. This action cannot be undone.
+<Accordion title="Why does the account have to be MFA-free?">
+The bot signs in by typing the password on `login.microsoftonline.com`. Any forced multi-factor or security-info step (the "Let's keep your account secure" page) has no human to complete it, so the login stalls and fails with `TEAMS_LOGIN_FAILED_MFA_REQUIRED`. Turn off Security Defaults, or exclude the bot accounts from your MFA Conditional Access policy. Keep MFA on for your real users. See [Setup](/docs/api-v2/authenticated-bots/teams/setup).
+</Accordion>
 
-## Cancel Scheduled Bot
+<Accordion title="How many bots can join at once?">
+Each teams login supports up to **20 concurrent sessions**, and capacity scales linearly with the number of active logins in a pool. To raise the ceiling, add more logins. Configure a [utilization alert](/docs/api-v2/alerts) so you're warned before you saturate.
+</Accordion>
 
-To cancel a scheduled bot:
+<Accordion title="When should I use credential_id vs email_group?">
+Use `email_group` for round-robin load balancing across a pool (recommended — it takes priority when both are set). Use `credential_id` when you need a specific, fixed login for a bot.
+</Accordion>
 
-```bash
-curl -X DELETE "https://api.meetingbaas.com/v2/bots/scheduled/SCHEDULED-BOT-ID" \
-     -H "x-meeting-baas-api-key: YOUR-API-KEY"
-```
+<Accordion title="What happens if the whole pool is busy?">
+Bot creation returns `TEAMS_LOGIN_UNAVAILABLE` when `teams_config.fallback` is `fail` (the default), or the bot silently joins anonymously when `fallback` is `anonymous`. Add logins or set the fallback based on whether an authenticated identity is mandatory.
+</Accordion>
 
-This can be called at any time before the bot reaches a terminal state (`cancelled`, `completed`, or `failed`). If the bot hasn't been spawned yet, the scheduled bot record is cancelled atomically. If the scheduling cron has already spawned the bot, the stop request is persisted and delivered to the bot process. If the bot hadn't started recording, it will exit with `EXITING_MEETING_BEFORE_RECORD` and no tokens are consumed. If recording was already in progress, the bot stops recording normally and tokens are consumed up to the stop time.
+<Accordion title="A login flipped to invalid — what do I do?">
+The system auto-disables a login after a failure (bad credentials, an MFA/security-info prompt, or a sign-in timeout). Check `last_error_message`, fix the cause (reset and update the password, turn off MFA for the account, un-suspend it), then re-enable it with a `PATCH`.
+</Accordion>
 
-**Note:** You can also use the leave endpoint (`POST /v2/bots/:bot_id/leave`) with the scheduled bot's UUID to achieve the same result.
+<Accordion title="Can I retrieve the account password later?">
+No. The `password` is encrypted at rest and **never returned** in any response. If it changes, send the new value via `PATCH /v2/teams-logins/{credential_id}`.
+</Accordion>
 
-## Important Notes
+</Accordions>
 
-- Deleting a bot's data removes all associated data including recordings, transcriptions, and screenshots
-- Deleted data cannot be recovered
-- If a bot is currently recording, leaving it will stop the recording. Use the delete data endpoint afterward to remove artifacts.
-- Scheduled and calendar bots can be cancelled at any time — if a bot has already been spawned, it will be stopped automatically
+## Related resources
 
+- [Teams Workspaces API](/docs/api-v2/reference/teams-workspaces/createTeamsWorkspace) — manage the Microsoft 365 tenant grouping
+- [Teams Logins API](/docs/api-v2/reference/teams-logins/createTeamsLogin) — manage the Microsoft 365 identities bots sign in as
+- [Error Codes](/docs/api-v2/error-codes) — `TEAMS_LOGIN_*` failure reasons
+- [Alerts](/docs/api-v2/alerts) — monitor pool utilization and saturation
 
 
 ---
 
-## Sending a bot
+## Sending Authenticated Bots
 
-Learn how to send bots to meetings using the Meeting BaaS v2 API
+Use teams_config to send authenticated Microsoft Teams bots, manage round-robin pools, configure fallback behavior, and monitor login pool utilization
 
-### Source: ./content/docs/api-v2/getting-started/sending-a-bot.mdx
+### Source: ./content/docs/api-v2/authenticated-bots/teams/sending-authenticated-bots.mdx
 
 
-You can send a bot to a meeting in two ways:
+# Sending Authenticated Bots
 
-1. **Immediate**: The bot joins the meeting right away
-2. **Scheduled**: The bot joins at a specific time in the future
+Once you have at least one **active** teams workspace and login (see [Setup](/docs/api-v2/authenticated-bots/teams/setup)), add a `teams_config` object to your `POST /v2/bots` request to make the bot sign in before joining.
 
-## Immediate Bot
+## Round-robin pool (recommended)
 
-Send a POST request to `https://api.meetingbaas.com/v2/bots`:
+Assign the bot to the least-loaded active login in a pool by passing `email_group`. This spreads load across all logins sharing that group and is the right default for unattended recording at scale.
 
-<Tabs items={['Bash', 'Python', 'JavaScript']}>
-  <Tab value="Bash">
-    ```bash
-    curl -X POST "https://api.meetingbaas.com/v2/bots" \
-         -H "Content-Type: application/json" \
-         -H "x-meeting-baas-api-key: YOUR-API-KEY" \
-         -d '{
-               "meeting_url": "https://meet.google.com/abc-defg-hij",
-               "bot_name": "AI Notetaker",
-               "recording_mode": "speaker_view",
-               "transcription_enabled": true,
-               "transcription_config": {
-                 "provider": "gladia"
-               }
-             }'
-    ```
-  </Tab>
-  <Tab value="Python">
-    ```python
-    import requests
-
-    url = "https://api.meetingbaas.com/v2/bots"
-    headers = {
-        "Content-Type": "application/json",
-        "x-meeting-baas-api-key": "YOUR-API-KEY",
+```bash
+curl -X POST https://api.meetingbaas.com/v2/bots \
+  -H "x-meeting-baas-api-key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "bot_name": "Recording Bot",
+    "meeting_url": "https://teams.microsoft.com/meet/1234567890?p=AbCdEfGhIj",
+    "teams_config": {
+      "email_group": "bots@acme.onmicrosoft.com",
+      "fallback": "fail"
     }
-    data = {
-        "meeting_url": "https://meet.google.com/abc-defg-hij",
-        "bot_name": "AI Notetaker",
-        "recording_mode": "speaker_view",
-        "transcription_enabled": true,
-        "transcription_config": {
-            "provider": "gladia"
-        }
-    }
-    response = requests.post(url, json=data, headers=headers)
-    print(response.json())
-    ```
-  </Tab>
-  <Tab value="JavaScript">
-    ```javascript
-    fetch("https://api.meetingbaas.com/v2/bots", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-meeting-baas-api-key": "YOUR-API-KEY",
-      },
-      body: JSON.stringify({
-        meeting_url: "https://meet.google.com/abc-defg-hij",
-        bot_name: "AI Notetaker",
-        recording_mode: "speaker_view",
-        transcription_enabled: true,
-        transcription_config: {
-          provider: "gladia"
-        }
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => console.log(data.data.bot_id))
-      .catch((error) => console.error("Error:", error));
-    ```
-  </Tab>
-</Tabs>
+  }'
+```
 
-## Scheduled Bot
+To round-robin across **all** of your team's active logins without filtering by group, pass an empty string:
 
-To schedule a bot to join at a specific time, use `POST /v2/bots/scheduled`:
+```json
+{ "teams_config": { "email_group": "" } }
+```
 
-<Tabs items={['Bash', 'Python', 'JavaScript']}>
-  <Tab value="Bash">
-    ```bash
-    curl -X POST "https://api.meetingbaas.com/v2/bots/scheduled" \
-         -H "Content-Type: application/json" \
-         -H "x-meeting-baas-api-key: YOUR-API-KEY" \
-         -d '{
-               "meeting_url": "https://meet.google.com/abc-defg-hij",
-               "bot_name": "AI Notetaker",
-               "recording_mode": "speaker_view",
-               "join_at": "2025-01-20T14:00:00Z"
-             }'
-    ```
-  </Tab>
-  <Tab value="Python">
-    ```python
-    import requests
-    from datetime import datetime
+## Pin a specific login
 
-    url = "https://api.meetingbaas.com/v2/bots/scheduled"
-    headers = {
-        "Content-Type": "application/json",
-        "x-meeting-baas-api-key": "YOUR-API-KEY",
-    }
-    data = {
-        "meeting_url": "https://meet.google.com/abc-defg-hij",
-        "bot_name": "AI Notetaker",
-        "recording_mode": "speaker_view",
-        "join_at": "2025-01-20T14:00:00Z"  # ISO 8601 format
-    }
-    response = requests.post(url, json=data, headers=headers)
-    print(response.json())
-    ```
-  </Tab>
-  <Tab value="JavaScript">
-    ```javascript
-    fetch("https://api.meetingbaas.com/v2/bots/scheduled", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-meeting-baas-api-key": "YOUR-API-KEY",
-      },
-      body: JSON.stringify({
-        meeting_url: "https://meet.google.com/abc-defg-hij",
-        bot_name: "AI Notetaker",
-        recording_mode: "speaker_view",
-        join_at: "2025-01-20T14:00:00Z"  // ISO 8601 format
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => console.log(data.data.bot_id))
-      .catch((error) => console.error("Error:", error));
-    ```
-  </Tab>
-</Tabs>
+Use `credential_id` to force the bot to use one particular login.
 
-## Request Parameters
+```json
+{
+  "bot_name": "Recording Bot",
+  "meeting_url": "https://teams.microsoft.com/meet/1234567890?p=AbCdEfGhIj",
+  "teams_config": {
+    "credential_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  }
+}
+```
 
-### Required Parameters
+<Callout type="info">
+If you set both `email_group` and `credential_id`, **`email_group` wins** — the pool selector takes priority. Use `credential_id` alone when you need a deterministic, fixed identity.
+</Callout>
 
-- `meeting_url`: The meeting URL (Google Meet, Microsoft Teams, or Zoom)
-- `bot_name`: The display name of the bot
+## Fallback behavior
 
-### Recording Options
+`fallback` controls what happens when no login slot is available (the whole pool is saturated, or no matching active login exists):
 
-- `recording_mode`: One of:
-  - `"speaker_view"` (default): Shows only the active speaker
-  - `"gallery_view"`: Shows all participants
-  - `"audio_only"`: Audio recording only (MP3)
+| Value | Behavior |
+|-------|----------|
+| `fail` (default) | Bot creation fails immediately with `TEAMS_LOGIN_UNAVAILABLE`. Use this when an authenticated identity is mandatory. |
+| `anonymous` | The bot silently falls back to an anonymous (non-authenticated) join. Use this when getting *a* bot in matters more than its identity. |
 
-### Bot Appearance
+```json
+{ "teams_config": { "email_group": "bots@acme.onmicrosoft.com", "fallback": "anonymous" } }
+```
 
-- `bot_image`: Optional. URL to the bot's avatar image (JPEG or PNG, HTTPS required)
+## Getting admitted past the lobby
 
-### Transcription
+Signing in is what gets the bot admitted. When the login account belongs to the **organizer's organization** — or the meeting's lobby policy admits people in the org — the authenticated bot is let in automatically instead of waiting as an anonymous guest. For meetings restricted to signed-in users, an authenticated bot is the only way in; an anonymous bot fails with `TEAMS_LOGIN_REQUIRED`. Use accounts in (or federated with) the organizer's tenant when you need reliable, unattended admission.
 
-- `transcription_enabled`: Set to `true` to enable transcription
-- `transcription_config`: Required if `transcription_enabled` is `true`:
-  - `provider`: `"gladia"` (default), `"deepgram"`, `"assemblyai"`, `"speechmatics"`, or `"soniox"` (plus `"elevenlabs"` for real-time streaming)
-  - `api_key`: Optional. Your transcription provider API key (for BYOK transcription)
-  - `custom_params`: Optional. Custom parameters for the transcription provider
+## Concurrency and capacity
 
-### Callbacks
+Each login supports up to **20 concurrent sessions**. The dispatcher:
 
-- `callback_enabled`: Set to `true` to enable callbacks for this bot
-- `callback_config`: Required if `callback_enabled` is `true`:
-  - `url`: The URL to receive callback notifications
-  - `method`: `"POST"` (default) or `"PUT"`
-  - `secret`: Optional. Secret key included in `x-mb-secret` header for verification
+1. Filters to **active** logins matching your selector.
+2. Picks the one with the lowest `active_session_count`.
+3. Skips any login already at capacity.
 
-### Timeouts
+If every candidate is saturated, the request fails with `TEAMS_LOGIN_UNAVAILABLE` (or falls back to anonymous). To raise the ceiling, **add more logins** to the pool — capacity scales linearly with the number of active logins.
 
-- `timeout_config`: Optional object:
-  - `waiting_room_timeout`: Seconds to wait in waiting room (default: 600, min: 120, max: 1800)
-  - `no_one_joined_timeout`: Seconds to wait if no one joins (default: 600, min: 120, max: 1800, isn't used by Zoom)
-  - `silence_timeout`: Once a participant has been identified, no_one_joined_timeout stops and silence_timeout kicks in. When there is continued silence for the seconds provided, the bot leaves the meeting (default: 600, min: 300, max: 1800, isn't used by Zoom)
+## Monitoring pool utilization
 
-### Advanced Options
+### Configure a utilization alert first (recommended)
 
-- `allow_multiple_bots`: `true` (default) to allow multiple bots in the same meeting, `false` to prevent duplicates
-- `entry_message`: Optional message the bot sends when joining
-- `extra`: Optional custom metadata (included in webhooks and callbacks)
-- `streaming_enabled`: Enable audio streaming
-- `streaming_config`: Required if `streaming_enabled` is `true`
+Don't wait until bots start failing. Set up a **login utilization** threshold alert so you're notified automatically as your pool fills up — for example, alert when utilization reaches **70%**, giving you time to add logins before you hit the ceiling. Pair it with an operational alert on `TEAMS_LOGIN_UNAVAILABLE` so you also hear about it the moment a bot actually fails to get an authenticated slot. Both are configured from the **Alerts** section of your dashboard. See [Alerts](/docs/api-v2/alerts).
 
-### Scheduled Bot Specific
+### Check utilization on demand
 
-- `join_at`: Required for scheduled bots. ISO 8601 timestamp when the bot should join
+For an ad-hoc or programmatic view, call `GET /v2/teams-logins/utilization` to see live concurrency across your pool. It's cheap to poll and returns uncached, live counters.
 
-## Response
-
-The API returns the bot ID:
+```bash
+curl https://api.meetingbaas.com/v2/teams-logins/utilization \
+  -H "x-meeting-baas-api-key: $API_KEY"
+```
 
 ```json
 {
   "success": true,
   "data": {
-    "bot_id": "123e4567-e89b-12d3-a456-426614174000"
+    "logins_total": 5,
+    "logins_active": 5,
+    "logins_invalid": 0,
+    "concurrent_sessions": 42,
+    "concurrent_capacity": 100,
+    "utilization_pct": 42,
+    "by_email_group": [
+      { "email_group": "bots@acme.onmicrosoft.com", "logins": 5, "concurrent": 42, "capacity": 100 }
+    ]
   }
 }
 ```
 
-For scheduled bots, the `bot_id` is returned immediately and will be reused when the bot actually joins the meeting.
+| Field | Meaning |
+|-------|---------|
+| `logins_total` / `logins_active` / `logins_invalid` | Login counts for your team by state. |
+| `concurrent_sessions` | Bots currently in flight using your auth pool (sum of `active_session_count` across active logins). |
+| `concurrent_capacity` | `logins_active × 20` (the per-login session limit). |
+| `utilization_pct` | `concurrent_sessions / concurrent_capacity`, as a percentage. |
+| `by_email_group` | The same metrics broken down per pool. |
 
-## Next Steps
+## Troubleshooting
 
-- [Get meeting data](/docs/api-v2/getting-started/getting-the-data)
-- [Set up webhooks](/docs/api-v2/webhooks) for real-time notifications
-- [Remove a bot](/docs/api-v2/getting-started/removing-a-bot)
+| Error code | Meaning | What to do |
+|------------|---------|------------|
+| `TEAMS_LOGIN_UNAVAILABLE` | No login slot was available (pool saturated or no matching active login) and `fallback` was `fail`. | Add logins, lower concurrency, or set `fallback: "anonymous"`. Watch utilization. |
+| `TEAMS_LOGIN_REQUIRED` | The meeting required a signed-in user but the bot could not authenticate. | Ensure `teams_config` is set and the selected login is `active`. |
+| `TEAMS_LOGIN_FAILED_BAD_CREDENTIALS` | Microsoft rejected the email/password. | Update the stored `password` via `PATCH /v2/teams-logins/{credential_id}` and confirm the account isn't locked. The login auto-flips to `invalid`; re-enable after fixing. |
+| `TEAMS_LOGIN_FAILED_MFA_REQUIRED` | Sign-in hit the "Let's keep your account secure" / MFA page. | Make the account MFA-free (turn off Security Defaults or exclude it from your MFA policy), complete one interactive sign-in, then re-enable the login. |
+| `TEAMS_LOGIN_FAILED_TIMEOUT` | The sign-in did not complete in time. | Confirm the account isn't suspended and MFA is off; retry. |
 
+See [Error Codes](/docs/api-v2/error-codes) for the full list. These appear in the bot's `bot.failed` webhook and in the bot details `error_code` field.
+
+## Related resources
+
+- [Setup](/docs/api-v2/authenticated-bots/teams/setup) — one-time workspace and login configuration
+- [Create a bot](/docs/api-v2/reference/bots/createBot) — full bot creation reference
+- [Teams Logins utilization](/docs/api-v2/reference/teams-logins/getTeamsLoginUtilization) — pool metrics endpoint
 
 
 ---
 
-## Setting up webhooks
+## Setup
 
-Learn how to configure webhooks to receive real-time notifications
+Provision an MFA-free Microsoft 365 account, create a teams workspace, and register teams logins for authenticated Microsoft Teams bots
 
-### Source: ./content/docs/api-v2/getting-started/webhooks.mdx
+### Source: ./content/docs/api-v2/authenticated-bots/teams/setup.mdx
 
 
-Webhooks allow you to receive real-time notifications about bot and calendar events without polling the API.
+# Setting Up Microsoft Teams Authentication
+
+Authenticated Teams bots sign in to a Microsoft 365 account **you control** with a stored email and password. Unlike Google Meet, there is **no SAML identity provider, no certificate, and no keypair** to configure — but the account must be provisioned so a bot can complete sign-in unattended. This guide walks through the one-time setup.
+
+<Callout type="warn">
+**The bot account must be MFA-free.** The bot signs in by typing the password on `login.microsoftonline.com`. If your tenant forces multi-factor authentication or security-info registration, sign-in stalls on the **"Let's keep your account secure"** page and fails. Provision the bot accounts so they never hit that page — and keep MFA **on** for your real users. Scope it one of two ways:
+
+- **Turn off Security Defaults (simplest):** For a tenant dedicated to bots, disable Security Defaults so no account is forced into MFA.
+- **Exclude the bots from a Conditional Access policy (recommended for mixed tenants):** Keep MFA for humans, put the bot accounts in a dedicated group (for example `svc-teams-bots`), and **exclude that group** from your "require MFA" policy. Requires Microsoft Entra ID P1.
+
+Either way, the bot accounts must reach a password-only sign-in with no security-info prompt.
+</Callout>
+
+## Prerequisites
+
+- A Microsoft 365 tenant with **admin** access to the [Microsoft Entra admin center](https://entra.microsoft.com) and [Microsoft 365 admin center](https://admin.microsoft.com).
+- Bot accounts isolated from your human users — a dedicated tenant, or a dedicated group excluded from MFA.
+- A Microsoft Teams license for each bot account (so it can join and be admitted like a member).
+- A Meeting BaaS v2 API key with full access.
 
 ## Overview
 
-Meeting BaaS v2 uses [SVIX](https://www.svix.com/) for reliable webhook delivery. Webhooks are configured at the account level and will receive notifications for all events.
+<Steps>
+<Step>Create a **Microsoft 365 account** for the bot and assign it a Teams license.</Step>
+<Step>Make the account **MFA-free** (Security Defaults off, or exclude it from your MFA policy).</Step>
+<Step>Complete the account's **first interactive sign-in** once.</Step>
+<Step>Create a **teams workspace** (the tenant grouping) and register a **teams login** per account.</Step>
+</Steps>
 
-## Configuring Webhooks
+## Step 1 — Create the Microsoft 365 account
 
-Webhooks are configured through your account settings (not via the API). Once configured, you'll receive webhook events for:
+In the [Microsoft Entra admin center](https://entra.microsoft.com), go to **Identity → Users → All users → New user → Create new user**. Give the bot a clear name (for example `bot1@acme.onmicrosoft.com`) and set a strong password you'll store with Meeting BaaS.
 
-- Bot status changes
-- Bot completion
-- Bot failures
-- Calendar events (connections, syncs, event changes)
+<ImageZoom
+  src={'/assets/teams-sso/1-create-user.png'}
+  alt="Microsoft Entra admin center: Identity → Users → New user (creating the bot account)"
+  width={2400}
+  height={1350}
+  className="rounded-lg border"
+/>
 
-## Webhook Events
+Then assign the account a **Microsoft Teams** license (part of most Microsoft 365 / Office 365 plans) in the [Microsoft 365 admin center](https://admin.microsoft.com) under **Users → Active users → the bot → Licenses and apps**. A bot without a Teams license can't be admitted as an organization member.
 
-### Bot Events
+<ImageZoom
+  src={'/assets/teams-sso/2-assign-license.png'}
+  alt="Microsoft 365 admin center: assigning a Microsoft Teams license to the bot account"
+  width={2400}
+  height={1350}
+  className="rounded-lg border"
+/>
 
-- `bot.status_change`: Triggered when a bot's status changes
-- `bot.completed`: Triggered when a bot successfully completes
-- `bot.failed`: Triggered when a bot fails
+<Callout type="tip">
+Put your bot accounts in a dedicated group (for example `svc-teams-bots`). You'll use it to scope the MFA exclusion in Step 2, and you can reuse its address as the `email_group` for round-robin pooling in Step 4.
+</Callout>
 
-### Calendar Events
+## Step 2 — Make the account MFA-free
 
-- `calendar.connection_created`: New calendar connection created
-- `calendar.connection_updated`: Calendar connection updated
-- `calendar.connection_deleted`: Calendar connection deleted
-- `calendar.connection_error`: Calendar connection error
-- `calendar.events_synced`: Calendar events synced - When a calendar syncs for the first time
-- `calendar.event_created`: New calendar event created
-- `calendar.event_updated`: Calendar event updated
-- `calendar.event_cancelled`: Calendar event cancelled
+This is the step that lets a bot complete sign-in without a human. Choose the option that fits your tenant.
 
-For detailed information about each event type, see the [Webhooks documentation](/docs/api-v2/webhooks).
+<Steps>
 
-## Webhook Security
+<Step>
+### Option A — Turn off Security Defaults (dedicated bot tenant)
 
-All webhooks are signed using SVIX's signature verification. Verify webhooks using:
+In the Entra admin center, go to **Identity → Overview → Properties → Manage security defaults**, set **Security defaults** to **Disabled**, and save. This removes the forced MFA / security-info registration for the whole tenant.
 
-- `svix-id`: Unique message ID
-- `svix-timestamp`: Timestamp of the message
-- `svix-signature`: Signature for verification
+<ImageZoom
+  src={'/assets/teams-sso/3-disable-security-defaults.png'}
+  alt="Microsoft Entra admin center: Properties → Manage security defaults set to Disabled"
+  width={2400}
+  height={1350}
+  className="rounded-lg border"
+/>
 
-Use SVIX's verification libraries to verify webhook signatures in your code.
+<Callout type="warn">
+Only disable Security Defaults on a tenant **dedicated to bots**. On a tenant with real users, use Option B instead so your humans keep MFA.
+</Callout>
+</Step>
 
-## Callbacks
+<Step>
+### Option B — Exclude the bots from your MFA policy (mixed tenant)
 
-In addition to account-level webhooks, you can also configure **callbacks** per-bot when creating a bot. Callbacks are direct HTTP requests sent to a URL you specify, and are only sent for `bot.completed` and `bot.failed` events.
+Keep MFA on for everyone else and carve out the bots. In **Entra → Protection → Conditional Access**, open your "require MFA" policy, and under **Assignments → Users → Exclude**, add the `svc-teams-bots` group. Also confirm **legacy per-user MFA is Disabled** for the bot accounts (**Users → Per-user MFA**). Requires Microsoft Entra ID P1.
 
-See the [Webhooks documentation](/docs/api-v2/webhooks) for more details on callbacks.
+<ImageZoom
+  src={'/assets/teams-sso/4-conditional-access-exclude.png'}
+  alt="Conditional Access policy excluding the bot group from the require-MFA assignment"
+  width={2400}
+  height={1350}
+  className="rounded-lg border"
+/>
+</Step>
 
+</Steps>
+
+The end state, either way: signing in with the bot account is **email → password → "Stay signed in?"** with **no** "Let's keep your account secure" prompt in between.
+
+## Step 3 — Complete the first interactive sign-in
+
+Sign in to the bot account **once** interactively at [https://login.microsoftonline.com](https://login.microsoftonline.com) and click through **"Stay signed in?"**. This clears any first-run interstitials so the bot's automated sign-in reaches the password step cleanly. If you still see a "keep your account secure" page here, MFA is not fully off — revisit Step 2.
+
+<ImageZoom
+  src={'/assets/teams-sso/5-complete-first-signin.png'}
+  alt="First interactive sign-in reaching the Stay signed in? prompt with no security-info registration"
+  width={2400}
+  height={1350}
+  className="rounded-lg border"
+/>
+
+<Callout type="tip">
+Set the account's language to **English (United States)** so the sign-in and Teams UIs are in the expected state.
+</Callout>
+
+## Step 4 — Register the workspace and logins
+
+### Create a teams workspace
+
+A teams workspace groups all logins for one Microsoft 365 tenant. It stores no secrets — just the tenant domain.
+
+```bash
+curl -X POST https://api.meetingbaas.com/v2/teams-workspaces \
+  -H "x-meeting-baas-api-key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Acme Bots Tenant",
+    "domain": "acme.onmicrosoft.com"
+  }'
+```
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `domain` | ✅ | The Microsoft 365 tenant primary domain (for example `acme.onmicrosoft.com`, or a verified custom domain). |
+| `name` | optional | Friendly label. Not unique. |
+| `extra` | optional | Free-form JSON for your own tags. |
+
+The response includes the `workspace_id` you'll reference when creating logins:
+
+```json
+{
+  "success": true,
+  "data": {
+    "workspace_id": "f0e1d2c3-b4a5-6789-0123-456789abcdef",
+    "name": "Acme Bots Tenant",
+    "domain": "acme.onmicrosoft.com",
+    "state": "active",
+    "created_at": "2026-07-29T10:00:00.000Z",
+    "updated_at": "2026-07-29T10:00:00.000Z"
+  }
+}
+```
+
+### Register a teams login per account
+
+Create one teams login for each Microsoft 365 account, referencing the `workspace_id` above. The `password` is encrypted at rest and never returned.
+
+```bash
+curl -X POST https://api.meetingbaas.com/v2/teams-logins \
+  -H "x-meeting-baas-api-key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "workspace_id": "f0e1d2c3-b4a5-6789-0123-456789abcdef",
+    "name": "Production Bot Pool — Account 1",
+    "email": "bot1@acme.onmicrosoft.com",
+    "password": "the-account-password",
+    "email_group": "bots@acme.onmicrosoft.com"
+  }'
+```
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `workspace_id` | ✅ | UUID of the parent teams workspace. |
+| `name` | ✅ | Friendly label. Not unique. |
+| `email` | ✅ | The Microsoft 365 account the bot signs in as. |
+| `password` | ✅ | The account password. **Write-only** — encrypted at rest (AES-256-GCM) and never returned. |
+| `email_group` | optional | Address for round-robin pooling. Logins sharing the same `email_group` form one pool. |
+| `extra` | optional | Free-form JSON for your own tags (filterable on the list endpoint). |
+
+<Callout type="info">
+Each `email` may exist at most once per team (`409 Conflict` on duplicates). An unknown `workspace_id` returns `404 Not Found`.
+</Callout>
+
+Repeat for each account. Logins sharing an `email_group` form a round-robin pool — add more logins to increase concurrent capacity (each login handles up to 20 concurrent sessions by default).
+
+## You're ready
+
+With at least one **active** workspace and one **active** login, you can send authenticated bots. Continue to [Sending Authenticated Bots](/docs/api-v2/authenticated-bots/teams/sending-authenticated-bots).
+
+## Maintenance
+
+### Rotating the password
+
+When an account's password changes, send the new value to `PATCH /v2/teams-logins/{credential_id}`. It's re-encrypted at rest immediately; keep the Microsoft 365 account and the stored login in sync so the bot can sign in.
+
+### Re-enabling an invalid login
+
+When a login flips to `invalid`, fix the underlying cause (update the password, turn MFA off for the account, un-suspend it), then re-enable it with a `PATCH` (`PATCH /v2/teams-logins/{credential_id}`). Check `last_error_message` for the reason.
+
+### Deleting a workspace
+
+`DELETE /v2/teams-workspaces/{workspace_id}` **cascades to all of its logins**. Delete a single login with `DELETE /v2/teams-logins/{credential_id}`.
 
 
 ---
@@ -3094,7 +2149,7 @@ See the [Webhooks documentation](/docs/api-v2/webhooks) for more details on call
 
 Store and manage Zoom SDK credentials and OAuth tokens securely with the v2 Credentials API
 
-### Source: ./content/docs/api-v2/getting-started/zoom/credentials.mdx
+### Source: ./content/docs/api-v2/authenticated-bots/zoom/credentials.mdx
 
 
 # Zoom Credentials API
@@ -3732,8 +2787,8 @@ For external meetings: You need user credentials (with OAuth) for OBF token supp
 
 ## Next Steps
 
-- [OBF Token Support](/docs/api-v2/getting-started/zoom/obf-tokens) — Use credentials for external meetings
-- [OAuth Consent Flow](/docs/api-v2/getting-started/zoom/oauth-consent-flow) — Build the user authorization flow
+- [OBF Token Support](/docs/api-v2/authenticated-bots/zoom/obf-tokens) — Use credentials for external meetings
+- [OAuth Consent Flow](/docs/api-v2/authenticated-bots/zoom/oauth-consent-flow) — Build the user authorization flow
 - [Zoom App Setup](/docs/api/getting-started/zoom/app-setup) — Create or configure your Zoom app
 
 
@@ -3743,7 +2798,7 @@ For external meetings: You need user credentials (with OAuth) for OBF token supp
 
 Configure Zoom bots with SDK credentials, OBF tokens, and secure credential management in v2
 
-### Source: ./content/docs/api-v2/getting-started/zoom/index.mdx
+### Source: ./content/docs/api-v2/authenticated-bots/zoom/index.mdx
 
 
 # Zoom Integration
@@ -3751,7 +2806,7 @@ Configure Zoom bots with SDK credentials, OBF tokens, and secure credential mana
 Meeting BaaS v2 provides enhanced Zoom integration with secure credential management, improved OBF token handling, and better error tracking.
 
 <Callout type="warn">
-**March 2, 2026 Deadline:** Zoom requires OBF tokens for bots joining external meetings. If your bots join meetings hosted by external Zoom accounts, you must implement OBF tokens before this date. See [OBF Token Support](/docs/api-v2/getting-started/zoom/obf-tokens) for details and [Zoom's official announcement](https://developers.zoom.us/blog/transition-to-obf-token-meetingsdk-apps/).
+**March 2, 2026 Deadline:** Zoom requires OBF tokens for bots joining external meetings. If your bots join meetings hosted by external Zoom accounts, you must implement OBF tokens before this date. See [OBF Token Support](/docs/api-v2/authenticated-bots/zoom/obf-tokens) for details and [Zoom's official announcement](https://developers.zoom.us/blog/transition-to-obf-token-meetingsdk-apps/).
 </Callout>
 
 ## What's New in v2
@@ -3772,10 +2827,10 @@ The v2 API introduces several improvements for Zoom integration:
 How you integrate with Zoom depends on whose meetings your bots join:
 
 <Cards>
-  <Card title="Internal Meetings" href="/docs/api-v2/getting-started/zoom/credentials#app-only-credentials">
+  <Card title="Internal Meetings" href="/docs/api-v2/authenticated-bots/zoom/credentials#app-only-credentials">
     Bots join meetings within your Zoom organization. Store SDK credentials once and reference them in bot requests.
   </Card>
-  <Card title="External Meetings" href="/docs/api-v2/getting-started/zoom/obf-tokens">
+  <Card title="External Meetings" href="/docs/api-v2/authenticated-bots/zoom/obf-tokens">
     Bots join meetings hosted by external accounts. OBF tokens required after March 2, 2026.
   </Card>
 </Cards>
@@ -3784,10 +2839,10 @@ How you integrate with Zoom depends on whose meetings your bots join:
 
 | Your Use Case | What You Need | Documentation |
 |---------------|---------------|---------------|
-| Recording your team's meetings | App-only credentials | [Zoom Credentials](/docs/api-v2/getting-started/zoom/credentials) |
-| Building a product for customers | User credentials with OBF | [OBF Token Support](/docs/api-v2/getting-started/zoom/obf-tokens) |
-| Joining meetings hosted by others | OBF tokens | [OBF Token Support](/docs/api-v2/getting-started/zoom/obf-tokens) |
-| Already managing OAuth yourself | Direct token or Token URL | [OBF Token Support](/docs/api-v2/getting-started/zoom/obf-tokens) |
+| Recording your team's meetings | App-only credentials | [Zoom Credentials](/docs/api-v2/authenticated-bots/zoom/credentials) |
+| Building a product for customers | User credentials with OBF | [OBF Token Support](/docs/api-v2/authenticated-bots/zoom/obf-tokens) |
+| Joining meetings hosted by others | OBF tokens | [OBF Token Support](/docs/api-v2/authenticated-bots/zoom/obf-tokens) |
+| Already managing OAuth yourself | Direct token or Token URL | [OBF Token Support](/docs/api-v2/authenticated-bots/zoom/obf-tokens) |
 
 ## The `zoom_config` Object
 
@@ -3816,13 +2871,13 @@ Available options within `zoom_config`:
 ## Pages in This Section
 
 <Cards>
-  <Card title="Zoom Credentials" href="/docs/api-v2/getting-started/zoom/credentials">
+  <Card title="Zoom Credentials" href="/docs/api-v2/authenticated-bots/zoom/credentials">
     Store and manage Zoom app credentials and OAuth tokens with the credentials API.
   </Card>
-  <Card title="OBF Token Support" href="/docs/api-v2/getting-started/zoom/obf-tokens">
+  <Card title="OBF Token Support" href="/docs/api-v2/authenticated-bots/zoom/obf-tokens">
     Implement OBF tokens for external meetings. Covers all integration options.
   </Card>
-  <Card title="OAuth Consent Flow" href="/docs/api-v2/getting-started/zoom/oauth-consent-flow">
+  <Card title="OAuth Consent Flow" href="/docs/api-v2/authenticated-bots/zoom/oauth-consent-flow">
     Build an OAuth consent flow for your users to authorize your Zoom app.
   </Card>
 </Cards>
@@ -3884,7 +2939,7 @@ Yes, during migration you can use both APIs. However, credentials are not shared
 
 Step-by-step guide for implementing Zoom OAuth consent in your application for v2
 
-### Source: ./content/docs/api-v2/getting-started/zoom/oauth-consent-flow.mdx
+### Source: ./content/docs/api-v2/authenticated-bots/zoom/oauth-consent-flow.mdx
 
 
 # Building OAuth Consent Flow
@@ -4503,8 +3558,8 @@ Limited customization is available in your Zoom app settings (app name, icon, de
 
 ## Next Steps
 
-- [Zoom Credentials API](/docs/api-v2/getting-started/zoom/credentials) — Manage stored credentials
-- [OBF Token Support](/docs/api-v2/getting-started/zoom/obf-tokens) — Use credentials for external meetings
+- [Zoom Credentials API](/docs/api-v2/authenticated-bots/zoom/credentials) — Manage stored credentials
+- [OBF Token Support](/docs/api-v2/authenticated-bots/zoom/obf-tokens) — Use credentials for external meetings
 - [Sending a Bot](/docs/api-v2/getting-started/sending-a-bot) — Create bots with Zoom credentials
 
 
@@ -4514,7 +3569,7 @@ Limited customization is available in your Zoom app settings (app name, icon, de
 
 Configure OBF (On Behalf Of) tokens for Zoom bots joining external meetings in v2
 
-### Source: ./content/docs/api-v2/getting-started/zoom/obf-tokens.mdx
+### Source: ./content/docs/api-v2/authenticated-bots/zoom/obf-tokens.mdx
 
 
 # Zoom OBF Token Support
@@ -4552,7 +3607,7 @@ An OBF (On Behalf Of) token is a Zoom authorization token that proves a specific
 ### You do NOT need OBF tokens if:
 
 - Your bots only join meetings **within** your own Zoom account/organization
-- You use your own [SDK credentials](/docs/api-v2/getting-started/zoom/credentials#app-only-credentials) (makes all meetings "internal")
+- You use your own [SDK credentials](/docs/api-v2/authenticated-bots/zoom/credentials#app-only-credentials) (makes all meetings "internal")
 - You only use Google Meet or Microsoft Teams bots
 
 ## Four Integration Options
@@ -4570,7 +3625,7 @@ The v2 API supports four ways to provide OBF tokens via the `zoom_config` object
 
 ## Option 1: Stored Credential (Recommended)
 
-Store the user's OAuth tokens via the [Credentials API](/docs/api-v2/getting-started/zoom/credentials), then reference the credential when creating bots.
+Store the user's OAuth tokens via the [Credentials API](/docs/api-v2/authenticated-bots/zoom/credentials), then reference the credential when creating bots.
 
 **How it works:**
 1. User completes OAuth consent flow → you receive authorization code
@@ -4914,7 +3969,7 @@ If you use `obf_token` or `obf_token_url` and need the AAN to display your app n
 }
 ```
 
-The stored credential provides your SDK keys for AAN attribution, while your endpoint continues handling OBF token generation. See [Zoom Credentials](/docs/api-v2/getting-started/zoom/credentials#active-apps-notifier-aan-attribution) for how to create an app-only credential.
+The stored credential provides your SDK keys for AAN attribution, while your endpoint continues handling OBF token generation. See [Zoom Credentials](/docs/api-v2/authenticated-bots/zoom/credentials#active-apps-notifier-aan-attribution) for how to create an app-only credential.
 
 <Callout type="warn">
 **Zoom Marketplace Requirement:** During review, Zoom requires the AAN to show your app name. If you're going through Marketplace review, the reviewer may flag this if your bot requests don't include a stored credential. See [Zoom's AAN documentation](https://developers.zoom.us/docs/meeting-sdk/ui-notices/#active-apps-notifier-aan-use-case).
@@ -4997,7 +4052,7 @@ See [Zoom App Setup](/docs/api/getting-started/zoom/app-setup) for adding scopes
 <Step>
 ### Determine if You Need OBF Tokens
 
-Do your bots join meetings hosted by external Zoom accounts? If yes, you need OBF tokens. If only internal meetings, use [app-only credentials](/docs/api-v2/getting-started/zoom/credentials#app-only-credentials).
+Do your bots join meetings hosted by external Zoom accounts? If yes, you need OBF tokens. If only internal meetings, use [app-only credentials](/docs/api-v2/authenticated-bots/zoom/credentials#app-only-credentials).
 
 </Step>
 
@@ -5021,7 +4076,7 @@ Ensure your Zoom app has `user:read:token` and `user:read:user` scopes. See [Zoo
 <Step>
 ### Implement OAuth Consent Flow
 
-Build a "Connect Zoom" button for your users. See [OAuth Consent Flow](/docs/api-v2/getting-started/zoom/oauth-consent-flow).
+Build a "Connect Zoom" button for your users. See [OAuth Consent Flow](/docs/api-v2/authenticated-bots/zoom/oauth-consent-flow).
 
 </Step>
 
@@ -5072,12 +4127,1535 @@ v2 introduces the Credentials API for secure token storage, the `zoom_config` ob
 
 ## Resources
 
-- [Zoom Credentials API](/docs/api-v2/getting-started/zoom/credentials) — Store and manage credentials
-- [OAuth Consent Flow](/docs/api-v2/getting-started/zoom/oauth-consent-flow) — Build user authorization
+- [Zoom Credentials API](/docs/api-v2/authenticated-bots/zoom/credentials) — Store and manage credentials
+- [OAuth Consent Flow](/docs/api-v2/authenticated-bots/zoom/oauth-consent-flow) — Build user authorization
 - [Zoom App Setup](/docs/api/getting-started/zoom/app-setup) — Create your Zoom app
 - [Zoom's OBF Blog Post](https://developers.zoom.us/blog/transition-to-obf-token-meetingsdk-apps/) — Official announcement
 - [Zoom's OBF FAQ](https://developers.zoom.us/docs/meeting-sdk/obf-faq/) — Detailed Q&A from Zoom
 - [Zoom Token API](https://developers.zoom.us/docs/api/rest/reference/user/methods/#operation/userToken) — Zoom's token endpoint
+
+
+---
+
+## Batch Operations
+
+Learn how to create multiple bots in a single request
+
+### Source: ./content/docs/api-v2/batch-operations.mdx
+
+
+Batch operations allow you to create multiple bots in a single API request. This is useful for bulk operations and reduces the number of API calls needed.
+
+## Creating Multiple Bots
+
+To create multiple bots at once, use the batch endpoint:
+
+```bash
+curl -X POST "https://api.meetingbaas.com/v2/bots/batch" \
+     -H "Content-Type: application/json" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+     -d '[
+           {
+             "meeting_url": "https://meet.google.com/abc-defg-hij",
+             "bot_name": "Bot 1",
+             "recording_mode": "speaker_view"
+           },
+           {
+             "meeting_url": "https://zoom.us/j/123456789",
+             "bot_name": "Bot 2",
+             "recording_mode": "gallery_view"
+           }
+         ]'
+```
+
+## Response Format
+
+The batch endpoint returns a response with both successful and failed items:
+
+```json
+{
+  "success": true,
+  "data": {
+    "success": [
+      {
+        "index": 0,
+        "bot_id": "123e4567-e89b-12d3-a456-426614174000",
+        "extra": null
+      }
+    ],
+    "errors": [
+      {
+        "index": 1,
+        "code": "INSUFFICIENT_TOKENS",
+        "message": "Insufficient tokens. Available: 0, Required: 0.5",
+        "details": null,
+        "extra": null
+      }
+    ]
+  }
+}
+```
+
+## Partial Success
+
+Batch operations support **partial success**. This means:
+
+- Some bots may be created successfully while others fail
+- Each item is processed independently
+- Errors for one item don't prevent other items from being processed
+- The response includes both successful and failed items with their original indices
+
+## Error Handling
+
+Each item in the batch is validated and processed individually. Common errors include:
+
+- `INSUFFICIENT_TOKENS`: Not enough tokens to create the bot
+- `DAILY_BOT_CAP_REACHED`: Daily bot creation limit reached
+- `BOT_ALREADY_EXISTS`: A bot already exists for this meeting URL (if `allow_multiple_bots` is `false`)
+- `INVALID_MEETING_PLATFORM`: Could not determine meeting platform from URL
+- `VALIDATION_ERROR`: Request validation failed
+
+## Use Cases
+
+Batch operations are ideal for:
+
+- Bulk bot creation for multiple meetings
+- Scheduled bot creation for recurring events
+- Migrating bots from another system
+- Creating test bots in bulk
+
+## Batch Size Limits
+
+- **Minimum**: 1 bot per batch
+- **Maximum**: 100 bots per batch
+
+If you exceed 100 items, the request will fail with a validation error.
+
+## Best Practices
+
+1. **Validate data before batching**: Ensure all meeting URLs and configurations are valid
+2. **Handle partial success**: Always check both `success` and `errors` arrays in the response
+3. **Use appropriate batch sizes**: Consider processing in batches of 10-50 items for better error handling and easier debugging
+4. **Monitor token balance**: Ensure you have sufficient tokens for all bots in the batch
+5. **Check daily bot cap**: Make sure you won't exceed your daily bot creation limit
+
+## Scheduled Bot Batch
+
+You can also create multiple scheduled bots in a single request:
+
+```bash
+curl -X POST "https://api.meetingbaas.com/v2/bots/scheduled/batch" \
+     -H "Content-Type: application/json" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+     -d '[
+           {
+             "meeting_url": "https://meet.google.com/abc-defg-hij",
+             "bot_name": "Scheduled Bot 1",
+             "join_at": "2025-01-20T14:00:00Z"
+           },
+           {
+             "meeting_url": "https://zoom.us/j/123456789",
+             "bot_name": "Scheduled Bot 2",
+             "join_at": "2025-01-20T15:00:00Z"
+           }
+         ]'
+```
+
+## Token Reservation
+
+Tokens are reserved individually for each bot in the batch. If one bot fails due to insufficient tokens, other bots in the batch may still succeed if tokens are available.
+
+## Daily Bot Cap
+
+The daily bot cap is checked for each bot individually. If you're creating 100 bots but your daily cap is 75, the first 75 will succeed and the remaining 25 will fail with `DAILY_BOT_CAP_REACHED`.
+
+
+
+---
+
+## Community & Support
+
+Get help and connect with the Meeting BaaS community
+
+### Source: ./content/docs/api-v2/community-and-support.mdx
+
+
+Need help? We're here for you!
+
+## Support Channels
+
+- **Support Center**: Visit [Support center](https://dashboard.meetingbaas.com/support-center) to create and manage support tickets, view ticket status, and track your support requests
+- **Discord**: Join our [Discord community](https://discord.com/invite/dsvFgDTr6c) for real-time support and discussions
+- **Email**: Contact us at support@meetingbaas.com
+- **Documentation**: Browse our comprehensive documentation
+
+## Resources
+
+- **API Reference**: Complete API documentation with examples
+- **Getting Started Guides**: Step-by-step tutorials
+- **Webhooks Guide**: Learn about webhook events and configuration
+- **Examples**: Code samples in multiple languages
+
+## Contributing
+
+Found an issue or have a suggestion? We welcome contributions!
+
+- Open an issue on GitHub
+- Submit a pull request
+- Share feedback in our Discord
+
+## Status
+
+Check our status page for real-time system status and incident updates.
+
+
+
+---
+
+## Deduplication & Rate Limiting
+
+Learn about duplicate bot prevention and rate limiting in Meeting BaaS v2
+
+### Source: ./content/docs/api-v2/deduplication-rate-limiting.mdx
+
+
+Meeting BaaS v2 includes built-in protection against duplicate bots and rate limiting to ensure fair usage.
+
+## Deduplication
+
+Deduplication prevents multiple bots from joining the same meeting within a short time window.
+
+### How It Works
+
+By default, when you create a bot with `allow_multiple_bots: false`, the system:
+
+1. Checks if a bot already exists for the same meeting URL within the last 5 minutes
+2. If a bot exists, the request fails with `BOT_ALREADY_EXISTS`
+3. If no bot exists, a lock is acquired and the bot is created
+
+### Lock Duration
+
+The deduplication lock lasts for **5 minutes**. After this time, you can create another bot for the same meeting URL.
+
+### Allowing Multiple Bots
+
+If you want to allow multiple bots in the same meeting, set `allow_multiple_bots: true` when creating the bot:
+
+```json
+{
+  "meeting_url": "https://meet.google.com/abc-defg-hij",
+  "bot_name": "Bot 1",
+  "allow_multiple_bots": true
+}
+```
+
+With `allow_multiple_bots: true`, no deduplication lock is applied, and multiple bots can join the same meeting.
+
+### Use Cases
+
+**Prevent duplicates (`allow_multiple_bots: false`):**
+- Production environments where duplicate bots are unwanted
+- Preventing accidental double-booking
+- Ensuring only one bot per meeting
+
+**Allow multiple bots (`allow_multiple_bots: true`):**
+- Testing scenarios
+- Multiple recording perspectives
+- Backup bots for reliability
+
+## Rate Limiting
+
+Rate limiting controls how many requests per second your team can make to the API.
+
+### How It Works
+
+- Rate limits are applied **per team** (not per API key)
+- Limits are measured in **requests per second**
+- **GET requests are not rate limited** (list and get endpoints)
+- Only POST, PATCH, and DELETE requests are rate limited
+
+### Default Rate Limits
+
+Default rate limits vary by plan:
+
+- **Pay-as-you-go**: 5 requests/second
+- **Pro**: 10 requests/second
+- **Scale**: 20 requests/second
+- **Enterprise**: 20 requests/second (can be customised)
+
+### Rate Limit Headers
+
+When making requests, the API includes rate limit headers:
+
+- `x-ratelimit-limit`: Maximum requests per second
+- `x-ratelimit-remaining`: Remaining requests in the current window
+- `x-ratelimit-reset`: Time when the rate limit resets
+- `retry-after`: Seconds to wait before retrying (when limit exceeded)
+
+### Rate Limit Errors
+
+When you exceed the rate limit, you'll receive a `429 Too Many Requests` response:
+
+```json
+{
+  "success": false,
+  "error": "Rate Limited",
+  "code": "FST_ERR_TOO_MANY_REQUESTS",
+  "statusCode": 429,
+  "message": "Rate limit exceeded. Maximum <plan_limit> requests per second allowed. Retry after x seconds",
+  "retryAfter": 1
+}
+```
+
+The response includes a `retry-after` header indicating how many seconds to wait before retrying.
+
+### Best Practices
+
+1. **Respect rate limits**: Implement exponential backoff when you receive 429 errors
+2. **Use batch operations**: Create multiple bots in a single request instead of multiple individual requests
+3. **Cache responses**: Cache GET requests to reduce API calls
+4. **Monitor headers**: Check rate limit headers to understand your current usage
+
+## Daily Bot Cap
+
+In addition to rate limiting, each team has a **daily bot creation limit**:
+
+- **Pay-as-you-go**: 75 bots/day
+- **Pro**: 300 bots/day
+- **Scale**: 1,000 bots/day
+- **Enterprise**: 3,000 bots/day
+
+### How It Works
+
+- The daily bot cap is checked **before** creating each bot
+- The limit is based on a 24-hour rolling window
+- If the limit is reached, subsequent bot creation requests fail with `DAILY_BOT_CAP_REACHED`
+- The cap resets based on when bots were created (not a fixed time)
+
+### Error Response
+
+When the daily bot cap is reached:
+
+```json
+{
+  "success": false,
+  "error": "Rate Limited",
+  "message": "Daily bot cap has been reached: 75 bots created within the last 24 hours",
+  "code": "FST_ERR_DAILY_BOT_CAP_REACHED",
+  "statusCode": 429
+}
+```
+
+## Combining Limits
+
+All limits work together:
+
+1. **Rate limiting**: Controls requests per second
+2. **Daily bot cap**: Controls total bots per day
+3. **Token availability**: Controls whether you have tokens to create bots
+4. **Deduplication**: Prevents duplicate bots (if enabled)
+
+Make sure to account for all these limits when designing your integration.
+
+
+
+---
+
+## Error Codes
+
+Complete reference for bot process error codes in Meeting BaaS v2
+
+### Source: ./content/docs/api-v2/error-codes.mdx
+
+
+When a bot fails, the error information is included in the `bot.failed` webhook event and in the bot details response. This page documents all possible error codes and their meanings.
+
+## Error Code Structure
+
+Error codes are standardized strings that indicate the reason a bot failed. They are included in:
+
+- `bot.failed` webhook events (`error_code` field)
+- Bot details response (`error_code` field)
+- Bot status history
+
+## Normal End Reasons
+
+These codes indicate the bot ended normally (not a failure):
+
+### `BOT_REMOVED`
+**Title:** Bot Removed  
+**Description:** Bot was removed from the meeting.
+
+### `NO_ATTENDEES`
+**Title:** No Attendees  
+**Description:** No attendees joined the meeting.
+
+### `NO_SPEAKER`
+**Title:** No Speaker  
+**Description:** No speakers detected during recording.
+
+### `RECORDING_TIMEOUT`
+**Title:** Recording Timeout  
+**Description:** Recording timeout reached.
+
+### `API_REQUEST`
+**Title:** API Request  
+**Description:** Recording stopped via API request (using the leave endpoint).
+
+## Error End Reasons
+
+These codes indicate the bot failed due to an error:
+
+### `BOT_NOT_ACCEPTED`
+**Title:** Bot Not Accepted  
+**Description:** Bot was not accepted into the meeting, either by the participants or the meeting platform.
+
+**Token Charging:** Only recording tokens are charged (based on waiting room duration).
+
+### `TIMEOUT_WAITING_TO_START`
+**Title:** Timeout Waiting to Start  
+**Description:** Timeout waiting to start recording.
+
+**Token Charging:** Only recording tokens are charged (based on waiting room duration).
+
+### `CANNOT_JOIN_MEETING`
+**Title:** Cannot Join Meeting  
+**Description:** Cannot join meeting - meeting is not reachable or may not exist.
+
+### `BOT_REMOVED_TOO_EARLY`
+**Title:** Bot Removed Too Early  
+**Description:** Bot was removed too early; the video is too short.
+
+### `INVALID_MEETING_URL`
+**Title:** Invalid Meeting URL  
+**Description:** Invalid meeting URL provided.
+
+### `STREAMING_SETUP_FAILED`
+**Title:** Streaming Setup Failed  
+**Description:** Failed to set up streaming audio.
+
+### `LOGIN_REQUIRED`
+**Title:** Login Required  
+**Description:** Login required to access the meeting.
+
+### `INTERNAL_ERROR`
+**Title:** Internal Error  
+**Description:** Internal error occurred during recording.
+
+## Crash Reasons
+
+These codes indicate the bot process crashed:
+
+### `OOM_KILLED`
+**Title:** Out of Memory  
+**Description:** Bot process was killed due to out of memory.
+
+### `SIGTERM`
+**Title:** Process Terminated  
+**Description:** Bot process was terminated.
+
+### `FORCE_KILLED`
+**Title:** Force Killed  
+**Description:** Bot process was force killed.
+
+### `GENERAL_ERROR`
+**Title:** General Error  
+**Description:** Bot process exited with a general error.
+
+## Pre-Recording Stop
+
+### `EXITING_MEETING_BEFORE_RECORD`
+**Title:** Exiting Meeting Before Record
+**Description:** The bot left the meeting before recording started. This can happen if the bot was requested to leave via the API (leave endpoint, scheduled bot deletion, or calendar bot cancellation), or if the meeting ended before the bot was accepted.
+
+**Token Charging:** No tokens are consumed for pre-recording stops.
+
+## Transcription Errors
+
+### `TRANSCRIPTION_FAILED`
+**Title:** Transcription Failed  
+**Description:** The transcription process failed. Please try again using re-transcribe endpoint or contact support.
+
+**Token Charging:** Recording and streaming tokens are charged, but transcription tokens are not.
+
+## Zoom-Specific Errors
+
+These errors are specific to Zoom meetings:
+
+### `WAITING_FOR_HOST_TIMEOUT`
+**Title:** Waiting for Host Timeout
+**Description:** The bot timed out while waiting for the meeting host to join the meeting.
+
+**Resolution:** Ensure the meeting host joins before the timeout expires. You can increase the timeout via `timeout_config.waiting_room_timeout`.
+
+### `WAITING_FOR_AUTHORIZED_USER_TIMEOUT`
+**Title:** Waiting for Authorized User Timeout
+**Description:** The bot timed out waiting for the authorized user (associated with the OBF token) to join the meeting. When using OBF tokens, the Zoom user who authorized your app must be present in the meeting for the bot to join successfully. The bot retries joining every few seconds, but if the authorized user never appears, this timeout is triggered.
+
+**Resolution:** Ensure the authorized user joins the meeting before or shortly after the bot. You can increase the timeout via `timeout_config.waiting_room_timeout`.
+
+### `UNABLE_JOIN_EXTERNAL_MEETING`
+**Title:** Unable to Join External Meeting
+**Description:** The Zoom SDK app is not authorized to join meetings hosted by a different Zoom organization. This occurs when the SDK app's configuration restricts it to meetings within its own Zoom organization.
+
+**Resolution:** Ensure the Zoom SDK app has permission to join external meetings in its [Zoom Marketplace app settings](https://marketplace.zoom.us/). Alternatively, use an OBF token from a user within the meeting's Zoom organization.
+
+### `RECORDING_RIGHTS_NOT_GRANTED`
+**Title:** Recording Rights Not Granted  
+**Description:** The bot was unable to obtain recording rights from the meeting host.
+
+### `CANNOT_REQUEST_RECORDING_RIGHT`
+**Title:** Cannot Request Recording Right  
+**Description:** The bot could not request recording rights. The meeting may not have recording enabled.
+
+### `MEETING_ENDED_PREMATURELY`
+**Title:** Meeting Ended Prematurely  
+**Description:** The meeting ended before the bot could participate.
+
+### `SET_ZOOM_ID_AND_PWD_TOGETHER`
+**Title:** Zoom SDK Configuration Error  
+**Description:** Zoom SDK ID and password must be set together.
+
+### `CANNOT_GET_JWT_TOKEN`
+**Title:** Cannot Get JWT Token  
+**Description:** Unable to obtain JWT token with the provided Zoom SDK credentials.
+
+### `SDK_AUTH_FAILED`
+**Title:** SDK Authentication Failed  
+**Description:** Zoom SDK authentication failed with the provided credentials.
+
+### `ZOOM_ACCESS_TOKEN_ERROR`
+**Title:** Zoom Access Token Error
+**Description:** An error occurred while obtaining the Zoom access token (ZAK token). This can happen when using `zak_token_url` and the endpoint fails to return a valid token.
+
+### `ZOOM_OBF_TOKEN_ERROR`
+**Title:** Zoom OBF Token Error
+**Description:** An error occurred while obtaining or using the OBF (On Behalf Of) token. This can happen when:
+
+- The `obf_token` provided is invalid or expired
+- The `obf_token_url` endpoint fails to return a valid token
+- The stored credential (`credential_id`) has invalid or expired OAuth tokens
+- Token refresh fails for managed OAuth credentials
+
+**Resolution:** Check your OBF token configuration. If using stored credentials, verify the credential state is "active" via `GET /v2/zoom-credentials/{id}`. If the credential is invalid, prompt the user to re-authorize.
+
+### `RECORDING_START_TIMEOUT`
+**Title:** Recording Start Timeout
+**Description:** Recording privilege was granted by the host, but the recording never started within the expected time. This may indicate an issue with the meeting platform's recording system.
+
+**Token Charging:** Recording tokens are charged based on the time spent waiting.
+
+### `HOST_CLIENT_CANNOT_GRANT_PERMISSION`
+**Title:** Host Client Cannot Grant Permission
+**Description:** The meeting host is using a Zoom client (such as Zoom Rooms) that cannot display the recording permission dialog. The bot cannot record this meeting.
+
+**Resolution:** This is a limitation of certain Zoom clients. The host would need to join from a standard Zoom desktop or mobile client to grant recording permission.
+
+## Google Meet Authentication Errors
+
+These errors apply to [authenticated Google Meet bots](/docs/api-v2/authenticated-bots/meet) that sign in as a Google Workspace user via SAML SSO (`meet_config`).
+
+### `MEET_LOGIN_UNAVAILABLE`
+**Title:** Meet Login Unavailable
+**Description:** No meet login slot was available to authenticate the bot — every matching login was saturated (at its concurrent-session capacity) or no active login matched the selector — and `meet_config.fallback` was `fail`.
+
+**Resolution:** Add more logins to the pool, reduce concurrency, or set `meet_config.fallback` to `anonymous`. Monitor headroom with `GET /v2/meet-logins/utilization` and the **Meet Login Utilization** alert.
+
+### `MEET_LOGIN_REQUIRED`
+**Title:** Meet Login Required
+**Description:** The meeting required a signed-in user, but the bot could not authenticate (no `meet_config` was supplied, or the selected login could not be used).
+
+**Resolution:** Send the bot with a valid `meet_config` and ensure the selected login's state is `active` via `GET /v2/meet-logins/{credential_id}`.
+
+### `MEET_LOGIN_FAILED_SAML_REJECTED`
+**Title:** Meet Login Failed — SAML Rejected
+**Description:** Google rejected the SAML assertion during sign-in. Usually the certificate uploaded to Google Admin Console no longer matches the workspace's certificate, or the Legacy SSO profile is misconfigured or unassigned.
+
+**Resolution:** Verify the certificate in Google Admin matches the workspace `cert_pem` and that the SSO profile points at the `/v2/meet-sso/*` endpoints and is assigned to all users. The workspace auto-flips to `invalid`; re-enable it via `PATCH /v2/meet-workspaces/{workspace_id}` after fixing the configuration.
+
+### `MEET_LOGIN_FAILED_TIMEOUT`
+**Title:** Meet Login Failed — Timeout
+**Description:** The SSO sign-in flow did not complete within the expected time.
+
+**Resolution:** Confirm the Workspace user completed its first-time interactive "Welcome to Workspace" login and is not suspended, then retry. The login may auto-flip to `invalid`; re-enable it via `PATCH /v2/meet-logins/{credential_id}` after resolving the cause.
+
+## System Errors
+
+These errors occur when the system attempts to create a bot instance. For immediate bots, this happens at creation time and the error is returned in the API response. For scheduled and calendar bots, these errors can appear in `bot.failed` webhook events when the bot is being queued to join the meeting (at its scheduled join time).
+
+### `INSUFFICIENT_TOKENS`
+**Title:** Insufficient Tokens  
+**Description:** Not enough tokens were available to launch the bot.
+
+**When it occurs:**
+- **Immediate bots**: When you call `POST /v2/bots` (error returned in API response)
+- **Scheduled bots**: When the bot is being queued at its `join_at` time (error sent via `bot.failed` webhook)
+- **Calendar bots**: When the bot is being queued at its scheduled join time (error sent via `bot.failed` webhook)
+
+### `DAILY_BOT_CAP_REACHED`
+**Title:** Daily Bot Cap Reached  
+**Description:** The daily bot creation limit configured for this team has been reached.
+
+**When it occurs:**
+- **Immediate bots**: When you call `POST /v2/bots` (error returned in API response)
+- **Scheduled bots**: When the bot is being queued at its `join_at` time (error sent via `bot.failed` webhook)
+- **Calendar bots**: When the bot is being queued at its scheduled join time (error sent via `bot.failed` webhook)
+
+**Note:** For scheduled and calendar bots, the daily bot cap is checked when the bot is being queued, not when it's scheduled. This means a bot scheduled for later in the day might fail if the daily cap is reached before its scheduled time.
+
+### `BOT_ALREADY_EXISTS`
+**Title:** Bot Already Exists  
+**Description:** A bot is already running for this meeting URL.
+
+**When it occurs:**
+- **Immediate bots**: When you call `POST /v2/bots` and `allow_multiple_bots` is `false` (error returned in API response)
+- **Scheduled bots**: When the bot is being queued and another bot already exists for the same meeting URL (error sent via `bot.failed` webhook)
+- **Calendar bots**: When the bot is being queued and another bot already exists for the same meeting URL (error sent via `bot.failed` webhook)
+
+## Unknown Error
+
+### `UNKNOWN_ERROR`
+**Title:** Unknown Error  
+**Description:** An unknown error occurred. Please contact support.
+
+This is a fallback error code used when the actual error cannot be determined or mapped to a known error code.
+
+## Token Charging
+
+Different error codes result in different token charges:
+
+- **User-responsible errors** (`BOT_NOT_ACCEPTED`, `TIMEOUT_WAITING_TO_START`): Only recording tokens charged (based on waiting room duration)
+- **Transcription errors** (`TRANSCRIPTION_FAILED`): Recording and streaming tokens charged, transcription tokens not charged
+- **Other errors**: No tokens charged (reserved tokens are released)
+- **Normal end reasons**: Full tokens charged based on meeting duration and features used
+
+## Handling Errors
+
+When you receive a `bot.failed` webhook:
+
+1. Check the `error_code` to understand what went wrong
+2. Review the `error_message` for additional context
+3. For user-responsible errors (`BOT_NOT_ACCEPTED`, `TIMEOUT_WAITING_TO_START`, `WAITING_FOR_AUTHORIZED_USER_TIMEOUT`), ensure meeting settings allow bots and authorized users join promptly
+4. For transcription errors, you can retry transcription using the re-transcribe endpoint
+5. For system errors, check your token balance and daily bot cap
+6. For unknown errors, contact support with the bot ID and error details
+
+
+
+---
+
+## Calendar integration
+
+Learn how to integrate calendars and schedule bots automatically
+
+### Source: ./content/docs/api-v2/getting-started/calendars.mdx
+
+
+Meeting BaaS v2 allows you to connect calendars (Google Calendar, Microsoft Outlook) and automatically schedule bots for calendar events. This guide walks you through setting up calendar integration in your application.
+
+## Overview
+
+Calendar integration enables:
+
+- Automatic bot scheduling for calendar events
+- Real-time sync of calendar events via push subscriptions
+- Webhook notifications for calendar changes
+- Support for recurring events
+- Automatic handling of event reschedules and cancellations
+
+## Prerequisites
+
+Before you can integrate calendars, you need to set up OAuth applications with Google and/or Microsoft. Meeting BaaS v2 uses a **bring-your-own-credentials** model, meaning you create and manage your own OAuth applications and provide the credentials when creating calendar connections.
+
+### What You Need
+
+You'll need two sets of credentials:
+
+1. **Your Application's OAuth Credentials** (Service Level):
+   - Google: OAuth 2.0 Client ID and Client Secret
+   - Microsoft: Azure AD Application (Client) ID and Client Secret
+
+2. **User's OAuth Refresh Token** (User Level):
+   - OAuth refresh token obtained when each user authorizes your application to access their calendar
+
+<Callout type="info">
+  **Best Practice**: Request calendar access as a separate step after initial user signup. Users are more likely to grant calendar access when it's clearly tied to a specific feature they want to use.
+</Callout>
+
+## Create Google Calendar OAuth Application
+
+You'll need to create a Google OAuth application that users can authorize to access their calendar. You can skip this step if your application won't support Google Calendar. We recommend creating separate applications for development and production.
+
+### Steps
+
+1. **Create a Google Cloud Project**: Follow the directions [here](https://support.google.com/cloud/answer/15549257) to create a new Google Cloud project that uses OAuth.
+
+2. **Enable Google Calendar API**: In your Google Cloud project, go to "APIs & Services" > "Library" and enable the [Google Calendar API](https://console.cloud.google.com/apis/library/calendar-json.googleapis.com).
+
+3. **Create OAuth 2.0 Credentials**: 
+   - Go to "APIs & Services" > "Credentials"
+   - Click "Create Credentials" > "OAuth client ID"
+   - Choose "Web application" as the application type
+   - Add your authorized redirect URIs
+   - Use these scopes when requesting authorization:
+     - `https://www.googleapis.com/auth/calendar.readonly` - To read calendar and event data
+     - `https://www.googleapis.com/auth/userinfo.email` - To get the user's email address (optional but recommended)
+
+4. **OAuth Consent Screen**: 
+   - Configure your OAuth consent screen in "APIs & Services" > "OAuth consent screen"
+   - Google will need to approve your application before external users can authorize it. See [here](https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification) for more information
+   - Until your app is approved, only users on your test users list can authorize it. To edit the test users list, go to "OAuth Consent Screen" > "Test Users"
+
+### Important Notes for Google OAuth
+
+- **Refresh Token Requirement**: Calendar connections require offline access. When implementing the OAuth flow, you **must** include:
+  - `access_type=offline` parameter
+  - `prompt=consent` parameter (to force the consent screen and ensure you get a refresh token)
+- Without a refresh token, the connection will expire after ~1 hour and cannot be renewed
+
+## Create Microsoft Calendar OAuth Application
+
+You'll need to create a Microsoft Azure AD application that users can authorize to access their calendar. You can skip this step if your application won't support Microsoft Calendar. We recommend creating separate applications for development and production.
+
+### Steps
+
+1. **Register an Azure AD Application**: Follow the directions [here](https://learn.microsoft.com/en-us/entra/identity-platform/quickstart-register-app) to create a new Microsoft Azure Active Directory application. When it asks you to choose "Supported account types", select "Accounts in any organizational directory (Any Microsoft Entra ID tenant - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)".
+
+2. **Configure API Permissions**: 
+   - Go to "API permissions" in your Azure AD app
+   - Add these delegated permissions:
+     - `Calendars.Read` - To read calendar and event data
+     - `User.Read` - To get the user's profile information (optional but recommended)
+   - Click "Add a permission" > "Microsoft Graph" > "Delegated permissions"
+
+3. **Publisher Verification** (Optional but Recommended):
+   - Microsoft can verify your application before external users can authorize it. See [here](https://learn.microsoft.com/en-us/entra/identity-platform/publisher-verification-overview) for more information
+   - This process is automated and should take less than an hour
+   - Steps to get verified:
+     - [Join the Microsoft AI Cloud Partner Program](https://partner.microsoft.com/en-us/partnership)
+     - [Configure your app's publisher domain](https://learn.microsoft.com/en-us/entra/identity-platform/howto-configure-publisher-domain)
+     - [Mark your app as publisher verified](https://learn.microsoft.com/en-us/entra/identity-platform/mark-app-as-publisher-verified)
+
+### Important Notes for Microsoft OAuth
+
+- **Refresh Token Requirement**: Calendar connections require offline access. When implementing the OAuth flow, you **must** include:
+  - `offline_access` scope in your OAuth request
+- Without a refresh token, the connection will expire after ~1 hour and cannot be renewed
+- **Tenant ID**: For Microsoft, you'll need to provide the Azure AD tenant ID. You can find this in Azure Portal > Azure Active Directory > Overview. You can also use `common`, `organizations`, or `consumers` for multi-tenant scenarios
+
+## Implement OAuth Flow
+
+You'll need to add code to handle the OAuth flow for users to authorize your Calendar OAuth applications. The flow is essentially the same for both Google and Microsoft:
+
+1. **Add an authorization endpoint**: Redirect users to the OAuth provider's authorization URL
+2. **Add a callback endpoint**: Handle the OAuth callback and exchange the authorization code for tokens
+3. **Exchange authorization code for refresh token**: In your callback endpoint, exchange the authorization code for an access token and refresh token
+4. **Create calendar connection**: After obtaining the refresh token, make a `POST /v2/calendars` request to create the calendar connection, passing:
+   - `oauth_client_id`: Your OAuth client ID
+   - `oauth_client_secret`: Your OAuth client secret
+   - `oauth_refresh_token`: The refresh token obtained from the user's authorization
+   - `oauth_tenant_id`: (Microsoft only) The Azure AD tenant ID
+   - `raw_calendar_id`: The calendar ID to connect (use `POST /v2/calendars/list-raw` to get available calendars)
+
+## Supported Platforms
+
+- **Google Calendar**: Full support for Google Workspace and personal accounts
+- **Microsoft Outlook**: Full support for Microsoft 365 and personal accounts
+
+## Calendar Events
+
+Once connected, calendar events are automatically synced. You can:
+
+- List all calendars
+- List events for a calendar
+- Get event details
+- Schedule bots for specific events or entire event series
+
+## Scheduling Bots for Calendar Events
+
+To schedule a bot for a calendar event:
+
+```bash
+curl -X POST "https://api.meetingbaas.com/v2/calendars/CALENDAR-ID/bots" \
+     -H "Content-Type: application/json" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+     -d '{
+           "event_id": "EVENT-ID",
+           "all_occurrences": false,
+           "bot_name": "AI Notetaker",
+           "recording_mode": "speaker_view"
+         }'
+```
+
+**Options:**
+- `event_id`: The specific event instance ID
+- `all_occurrences`: Set to `true` to schedule for all occurrences of a recurring event
+- `series_id`: Use this instead of `event_id` to schedule for an entire series
+
+## Shared Service Account Use Case (Invite-To-Schedule)
+
+Once the OAuth flow is configured, and if you want to avoid creating calendar connections for every end-user, you can connect a single dedicated "bot mailbox" (for example, `recording@xyz.io`) and reuse it.
+
+<Callout type="info">
+  Meeting BaaS v2 uses a bring-your-own-credentials model and requires OAuth refresh tokens obtained via a normal OAuth consent flow. See [Implement OAuth Flow](#implement-oauth-flow) above. The practical workaround for a "service account" is to use a dedicated mailbox/user account that can complete OAuth once, then reuse its refresh token.
+</Callout>
+
+### How it works
+
+1. Create a dedicated provider account and calendar (the bot mailbox).
+2. Run a single OAuth consent flow for the bot mailbox to obtain its refresh token, then connect that calendar to Meeting BaaS v2 using `POST /v2/calendars` (you'll get one `calendar_id` for this shared connection).
+3. When you need a bot, create the meeting/event and invite the bot mailbox. Make sure the event contains a meeting URL (since bot scheduling depends on it).
+4. Meeting BaaS syncs the event into that connection and emits webhooks for the connection and subsequent event changes.
+5. In your webhook handler, schedule the bot for the relevant `event_id` using `POST /v2/calendars/{calendar_id}/bots`. For recurring meetings, prefer `series_id` or `all_occurrences`.
+
+## Webhooks
+
+Calendar integrations trigger webhook events for:
+- **Connection changes**: When a calendar connection is created, updated, or has a status change
+- **Initial sync**: A `calendar.events_synced` webhook is sent once when a calendar is first connected, containing all events within the 30-day window
+- **Event changes**: Individual webhooks for event creation, updates, and cancellations (sent for all subsequent changes after initial sync)
+
+### Initial Sync Webhook
+
+When a calendar connection is first created, you'll receive a single `calendar.events_synced` webhook containing all events within the 30-day materialization window. This webhook is sent **only once** and will not be triggered again for:
+- Subsequent syncs via push notifications
+- Manual resyncs
+- Periodic background syncs
+
+**How to use it:**
+
+You have two options for handling the initial event data:
+
+1. **Use the webhook payload**: The `calendar.events_synced` webhook contains the complete event data, which you can use for initial reconciliation
+2. **Call the API endpoints**: Alternatively, you can call the `GET /v2/calendars/{calendar_id}/events` or `GET /v2/calendars/{calendar_id}/series` endpoints to fetch the initial event data
+
+Most applications use the API endpoints for initial reconciliation, as they may already be calling these endpoints for other purposes.
+
+See the [Webhooks documentation](/docs/api-v2/webhooks) for details on all calendar webhook events and their payloads.
+
+## FAQ
+
+<Accordions type="single">
+
+<Accordion
+  title="What happens if a calendar event is updated close to its start time?"
+>
+
+**Lock Window Behavior (4 minutes before event start):**
+
+When an event is updated within 4 minutes of its start time, the system enters a "lock window" where the original bot schedule is preserved to prevent disruption. Here's what happens:
+
+- **Original bot continues**: The bot that was already scheduled will still attempt to join using the original meeting details
+- **New bot is also created**: A second bot schedule is created with the updated event details
+- **Why this happens**: The original bot may have already been queued for processing before the event update occurred
+
+**Outside Lock Window (more than 4 minutes before start):**
+
+If an event is updated more than 4 minutes before its start time, the bot schedule is safely updated with the new event details, and only one bot will join.
+
+</Accordion>
+
+<Accordion
+  title="What happens if a calendar event is deleted close to its start time?"
+>
+
+When a calendar event is deleted, the bot schedule is automatically cancelled. If a bot has already been spawned for the event, it will be stopped — the bot will abort before joining or leave the meeting if it's already in.
+
+No tokens are consumed if the bot hadn't started recording yet.
+
+</Accordion>
+
+<Accordion
+  title="What happens if the meeting URL is removed from an event?"
+>
+
+**If the event originally had a meeting URL:**
+- The bot will use the meeting URL from the bot configuration, which was captured when the bot was scheduled
+- The bot will still attempt to join even if the URL is later removed from the calendar event
+
+**If the event never had a meeting URL:**
+- No bot schedule is created
+- Calendar events without meeting URLs are skipped during bot scheduling
+
+</Accordion>
+
+<Accordion title="How often are calendar events synced?">
+
+Calendar events are synced via **push notifications (real-time)**:
+- **Google Calendar**: Push notifications via watch channels (renewed every 7 days)
+- **Microsoft Calendar**: Push notifications via subscriptions (renewed every 2 days)
+- Changes are typically reflected within seconds
+
+</Accordion>
+
+<Accordion
+  title="What is the event materialization window?"
+>
+
+Meeting BaaS maintains a **30-day rolling window** of calendar events:
+- Events are synced from **now** to **30 days in the future**
+- Events outside this window are not stored or monitored
+- As time progresses, new events enter the window and old events are removed
+
+</Accordion>
+
+<Accordion title="How are recurring events handled?">
+
+**Series-Level Bot Scheduling:**
+- You can schedule a bot for all occurrences of a recurring event using `all_occurrences: true` or by providing the `series_id`
+- When scheduled at the series level, bots are automatically created for:
+  - All existing instances within the 30-day window
+  - New instances as they enter the window
+
+**Series Invalidation:**
+
+In some cases, the calendar platform may invalidate an event series (such as when the recurrence pattern changes, an event is moved to a significantly different date, etc.). When this happens:
+- All instances of the old series are cancelled
+- A new series is created with the updated details
+- If series-level bot scheduling was enabled, bots are automatically scheduled for the new series
+
+This behavior is inline with how calendar platforms handle major changes to recurring events.
+
+</Accordion>
+
+<Accordion title="What happens if I decline a calendar event?">
+
+If you decline a calendar event (as the calendar owner):
+- The event is treated as **cancelled** in Meeting BaaS
+- No bot will be scheduled for declined events
+- Existing bot schedules for declined events are automatically cancelled
+
+</Accordion>
+
+<Accordion title="Can I schedule bots for all-day events?">
+
+All-day events are synced and stored, but:
+- They typically don't have meeting URLs
+- Bots are only scheduled for events with valid meeting URLs
+- All-day events without meeting URLs are skipped during bot scheduling
+
+</Accordion>
+
+<Accordion
+  title="What meeting platforms are supported?"
+>
+
+Meeting BaaS automatically detects meeting URLs for:
+- **Zoom** (`zoom.us`)
+- **Google Meet** (`meet.google.com`)
+- **Microsoft Teams** (`teams.microsoft.com`)
+- **Other platforms**: URLs are stored but may not be automatically detected
+
+The meeting platform is detected from:
+- The event's meeting URL field
+- The event description (for embedded links)
+- Conference data (Google Calendar)
+
+</Accordion>
+
+<Accordion
+  title="How are event exceptions handled?"
+>
+
+**Event exceptions** are recurring event instances that have been modified:
+- Modified start time
+- Changed title, description, or location
+- Different meeting URL
+
+Exceptions are:
+- Tracked with an `is_exception: true` flag
+- Synced and stored separately from the series pattern
+- Handled correctly for bot scheduling
+
+</Accordion>
+
+<Accordion title="What if my OAuth credentials expire?">
+
+**Refresh Token Expiration:**
+- Google: Refresh tokens don't expire unless revoked by the user
+- Microsoft: Refresh tokens are valid for 90 days but are automatically renewed with each use
+
+**If credentials become invalid:**
+- The calendar connection status changes to `error` or `revoked`
+- You'll receive a webhook notification
+- Users must re-authorize your application to restore the connection
+
+</Accordion>
+
+<Accordion
+  title="How do I handle calendar connection errors?"
+>
+
+Monitor the `status` field on calendar connections:
+- `active`: Connection is working normally
+- `error`: Temporary error (e.g., sync failure) - may recover automatically
+- `revoked`: User revoked access - requires re-authorization
+- `permission_denied`: Missing required permissions - check OAuth scopes
+
+You'll receive webhook notifications for connection status changes.
+
+</Accordion>
+
+<Accordion
+  title="Can I connect multiple calendars from the same account?"
+>
+
+Yes! You can create separate calendar connections for:
+- Multiple calendars from the same Google account
+- Multiple calendars from the same Microsoft account
+- Primary calendar + shared calendars
+
+Each connection is independent and has its own:
+- Sync status
+- Bot schedules
+- Webhook events
+
+</Accordion>
+</Accordions>
+
+
+
+---
+
+## Getting the data
+
+Learn how to retrieve meeting recordings, transcriptions, and other data from bots
+
+### Source: ./content/docs/api-v2/getting-started/getting-the-data.mdx
+
+
+Once a bot completes recording a meeting, you can retrieve the meeting data including recordings, transcriptions, and metadata.
+
+## Getting Bot Details
+
+To get all information about a bot, including artifact URLs:
+
+```bash
+curl -X GET "https://api.meetingbaas.com/v2/bots/BOT-ID" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY"
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "bot_id": "123e4567-e89b-12d3-a456-426614174000",
+    "status": "completed",
+    "meeting_url": "https://meet.google.com/...",
+    "video": "https://s3.amazonaws.com/.../video.mp4",
+    "audio": "https://s3.amazonaws.com/.../audio.mp3",
+    "transcription": "https://s3.amazonaws.com/.../transcription.json",
+    "diarization": "https://s3.amazonaws.com/.../diarization.json",
+    "participants": [
+      { "name": "Alice", "id": 1, "display_name": "Alice", "profile_picture": "https://..." },
+      { "name": "Bob", "id": 2 }
+    ],
+    "speakers": [
+      { "name": "Alice", "id": 1, "display_name": "Alice", "profile_picture": "https://..." },
+      { "name": "Bob", "id": 2 }
+    ],
+    "duration_seconds": 3600,
+    "created_at": "2025-01-15T10:00:00Z",
+    "updated_at": "2025-01-15T11:00:00Z"
+  }
+}
+```
+
+## Getting Bot Status
+
+For a lightweight status check:
+
+```bash
+curl -X GET "https://api.meetingbaas.com/v2/bots/BOT-ID/status" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY"
+```
+
+**Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "bot_id": "123e4567-e89b-12d3-a456-426614174000",
+    "status": "in_call_recording",
+    "transcription_status": "processing",
+    "updated_at": "2025-01-15T10:30:00Z"
+  }
+}
+```
+
+## Getting Screenshots
+
+To get screenshots taken during the meeting:
+
+```bash
+curl -X GET "https://api.meetingbaas.com/v2/bots/BOT-ID/screenshots" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY"
+```
+
+**Note:** Screenshots are only available for Google Meet and Microsoft Teams. Zoom does not support screenshots.
+
+## Artifact URLs
+
+All artifact URLs (video, audio, transcription, diarization) are **presigned S3 URLs** that are valid for **4 hours**. Make sure to download them within this time window.
+
+For detailed information about each artifact type, their formats, and use cases, see the [Artifacts documentation](/docs/api-v2/artifacts).
+
+## Recommended Approach
+
+Instead of polling the API, we recommend:
+
+1. **Use webhooks**: Configure webhooks in your account settings to receive `bot.completed` events automatically
+2. **Use callbacks**: Provide a `callback_config` when creating the bot to receive notifications for that specific bot
+3. **Poll only when necessary**: If you must poll, use a judicious interval (e.g., every 5-10 minutes) and only for reconciliation purposes
+
+For more details, see the [Webhooks documentation](/docs/api-v2/webhooks).
+
+
+---
+
+## Removing a bot
+
+Learn how to remove or delete bots from meetings
+
+### Source: ./content/docs/api-v2/getting-started/removing-a-bot.mdx
+
+
+You can remove a bot from a meeting or delete bot data using the v2 API. There are two operations:
+
+1. **Leave meeting**: Instruct a bot to leave the meeting immediately (while it's active)
+2. **Delete data**: Permanently delete a bot and all its data (after it's completed or failed)
+
+## Leave Meeting
+
+To instruct a bot to leave the meeting immediately:
+
+```bash
+curl -X POST "https://api.meetingbaas.com/v2/bots/BOT-ID/leave" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY"
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "message": "Bot leave request sent successfully."
+  }
+}
+```
+
+### When Can You Leave a Bot?
+
+The leave endpoint works for bots in any active (non-terminal) state:
+
+- `queued`: Bot hasn't started joining yet
+- `pickup_delayed`: Bot has stayed in the `queued` status longer than the expected pickup window
+- `joining_call`: Bot is attempting to join the meeting
+- `in_waiting_room`: Bot is waiting in the meeting's waiting room
+- `in_call_not_recording`: Bot is in the meeting but not recording
+- `in_call_recording`: Bot is actively recording
+- `recording_paused`: Bot recording is paused
+- `recording_resumed`: Bot recording has resumed
+
+It also works for **scheduled bots** that haven't spawned yet — the scheduled bot will be cancelled atomically.
+
+### Error Responses
+
+**404 Not Found:**
+```json
+{
+  "success": false,
+  "error": "Not Found",
+  "message": "Bot with ID 'BOT-ID' not found",
+  "code": "FST_ERR_BOT_NOT_FOUND_BY_ID",
+  "statusCode": 404
+}
+```
+
+**409 Conflict (Bot status doesn't allow leaving):**
+```json
+{
+  "success": false,
+  "error": "Conflict",
+  "message": "Status of bot 'BOT-ID' is: completed. Operation not permitted in this state.",
+  "code": "FST_ERR_BOT_STATUS",
+  "statusCode": 409
+}
+```
+
+This error occurs when the bot is in a terminal status:
+- `completed`: Bot has already completed
+- `failed`: Bot has already failed
+
+### How It Works
+
+When you call the leave endpoint:
+1. The stop signal is delivered to the bot process asynchronously with retries
+2. If the bot hasn't started yet (e.g., still `queued`), it will check for pending stop requests on startup and abort before joining the meeting
+3. **Pre-recording stops** (bot was in `queued`, `joining_call`, `in_waiting_room`, or `in_call_not_recording`): The bot exits with an `EXITING_MEETING_BEFORE_RECORD` error code. No tokens are consumed.
+4. **Recording stops** (bot was in `in_call_recording`, `recording_paused`, or `recording_resumed`): The bot stops recording and transitions to `completed` status. Tokens are consumed based on recording duration.
+5. A final webhook event will be sent when the bot finishes processing.
+
+## Delete Bot Data
+
+To permanently delete a bot and all its associated data (recordings, transcriptions, etc.):
+
+```bash
+curl -X DELETE "https://api.meetingbaas.com/v2/bots/BOT-ID/delete-data" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY"
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "bot_id": "123e4567-e89b-12d3-a456-426614174000",
+    "deleted": true
+  }
+}
+```
+
+### When Can You Delete Bot Data?
+
+The delete endpoint can only be called when the bot is in one of these statuses:
+
+- `completed`: Bot has successfully completed recording and processing
+- `failed`: Bot has failed
+
+### Error Responses
+
+**404 Not Found:**
+```json
+{
+  "success": false,
+  "error": "Not Found",
+  "message": "Bot with ID 'BOT-ID' not found",
+  "code": "FST_ERR_BOT_NOT_FOUND_BY_ID",
+  "statusCode": 404
+}
+```
+
+**409 Conflict (Bot status doesn't allow deletion):**
+```json
+{
+  "success": false,
+  "error": "Conflict",
+  "message": "Status of bot 'BOT-ID' is: in_call_recording. Operation not permitted in this state.",
+  "code": "FST_ERR_BOT_STATUS",
+  "statusCode": 409
+}
+```
+
+This error occurs when the bot is still active (e.g., `in_call_recording`, `transcribing`, etc.). You must wait for the bot to complete or fail, or use the leave endpoint first.
+
+**Note:** This permanently deletes the bot and all its data. This action cannot be undone.
+
+## Cancel Scheduled Bot
+
+To cancel a scheduled bot:
+
+```bash
+curl -X DELETE "https://api.meetingbaas.com/v2/bots/scheduled/SCHEDULED-BOT-ID" \
+     -H "x-meeting-baas-api-key: YOUR-API-KEY"
+```
+
+This can be called at any time before the bot reaches a terminal state (`cancelled`, `completed`, or `failed`). If the bot hasn't been spawned yet, the scheduled bot record is cancelled atomically. If the scheduling cron has already spawned the bot, the stop request is persisted and delivered to the bot process. If the bot hadn't started recording, it will exit with `EXITING_MEETING_BEFORE_RECORD` and no tokens are consumed. If recording was already in progress, the bot stops recording normally and tokens are consumed up to the stop time.
+
+**Note:** You can also use the leave endpoint (`POST /v2/bots/:bot_id/leave`) with the scheduled bot's UUID to achieve the same result.
+
+## Important Notes
+
+- Deleting a bot's data removes all associated data including recordings, transcriptions, and screenshots
+- Deleted data cannot be recovered
+- If a bot is currently recording, leaving it will stop the recording. Use the delete data endpoint afterward to remove artifacts.
+- Scheduled and calendar bots can be cancelled at any time — if a bot has already been spawned, it will be stopped automatically
+
+
+
+---
+
+## Sending a bot
+
+Learn how to send bots to meetings using the Meeting BaaS v2 API
+
+### Source: ./content/docs/api-v2/getting-started/sending-a-bot.mdx
+
+
+You can send a bot to a meeting in two ways:
+
+1. **Immediate**: The bot joins the meeting right away
+2. **Scheduled**: The bot joins at a specific time in the future
+
+## Immediate Bot
+
+Send a POST request to `https://api.meetingbaas.com/v2/bots`:
+
+<Tabs items={['Bash', 'Python', 'JavaScript']}>
+  <Tab value="Bash">
+    ```bash
+    curl -X POST "https://api.meetingbaas.com/v2/bots" \
+         -H "Content-Type: application/json" \
+         -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+         -d '{
+               "meeting_url": "https://meet.google.com/abc-defg-hij",
+               "bot_name": "AI Notetaker",
+               "recording_mode": "speaker_view",
+               "transcription_enabled": true,
+               "transcription_config": {
+                 "provider": "gladia"
+               }
+             }'
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    import requests
+
+    url = "https://api.meetingbaas.com/v2/bots"
+    headers = {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+    }
+    data = {
+        "meeting_url": "https://meet.google.com/abc-defg-hij",
+        "bot_name": "AI Notetaker",
+        "recording_mode": "speaker_view",
+        "transcription_enabled": true,
+        "transcription_config": {
+            "provider": "gladia"
+        }
+    }
+    response = requests.post(url, json=data, headers=headers)
+    print(response.json())
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript
+    fetch("https://api.meetingbaas.com/v2/bots", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+      },
+      body: JSON.stringify({
+        meeting_url: "https://meet.google.com/abc-defg-hij",
+        bot_name: "AI Notetaker",
+        recording_mode: "speaker_view",
+        transcription_enabled: true,
+        transcription_config: {
+          provider: "gladia"
+        }
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log(data.data.bot_id))
+      .catch((error) => console.error("Error:", error));
+    ```
+  </Tab>
+</Tabs>
+
+## Scheduled Bot
+
+To schedule a bot to join at a specific time, use `POST /v2/bots/scheduled`:
+
+<Tabs items={['Bash', 'Python', 'JavaScript']}>
+  <Tab value="Bash">
+    ```bash
+    curl -X POST "https://api.meetingbaas.com/v2/bots/scheduled" \
+         -H "Content-Type: application/json" \
+         -H "x-meeting-baas-api-key: YOUR-API-KEY" \
+         -d '{
+               "meeting_url": "https://meet.google.com/abc-defg-hij",
+               "bot_name": "AI Notetaker",
+               "recording_mode": "speaker_view",
+               "join_at": "2025-01-20T14:00:00Z"
+             }'
+    ```
+  </Tab>
+  <Tab value="Python">
+    ```python
+    import requests
+    from datetime import datetime
+
+    url = "https://api.meetingbaas.com/v2/bots/scheduled"
+    headers = {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+    }
+    data = {
+        "meeting_url": "https://meet.google.com/abc-defg-hij",
+        "bot_name": "AI Notetaker",
+        "recording_mode": "speaker_view",
+        "join_at": "2025-01-20T14:00:00Z"  # ISO 8601 format
+    }
+    response = requests.post(url, json=data, headers=headers)
+    print(response.json())
+    ```
+  </Tab>
+  <Tab value="JavaScript">
+    ```javascript
+    fetch("https://api.meetingbaas.com/v2/bots/scheduled", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-meeting-baas-api-key": "YOUR-API-KEY",
+      },
+      body: JSON.stringify({
+        meeting_url: "https://meet.google.com/abc-defg-hij",
+        bot_name: "AI Notetaker",
+        recording_mode: "speaker_view",
+        join_at: "2025-01-20T14:00:00Z"  // ISO 8601 format
+      }),
+    })
+      .then((response) => response.json())
+      .then((data) => console.log(data.data.bot_id))
+      .catch((error) => console.error("Error:", error));
+    ```
+  </Tab>
+</Tabs>
+
+## Request Parameters
+
+### Required Parameters
+
+- `meeting_url`: The meeting URL (Google Meet, Microsoft Teams, or Zoom)
+- `bot_name`: The display name of the bot
+
+### Recording Options
+
+- `recording_mode`: One of:
+  - `"speaker_view"` (default): Shows only the active speaker
+  - `"gallery_view"`: Shows all participants
+  - `"audio_only"`: Audio recording only (MP3)
+
+### Bot Appearance
+
+- `bot_image`: Optional. URL to the bot's avatar image (JPEG or PNG, HTTPS required)
+
+### Transcription
+
+- `transcription_enabled`: Set to `true` to enable transcription
+- `transcription_config`: Required if `transcription_enabled` is `true`:
+  - `provider`: `"gladia"` (default), `"deepgram"`, `"assemblyai"`, `"speechmatics"`, or `"soniox"` (plus `"elevenlabs"` for real-time streaming)
+  - `api_key`: Optional. Your transcription provider API key (for BYOK transcription)
+  - `custom_params`: Optional. Custom parameters for the transcription provider
+
+### Callbacks
+
+- `callback_enabled`: Set to `true` to enable callbacks for this bot
+- `callback_config`: Required if `callback_enabled` is `true`:
+  - `url`: The URL to receive callback notifications
+  - `method`: `"POST"` (default) or `"PUT"`
+  - `secret`: Optional. Secret key included in `x-mb-secret` header for verification
+
+### Timeouts
+
+- `timeout_config`: Optional object:
+  - `waiting_room_timeout`: Seconds to wait in waiting room (default: 600, min: 120, max: 1800)
+  - `no_one_joined_timeout`: Seconds to wait if no one joins (default: 600, min: 120, max: 1800, isn't used by Zoom)
+  - `silence_timeout`: Once a participant has been identified, no_one_joined_timeout stops and silence_timeout kicks in. When there is continued silence for the seconds provided, the bot leaves the meeting (default: 600, min: 300, max: 3600, isn't used by Zoom)
+
+### Advanced Options
+
+- `allow_multiple_bots`: `true` (default) to allow multiple bots in the same meeting, `false` to prevent duplicates
+- `ignored_participant_names`: Optional list of participant names to ignore when evaluating auto-leave conditions. Useful when multiple bots may join the same meeting (e.g., sandbox and staging bots) - each bot can then correctly detect when human participants have left instead of staying because it sees the other bot
+- `entry_message`: Optional message the bot sends when joining
+- `extra`: Optional custom metadata (included in webhooks and callbacks)
+- `streaming_enabled`: Enable audio streaming
+- `streaming_config`: Required if `streaming_enabled` is `true`
+
+### Scheduled Bot Specific
+
+- `join_at`: Required for scheduled bots. ISO 8601 timestamp when the bot should join
+
+## Response
+
+The API returns the bot ID:
+
+```json
+{
+  "success": true,
+  "data": {
+    "bot_id": "123e4567-e89b-12d3-a456-426614174000"
+  }
+}
+```
+
+For scheduled bots, the `bot_id` is returned immediately and will be reused when the bot actually joins the meeting.
+
+## Next Steps
+
+- [Get meeting data](/docs/api-v2/getting-started/getting-the-data)
+- [Set up webhooks](/docs/api-v2/webhooks) for real-time notifications
+- [Remove a bot](/docs/api-v2/getting-started/removing-a-bot)
+
+
+
+---
+
+## Setting up webhooks
+
+Learn how to configure webhooks to receive real-time notifications
+
+### Source: ./content/docs/api-v2/getting-started/webhooks.mdx
+
+
+Webhooks allow you to receive real-time notifications about bot and calendar events without polling the API.
+
+## Overview
+
+Meeting BaaS v2 uses [SVIX](https://www.svix.com/) for reliable webhook delivery. Webhooks are configured at the account level and will receive notifications for all events.
+
+## Configuring Webhooks
+
+Webhooks are configured through your account settings (not via the API). Once configured, you'll receive webhook events for:
+
+- Bot status changes
+- Bot completion
+- Bot failures
+- Calendar events (connections, syncs, event changes)
+
+## Webhook Events
+
+### Bot Events
+
+- `bot.status_change`: Triggered when a bot's status changes
+- `bot.completed`: Triggered when a bot successfully completes
+- `bot.failed`: Triggered when a bot fails
+
+### Calendar Events
+
+- `calendar.connection_created`: New calendar connection created
+- `calendar.connection_updated`: Calendar connection updated
+- `calendar.connection_deleted`: Calendar connection deleted
+- `calendar.connection_error`: Calendar connection error
+- `calendar.events_synced`: Calendar events synced - When a calendar syncs for the first time
+- `calendar.event_created`: New calendar event created
+- `calendar.event_updated`: Calendar event updated
+- `calendar.event_cancelled`: Calendar event cancelled
+
+For detailed information about each event type, see the [Webhooks documentation](/docs/api-v2/webhooks).
+
+## Webhook Security
+
+All webhooks are signed using SVIX's signature verification. Verify webhooks using:
+
+- `svix-id`: Unique message ID
+- `svix-timestamp`: Timestamp of the message
+- `svix-signature`: Signature for verification
+
+Use SVIX's verification libraries to verify webhook signatures in your code.
+
+## Callbacks
+
+In addition to account-level webhooks, you can also configure **callbacks** per-bot when creating a bot. Callbacks are direct HTTP requests sent to a URL you specify, and are only sent for `bot.completed` and `bot.failed` events.
+
+See the [Webhooks documentation](/docs/api-v2/webhooks) for more details on callbacks.
+
 
 
 ---
@@ -5595,7 +6173,7 @@ webhookHandler(event) {
 
 ## Zoom Credentials and AAN Attribution
 
-v2 introduces the [Credentials API](/docs/api-v2/getting-started/zoom/credentials) for secure storage of Zoom SDK credentials and OAuth tokens. This replaces the v1 pattern of passing credentials with every bot request.
+v2 introduces the [Credentials API](/docs/api-v2/authenticated-bots/zoom/credentials) for secure storage of Zoom SDK credentials and OAuth tokens. This replaces the v1 pattern of passing credentials with every bot request.
 
 ### Why This Matters: Active Apps Notifier (AAN)
 
@@ -5907,7 +6485,29 @@ v2 lets bots join Google Meet as **authenticated Google Workspace users** via SA
 - Skip waiting rooms for fully unattended recording
 - Scale authenticated capacity by adding logins, with visibility into headroom
 
-See the [Google Meet Authentication guide](/docs/api-v2/getting-started/meet) to get started.
+See the [Google Meet Authentication guide](/docs/api-v2/authenticated-bots/meet) to get started.
+
+## Microsoft Teams Authenticated Bots
+
+v2 lets bots join Microsoft Teams as **authenticated Microsoft 365 users** with stored credentials, instead of only as anonymous guests.
+
+**v1**: Anonymous Teams joins only — bots failed on meetings restricted to signed-in users and waited in the lobby as guests.
+
+**v2**:
+- **Authenticated joins**: Bots sign in as a real Microsoft 365 user (email + password) from a tenant you control, so they can join meetings restricted to signed-in / in-organization users and get admitted past the lobby.
+- **No SAML, no certificates**: Teams sign-in is credential-based — there's no identity provider, keypair, or SSO profile to configure. The one requirement is an MFA-free account.
+- **Teams Workspaces & Teams Logins**: New `/v2/teams-workspaces` and `/v2/teams-logins` resources group your Microsoft 365 tenant and the accounts bots sign in as. Passwords are encrypted at rest with AES-256-GCM and are never returned.
+- **Round-robin pools**: Group logins by `email_group` and the dispatcher assigns the least-loaded active login (up to 20 concurrent sessions each by default). Add logins to scale capacity linearly.
+- **Configurable fallback**: Per bot, choose to `fail` (default) or fall back to an `anonymous` join when the pool is saturated.
+- **Utilization**: `GET /v2/teams-logins/utilization` reports live pool concurrency so you can stay ahead of saturation.
+
+### Benefits
+
+- Record Teams meetings that block anonymous guests
+- Get admitted past the lobby as an organization member
+- Scale authenticated capacity by adding logins
+
+See the [Microsoft Teams Authentication guide](/docs/api-v2/authenticated-bots/teams) to get started.
 
 ## Enhanced Webhook Management
 
@@ -6544,7 +7144,7 @@ Get the current status of a bot, including the latest status code, transcription
     
     **Response Fields:**
     - `bot_id`: The UUID of the bot
-    - `status`: The current bot status (queued, joining, in_call_recording, transcribing, completed, failed)
+    - `status`: The current bot status (queued, joining, in_call_recording, retrying, transcribing, completed, failed)
     - `transcription_status`: The current transcription status (not-applicable, not-started, queued, processing, done, error)
     - `updated_at`: ISO 8601 timestamp when the status was last updated
     
@@ -6620,7 +7220,7 @@ Instruct a bot to leave the meeting immediately.
 
 List all bots for your team with pagination support.
     
-    Filter by status (queued, joining, in_call_recording, transcribing, completed, failed), meeting platform (zoom, meet, teams), and date range. Results are ordered by creation date (newest first). Use cursor-based pagination for efficient navigation through large result sets.
+    Filter by status (queued, joining, in_call_recording, retrying, transcribing, completed, failed), meeting platform (zoom, meet, teams), and date range. Results are ordered by creation date (newest first). Use cursor-based pagination for efficient navigation through large result sets.
     
     **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The response includes a `next_cursor` if more results are available. The `limit` parameter controls how many results are returned per page (default: 50, max: 250).
     
@@ -7533,7 +8133,7 @@ Create a meet login — a Google Workspace user identity attached to a parent me
 
     **Per-team Uniqueness on Email:** Each `email` may exist at most once per team. Attempting to register the same email twice returns 409.
 
-    **Concurrency:** Each login supports up to 20 concurrent SSO sessions. When a login hits its capacity, the round-robin assigner skips it and tries the next one in the pool. If all logins in a pool are saturated, the bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, depending on your `fallback` setting).
+    **Concurrency:** Each login supports up to 20 concurrent SSO sessions by default. When a login hits its capacity, the round-robin assigner skips it and tries the next one in the pool. If all logins in a pool are saturated, the bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, depending on your `fallback` setting).
 
     **Error Scenarios:**
     - `404 Not Found`: `workspace_id` is unknown or does not belong to your team.
@@ -7791,6 +8391,138 @@ Update a meet workspace — rename it, rotate its keypair, or re-enable it after
     - `422 Unprocessable Entity`: Cert/key parse failure or mismatched pair; `cert_pem` provided without `private_key_pem` (or vice versa).
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/meet-workspaces/{workspace_id}","method":"patch"}]} />
+
+
+---
+
+## Create a teams login
+
+### Source: ./content/docs/api-v2/reference/teams-logins/createTeamsLogin.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/teams-logins","method":"post"}]} />
+
+
+---
+
+## Delete a teams login
+
+### Source: ./content/docs/api-v2/reference/teams-logins/deleteTeamsLogin.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/teams-logins/{credential_id}","method":"delete"}]} />
+
+
+---
+
+## Get a teams login
+
+### Source: ./content/docs/api-v2/reference/teams-logins/getTeamsLogin.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/teams-logins/{credential_id}","method":"get"}]} />
+
+
+---
+
+## Get current login pool utilization
+
+### Source: ./content/docs/api-v2/reference/teams-logins/getTeamsLoginUtilization.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/teams-logins/utilization","method":"get"}]} />
+
+
+---
+
+## List teams logins
+
+### Source: ./content/docs/api-v2/reference/teams-logins/listTeamsLogins.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/teams-logins","method":"get"}]} />
+
+
+---
+
+## Update a teams login
+
+### Source: ./content/docs/api-v2/reference/teams-logins/updateTeamsLogin.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/teams-logins/{credential_id}","method":"patch"}]} />
+
+
+---
+
+## Create a teams workspace
+
+### Source: ./content/docs/api-v2/reference/teams-workspaces/createTeamsWorkspace.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/teams-workspaces","method":"post"}]} />
+
+
+---
+
+## Delete a teams workspace (cascades to its logins)
+
+### Source: ./content/docs/api-v2/reference/teams-workspaces/deleteTeamsWorkspace.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/teams-workspaces/{workspace_id}","method":"delete"}]} />
+
+
+---
+
+## Get a teams workspace
+
+### Source: ./content/docs/api-v2/reference/teams-workspaces/getTeamsWorkspace.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/teams-workspaces/{workspace_id}","method":"get"}]} />
+
+
+---
+
+## List teams workspaces
+
+### Source: ./content/docs/api-v2/reference/teams-workspaces/listTeamsWorkspaces.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/teams-workspaces","method":"get"}]} />
+
+
+---
+
+## Update a teams workspace
+
+### Source: ./content/docs/api-v2/reference/teams-workspaces/updateTeamsWorkspace.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/teams-workspaces/{workspace_id}","method":"patch"}]} />
 
 
 ---
@@ -8085,9 +8817,11 @@ Bot Status Change payload structure
     "bot_id": "examplebot_id",
     "event_id": null,
     "status": {
+      "attempt": 0,
       "code": "examplecode",
       "created_at": "examplecreated_at",
       "error_message": "exampleerror_message",
+      "max": 0,
       "start_time": 0
     }
   },
@@ -8678,7 +9412,7 @@ Streaming provides:
 - **Output Streaming**: Receive the meeting's mixed audio in real time via WebSocket
 - **Input Streaming**: Send audio into the meeting so participants can hear it (for speaking bots, AI agents, etc.)
 - **Bidirectional Streaming**: Combine both - receive meeting audio and speak back - using a single or two separate WebSocket connections
-- **Managed Real-Time Transcription**: Let Meeting BaaS run real-time speech-to-text and POST transcript events to your endpoint, with a choice of providers
+- **Managed Real-Time Transcription**: Let Meeting BaaS run real-time speech-to-text and stream transcript events to your WebSocket endpoint, with a choice of providers
 - **Speaker Diarization**: Receive real-time speaker state updates as JSON messages alongside the audio stream
 - **Configurable Sample Rate**: Choose from 16,000 Hz, 24,000 Hz (default), 32,000 Hz, or 48,000 Hz
 - **Works on All Platforms**: Google Meet, Microsoft Teams, and Zoom
@@ -8704,14 +9438,14 @@ To enable streaming, include `streaming_enabled` and `streaming_config` in your 
 
 | Field | Type | Default | Description |
 |-------|------|---------|-------------|
-| `mode` | `string` | `audio` | Streaming mode. `audio` streams raw audio over WebSocket; `transcription` runs managed real-time speech-to-text and POSTs transcript events to `output_url` |
-| `output_url` | `string \| null` | `null` | When `mode` is `audio`: WebSocket URL where the bot sends meeting audio. When `mode` is `transcription`: HTTP(S) URL where transcript events are POSTed |
+| `mode` | `string` | `audio` | Streaming mode. `audio` streams raw audio over WebSocket; `transcription` runs managed real-time speech-to-text and streams JSON transcript events to `output_url` over WebSocket |
+| `output_url` | `string \| null` | `null` | When `mode` is `audio`: WebSocket URL where the bot sends meeting audio (optional). When `mode` is `transcription`: WebSocket URL where the bot sends transcript events as JSON messages - **required and non-null** in this mode |
 | `input_url` | `string \| null` | `null` | WebSocket URL from which the bot receives audio to play into the meeting |
 | `audio_frequency` | `integer` | `24000` | Sample rate in Hz. Supported: `16000`, `24000`, `32000`, `48000` |
 | `transcription` | `object \| null` | `null` | Real-time STT provider configuration. Required when `mode` is `transcription` (see [Managed Real-Time Transcription](#managed-real-time-transcription)) |
 
 <Callout type="info">
-  Provide `output_url` to receive meeting audio, `input_url` to send audio into the meeting, or both for bidirectional streaming. Set either to `null` if you only need one direction.
+  In `audio` mode, provide `output_url` to receive meeting audio, `input_url` to send audio into the meeting, or both for bidirectional streaming - set either to `null` if you only need one direction. In `transcription` mode, `output_url` is required (bot creation fails without it) and receives JSON transcript messages instead of raw audio.
 </Callout>
 
 ## Streaming Modes
@@ -8789,14 +9523,14 @@ When the URLs differ, the bot opens two separate WebSocket connections - one for
 
 ### Managed Real-Time Transcription
 
-Set `mode` to `"transcription"` to have Meeting BaaS run real-time speech-to-text for you and **POST transcript events to your `output_url` over HTTP(S)** as the meeting happens - no need to run your own STT engine on the audio stream.
+Set `mode` to `"transcription"` to have Meeting BaaS run real-time speech-to-text for you and **stream transcript events to your `output_url` over WebSocket** as the meeting happens - no need to run your own STT engine on the audio stream.
 
 ```json
 {
   "streaming_enabled": true,
   "streaming_config": {
     "mode": "transcription",
-    "output_url": "https://your-server.com/transcripts",
+    "output_url": "wss://your-server.com/transcripts",
     "transcription": {
       "provider": "gladia",
       "api_key": null,
@@ -8813,12 +9547,108 @@ The `streaming_config.transcription` object configures the real-time STT provide
 |-------|------|---------|-------------|
 | `provider` | `string` | `gladia` | Real-time STT provider: `gladia`, `deepgram`, `assemblyai`, `speechmatics`, `soniox`, or `elevenlabs` (streaming-only) |
 | `api_key` | `string \| null` | `null` | Your provider API key (BYOK). Leave `null` to use the platform key |
-| `custom_params` | `object \| null` | `null` | Provider-specific advanced options |
+| `custom_params` | `object \| null` | `null` | Provider-specific advanced options, forwarded to the provider's **live session API** (see [Custom Parameters](#custom-parameters-live-vs-batch)) |
 | `region` | `string \| null` | `null` | Provider API region. When omitted, provider defaults apply (`gladia=eu-west`, `deepgram=eu`, `assemblyai=eu`, `speechmatics=eu1`, `soniox=us`, `elevenlabs=global`) |
 
 <Callout type="info">
-  All [batch transcription providers](/docs/api-v2/transcription#transcription-providers) are available for real-time streaming, plus **ElevenLabs**, which is streaming-only. When `mode` is `transcription`, `output_url` is treated as an HTTP(S) webhook endpoint rather than a WebSocket.
+  All [batch transcription providers](/docs/api-v2/transcription#transcription-providers) are available for real-time streaming, plus **ElevenLabs**, which is streaming-only. In `transcription` mode, `output_url` is still a **WebSocket** endpoint (`wss://`) - the bot opens a WebSocket connection to it and sends JSON text messages. It does not send HTTP POST requests.
 </Callout>
+
+#### Custom Parameters (live vs. batch)
+
+`custom_params` is forwarded to the provider's **live session API** - for Gladia, that is [`POST /v2/live`](https://docs.gladia.io/api-reference/v2/live/init), not the [pre-recorded API](https://docs.gladia.io/api-reference/v2/pre-recorded/init) used for [batch transcription](/docs/api-v2/transcription). The two APIs accept **different shapes**, and reusing batch-shaped params is the most common mistake: for example, Gladia's live API nests translation under `realtime_processing`, while the batch API takes `translation_config` at the top level.
+
+```json
+{
+  "streaming_config": {
+    "mode": "transcription",
+    "output_url": "wss://your-server.com/transcripts",
+    "transcription": {
+      "provider": "gladia",
+      "custom_params": {
+        "language_config": { "languages": ["ru"] },
+        "realtime_processing": {
+          "translation": true,
+          "translation_config": { "target_languages": ["en", "de", "it"] }
+        }
+      }
+    }
+  }
+}
+```
+
+`custom_params` is validated against the provider's live schema when you create the bot - unknown fields are rejected with a `400` that points at the correct live-API location where one exists (e.g. `translation_config` → `realtime_processing.translation_config`).
+
+The same batch-vs-live distinction applies to every provider - always use the provider's **real-time/streaming** parameter reference, not the pre-recorded one:
+
+| Provider | Live API parameters |
+|----------|--------------------|
+| Gladia | [Live init](https://docs.gladia.io/api-reference/v2/live/init) |
+| Deepgram | [Streaming API](https://developers.deepgram.com/docs/streaming) |
+| AssemblyAI | [Streaming Speech-to-Text](https://www.assemblyai.com/docs/speech-to-text/streaming) |
+| Speechmatics | [Real-Time API](https://docs.speechmatics.com/rt-api-ref) |
+| Soniox | [Real-Time API](https://soniox.com/docs) |
+| ElevenLabs | [Speech-to-Text](https://elevenlabs.io/docs/capabilities/speech-to-text) (params not validated at creation - errors surface via the `error` event) |
+
+<Callout type="warn">
+  `encoding`, `sample_rate`, `bit_depth` and `channels` are set by the platform and cannot be overridden through `custom_params`. To control the audio sample rate, use `streaming_config.audio_frequency`.
+</Callout>
+
+#### Transcription Session Events
+
+In `transcription` mode, the bot sends three event types to `output_url`, all sharing the `{ "event", "bot_id", "data" }` envelope:
+
+| Event | When | `data` |
+|-------|------|--------|
+| `session.started` | The provider transcription session is live - transcript segments will follow | `{ "provider": "gladia" }` |
+| `transcript.segment` | One per transcript piece (partial and final) | See [Transcript Events](#transcript-events) |
+| `error` | The transcription session failed to start or died mid-meeting | `{ "code": "transcription_session_failed", "message": "..." }` |
+
+If you receive `error`, live transcription is down for the rest of the meeting - the `message` field carries the provider's reason (e.g. rejected parameters). Recording and [batch transcription](/docs/api-v2/transcription) are unaffected. Treat a connection that never receives `session.started` as not yet live rather than silent.
+
+The bot also sends standard WebSocket ping frames roughly every 30 seconds so intermediaries (e.g. Cloudflare tunnels, which drop idle connections after ~100s) keep the connection open through quiet stretches of the meeting. Most WebSocket libraries answer pings automatically - no action needed.
+
+#### Transcript Events
+
+Your WebSocket server receives JSON text messages, one per transcript segment. Every message has the same envelope:
+
+```json
+{
+  "event": "transcript.segment",
+  "bot_id": "123e4567-e89b-12d3-a456-426614174000",
+  "data": {
+    "text": "Hello everyone, let's get started.",
+    "isFinal": true,
+    "utteranceStart": 12.34,
+    "utteranceEnd": 15.02,
+    "confidence": 0.97,
+    "words": [
+      { "text": "Hello", "start": 12.34, "end": 12.61, "confidence": 0.98 }
+    ],
+    "speaker": { "name": "John Doe", "id": 1 }
+  }
+}
+```
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `event` | `string` | `"transcript.segment"` for transcript messages (see [Transcription Session Events](#transcription-session-events) for the other event types) |
+| `bot_id` | `string` | UUID of the bot |
+| `data.text` | `string` | Transcribed text for this segment |
+| `data.isFinal` | `boolean` | `false` for partial (interim) segments, `true` for final segments (see [Partial vs. Final Segments](#partial-vs-final-segments)) |
+| `data.utteranceStart` | `number` | Utterance start time in seconds |
+| `data.utteranceEnd` | `number` | Utterance end time in seconds |
+| `data.confidence` | `number` | Overall confidence score for the segment (0-1), when the provider reports one |
+| `data.words` | `array` | Word-level timings: `{ text, start, end, confidence?, speaker? }` |
+| `data.speaker` | `object \| null` | Active speaker at the time of the segment: `{ name, id }`, or `null` when unknown |
+
+The `event` and `bot_id` envelope fields are always present. Fields under `data` are provider-dependent - treat all of them as optional.
+
+#### Partial vs. Final Segments
+
+Messages carry no explicit segment or utterance identifier. Partial segments (`isFinal: false`) are progressive snapshots of the utterance currently being spoken - each new partial for that utterance replaces the previous one, and the final segment (`isFinal: true`) supersedes all partials for it. Correlate them by time: partials and their final cover overlapping `utteranceStart`/`utteranceEnd` ranges. The simplest robust approach is to use partials for live display only (always replacing the last partial shown) and build your stored transcript exclusively from `isFinal: true` segments.
+
+If the WebSocket connection drops, the bot reconnects with exponential backoff (1s doubling up to 60s) and buffers up to 100 transcript events while disconnected, flushing them on reconnect. Events beyond the buffer limit are dropped.
 
 ## WebSocket Protocol
 
@@ -9447,8 +10277,8 @@ In addition to all of the batch providers above, real-time streaming transcripti
 
 - **ElevenLabs**
 
-<Callout type="info">
-  Provider-specific advanced options are passed through `custom_params`. The available options depend on the provider you select.
+<Callout type="warn">
+  Batch and real-time streaming use **different provider APIs with different `custom_params` shapes**. The parameters documented on this page apply to **batch** transcription (e.g. Gladia's [pre-recorded API](https://docs.gladia.io/api-reference/v2/pre-recorded/init)). For `streaming_config.transcription.custom_params`, use the provider's **live API** shape instead (e.g. Gladia's [live API](https://docs.gladia.io/api-reference/v2/live/init), where translation is nested under `realtime_processing`) - see [Streaming: Custom Parameters](/docs/api-v2/streaming#custom-parameters-live-vs-batch).
 </Callout>
 
 ## Bring Your Own Key (BYOK)
@@ -9485,7 +10315,7 @@ BYOK transcription is available on **Pro plans and above**. Pay-as-you-go plans 
 
 v2 supports advanced transcription features through custom parameters. These are provider-specific options that enhance transcription capabilities.
 
-For complete documentation on all available custom parameters, see the [Gladia API Reference](https://docs.gladia.io/api-reference/v2/pre-recorded/init).
+For complete documentation on all available custom parameters, see the [Gladia API Reference](https://docs.gladia.io/api-reference/v2/pre-recorded/init). These shapes apply to **batch** transcription only - for real-time streaming, see [Streaming: Custom Parameters](/docs/api-v2/streaming#custom-parameters-live-vs-batch).
 
 ### Available Custom Parameters
 

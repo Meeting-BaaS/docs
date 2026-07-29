@@ -9,7 +9,7 @@ icon: Video
 Meeting BaaS v2 provides enhanced Zoom integration with secure credential management, improved OBF token handling, and better error tracking.
 
 <Callout type="warn">
-**March 2, 2026 Deadline:** Zoom requires OBF tokens for bots joining external meetings. If your bots join meetings hosted by external Zoom accounts, you must implement OBF tokens before this date. See [OBF Token Support](/docs/api-v2/getting-started/zoom/obf-tokens) for details and [Zoom's official announcement](https://developers.zoom.us/blog/transition-to-obf-token-meetingsdk-apps/).
+**March 2, 2026 Deadline:** Zoom requires OBF tokens for bots joining external meetings. If your bots join meetings hosted by external Zoom accounts, you must implement OBF tokens before this date. See [OBF Token Support](/docs/api-v2/authenticated-bots/zoom/obf-tokens) for details and [Zoom's official announcement](https://developers.zoom.us/blog/transition-to-obf-token-meetingsdk-apps/).
 </Callout>
 
 ## What's New in v2
@@ -30,10 +30,10 @@ The v2 API introduces several improvements for Zoom integration:
 How you integrate with Zoom depends on whose meetings your bots join:
 
 <Cards>
-  <Card title="Internal Meetings" href="/docs/api-v2/getting-started/zoom/credentials#app-only-credentials">
+  <Card title="Internal Meetings" href="/docs/api-v2/authenticated-bots/zoom/credentials#app-only-credentials">
     Bots join meetings within your Zoom organization. Store SDK credentials once and reference them in bot requests.
   </Card>
-  <Card title="External Meetings" href="/docs/api-v2/getting-started/zoom/obf-tokens">
+  <Card title="External Meetings" href="/docs/api-v2/authenticated-bots/zoom/obf-tokens">
     Bots join meetings hosted by external accounts. OBF tokens required after March 2, 2026.
   </Card>
 </Cards>
@@ -42,10 +42,10 @@ How you integrate with Zoom depends on whose meetings your bots join:
 
 | Your Use Case | What You Need | Documentation |
 |---------------|---------------|---------------|
-| Recording your team's meetings | App-only credentials | [Zoom Credentials](/docs/api-v2/getting-started/zoom/credentials) |
-| Building a product for customers | User credentials with OBF | [OBF Token Support](/docs/api-v2/getting-started/zoom/obf-tokens) |
-| Joining meetings hosted by others | OBF tokens | [OBF Token Support](/docs/api-v2/getting-started/zoom/obf-tokens) |
-| Already managing OAuth yourself | Direct token or Token URL | [OBF Token Support](/docs/api-v2/getting-started/zoom/obf-tokens) |
+| Recording your team's meetings | App-only credentials | [Zoom Credentials](/docs/api-v2/authenticated-bots/zoom/credentials) |
+| Building a product for customers | User credentials with OBF | [OBF Token Support](/docs/api-v2/authenticated-bots/zoom/obf-tokens) |
+| Joining meetings hosted by others | OBF tokens | [OBF Token Support](/docs/api-v2/authenticated-bots/zoom/obf-tokens) |
+| Already managing OAuth yourself | Direct token or Token URL | [OBF Token Support](/docs/api-v2/authenticated-bots/zoom/obf-tokens) |
 
 ## The `zoom_config` Object
 
@@ -74,13 +74,13 @@ Available options within `zoom_config`:
 ## Pages in This Section
 
 <Cards>
-  <Card title="Zoom Credentials" href="/docs/api-v2/getting-started/zoom/credentials">
+  <Card title="Zoom Credentials" href="/docs/api-v2/authenticated-bots/zoom/credentials">
     Store and manage Zoom app credentials and OAuth tokens with the credentials API.
   </Card>
-  <Card title="OBF Token Support" href="/docs/api-v2/getting-started/zoom/obf-tokens">
+  <Card title="OBF Token Support" href="/docs/api-v2/authenticated-bots/zoom/obf-tokens">
     Implement OBF tokens for external meetings. Covers all integration options.
   </Card>
-  <Card title="OAuth Consent Flow" href="/docs/api-v2/getting-started/zoom/oauth-consent-flow">
+  <Card title="OAuth Consent Flow" href="/docs/api-v2/authenticated-bots/zoom/oauth-consent-flow">
     Build an OAuth consent flow for your users to authorize your Zoom app.
   </Card>
 </Cards>

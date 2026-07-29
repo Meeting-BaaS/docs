@@ -1456,6 +1456,12 @@
                 "additionalProperties": false,
                 "description": "Status information with code, timestamp, and optional status-specific fields",
                 "properties": {
+                  "attempt": {
+                    "description": "The retry attempt number now being started (1-based). Only present for the non-terminal 'retrying' status, emitted when a failed attempt is re-queued for another try. A terminal bot.failed follows only if all retries are exhausted.",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991,
+                    "type": "integer"
+                  },
                   "code": {
                     "description": "The status code (e.g., 'transcribing', 'recording', 'processing')",
                     "type": "string"
@@ -1469,6 +1475,12 @@
                   "error_message": {
                     "description": "Error message describing what went wrong. Only present for 'recording_failed' status",
                     "type": "string"
+                  },
+                  "max": {
+                    "description": "The maximum number of attempts allowed (platform-dependent; e.g. 5 for Zoom). Only present for the 'retrying' status.",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991,
+                    "type": "integer"
                   },
                   "start_time": {
                     "description": "Unix timestamp (seconds) when recording started. Only present for 'in_call_recording' status",
@@ -1547,6 +1559,12 @@
               "status": {
                 "description": "Status information with code, timestamp, and optional status-specific fields",
                 "properties": {
+                  "attempt": {
+                    "description": "The retry attempt number now being started (1-based). Only present for the non-terminal 'retrying' status, emitted when a failed attempt is re-queued for another try. A terminal bot.failed follows only if all retries are exhausted.",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991,
+                    "type": "integer"
+                  },
                   "code": {
                     "description": "The status code (e.g., 'transcribing', 'recording', 'processing')",
                     "type": "string"
@@ -1560,6 +1578,12 @@
                   "error_message": {
                     "description": "Error message describing what went wrong. Only present for 'recording_failed' status",
                     "type": "string"
+                  },
+                  "max": {
+                    "description": "The maximum number of attempts allowed (platform-dependent; e.g. 5 for Zoom). Only present for the 'retrying' status.",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991,
+                    "type": "integer"
                   },
                   "start_time": {
                     "description": "Unix timestamp (seconds) when recording started. Only present for 'in_call_recording' status",
@@ -4248,7 +4272,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends transcript events as JSON messages with event 'transcript.segment'.",
+                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends JSON messages: 'session.started' once live transcription is up, 'transcript.segment' for each transcript piece, and 'error' if the transcription session fails (e.g. invalid custom_params or provider outage). The connection is kept alive with WebSocket pings (~30s).",
                     "example": null
                   },
                   "transcription": {
@@ -4288,8 +4312,22 @@
                               }
                             ],
                             "default": null,
-                            "description": "Custom parameters for the transcription provider.",
-                            "example": null
+                            "description": "Custom parameters forwarded to the provider's real-time (live) session API — e.g. Gladia's POST /v2/live. The live APIs accept a DIFFERENT shape than the batch APIs: for Gladia, translation must be nested under 'realtime_processing' (e.g. {\"language_config\": {\"languages\": [\"ru\"]}, \"realtime_processing\": {\"translation\": true, \"translation_config\": {\"target_languages\": [\"en\"]}}}), not top-level as in batch. Validated against the provider's live schema at bot creation; unknown fields are rejected. 'encoding', 'sample_rate', 'bit_depth' and 'channels' are set by the platform and cannot be overridden — use streaming_config.audio_frequency to control the audio sample rate.",
+                            "example": {
+                              "language_config": {
+                                "languages": [
+                                  "en"
+                                ]
+                              },
+                              "realtime_processing": {
+                                "translation": true,
+                                "translation_config": {
+                                  "target_languages": [
+                                    "fr"
+                                  ]
+                                }
+                              }
+                            }
                           },
                           "provider": {
                             "default": "gladia",
@@ -4341,6 +4379,50 @@
             "default": false,
             "description": "Enable audio streaming for this bot. When enabled, the streaming_config property is used to provide the configuration.",
             "type": "boolean"
+          },
+          "teams_config": {
+            "anyOf": [
+              {
+                "properties": {
+                  "credential_id": {
+                    "description": "UUID of a stored teams login (created via /v2/teams-logins). Pin a specific login for this bot.",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "email_group": {
+                    "anyOf": [
+                      {
+                        "format": "email",
+                        "maxLength": 254,
+                        "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$",
+                        "type": "string"
+                      },
+                      {
+                        "const": "",
+                        "type": "string"
+                      }
+                    ],
+                    "description": "Round-robin pool selector. Bot will be assigned to the least-loaded active teams_login with this email_group value. Takes priority over credential_id when both are set. Pass an empty string (\"\") to round-robin across all active logins for the team without filtering by group."
+                  },
+                  "fallback": {
+                    "description": "What to do if no teams_login slot is available.\n- 'fail' (default): bot creation fails with teams_login_unavailable.\n- 'anonymous': silently fall back to an anonymous (non-authenticated) bot.",
+                    "enum": [
+                      "fail",
+                      "anonymous"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
+            "example": null
           },
           "timeout_config": {
             "default": {
@@ -4869,7 +4951,7 @@
                           }
                         ],
                         "default": null,
-                        "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends transcript events as JSON messages with event 'transcript.segment'.",
+                        "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends JSON messages: 'session.started' once live transcription is up, 'transcript.segment' for each transcript piece, and 'error' if the transcription session fails (e.g. invalid custom_params or provider outage). The connection is kept alive with WebSocket pings (~30s).",
                         "example": null
                       },
                       "transcription": {
@@ -4910,8 +4992,22 @@
                                   }
                                 ],
                                 "default": null,
-                                "description": "Custom parameters for the transcription provider.",
-                                "example": null
+                                "description": "Custom parameters forwarded to the provider's real-time (live) session API — e.g. Gladia's POST /v2/live. The live APIs accept a DIFFERENT shape than the batch APIs: for Gladia, translation must be nested under 'realtime_processing' (e.g. {\"language_config\": {\"languages\": [\"ru\"]}, \"realtime_processing\": {\"translation\": true, \"translation_config\": {\"target_languages\": [\"en\"]}}}), not top-level as in batch. Validated against the provider's live schema at bot creation; unknown fields are rejected. 'encoding', 'sample_rate', 'bit_depth' and 'channels' are set by the platform and cannot be overridden — use streaming_config.audio_frequency to control the audio sample rate.",
+                                "example": {
+                                  "language_config": {
+                                    "languages": [
+                                      "en"
+                                    ]
+                                  },
+                                  "realtime_processing": {
+                                    "translation": true,
+                                    "translation_config": {
+                                      "target_languages": [
+                                        "fr"
+                                      ]
+                                    }
+                                  }
+                                }
                               },
                               "provider": {
                                 "default": "gladia",
@@ -4976,6 +5072,51 @@
                 "default": false,
                 "description": "Enable audio streaming for this bot. When enabled, the streaming_config property is used to provide the configuration.",
                 "type": "boolean"
+              },
+              "teams_config": {
+                "anyOf": [
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "credential_id": {
+                        "description": "UUID of a stored teams login (created via /v2/teams-logins). Pin a specific login for this bot.",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                        "type": "string"
+                      },
+                      "email_group": {
+                        "anyOf": [
+                          {
+                            "format": "email",
+                            "maxLength": 254,
+                            "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$",
+                            "type": "string"
+                          },
+                          {
+                            "const": "",
+                            "type": "string"
+                          }
+                        ],
+                        "description": "Round-robin pool selector. Bot will be assigned to the least-loaded active teams_login with this email_group value. Takes priority over credential_id when both are set. Pass an empty string (\"\") to round-robin across all active logins for the team without filtering by group."
+                      },
+                      "fallback": {
+                        "description": "What to do if no teams_login slot is available.\n- 'fail' (default): bot creation fails with teams_login_unavailable.\n- 'anonymous': silently fall back to an anonymous (non-authenticated) bot.",
+                        "enum": [
+                          "fail",
+                          "anonymous"
+                        ],
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
+                "example": null
               },
               "timeout_config": {
                 "additionalProperties": false,
@@ -5165,6 +5306,7 @@
               "timeout_config",
               "zoom_config",
               "meet_config",
+              "teams_config",
               "extra",
               "streaming_enabled",
               "streaming_config",
@@ -5492,7 +5634,7 @@
                           }
                         ],
                         "default": null,
-                        "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends transcript events as JSON messages with event 'transcript.segment'.",
+                        "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends JSON messages: 'session.started' once live transcription is up, 'transcript.segment' for each transcript piece, and 'error' if the transcription session fails (e.g. invalid custom_params or provider outage). The connection is kept alive with WebSocket pings (~30s).",
                         "example": null
                       },
                       "transcription": {
@@ -5532,8 +5674,22 @@
                                   }
                                 ],
                                 "default": null,
-                                "description": "Custom parameters for the transcription provider.",
-                                "example": null
+                                "description": "Custom parameters forwarded to the provider's real-time (live) session API — e.g. Gladia's POST /v2/live. The live APIs accept a DIFFERENT shape than the batch APIs: for Gladia, translation must be nested under 'realtime_processing' (e.g. {\"language_config\": {\"languages\": [\"ru\"]}, \"realtime_processing\": {\"translation\": true, \"translation_config\": {\"target_languages\": [\"en\"]}}}), not top-level as in batch. Validated against the provider's live schema at bot creation; unknown fields are rejected. 'encoding', 'sample_rate', 'bit_depth' and 'channels' are set by the platform and cannot be overridden — use streaming_config.audio_frequency to control the audio sample rate.",
+                                "example": {
+                                  "language_config": {
+                                    "languages": [
+                                      "en"
+                                    ]
+                                  },
+                                  "realtime_processing": {
+                                    "translation": true,
+                                    "translation_config": {
+                                      "target_languages": [
+                                        "fr"
+                                      ]
+                                    }
+                                  }
+                                }
                               },
                               "provider": {
                                 "default": "gladia",
@@ -5585,6 +5741,50 @@
                 "default": false,
                 "description": "Enable audio streaming for this bot. When enabled, the streaming_config property is used to provide the configuration.",
                 "type": "boolean"
+              },
+              "teams_config": {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "credential_id": {
+                        "description": "UUID of a stored teams login (created via /v2/teams-logins). Pin a specific login for this bot.",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                        "type": "string"
+                      },
+                      "email_group": {
+                        "anyOf": [
+                          {
+                            "format": "email",
+                            "maxLength": 254,
+                            "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$",
+                            "type": "string"
+                          },
+                          {
+                            "const": "",
+                            "type": "string"
+                          }
+                        ],
+                        "description": "Round-robin pool selector. Bot will be assigned to the least-loaded active teams_login with this email_group value. Takes priority over credential_id when both are set. Pass an empty string (\"\") to round-robin across all active logins for the team without filtering by group."
+                      },
+                      "fallback": {
+                        "description": "What to do if no teams_login slot is available.\n- 'fail' (default): bot creation fails with teams_login_unavailable.\n- 'anonymous': silently fall back to an anonymous (non-authenticated) bot.",
+                        "enum": [
+                          "fail",
+                          "anonymous"
+                        ],
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
+                "example": null
               },
               "timeout_config": {
                 "default": {
@@ -13110,7 +13310,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends transcript events as JSON messages with event 'transcript.segment'.",
+                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends JSON messages: 'session.started' once live transcription is up, 'transcript.segment' for each transcript piece, and 'error' if the transcription session fails (e.g. invalid custom_params or provider outage). The connection is kept alive with WebSocket pings (~30s).",
                     "example": null
                   },
                   "transcription": {
@@ -13151,8 +13351,22 @@
                               }
                             ],
                             "default": null,
-                            "description": "Custom parameters for the transcription provider.",
-                            "example": null
+                            "description": "Custom parameters forwarded to the provider's real-time (live) session API — e.g. Gladia's POST /v2/live. The live APIs accept a DIFFERENT shape than the batch APIs: for Gladia, translation must be nested under 'realtime_processing' (e.g. {\"language_config\": {\"languages\": [\"ru\"]}, \"realtime_processing\": {\"translation\": true, \"translation_config\": {\"target_languages\": [\"en\"]}}}), not top-level as in batch. Validated against the provider's live schema at bot creation; unknown fields are rejected. 'encoding', 'sample_rate', 'bit_depth' and 'channels' are set by the platform and cannot be overridden — use streaming_config.audio_frequency to control the audio sample rate.",
+                            "example": {
+                              "language_config": {
+                                "languages": [
+                                  "en"
+                                ]
+                              },
+                              "realtime_processing": {
+                                "translation": true,
+                                "translation_config": {
+                                  "target_languages": [
+                                    "fr"
+                                  ]
+                                }
+                              }
+                            }
                           },
                           "provider": {
                             "default": "gladia",
@@ -13210,6 +13424,51 @@
               "streaming_enabled": {
                 "description": "Enable or disable audio streaming for this bot.\n\n- Set to `true` to enable streaming (requires `streaming_config`)\n- Set to `false` to disable streaming (do not provide `streaming_config`)\n- Omit this field to leave streaming configuration unchanged\n\nIf you want to change streaming settings, you must provide both `streaming_enabled` and `streaming_config` together.",
                 "type": "boolean"
+              },
+              "teams_config": {
+                "anyOf": [
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "credential_id": {
+                        "description": "UUID of a stored teams login (created via /v2/teams-logins). Pin a specific login for this bot.",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                        "type": "string"
+                      },
+                      "email_group": {
+                        "anyOf": [
+                          {
+                            "format": "email",
+                            "maxLength": 254,
+                            "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$",
+                            "type": "string"
+                          },
+                          {
+                            "const": "",
+                            "type": "string"
+                          }
+                        ],
+                        "description": "Round-robin pool selector. Bot will be assigned to the least-loaded active teams_login with this email_group value. Takes priority over credential_id when both are set. Pass an empty string (\"\") to round-robin across all active logins for the team without filtering by group."
+                      },
+                      "fallback": {
+                        "description": "What to do if no teams_login slot is available.\n- 'fail' (default): bot creation fails with teams_login_unavailable.\n- 'anonymous': silently fall back to an anonymous (non-authenticated) bot.",
+                        "enum": [
+                          "fail",
+                          "anonymous"
+                        ],
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
+                "example": null
               },
               "timeout_config": {
                 "additionalProperties": false,
@@ -13691,7 +13950,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends transcript events as JSON messages with event 'transcript.segment'.",
+                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends JSON messages: 'session.started' once live transcription is up, 'transcript.segment' for each transcript piece, and 'error' if the transcription session fails (e.g. invalid custom_params or provider outage). The connection is kept alive with WebSocket pings (~30s).",
                     "example": null
                   },
                   "transcription": {
@@ -13731,8 +13990,22 @@
                               }
                             ],
                             "default": null,
-                            "description": "Custom parameters for the transcription provider.",
-                            "example": null
+                            "description": "Custom parameters forwarded to the provider's real-time (live) session API — e.g. Gladia's POST /v2/live. The live APIs accept a DIFFERENT shape than the batch APIs: for Gladia, translation must be nested under 'realtime_processing' (e.g. {\"language_config\": {\"languages\": [\"ru\"]}, \"realtime_processing\": {\"translation\": true, \"translation_config\": {\"target_languages\": [\"en\"]}}}), not top-level as in batch. Validated against the provider's live schema at bot creation; unknown fields are rejected. 'encoding', 'sample_rate', 'bit_depth' and 'channels' are set by the platform and cannot be overridden — use streaming_config.audio_frequency to control the audio sample rate.",
+                            "example": {
+                              "language_config": {
+                                "languages": [
+                                  "en"
+                                ]
+                              },
+                              "realtime_processing": {
+                                "translation": true,
+                                "translation_config": {
+                                  "target_languages": [
+                                    "fr"
+                                  ]
+                                }
+                              }
+                            }
                           },
                           "provider": {
                             "default": "gladia",
@@ -13777,6 +14050,50 @@
               "streaming_enabled": {
                 "description": "Enable or disable audio streaming for this bot.\n\n- Set to `true` to enable streaming (requires `streaming_config`)\n- Set to `false` to disable streaming (do not provide `streaming_config`)\n- Omit this field to leave streaming configuration unchanged\n\nIf you want to change streaming settings, you must provide both `streaming_enabled` and `streaming_config` together.",
                 "type": "boolean"
+              },
+              "teams_config": {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "credential_id": {
+                        "description": "UUID of a stored teams login (created via /v2/teams-logins). Pin a specific login for this bot.",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                        "type": "string"
+                      },
+                      "email_group": {
+                        "anyOf": [
+                          {
+                            "format": "email",
+                            "maxLength": 254,
+                            "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$",
+                            "type": "string"
+                          },
+                          {
+                            "const": "",
+                            "type": "string"
+                          }
+                        ],
+                        "description": "Round-robin pool selector. Bot will be assigned to the least-loaded active teams_login with this email_group value. Takes priority over credential_id when both are set. Pass an empty string (\"\") to round-robin across all active logins for the team without filtering by group."
+                      },
+                      "fallback": {
+                        "description": "What to do if no teams_login slot is available.\n- 'fail' (default): bot creation fails with teams_login_unavailable.\n- 'anonymous': silently fall back to an anonymous (non-authenticated) bot.",
+                        "enum": [
+                          "fail",
+                          "anonymous"
+                        ],
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
+                "example": null
               },
               "timeout_config": {
                 "default": {
@@ -14592,7 +14909,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends transcript events as JSON messages with event 'transcript.segment'.",
+                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends JSON messages: 'session.started' once live transcription is up, 'transcript.segment' for each transcript piece, and 'error' if the transcription session fails (e.g. invalid custom_params or provider outage). The connection is kept alive with WebSocket pings (~30s).",
                     "example": null
                   },
                   "transcription": {
@@ -14633,8 +14950,22 @@
                               }
                             ],
                             "default": null,
-                            "description": "Custom parameters for the transcription provider.",
-                            "example": null
+                            "description": "Custom parameters forwarded to the provider's real-time (live) session API — e.g. Gladia's POST /v2/live. The live APIs accept a DIFFERENT shape than the batch APIs: for Gladia, translation must be nested under 'realtime_processing' (e.g. {\"language_config\": {\"languages\": [\"ru\"]}, \"realtime_processing\": {\"translation\": true, \"translation_config\": {\"target_languages\": [\"en\"]}}}), not top-level as in batch. Validated against the provider's live schema at bot creation; unknown fields are rejected. 'encoding', 'sample_rate', 'bit_depth' and 'channels' are set by the platform and cannot be overridden — use streaming_config.audio_frequency to control the audio sample rate.",
+                            "example": {
+                              "language_config": {
+                                "languages": [
+                                  "en"
+                                ]
+                              },
+                              "realtime_processing": {
+                                "translation": true,
+                                "translation_config": {
+                                  "target_languages": [
+                                    "fr"
+                                  ]
+                                }
+                              }
+                            }
                           },
                           "provider": {
                             "default": "gladia",
@@ -14699,6 +15030,51 @@
             "default": false,
             "description": "Enable audio streaming for this bot. When enabled, the streaming_config property is used to provide the configuration.",
             "type": "boolean"
+          },
+          "teams_config": {
+            "anyOf": [
+              {
+                "additionalProperties": false,
+                "properties": {
+                  "credential_id": {
+                    "description": "UUID of a stored teams login (created via /v2/teams-logins). Pin a specific login for this bot.",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "email_group": {
+                    "anyOf": [
+                      {
+                        "format": "email",
+                        "maxLength": 254,
+                        "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$",
+                        "type": "string"
+                      },
+                      {
+                        "const": "",
+                        "type": "string"
+                      }
+                    ],
+                    "description": "Round-robin pool selector. Bot will be assigned to the least-loaded active teams_login with this email_group value. Takes priority over credential_id when both are set. Pass an empty string (\"\") to round-robin across all active logins for the team without filtering by group."
+                  },
+                  "fallback": {
+                    "description": "What to do if no teams_login slot is available.\n- 'fail' (default): bot creation fails with teams_login_unavailable.\n- 'anonymous': silently fall back to an anonymous (non-authenticated) bot.",
+                    "enum": [
+                      "fail",
+                      "anonymous"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
+            "example": null
           },
           "timeout_config": {
             "additionalProperties": false,
@@ -15183,7 +15559,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends transcript events as JSON messages with event 'transcript.segment'.",
+                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends JSON messages: 'session.started' once live transcription is up, 'transcript.segment' for each transcript piece, and 'error' if the transcription session fails (e.g. invalid custom_params or provider outage). The connection is kept alive with WebSocket pings (~30s).",
                     "example": null
                   },
                   "transcription": {
@@ -15223,8 +15599,22 @@
                               }
                             ],
                             "default": null,
-                            "description": "Custom parameters for the transcription provider.",
-                            "example": null
+                            "description": "Custom parameters forwarded to the provider's real-time (live) session API — e.g. Gladia's POST /v2/live. The live APIs accept a DIFFERENT shape than the batch APIs: for Gladia, translation must be nested under 'realtime_processing' (e.g. {\"language_config\": {\"languages\": [\"ru\"]}, \"realtime_processing\": {\"translation\": true, \"translation_config\": {\"target_languages\": [\"en\"]}}}), not top-level as in batch. Validated against the provider's live schema at bot creation; unknown fields are rejected. 'encoding', 'sample_rate', 'bit_depth' and 'channels' are set by the platform and cannot be overridden — use streaming_config.audio_frequency to control the audio sample rate.",
+                            "example": {
+                              "language_config": {
+                                "languages": [
+                                  "en"
+                                ]
+                              },
+                              "realtime_processing": {
+                                "translation": true,
+                                "translation_config": {
+                                  "target_languages": [
+                                    "fr"
+                                  ]
+                                }
+                              }
+                            }
                           },
                           "provider": {
                             "default": "gladia",
@@ -15276,6 +15666,50 @@
             "default": false,
             "description": "Enable audio streaming for this bot. When enabled, the streaming_config property is used to provide the configuration.",
             "type": "boolean"
+          },
+          "teams_config": {
+            "anyOf": [
+              {
+                "properties": {
+                  "credential_id": {
+                    "description": "UUID of a stored teams login (created via /v2/teams-logins). Pin a specific login for this bot.",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  "email_group": {
+                    "anyOf": [
+                      {
+                        "format": "email",
+                        "maxLength": 254,
+                        "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$",
+                        "type": "string"
+                      },
+                      {
+                        "const": "",
+                        "type": "string"
+                      }
+                    ],
+                    "description": "Round-robin pool selector. Bot will be assigned to the least-loaded active teams_login with this email_group value. Takes priority over credential_id when both are set. Pass an empty string (\"\") to round-robin across all active logins for the team without filtering by group."
+                  },
+                  "fallback": {
+                    "description": "What to do if no teams_login slot is available.\n- 'fail' (default): bot creation fails with teams_login_unavailable.\n- 'anonymous': silently fall back to an anonymous (non-authenticated) bot.",
+                    "enum": [
+                      "fail",
+                      "anonymous"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
+            "example": null
           },
           "timeout_config": {
             "default": {
@@ -15680,7 +16114,7 @@
   "paths": {
     "/v2/bots": {
       "get": {
-        "description": "List all bots for your team with pagination support.\n    \n    Filter by status (queued, joining, in_call_recording, transcribing, completed, failed), meeting platform (zoom, meet, teams), and date range. Results are ordered by creation date (newest first). Use cursor-based pagination for efficient navigation through large result sets.\n    \n    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The response includes a `next_cursor` if more results are available. The `limit` parameter controls how many results are returned per page (default: 50, max: 250).\n    \n    **Filtering:** \n    - `status`: Filter by bot status (comma-separated for multiple statuses)\n    - `platform`: Filter by meeting platform (zoom, meet, teams)\n    - `created_after`: ISO 8601 timestamp - only return bots created after this time\n    - `created_before`: ISO 8601 timestamp - only return bots created before this time\n    \n    **Date Range:** The `created_after` and `created_before` filters use ISO 8601 timestamps. Results are limited to bots created within the last 90 days by default.\n    \n    Returns a paginated list of bots with metadata including bot ID, status, meeting platform, creation time, and basic configuration.",
+        "description": "List all bots for your team with pagination support.\n    \n    Filter by status (queued, joining, in_call_recording, retrying, transcribing, completed, failed), meeting platform (zoom, meet, teams), and date range. Results are ordered by creation date (newest first). Use cursor-based pagination for efficient navigation through large result sets.\n    \n    **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The response includes a `next_cursor` if more results are available. The `limit` parameter controls how many results are returned per page (default: 50, max: 250).\n    \n    **Filtering:** \n    - `status`: Filter by bot status (comma-separated for multiple statuses)\n    - `platform`: Filter by meeting platform (zoom, meet, teams)\n    - `created_after`: ISO 8601 timestamp - only return bots created after this time\n    - `created_before`: ISO 8601 timestamp - only return bots created before this time\n    \n    **Date Range:** The `created_after` and `created_before` filters use ISO 8601 timestamps. Results are limited to bots created within the last 90 days by default.\n    \n    Returns a paginated list of bots with metadata including bot ID, status, meeting platform, creation time, and basic configuration.",
         "operationId": "listBots",
         "parameters": [
           {
@@ -18985,7 +19419,7 @@
     },
     "/v2/bots/{bot_id}/status": {
       "get": {
-        "description": "Get the current status of a bot, including the latest status code, transcription status, and timestamp.\n    \n    Useful for polling bot state without fetching the full bot details. Returns lightweight status information including the current status code, transcription status, and when the status was last updated (`updated_at`).\n    \n    **Response Fields:**\n    - `bot_id`: The UUID of the bot\n    - `status`: The current bot status (queued, joining, in_call_recording, transcribing, completed, failed)\n    - `transcription_status`: The current transcription status (not-applicable, not-started, queued, processing, done, error)\n    - `updated_at`: ISO 8601 timestamp when the status was last updated\n    \n    **Transcription Status:** The transcription status is fetched in real-time from the transcription provider if transcription is enabled. This allows you to track transcription progress separately from the bot's overall status.\n    \n    **Polling Considerations:** \n    - **Not Recommended for Active Monitoring:** Due to the nature of meetings running for extended periods (often hours), frequent polling is not recommended. Instead, use `callback_config` when creating bots or configure webhooks at the account level to receive real-time status updates.\n    - **Reconciliation Use Case:** This endpoint is better suited for reconciliation purposes (e.g., checking bot status after a webhook delivery failure or verifying final state).\n    - **If Polling is Necessary:** If you must poll, use a judicious interval (e.g., every 5-10 minutes) and implement exponential backoff to avoid rate limits. Consider the meeting duration when determining polling frequency.\n    \n    Returns 404 if the bot is not found or does not belong to your team.",
+        "description": "Get the current status of a bot, including the latest status code, transcription status, and timestamp.\n    \n    Useful for polling bot state without fetching the full bot details. Returns lightweight status information including the current status code, transcription status, and when the status was last updated (`updated_at`).\n    \n    **Response Fields:**\n    - `bot_id`: The UUID of the bot\n    - `status`: The current bot status (queued, joining, in_call_recording, retrying, transcribing, completed, failed)\n    - `transcription_status`: The current transcription status (not-applicable, not-started, queued, processing, done, error)\n    - `updated_at`: ISO 8601 timestamp when the status was last updated\n    \n    **Transcription Status:** The transcription status is fetched in real-time from the transcription provider if transcription is enabled. This allows you to track transcription progress separately from the bot's overall status.\n    \n    **Polling Considerations:** \n    - **Not Recommended for Active Monitoring:** Due to the nature of meetings running for extended periods (often hours), frequent polling is not recommended. Instead, use `callback_config` when creating bots or configure webhooks at the account level to receive real-time status updates.\n    - **Reconciliation Use Case:** This endpoint is better suited for reconciliation purposes (e.g., checking bot status after a webhook delivery failure or verifying final state).\n    - **If Polling is Necessary:** If you must poll, use a judicious interval (e.g., every 5-10 minutes) and implement exponential backoff to avoid rate limits. Consider the meeting duration when determining polling frequency.\n    \n    Returns 404 if the bot is not found or does not belong to your team.",
         "operationId": "getBotStatus",
         "parameters": [
           {
@@ -24367,6 +24801,2745 @@
         ]
       }
     },
+    "/v2/teams-login/release-session": {
+      "post": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/v2/teams-login/resolve-session": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        }
+      }
+    },
+    "/v2/teams-logins": {
+      "get": {
+        "operationId": "listTeamsLogins",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "extra",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "description": "Filter logins by matching values in the `extra` JSON payload.\n\nFormat: `\"field:value\"` for single condition or `\"f1:v1,f2:v2\"` for multiple (AND).",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "active_session_count": {
+                            "maximum": 9007199254740991,
+                            "minimum": 0,
+                            "type": "integer"
+                          },
+                          "created_at": {
+                            "type": "string"
+                          },
+                          "credential_id": {
+                            "description": "The unique identifier (UUID) of the teams login",
+                            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                            "type": "string"
+                          },
+                          "email": {
+                            "type": "string"
+                          },
+                          "email_group": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "extra": {
+                            "anyOf": [
+                              {
+                                "additionalProperties": {},
+                                "description": "An optional free-form JSON object you can attach to the login.\n\nStored as-is and never interpreted by the API. Filterable on the list endpoint via the `extra` query parameter using the `key:value` syntax.",
+                                "example": {
+                                  "environment": "production",
+                                  "internal_user_id": "u_123"
+                                },
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "failure_data": {},
+                          "last_error_at": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "last_error_message": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "last_used_at": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "state": {
+                            "description": "The current state of the teams login.\n\n- `active`: Login is healthy and can be assigned to bots\n- `invalid`: System auto-flipped this on a bot sign-in failure (bad password, captcha unsolved, MFA prompt, etc.). Manual re-enable required.",
+                            "enum": [
+                              "active",
+                              "invalid"
+                            ],
+                            "example": "active",
+                            "type": "string"
+                          },
+                          "updated_at": {
+                            "type": "string"
+                          },
+                          "workspace_id": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "credential_id",
+                          "workspace_id",
+                          "name",
+                          "email",
+                          "email_group",
+                          "state",
+                          "last_error_message",
+                          "last_error_at",
+                          "last_used_at",
+                          "active_session_count",
+                          "extra",
+                          "created_at",
+                          "updated_at"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "List teams logins",
+        "tags": [
+          "Teams Logins"
+        ]
+      },
+      "post": {
+        "operationId": "createTeamsLogin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "email": {
+                    "description": "Email of the Microsoft 365 account this login signs in as.",
+                    "example": "bot1@bots.customer.onmicrosoft.com",
+                    "format": "email",
+                    "maxLength": 254,
+                    "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$",
+                    "type": "string"
+                  },
+                  "email_group": {
+                    "description": "Optional address used for round-robin pooling. Logins sharing the same email_group form one round-robin pool.",
+                    "example": "bots@bots.customer.onmicrosoft.com",
+                    "format": "email",
+                    "maxLength": 254,
+                    "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$",
+                    "type": "string"
+                  },
+                  "extra": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": {},
+                        "description": "An optional free-form JSON object you can attach to the login.\n\nStored as-is and never interpreted by the API. Filterable on the list endpoint via the `extra` query parameter using the `key:value` syntax.",
+                        "example": {
+                          "environment": "production",
+                          "internal_user_id": "u_123"
+                        },
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "User-friendly label for this credential. Not unique — names can repeat within a team.",
+                    "example": "Teams Bot Pool — Account 1",
+                    "maxLength": 100,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "password": {
+                    "description": "Password for the Microsoft 365 account. Write-only — encrypted at rest (AES-256-GCM) and never returned in any response.",
+                    "example": "••••••••",
+                    "maxLength": 1024,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "workspace_id": {
+                    "description": "UUID of the parent teams_workspace. Create one via POST /v2/teams-workspaces first.",
+                    "example": "f0e1d2c3-b4a5-6789-0123-456789abcdef",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "workspace_id",
+                  "name",
+                  "email",
+                  "password"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "active_session_count": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "credential_id": {
+                          "description": "The unique identifier (UUID) of the teams login",
+                          "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "email_group": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "extra": {
+                          "anyOf": [
+                            {
+                              "additionalProperties": {},
+                              "description": "An optional free-form JSON object you can attach to the login.\n\nStored as-is and never interpreted by the API. Filterable on the list endpoint via the `extra` query parameter using the `key:value` syntax.",
+                              "example": {
+                                "environment": "production",
+                                "internal_user_id": "u_123"
+                              },
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "failure_data": {},
+                        "last_error_at": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "last_error_message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "last_used_at": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "state": {
+                          "description": "The current state of the teams login.\n\n- `active`: Login is healthy and can be assigned to bots\n- `invalid`: System auto-flipped this on a bot sign-in failure (bad password, captcha unsolved, MFA prompt, etc.). Manual re-enable required.",
+                          "enum": [
+                            "active",
+                            "invalid"
+                          ],
+                          "example": "active",
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        },
+                        "workspace_id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "credential_id",
+                        "workspace_id",
+                        "name",
+                        "email",
+                        "email_group",
+                        "state",
+                        "last_error_message",
+                        "last_error_at",
+                        "last_used_at",
+                        "active_session_count",
+                        "extra",
+                        "created_at",
+                        "updated_at"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict - A login for this email already exists"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "Create a teams login",
+        "tags": [
+          "Teams Logins"
+        ]
+      }
+    },
+    "/v2/teams-logins/utilization": {
+      "get": {
+        "operationId": "getTeamsLoginUtilization",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "by_email_group": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "capacity": {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "concurrent": {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              },
+                              "email_group": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "logins": {
+                                "maximum": 9007199254740991,
+                                "minimum": 0,
+                                "type": "integer"
+                              }
+                            },
+                            "required": [
+                              "email_group",
+                              "logins",
+                              "concurrent",
+                              "capacity"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "concurrent_capacity": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "concurrent_sessions": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "logins_active": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "logins_invalid": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "logins_total": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "utilization_pct": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "logins_total",
+                        "logins_active",
+                        "logins_invalid",
+                        "concurrent_sessions",
+                        "concurrent_capacity",
+                        "utilization_pct",
+                        "by_email_group"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "Get current login pool utilization",
+        "tags": [
+          "Teams Logins"
+        ]
+      }
+    },
+    "/v2/teams-logins/{credential_id}": {
+      "delete": {
+        "operationId": "deleteTeamsLogin",
+        "parameters": [
+          {
+            "description": "The unique identifier (UUID) of the teams login",
+            "in": "path",
+            "name": "credential_id",
+            "required": true,
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found - Teams login not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict - Login has active sessions in flight"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "Delete a teams login",
+        "tags": [
+          "Teams Logins"
+        ]
+      },
+      "get": {
+        "operationId": "getTeamsLogin",
+        "parameters": [
+          {
+            "description": "The unique identifier (UUID) of the teams login",
+            "in": "path",
+            "name": "credential_id",
+            "required": true,
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "active_session_count": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "credential_id": {
+                          "description": "The unique identifier (UUID) of the teams login",
+                          "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "email_group": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "extra": {
+                          "anyOf": [
+                            {
+                              "additionalProperties": {},
+                              "description": "An optional free-form JSON object you can attach to the login.\n\nStored as-is and never interpreted by the API. Filterable on the list endpoint via the `extra` query parameter using the `key:value` syntax.",
+                              "example": {
+                                "environment": "production",
+                                "internal_user_id": "u_123"
+                              },
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "failure_data": {},
+                        "last_error_at": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "last_error_message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "last_used_at": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "state": {
+                          "description": "The current state of the teams login.\n\n- `active`: Login is healthy and can be assigned to bots\n- `invalid`: System auto-flipped this on a bot sign-in failure (bad password, captcha unsolved, MFA prompt, etc.). Manual re-enable required.",
+                          "enum": [
+                            "active",
+                            "invalid"
+                          ],
+                          "example": "active",
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        },
+                        "workspace_id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "credential_id",
+                        "workspace_id",
+                        "name",
+                        "email",
+                        "email_group",
+                        "state",
+                        "last_error_message",
+                        "last_error_at",
+                        "last_used_at",
+                        "active_session_count",
+                        "extra",
+                        "created_at",
+                        "updated_at"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found - Teams login not found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "Get a teams login",
+        "tags": [
+          "Teams Logins"
+        ]
+      },
+      "patch": {
+        "operationId": "updateTeamsLogin",
+        "parameters": [
+          {
+            "description": "The unique identifier (UUID) of the teams login",
+            "in": "path",
+            "name": "credential_id",
+            "required": true,
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "email_group": {
+                    "anyOf": [
+                      {
+                        "description": "Optional address used for round-robin pooling. Logins sharing the same email_group form one round-robin pool.",
+                        "example": "bots@bots.customer.onmicrosoft.com",
+                        "format": "email",
+                        "maxLength": 254,
+                        "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$",
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "extra": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": {},
+                        "description": "An optional free-form JSON object you can attach to the login.\n\nStored as-is and never interpreted by the API. Filterable on the list endpoint via the `extra` query parameter using the `key:value` syntax.",
+                        "example": {
+                          "environment": "production",
+                          "internal_user_id": "u_123"
+                        },
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "User-friendly label for this credential. Not unique — names can repeat within a team.",
+                    "example": "Teams Bot Pool — Account 1",
+                    "maxLength": 100,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "password": {
+                    "description": "Password for the Microsoft 365 account. Write-only — encrypted at rest (AES-256-GCM) and never returned in any response.",
+                    "example": "••••••••",
+                    "maxLength": 1024,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "state": {
+                    "enum": [
+                      "active"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "active_session_count": {
+                          "maximum": 9007199254740991,
+                          "minimum": 0,
+                          "type": "integer"
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "credential_id": {
+                          "description": "The unique identifier (UUID) of the teams login",
+                          "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                          "type": "string"
+                        },
+                        "email": {
+                          "type": "string"
+                        },
+                        "email_group": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "extra": {
+                          "anyOf": [
+                            {
+                              "additionalProperties": {},
+                              "description": "An optional free-form JSON object you can attach to the login.\n\nStored as-is and never interpreted by the API. Filterable on the list endpoint via the `extra` query parameter using the `key:value` syntax.",
+                              "example": {
+                                "environment": "production",
+                                "internal_user_id": "u_123"
+                              },
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "failure_data": {},
+                        "last_error_at": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "last_error_message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "last_used_at": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "state": {
+                          "description": "The current state of the teams login.\n\n- `active`: Login is healthy and can be assigned to bots\n- `invalid`: System auto-flipped this on a bot sign-in failure (bad password, captcha unsolved, MFA prompt, etc.). Manual re-enable required.",
+                          "enum": [
+                            "active",
+                            "invalid"
+                          ],
+                          "example": "active",
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        },
+                        "workspace_id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "credential_id",
+                        "workspace_id",
+                        "name",
+                        "email",
+                        "email_group",
+                        "state",
+                        "last_error_message",
+                        "last_error_at",
+                        "last_used_at",
+                        "active_session_count",
+                        "extra",
+                        "created_at",
+                        "updated_at"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found - Teams login not found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "Update a teams login",
+        "tags": [
+          "Teams Logins"
+        ]
+      }
+    },
+    "/v2/teams-workspaces": {
+      "get": {
+        "operationId": "listTeamsWorkspaces",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "extra",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "description": "Filter workspaces by matching values in the `extra` JSON payload.\n\nFormat: `\"field:value\"` for single condition or `\"f1:v1,f2:v2\"` for multiple (AND).",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "created_at": {
+                            "type": "string"
+                          },
+                          "domain": {
+                            "type": "string"
+                          },
+                          "extra": {
+                            "anyOf": [
+                              {
+                                "additionalProperties": {},
+                                "description": "An optional free-form JSON object you can attach to the workspace.\n\nStored as-is and never interpreted by the API. Filterable on the list endpoint via the `extra` query parameter using the `key:value` syntax.",
+                                "example": {
+                                  "environment": "production",
+                                  "tenant_id": "t_123"
+                                },
+                                "propertyNames": {
+                                  "type": "string"
+                                },
+                                "type": "object"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "failure_data": {},
+                          "last_error_at": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "last_error_message": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "state": {
+                            "description": "The current state of the teams workspace.\n\n- `active`: bots can sign in with accounts under this tenant\n- `invalid`: flipped to cascade-disable the whole tenant. Manual re-enable required.",
+                            "enum": [
+                              "active",
+                              "invalid"
+                            ],
+                            "example": "active",
+                            "type": "string"
+                          },
+                          "updated_at": {
+                            "type": "string"
+                          },
+                          "workspace_id": {
+                            "description": "The unique identifier (UUID) of the teams workspace",
+                            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "workspace_id",
+                          "name",
+                          "domain",
+                          "state",
+                          "last_error_message",
+                          "last_error_at",
+                          "extra",
+                          "created_at",
+                          "updated_at"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "List teams workspaces",
+        "tags": [
+          "Teams Workspaces"
+        ]
+      },
+      "post": {
+        "operationId": "createTeamsWorkspace",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "domain": {
+                    "description": "The Microsoft 365 tenant primary domain (e.g. contoso.onmicrosoft.com or a verified custom domain). Identifies the tenant this workspace represents; accounts on any of the tenant's verified domains can be added.",
+                    "example": "contoso.onmicrosoft.com",
+                    "maxLength": 253,
+                    "minLength": 1,
+                    "pattern": "^[a-z0-9.-]+\\.[a-z]{2,}$",
+                    "type": "string"
+                  },
+                  "extra": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": {},
+                        "description": "An optional free-form JSON object you can attach to the workspace.\n\nStored as-is and never interpreted by the API. Filterable on the list endpoint via the `extra` query parameter using the `key:value` syntax.",
+                        "example": {
+                          "environment": "production",
+                          "tenant_id": "t_123"
+                        },
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "default": "Microsoft Teams",
+                    "description": "User-friendly label for the workspace. Not unique — names can repeat within a team.",
+                    "example": "Contoso Production Tenant",
+                    "maxLength": 100,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "domain"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "domain": {
+                          "type": "string"
+                        },
+                        "extra": {
+                          "anyOf": [
+                            {
+                              "additionalProperties": {},
+                              "description": "An optional free-form JSON object you can attach to the workspace.\n\nStored as-is and never interpreted by the API. Filterable on the list endpoint via the `extra` query parameter using the `key:value` syntax.",
+                              "example": {
+                                "environment": "production",
+                                "tenant_id": "t_123"
+                              },
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "failure_data": {},
+                        "last_error_at": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "last_error_message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "state": {
+                          "description": "The current state of the teams workspace.\n\n- `active`: bots can sign in with accounts under this tenant\n- `invalid`: flipped to cascade-disable the whole tenant. Manual re-enable required.",
+                          "enum": [
+                            "active",
+                            "invalid"
+                          ],
+                          "example": "active",
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        },
+                        "workspace_id": {
+                          "description": "The unique identifier (UUID) of the teams workspace",
+                          "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "workspace_id",
+                        "name",
+                        "domain",
+                        "state",
+                        "last_error_message",
+                        "last_error_at",
+                        "extra",
+                        "created_at",
+                        "updated_at"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict - A workspace for this domain already exists"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "Create a teams workspace",
+        "tags": [
+          "Teams Workspaces"
+        ]
+      }
+    },
+    "/v2/teams-workspaces/{workspace_id}": {
+      "delete": {
+        "operationId": "deleteTeamsWorkspace",
+        "parameters": [
+          {
+            "description": "The unique identifier (UUID) of the teams workspace",
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "message"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found - Teams workspace not found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict - Workspace has active sessions in flight"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "Delete a teams workspace (cascades to its logins)",
+        "tags": [
+          "Teams Workspaces"
+        ]
+      },
+      "get": {
+        "operationId": "getTeamsWorkspace",
+        "parameters": [
+          {
+            "description": "The unique identifier (UUID) of the teams workspace",
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "domain": {
+                          "type": "string"
+                        },
+                        "extra": {
+                          "anyOf": [
+                            {
+                              "additionalProperties": {},
+                              "description": "An optional free-form JSON object you can attach to the workspace.\n\nStored as-is and never interpreted by the API. Filterable on the list endpoint via the `extra` query parameter using the `key:value` syntax.",
+                              "example": {
+                                "environment": "production",
+                                "tenant_id": "t_123"
+                              },
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "failure_data": {},
+                        "last_error_at": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "last_error_message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "state": {
+                          "description": "The current state of the teams workspace.\n\n- `active`: bots can sign in with accounts under this tenant\n- `invalid`: flipped to cascade-disable the whole tenant. Manual re-enable required.",
+                          "enum": [
+                            "active",
+                            "invalid"
+                          ],
+                          "example": "active",
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        },
+                        "workspace_id": {
+                          "description": "The unique identifier (UUID) of the teams workspace",
+                          "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "workspace_id",
+                        "name",
+                        "domain",
+                        "state",
+                        "last_error_message",
+                        "last_error_at",
+                        "extra",
+                        "created_at",
+                        "updated_at"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found - Teams workspace not found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "Get a teams workspace",
+        "tags": [
+          "Teams Workspaces"
+        ]
+      },
+      "patch": {
+        "operationId": "updateTeamsWorkspace",
+        "parameters": [
+          {
+            "description": "The unique identifier (UUID) of the teams workspace",
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "extra": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": {},
+                        "description": "An optional free-form JSON object you can attach to the workspace.\n\nStored as-is and never interpreted by the API. Filterable on the list endpoint via the `extra` query parameter using the `key:value` syntax.",
+                        "example": {
+                          "environment": "production",
+                          "tenant_id": "t_123"
+                        },
+                        "propertyNames": {
+                          "type": "string"
+                        },
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "description": "User-friendly label for the workspace. Not unique — names can repeat within a team.",
+                    "example": "Contoso Production Tenant",
+                    "maxLength": 100,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "state": {
+                    "description": "Only 'active' is allowed via PATCH (system-only sets 'invalid'). Use this to re-enable a workspace after fixing the underlying failure.",
+                    "enum": [
+                      "active"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "domain": {
+                          "type": "string"
+                        },
+                        "extra": {
+                          "anyOf": [
+                            {
+                              "additionalProperties": {},
+                              "description": "An optional free-form JSON object you can attach to the workspace.\n\nStored as-is and never interpreted by the API. Filterable on the list endpoint via the `extra` query parameter using the `key:value` syntax.",
+                              "example": {
+                                "environment": "production",
+                                "tenant_id": "t_123"
+                              },
+                              "propertyNames": {
+                                "type": "string"
+                              },
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "failure_data": {},
+                        "last_error_at": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "last_error_message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "state": {
+                          "description": "The current state of the teams workspace.\n\n- `active`: bots can sign in with accounts under this tenant\n- `invalid`: flipped to cascade-disable the whole tenant. Manual re-enable required.",
+                          "enum": [
+                            "active",
+                            "invalid"
+                          ],
+                          "example": "active",
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        },
+                        "workspace_id": {
+                          "description": "The unique identifier (UUID) of the teams workspace",
+                          "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "workspace_id",
+                        "name",
+                        "domain",
+                        "state",
+                        "last_error_message",
+                        "last_error_at",
+                        "extra",
+                        "created_at",
+                        "updated_at"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found - Teams workspace not found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "Update a teams workspace",
+        "tags": [
+          "Teams Workspaces"
+        ]
+      }
+    },
     "/v2/zoom-credentials": {
       "get": {
         "description": "List all Zoom credentials for your team.\n\n    Returns all non-deleted credentials with their metadata. Sensitive fields (client_secret, OAuth tokens) are never included in responses.\n\n    **Response Fields:**\n    - `credential_id`: UUID to reference this credential in bot requests\n    - `name`: User-friendly name for identification\n    - `credential_type`: \"app\" (SDK only) or \"user\" (with OAuth tokens)\n    - `zoom_user_id`: The Zoom user ID (only for \"user\" type)\n    - `zoom_email` / `zoom_display_name`: The authorising Zoom user's email and display name, captured from Zoom's `/users/me` API at OAuth time (only for \"user\" type, requires the `user:read:user` scope)\n    - `state`: \"active\" or \"invalid\"\n    - `last_error_message`: Last OBF token fetch error (if any)\n    - `extra`: The optional user-supplied JSON metadata attached to the credential\n\n    **Filtering:** Narrow the result set with optional query parameters (combined with AND):\n    - `name`, `zoom_email`, `zoom_display_name`: case-insensitive partial match\n    - `zoom_user_id`: exact match\n    - `credential_type`, `state`: comma-separated enum lists (e.g. `credential_type=user`, `state=active,invalid`)\n    - `extra`: `key:value` pairs against the `extra` JSON payload, comma-separated for multiple conditions (e.g. `extra=internal_user_id:u_42,environment:production`). Values are matched exactly (case-sensitive); credentials missing the key are excluded.\n\n    **Error Tracking:** If bots fail to fetch OBF tokens using a credential, the error is recorded in `last_error_message` and `last_error_at`. These fields are cleared on successful OBF token fetch.",
@@ -26041,7 +29214,7 @@
   "servers": [
     {
       "description": "production server",
-      "url": "https://api.meetingbaas.com"
+      "url": "https://api.pre-prod-meetingbaas.com"
     }
   ],
   "tags": [

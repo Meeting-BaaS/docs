@@ -1,0 +1,9 @@
+{
+    "title": "Authenticated Bots",
+    "icon": "ShieldCheck",
+    "pages": [
+        "teams",
+        "meet",
+        "zoom"
+    ]
+}
