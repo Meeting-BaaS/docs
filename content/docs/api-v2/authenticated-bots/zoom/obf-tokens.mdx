@@ -39,7 +39,7 @@ An OBF (On Behalf Of) token is a Zoom authorization token that proves a specific
 ### You do NOT need OBF tokens if:
 
 - Your bots only join meetings **within** your own Zoom account/organization
-- You use your own [SDK credentials](/docs/api-v2/getting-started/zoom/credentials#app-only-credentials) (makes all meetings "internal")
+- You use your own [SDK credentials](/docs/api-v2/authenticated-bots/zoom/credentials#app-only-credentials) (makes all meetings "internal")
 - You only use Google Meet or Microsoft Teams bots
 
 ## Four Integration Options
@@ -57,7 +57,7 @@ The v2 API supports four ways to provide OBF tokens via the `zoom_config` object
 
 ## Option 1: Stored Credential (Recommended)
 
-Store the user's OAuth tokens via the [Credentials API](/docs/api-v2/getting-started/zoom/credentials), then reference the credential when creating bots.
+Store the user's OAuth tokens via the [Credentials API](/docs/api-v2/authenticated-bots/zoom/credentials), then reference the credential when creating bots.
 
 **How it works:**
 1. User completes OAuth consent flow → you receive authorization code
@@ -401,7 +401,7 @@ If you use `obf_token` or `obf_token_url` and need the AAN to display your app n
 }
 ```
 
-The stored credential provides your SDK keys for AAN attribution, while your endpoint continues handling OBF token generation. See [Zoom Credentials](/docs/api-v2/getting-started/zoom/credentials#active-apps-notifier-aan-attribution) for how to create an app-only credential.
+The stored credential provides your SDK keys for AAN attribution, while your endpoint continues handling OBF token generation. See [Zoom Credentials](/docs/api-v2/authenticated-bots/zoom/credentials#active-apps-notifier-aan-attribution) for how to create an app-only credential.
 
 <Callout type="warn">
 **Zoom Marketplace Requirement:** During review, Zoom requires the AAN to show your app name. If you're going through Marketplace review, the reviewer may flag this if your bot requests don't include a stored credential. See [Zoom's AAN documentation](https://developers.zoom.us/docs/meeting-sdk/ui-notices/#active-apps-notifier-aan-use-case).
@@ -484,7 +484,7 @@ See [Zoom App Setup](/docs/api/getting-started/zoom/app-setup) for adding scopes
 <Step>
 ### Determine if You Need OBF Tokens
 
-Do your bots join meetings hosted by external Zoom accounts? If yes, you need OBF tokens. If only internal meetings, use [app-only credentials](/docs/api-v2/getting-started/zoom/credentials#app-only-credentials).
+Do your bots join meetings hosted by external Zoom accounts? If yes, you need OBF tokens. If only internal meetings, use [app-only credentials](/docs/api-v2/authenticated-bots/zoom/credentials#app-only-credentials).
 
 </Step>
 
@@ -508,7 +508,7 @@ Ensure your Zoom app has `user:read:token` and `user:read:user` scopes. See [Zoo
 <Step>
 ### Implement OAuth Consent Flow
 
-Build a "Connect Zoom" button for your users. See [OAuth Consent Flow](/docs/api-v2/getting-started/zoom/oauth-consent-flow).
+Build a "Connect Zoom" button for your users. See [OAuth Consent Flow](/docs/api-v2/authenticated-bots/zoom/oauth-consent-flow).
 
 </Step>
 
@@ -559,8 +559,8 @@ v2 introduces the Credentials API for secure token storage, the `zoom_config` ob
 
 ## Resources
 
-- [Zoom Credentials API](/docs/api-v2/getting-started/zoom/credentials) — Store and manage credentials
-- [OAuth Consent Flow](/docs/api-v2/getting-started/zoom/oauth-consent-flow) — Build user authorization
+- [Zoom Credentials API](/docs/api-v2/authenticated-bots/zoom/credentials) — Store and manage credentials
+- [OAuth Consent Flow](/docs/api-v2/authenticated-bots/zoom/oauth-consent-flow) — Build user authorization
 - [Zoom App Setup](/docs/api/getting-started/zoom/app-setup) — Create your Zoom app
 - [Zoom's OBF Blog Post](https://developers.zoom.us/blog/transition-to-obf-token-meetingsdk-apps/) — Official announcement
 - [Zoom's OBF FAQ](https://developers.zoom.us/docs/meeting-sdk/obf-faq/) — Detailed Q&A from Zoom
