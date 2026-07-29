@@ -8,6 +8,8 @@
         "callbacks",
         "zoom-credentials",
         "meet-workspaces",
-        "meet-logins"
+        "meet-logins",
+        "teams-workspaces",
+        "teams-logins"
     ]
 }

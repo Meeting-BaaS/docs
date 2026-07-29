@@ -1583,7 +1583,7 @@ You can combine them in the same bot request:
 This works with any of the three OBF options (`zoom_obf_token`, `zoom_obf_token_url`, or `zoom_obf_token_user_id`).
 
 <Callout>
-**v2 API users:** In v2, you can store your SDK credentials once using the [Credentials API](/docs/api-v2/getting-started/zoom/credentials) instead of passing them with every request. See [v2 Zoom Credentials](/docs/api-v2/getting-started/zoom/credentials) for details.
+**v2 API users:** In v2, you can store your SDK credentials once using the [Credentials API](/docs/api-v2/authenticated-bots/zoom/credentials) instead of passing them with every request. See [v2 Zoom Credentials](/docs/api-v2/authenticated-bots/zoom/credentials) for details.
 </Callout>
 
 Learn more: [Zoom AAN Documentation](https://developers.zoom.us/docs/meeting-sdk/ui-notices/#active-apps-notifier-aan-use-case) | [Get Meeting SDK Credentials](https://developers.zoom.us/docs/meeting-sdk/get-credentials/#get-meeting-sdk-credentials)
@@ -2947,7 +2947,7 @@ This works with all three OBF options. The SDK credentials and OBF tokens serve 
 </Callout>
 
 <Callout>
-**Migrating to v2?** In the v2 API, you can store your SDK credentials once using the [Credentials API](/docs/api-v2/getting-started/zoom/credentials) instead of passing them with every request. This is more secure and simplifies your integration.
+**Migrating to v2?** In the v2 API, you can store your SDK credentials once using the [Credentials API](/docs/api-v2/authenticated-bots/zoom/credentials) instead of passing them with every request. This is more secure and simplifies your integration.
 </Callout>
 
 ## Bot Behavior with OBF Tokens

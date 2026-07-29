@@ -157,6 +157,19 @@ _openapi:
           streaming_enabled: Enable audio streaming for this bot. When enabled,
           the streaming_config property is used to provide the configuration.
       - content: >-
+          teams_config: Teams-only configuration for authenticated bots via a
+          signed-in Microsoft account.
+
+
+          - credential_id: pin a specific login.
+
+          - email_group: pool selector (preferred — takes priority).
+
+          - fallback: 'fail' (default) or 'anonymous' on saturation.
+
+
+          Leave null for anonymous Teams joins, Zoom, or Google Meet.
+      - content: >-
           timeout_config: Configuration for automatic meeting exit behavior. For
           Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to
           wait in the waiting room, then no_one_joined_timeout to wait for

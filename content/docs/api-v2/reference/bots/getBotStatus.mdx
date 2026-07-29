@@ -15,7 +15,7 @@ _openapi:
               
               **Response Fields:**
               - `bot_id`: The UUID of the bot
-              - `status`: The current bot status (queued, joining, in_call_recording, transcribing, completed, failed)
+              - `status`: The current bot status (queued, joining, in_call_recording, retrying, transcribing, completed, failed)
               - `transcription_status`: The current transcription status (not-applicable, not-started, queued, processing, done, error)
               - `updated_at`: ISO 8601 timestamp when the status was last updated
               
@@ -67,7 +67,7 @@ Get the current status of a bot, including the latest status code, transcription
     
     **Response Fields:**
     - `bot_id`: The UUID of the bot
-    - `status`: The current bot status (queued, joining, in_call_recording, transcribing, completed, failed)
+    - `status`: The current bot status (queued, joining, in_call_recording, retrying, transcribing, completed, failed)
     - `transcription_status`: The current transcription status (not-applicable, not-started, queued, processing, done, error)
     - `updated_at`: ISO 8601 timestamp when the status was last updated
     

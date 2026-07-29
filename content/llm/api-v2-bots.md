@@ -244,7 +244,7 @@ Get the current status of a bot, including the latest status code, transcription
     
     **Response Fields:**
     - `bot_id`: The UUID of the bot
-    - `status`: The current bot status (queued, joining, in_call_recording, transcribing, completed, failed)
+    - `status`: The current bot status (queued, joining, in_call_recording, retrying, transcribing, completed, failed)
     - `transcription_status`: The current transcription status (not-applicable, not-started, queued, processing, done, error)
     - `updated_at`: ISO 8601 timestamp when the status was last updated
     
@@ -320,7 +320,7 @@ Instruct a bot to leave the meeting immediately.
 
 List all bots for your team with pagination support.
     
-    Filter by status (queued, joining, in_call_recording, transcribing, completed, failed), meeting platform (zoom, meet, teams), and date range. Results are ordered by creation date (newest first). Use cursor-based pagination for efficient navigation through large result sets.
+    Filter by status (queued, joining, in_call_recording, retrying, transcribing, completed, failed), meeting platform (zoom, meet, teams), and date range. Results are ordered by creation date (newest first). Use cursor-based pagination for efficient navigation through large result sets.
     
     **Pagination:** Uses cursor-based pagination. Provide a `cursor` query parameter to fetch the next page. The response includes a `next_cursor` if more results are available. The `limit` parameter controls how many results are returned per page (default: 50, max: 250).
     

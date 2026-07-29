@@ -108,6 +108,20 @@ export const categoryConfig = {
       "./content/docs/api-v2/reference/meet-workspaces/**/*.mdx"
     ]
   },
+  "api-v2/teams-logins": {
+    "title": "teams-logins api-v2 Reference",
+    "description": "Reference documentation for teams-logins in api-v2.",
+    "patterns": [
+      "./content/docs/api-v2/reference/teams-logins/**/*.mdx"
+    ]
+  },
+  "api-v2/teams-workspaces": {
+    "title": "teams-workspaces api-v2 Reference",
+    "description": "Reference documentation for teams-workspaces in api-v2.",
+    "patterns": [
+      "./content/docs/api-v2/reference/teams-workspaces/**/*.mdx"
+    ]
+  },
   "api-v2/webhooks": {
     "title": "webhooks api-v2 Reference",
     "description": "Reference documentation for webhooks in api-v2.",
@@ -269,6 +283,16 @@ export const knownTxtPaths = [
     "llms",
     "api-v2",
     "meet-workspaces"
+  ],
+  [
+    "llms",
+    "api-v2",
+    "teams-logins"
+  ],
+  [
+    "llms",
+    "api-v2",
+    "teams-workspaces"
   ],
   [
     "llms",
