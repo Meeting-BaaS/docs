@@ -11,7 +11,7 @@ By default, Meeting BaaS bots join Google Meet as anonymous guests. That works f
 Authenticated Meet bots solve this. Each bot signs in as a real **Google Workspace user** from a domain you control, using **SAML SSO**, before it joins the call. To Meet, the bot looks like any other signed-in participant.
 
 <Callout type="info">
-This feature is Google Meet–only. For Zoom authentication, see [Zoom Integration](/docs/api-v2/getting-started/zoom). For Microsoft Teams, see [Microsoft Teams Authentication](/docs/api-v2/authenticated-bots/teams). Leave `meet_config` `null` for anonymous Meet joins.
+This feature is Google Meet–only. For Zoom authentication, see [Zoom Integration](/docs/api-v2/authenticated-bots/zoom). For Microsoft Teams, see [Microsoft Teams Authentication](/docs/api-v2/authenticated-bots/teams). Leave `meet_config` `null` for anonymous Meet joins.
 </Callout>
 
 ## Why authenticate
@@ -145,7 +145,7 @@ No. `private_key_pem` is encrypted at rest and **never returned** in any respons
 </Accordion>
 
 <Accordion title="Does this work for Zoom or Microsoft Teams?">
-No — `meet_config` is Google Meet only. For Zoom authentication, see [Zoom Integration](/docs/api-v2/getting-started/zoom). For Microsoft Teams authentication, see [Microsoft Teams Authentication](/docs/api-v2/authenticated-bots/teams).
+No — `meet_config` is Google Meet only. For Zoom authentication, see [Zoom Integration](/docs/api-v2/authenticated-bots/zoom). For Microsoft Teams authentication, see [Microsoft Teams Authentication](/docs/api-v2/authenticated-bots/teams).
 </Accordion>
 
 </Accordions>
