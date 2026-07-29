@@ -6,6 +6,7 @@
   "pages": [
     "index",
     "getting-started",
+    "authenticated-bots",
     "new-features",
     "migration-guide",
     "api-keys",

@@ -11,7 +11,7 @@ By default, Meeting BaaS bots join Google Meet as anonymous guests. That works f
 Authenticated Meet bots solve this. Each bot signs in as a real **Google Workspace user** from a domain you control, using **SAML SSO**, before it joins the call. To Meet, the bot looks like any other signed-in participant.
 
 <Callout type="info">
-This feature is Google Meet–only. For Zoom authentication, see [Zoom Integration](/docs/api-v2/getting-started/zoom). For Microsoft Teams, anonymous joins are used and no extra configuration is required. Leave `meet_config` `null` for anonymous Meet joins.
+This feature is Google Meet–only. For Zoom authentication, see [Zoom Integration](/docs/api-v2/getting-started/zoom). For Microsoft Teams, see [Microsoft Teams Authentication](/docs/api-v2/authenticated-bots/teams). Leave `meet_config` `null` for anonymous Meet joins.
 </Callout>
 
 ## Why authenticate
@@ -29,7 +29,7 @@ Authentication is built on three resources. You configure the first two once, th
 
 <Steps>
 <Step>
-**Meet Workspace** — the parent resource representing one Google Workspace's SAML SSO configuration. It holds the SAML signing certificate and private key shared by every login under it. You create one per Google Workspace domain. See [Setup](/docs/api-v2/getting-started/meet/setup).
+**Meet Workspace** — the parent resource representing one Google Workspace's SAML SSO configuration. It holds the SAML signing certificate and private key shared by every login under it. You create one per Google Workspace domain. See [Setup](/docs/api-v2/authenticated-bots/meet/setup).
 </Step>
 <Step>
 **Meet Logins** — one per Google Workspace user the bots sign in as. Many logins can share a single workspace. Logins can be grouped into round-robin pools by `email_group`.
@@ -82,7 +82,7 @@ When you put a login's `email_group` (a Google Group address) on the **calendar 
 
 ### Round-robin pools and concurrency
 
-Each login supports up to **20 concurrent SSO sessions**. When you dispatch bots with an `email_group`, the assigner picks the least-loaded active login and skips any login at capacity. If every login in a pool is saturated, bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, per your `fallback` setting). Create more logins to raise the ceiling, and configure a [**Meet Login Utilization** alert](/docs/api-v2/alerts#meet-login-alerts) to stay ahead of saturation (the [utilization endpoint](/docs/api-v2/getting-started/meet/sending-authenticated-bots#monitoring-pool-utilization) gives an on-demand view).
+Each login supports up to **20 concurrent SSO sessions**. When you dispatch bots with an `email_group`, the assigner picks the least-loaded active login and skips any login at capacity. If every login in a pool is saturated, bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, per your `fallback` setting). Create more logins to raise the ceiling, and configure a [**Meet Login Utilization** alert](/docs/api-v2/alerts#meet-login-alerts) to stay ahead of saturation (the [utilization endpoint](/docs/api-v2/authenticated-bots/meet/sending-authenticated-bots#monitoring-pool-utilization) gives an on-demand view).
 
 ### States
 
@@ -100,10 +100,10 @@ The SAML certificate and private key are encrypted at rest using **AES-256-GCM**
 ## Pages in this section
 
 <Cards>
-  <Card title="Setup" href="/docs/api-v2/getting-started/meet/setup">
+  <Card title="Setup" href="/docs/api-v2/authenticated-bots/meet/setup">
     Create a meet workspace, configure the Legacy SSO profile in Google Admin Console, prepare Workspace users, and add logins.
   </Card>
-  <Card title="Sending Authenticated Bots" href="/docs/api-v2/getting-started/meet/sending-authenticated-bots">
+  <Card title="Sending Authenticated Bots" href="/docs/api-v2/authenticated-bots/meet/sending-authenticated-bots">
     Use `meet_config` to send authenticated bots, manage pools, configure fallback, and monitor utilization.
   </Card>
 </Cards>
@@ -117,7 +117,7 @@ No. Anonymous bots join open meetings fine. Use authenticated bots only when a m
 </Accordion>
 
 <Accordion title="Can I use my company's main Google Workspace domain?">
-Yes — you don't need a separate domain. The rule is that the **Legacy SSO profile must be scoped to a bot-only group or organizational unit**, never applied to your real users (assigning it org-wide would redirect everyone through the bot IdP). Put your bot accounts in a dedicated group/OU and assign the SSO profile to only that scope. A dedicated subdomain like `bots.acme.com` is one clean way to keep bots isolated, but it's optional. See [Setup](/docs/api-v2/getting-started/meet/setup).
+Yes — you don't need a separate domain. The rule is that the **Legacy SSO profile must be scoped to a bot-only group or organizational unit**, never applied to your real users (assigning it org-wide would redirect everyone through the bot IdP). Put your bot accounts in a dedicated group/OU and assign the SSO profile to only that scope. A dedicated subdomain like `bots.acme.com` is one clean way to keep bots isolated, but it's optional. See [Setup](/docs/api-v2/authenticated-bots/meet/setup).
 </Accordion>
 
 <Accordion title="How many bots can join at once?">
@@ -145,7 +145,7 @@ No. `private_key_pem` is encrypted at rest and **never returned** in any respons
 </Accordion>
 
 <Accordion title="Does this work for Zoom or Microsoft Teams?">
-No — `meet_config` is Google Meet only. For Zoom authentication, see [Zoom Integration](/docs/api-v2/getting-started/zoom). Microsoft Teams uses anonymous joins and needs no extra configuration.
+No — `meet_config` is Google Meet only. For Zoom authentication, see [Zoom Integration](/docs/api-v2/getting-started/zoom). For Microsoft Teams authentication, see [Microsoft Teams Authentication](/docs/api-v2/authenticated-bots/teams).
 </Accordion>
 
 </Accordions>

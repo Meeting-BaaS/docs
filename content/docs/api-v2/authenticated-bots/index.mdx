@@ -1,0 +1,57 @@
+---
+title: Authenticated Bots
+description: Send bots that sign in as a real Google Workspace or Microsoft 365 user before joining, so they can enter sign-in-restricted meetings and bypass the waiting room
+icon: ShieldCheck
+---
+
+# Authenticated Bots
+
+By default, Meeting BaaS bots join as **anonymous guests**. That's fine for open meetings, but it falls short when a meeting is **restricted to signed-in users**, restricted to the host's organization, or sends guests to a **waiting room / lobby**.
+
+Authenticated bots solve this. Each bot signs in as a **real user** from an identity you control — a Google Workspace account for Google Meet, or a Microsoft 365 account for Microsoft Teams — before it joins the call. To the meeting, the bot looks like any other signed-in participant.
+
+<Callout type="info">
+Authentication is configured **per platform** and passed per bot through a platform-specific config object (`meet_config`, `teams_config`, `zoom_config`). Leave all of them `null` for anonymous joins.
+</Callout>
+
+## Choose your platform
+
+<Cards>
+  <Card title="Google Meet Authentication" href="/docs/api-v2/authenticated-bots/meet">
+    Sign in as a Google Workspace user via **SAML SSO**. Meeting BaaS acts as the SAML IdP; you configure a Legacy SSO profile in the Google Admin Console.
+  </Card>
+  <Card title="Microsoft Teams Authentication" href="/docs/api-v2/authenticated-bots/teams">
+    Sign in as a Microsoft 365 user with **stored credentials** (email + password). No SAML, no certificates — just an MFA-free account you provision.
+  </Card>
+  <Card title="Zoom Integration" href="/docs/api-v2/getting-started/zoom">
+    Authenticate Zoom bots with a stored Zoom credential and OBF/ZAK tokens via `zoom_config`.
+  </Card>
+</Cards>
+
+## How the platforms compare
+
+| | Google Meet | Microsoft Teams | Zoom |
+|---|---|---|---|
+| Config object | `meet_config` | `teams_config` | `zoom_config` |
+| Sign-in mechanism | SAML SSO (Meeting BaaS is the IdP) | Username + password on `login.microsoftonline.com` | Stored Zoom credential + OBF/ZAK tokens |
+| Parent resource | Meet Workspace (domain + SAML keypair) | Teams Workspace (M365 domain, no keypair) | Zoom credential |
+| Per-user identity | Meet Login (`email`) | Teams Login (`email` + `password`) | — |
+| One-time infra setup | Configure a Legacy SSO profile in Google Admin Console; upload the signing certificate | Provision an **MFA-free** M365 account; no IdP/cert setup | Store the Zoom credential |
+| Round-robin pools | `email_group` | `email_group` | — |
+
+## Shared concepts
+
+Both Google Meet and Microsoft Teams authentication share the same operational model:
+
+- **Workspaces group logins.** A workspace is the parent resource for one domain; logins are the individual user identities bots sign in as. Many logins can share one workspace.
+- **Round-robin pools.** Group logins with an `email_group` and dispatch bots against that group — the least-loaded active login is assigned automatically. Capacity scales linearly with the number of active logins.
+- **Fallback.** `fallback: "fail"` (default) fails bot creation when no slot is available; `fallback: "anonymous"` silently joins as a guest instead.
+- **Health states.** Workspaces and logins carry a `state` (`active` / `invalid`). The system auto-disables a resource after a failure and records `last_error_message`; re-enable it with a `PATCH` after fixing the cause.
+- **Secrets are write-only.** SAML private keys (Meet) and account passwords (Teams) are encrypted at rest with **AES-256-GCM** and are **never returned** in any API response.
+
+## Related resources
+
+- [Google Meet Authentication](/docs/api-v2/authenticated-bots/meet) — SAML SSO setup and usage
+- [Microsoft Teams Authentication](/docs/api-v2/authenticated-bots/teams) — credential setup and usage
+- [Alerts](/docs/api-v2/alerts) — monitor login-pool utilization and saturation
+- [Error Codes](/docs/api-v2/error-codes) — `MEET_LOGIN_*` and `TEAMS_LOGIN_*` failure reasons

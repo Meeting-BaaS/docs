@@ -1,0 +1,158 @@
+---
+title: Microsoft Teams Authentication
+description: Send authenticated Microsoft Teams bots that sign in as a Microsoft 365 user with stored credentials, enter sign-in-restricted meetings, and get admitted past the lobby
+icon: Video
+---
+
+# Authenticated Microsoft Teams Bots
+
+By default, Meeting BaaS bots join Microsoft Teams as anonymous guests. That works for open meetings, but it falls short when a meeting is **restricted to signed-in users**, restricted to the organizer's organization, or sends guests to a **lobby**.
+
+Authenticated Teams bots solve this. Each bot signs in as a real **Microsoft 365 user** from a tenant you control, using **stored credentials (email + password)**, before it joins the call. To Teams, the bot looks like any other signed-in participant.
+
+<Callout type="info">
+Teams authentication uses a **username + password** sign-in on `login.microsoftonline.com` — not SAML SSO like Google Meet. That means **no identity provider, no certificate, and no keypair** to configure. The one requirement is that the account is provisioned **MFA-free** (see [Setup](/docs/api-v2/authenticated-bots/teams/setup)). Leave `teams_config` `null` for anonymous Teams joins.
+</Callout>
+
+## Why authenticate
+
+| Scenario | Anonymous bot | Authenticated bot |
+|----------|---------------|-------------------|
+| Open meeting, anyone with link | ✅ Joins | ✅ Joins |
+| "Only people in my org can bypass the lobby" | ⏳ Waits in lobby | ✅ Admitted as an org user |
+| Meeting restricted to signed-in users | ❌ `TEAMS_LOGIN_REQUIRED` | ✅ Joins as a signed-in user |
+| Recording as a named, consistent identity | ❌ Anonymous guest | ✅ Joins under the account's display name |
+
+## How it works
+
+Authentication is built on three resources. You configure the first two once, then reference them per bot.
+
+<Steps>
+<Step>
+**Teams Workspace** — the parent resource representing one Microsoft 365 tenant. It groups the logins under a single tenant domain. Unlike a Meet workspace, it holds **no certificate or keypair** — Teams sign-in is credential-based. You create one per Microsoft 365 tenant. See [Setup](/docs/api-v2/authenticated-bots/teams/setup).
+</Step>
+<Step>
+**Teams Logins** — one per Microsoft 365 account the bots sign in as, storing the account's `email` and `password` (the password is encrypted at rest and never returned). Many logins can share a single workspace, and can be grouped into round-robin pools by `email_group`.
+</Step>
+<Step>
+**`teams_config` on the bot** — when you create a bot, you tell it which login (or pool) to use. The dispatcher resolves the credentials, the bot types them into `login.microsoftonline.com`, and then joins the meeting as the signed-in user.
+</Step>
+</Steps>
+
+```text
+Teams Workspace (Microsoft 365 tenant domain)
+        │
+        ├── Teams Login  bot1@acme.onmicrosoft.com   ┐
+        ├── Teams Login  bot2@acme.onmicrosoft.com   ├─ email_group: bots@acme.onmicrosoft.com (round-robin pool)
+        └── Teams Login  bot3@acme.onmicrosoft.com   ┘
+                                │
+        POST /v2/bots  { teams_config: { email_group: "bots@acme.onmicrosoft.com" } }
+                                │
+                 least-loaded active login is assigned → bot signs in → joins Teams
+```
+
+## The `teams_config` object
+
+All Teams authentication options are passed in a single `teams_config` object on `POST /v2/bots`:
+
+```json
+{
+  "bot_name": "Recording Bot",
+  "meeting_url": "https://teams.microsoft.com/meet/1234567890?p=AbCdEfGhIj",
+  "teams_config": {
+    "email_group": "bots@acme.onmicrosoft.com",
+    "fallback": "fail"
+  }
+}
+```
+
+| Parameter | Description |
+|-----------|-------------|
+| `email_group` | Round-robin pool selector. The bot is assigned the **least-loaded active login** in this pool. Preferred for most use cases — **takes priority over `credential_id`**. Pass `""` to round-robin across all of the team's active logins. |
+| `credential_id` | Pin one specific login (UUID) for this bot. |
+| `fallback` | What to do when no login slot is available: `fail` (default) fails bot creation with `TEAMS_LOGIN_UNAVAILABLE`; `anonymous` silently falls back to an anonymous join. |
+
+Leave `teams_config` `null` for anonymous Teams joins, Zoom, or Google Meet.
+
+## Key concepts
+
+### Getting past the lobby
+
+Signing in is what gets the bot admitted. When the account belongs to the **organizer's organization** (or the meeting's lobby policy admits people in the org), the authenticated bot is let in automatically instead of waiting in the lobby as an anonymous guest. For meetings restricted to signed-in users, an authenticated bot is the only way in — an anonymous bot fails with `TEAMS_LOGIN_REQUIRED`.
+
+### MFA must be off
+
+The bot types the account's password on `login.microsoftonline.com`. If the tenant forces multi-factor authentication or security-info registration, sign-in stalls on the **"Let's keep your account secure"** page and the login fails. The bot accounts must therefore be provisioned **MFA-free** — turn off Security Defaults or exclude the bot accounts from your MFA Conditional Access policy. This is the single most important part of [Setup](/docs/api-v2/authenticated-bots/teams/setup).
+
+### Round-robin pools and concurrency
+
+Each login supports up to **20 concurrent sessions**. When you dispatch bots with an `email_group`, the assigner picks the least-loaded active login and skips any login at capacity. If every login in a pool is saturated, bot creation fails with `TEAMS_LOGIN_UNAVAILABLE` (or falls back to anonymous, per your `fallback` setting). Create more logins to raise the ceiling, and configure a [utilization alert](/docs/api-v2/alerts) to stay ahead of saturation (the [utilization endpoint](/docs/api-v2/authenticated-bots/teams/sending-authenticated-bots#monitoring-pool-utilization) gives an on-demand view).
+
+### States
+
+Both workspaces and logins track health with a `state` field:
+
+- **`active`** — healthy and usable.
+- **`invalid`** — the system auto-disabled the resource after a failure (a bad-credentials rejection, an MFA/security-info prompt, or a login timeout). Re-enable manually via `PATCH` after fixing the underlying issue.
+
+When a resource flips to `invalid`, `last_error_message` and `last_error_at` explain why.
+
+### Security
+
+Account passwords are encrypted at rest using **AES-256-GCM**. The `password` is **write-only** — never returned in any API response, on create or on subsequent reads. To change it, send a new `password` via `PATCH /v2/teams-logins/{credential_id}`.
+
+## Pages in this section
+
+<Cards>
+  <Card title="Setup" href="/docs/api-v2/authenticated-bots/teams/setup">
+    Provision an MFA-free Microsoft 365 account, create a teams workspace, and register teams logins.
+  </Card>
+  <Card title="Sending Authenticated Bots" href="/docs/api-v2/authenticated-bots/teams/sending-authenticated-bots">
+    Use `teams_config` to send authenticated bots, manage pools, configure fallback, and monitor utilization.
+  </Card>
+</Cards>
+
+## FAQ
+
+<Accordions type="single">
+
+<Accordion title="Do I need authenticated bots for every Microsoft Teams meeting?">
+No. Anonymous bots join open meetings fine. Use authenticated bots only when a meeting is **restricted to signed-in or in-organization users**, or when you need to **be admitted past the lobby** as an org member. Leave `teams_config` `null` for everything else.
+</Accordion>
+
+<Accordion title="How is this different from Google Meet authentication?">
+Google Meet uses **SAML SSO** — Meeting BaaS acts as an identity provider and you configure a Legacy SSO profile plus a signing certificate in the Google Admin Console. Microsoft Teams uses a plain **username + password** sign-in, so there is no IdP, no certificate, and no keypair. The trade-off is that you must provision the account **MFA-free** and store its password (encrypted at rest).
+</Accordion>
+
+<Accordion title="Why does the account have to be MFA-free?">
+The bot signs in by typing the password on `login.microsoftonline.com`. Any forced multi-factor or security-info step (the "Let's keep your account secure" page) has no human to complete it, so the login stalls and fails with `TEAMS_LOGIN_FAILED_MFA_REQUIRED`. Turn off Security Defaults, or exclude the bot accounts from your MFA Conditional Access policy. Keep MFA on for your real users. See [Setup](/docs/api-v2/authenticated-bots/teams/setup).
+</Accordion>
+
+<Accordion title="How many bots can join at once?">
+Each teams login supports up to **20 concurrent sessions**, and capacity scales linearly with the number of active logins in a pool. To raise the ceiling, add more logins. Configure a [utilization alert](/docs/api-v2/alerts) so you're warned before you saturate.
+</Accordion>
+
+<Accordion title="When should I use credential_id vs email_group?">
+Use `email_group` for round-robin load balancing across a pool (recommended — it takes priority when both are set). Use `credential_id` when you need a specific, fixed login for a bot.
+</Accordion>
+
+<Accordion title="What happens if the whole pool is busy?">
+Bot creation returns `TEAMS_LOGIN_UNAVAILABLE` when `teams_config.fallback` is `fail` (the default), or the bot silently joins anonymously when `fallback` is `anonymous`. Add logins or set the fallback based on whether an authenticated identity is mandatory.
+</Accordion>
+
+<Accordion title="A login flipped to invalid — what do I do?">
+The system auto-disables a login after a failure (bad credentials, an MFA/security-info prompt, or a sign-in timeout). Check `last_error_message`, fix the cause (reset and update the password, turn off MFA for the account, un-suspend it), then re-enable it with a `PATCH`.
+</Accordion>
+
+<Accordion title="Can I retrieve the account password later?">
+No. The `password` is encrypted at rest and **never returned** in any response. If it changes, send the new value via `PATCH /v2/teams-logins/{credential_id}`.
+</Accordion>
+
+</Accordions>
+
+## Related resources
+
+- [Teams Workspaces API](/docs/api-v2/reference/teams-workspaces/createTeamsWorkspace) — manage the Microsoft 365 tenant grouping
+- [Teams Logins API](/docs/api-v2/reference/teams-logins/createTeamsLogin) — manage the Microsoft 365 identities bots sign in as
+- [Error Codes](/docs/api-v2/error-codes) — `TEAMS_LOGIN_*` failure reasons
+- [Alerts](/docs/api-v2/alerts) — monitor pool utilization and saturation

@@ -1,0 +1,8 @@
+{
+    "title": "Microsoft Teams Authentication",
+    "icon": "Video",
+    "pages": [
+        "setup",
+        "sending-authenticated-bots"
+    ]
+}

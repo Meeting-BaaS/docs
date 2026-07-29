@@ -1,0 +1,206 @@
+---
+title: Setup
+description: Provision an MFA-free Microsoft 365 account, create a teams workspace, and register teams logins for authenticated Microsoft Teams bots
+icon: Settings
+---
+
+# Setting Up Microsoft Teams Authentication
+
+Authenticated Teams bots sign in to a Microsoft 365 account **you control** with a stored email and password. Unlike Google Meet, there is **no SAML identity provider, no certificate, and no keypair** to configure — but the account must be provisioned so a bot can complete sign-in unattended. This guide walks through the one-time setup.
+
+<Callout type="warn">
+**The bot account must be MFA-free.** The bot signs in by typing the password on `login.microsoftonline.com`. If your tenant forces multi-factor authentication or security-info registration, sign-in stalls on the **"Let's keep your account secure"** page and fails. Provision the bot accounts so they never hit that page — and keep MFA **on** for your real users. Scope it one of two ways:
+
+- **Turn off Security Defaults (simplest):** For a tenant dedicated to bots, disable Security Defaults so no account is forced into MFA.
+- **Exclude the bots from a Conditional Access policy (recommended for mixed tenants):** Keep MFA for humans, put the bot accounts in a dedicated group (for example `svc-teams-bots`), and **exclude that group** from your "require MFA" policy. Requires Microsoft Entra ID P1.
+
+Either way, the bot accounts must reach a password-only sign-in with no security-info prompt.
+</Callout>
+
+## Prerequisites
+
+- A Microsoft 365 tenant with **admin** access to the [Microsoft Entra admin center](https://entra.microsoft.com) and [Microsoft 365 admin center](https://admin.microsoft.com).
+- Bot accounts isolated from your human users — a dedicated tenant, or a dedicated group excluded from MFA.
+- A Microsoft Teams license for each bot account (so it can join and be admitted like a member).
+- A Meeting BaaS v2 API key with full access.
+
+## Overview
+
+<Steps>
+<Step>Create a **Microsoft 365 account** for the bot and assign it a Teams license.</Step>
+<Step>Make the account **MFA-free** (Security Defaults off, or exclude it from your MFA policy).</Step>
+<Step>Complete the account's **first interactive sign-in** once.</Step>
+<Step>Create a **teams workspace** (the tenant grouping) and register a **teams login** per account.</Step>
+</Steps>
+
+## Step 1 — Create the Microsoft 365 account
+
+In the [Microsoft Entra admin center](https://entra.microsoft.com), go to **Identity → Users → All users → New user → Create new user**. Give the bot a clear name (for example `bot1@acme.onmicrosoft.com`) and set a strong password you'll store with Meeting BaaS.
+
+<ImageZoom
+  src={'/assets/teams-sso/1-create-user.png'}
+  alt="Microsoft Entra admin center: Identity → Users → New user (creating the bot account)"
+  width={2400}
+  height={1350}
+  className="rounded-lg border"
+/>
+
+Then assign the account a **Microsoft Teams** license (part of most Microsoft 365 / Office 365 plans) in the [Microsoft 365 admin center](https://admin.microsoft.com) under **Users → Active users → the bot → Licenses and apps**. A bot without a Teams license can't be admitted as an organization member.
+
+<ImageZoom
+  src={'/assets/teams-sso/2-assign-license.png'}
+  alt="Microsoft 365 admin center: assigning a Microsoft Teams license to the bot account"
+  width={2400}
+  height={1350}
+  className="rounded-lg border"
+/>
+
+<Callout type="tip">
+Put your bot accounts in a dedicated group (for example `svc-teams-bots`). You'll use it to scope the MFA exclusion in Step 2, and you can reuse its address as the `email_group` for round-robin pooling in Step 4.
+</Callout>
+
+## Step 2 — Make the account MFA-free
+
+This is the step that lets a bot complete sign-in without a human. Choose the option that fits your tenant.
+
+<Steps>
+
+<Step>
+### Option A — Turn off Security Defaults (dedicated bot tenant)
+
+In the Entra admin center, go to **Identity → Overview → Properties → Manage security defaults**, set **Security defaults** to **Disabled**, and save. This removes the forced MFA / security-info registration for the whole tenant.
+
+<ImageZoom
+  src={'/assets/teams-sso/3-disable-security-defaults.png'}
+  alt="Microsoft Entra admin center: Properties → Manage security defaults set to Disabled"
+  width={2400}
+  height={1350}
+  className="rounded-lg border"
+/>
+
+<Callout type="warn">
+Only disable Security Defaults on a tenant **dedicated to bots**. On a tenant with real users, use Option B instead so your humans keep MFA.
+</Callout>
+</Step>
+
+<Step>
+### Option B — Exclude the bots from your MFA policy (mixed tenant)
+
+Keep MFA on for everyone else and carve out the bots. In **Entra → Protection → Conditional Access**, open your "require MFA" policy, and under **Assignments → Users → Exclude**, add the `svc-teams-bots` group. Also confirm **legacy per-user MFA is Disabled** for the bot accounts (**Users → Per-user MFA**). Requires Microsoft Entra ID P1.
+
+<ImageZoom
+  src={'/assets/teams-sso/4-conditional-access-exclude.png'}
+  alt="Conditional Access policy excluding the bot group from the require-MFA assignment"
+  width={2400}
+  height={1350}
+  className="rounded-lg border"
+/>
+</Step>
+
+</Steps>
+
+The end state, either way: signing in with the bot account is **email → password → "Stay signed in?"** with **no** "Let's keep your account secure" prompt in between.
+
+## Step 3 — Complete the first interactive sign-in
+
+Sign in to the bot account **once** interactively at [https://login.microsoftonline.com](https://login.microsoftonline.com) and click through **"Stay signed in?"**. This clears any first-run interstitials so the bot's automated sign-in reaches the password step cleanly. If you still see a "keep your account secure" page here, MFA is not fully off — revisit Step 2.
+
+<ImageZoom
+  src={'/assets/teams-sso/5-complete-first-signin.png'}
+  alt="First interactive sign-in reaching the Stay signed in? prompt with no security-info registration"
+  width={2400}
+  height={1350}
+  className="rounded-lg border"
+/>
+
+<Callout type="tip">
+Set the account's language to **English (United States)** so the sign-in and Teams UIs are in the expected state.
+</Callout>
+
+## Step 4 — Register the workspace and logins
+
+### Create a teams workspace
+
+A teams workspace groups all logins for one Microsoft 365 tenant. It stores no secrets — just the tenant domain.
+
+```bash
+curl -X POST https://api.meetingbaas.com/v2/teams-workspaces \
+  -H "x-meeting-baas-api-key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Acme Bots Tenant",
+    "domain": "acme.onmicrosoft.com"
+  }'
+```
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `domain` | ✅ | The Microsoft 365 tenant primary domain (for example `acme.onmicrosoft.com`, or a verified custom domain). |
+| `name` | optional | Friendly label. Not unique. |
+| `extra` | optional | Free-form JSON for your own tags. |
+
+The response includes the `workspace_id` you'll reference when creating logins:
+
+```json
+{
+  "success": true,
+  "data": {
+    "workspace_id": "f0e1d2c3-b4a5-6789-0123-456789abcdef",
+    "name": "Acme Bots Tenant",
+    "domain": "acme.onmicrosoft.com",
+    "state": "active",
+    "created_at": "2026-07-29T10:00:00.000Z",
+    "updated_at": "2026-07-29T10:00:00.000Z"
+  }
+}
+```
+
+### Register a teams login per account
+
+Create one teams login for each Microsoft 365 account, referencing the `workspace_id` above. The `password` is encrypted at rest and never returned.
+
+```bash
+curl -X POST https://api.meetingbaas.com/v2/teams-logins \
+  -H "x-meeting-baas-api-key: $API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "workspace_id": "f0e1d2c3-b4a5-6789-0123-456789abcdef",
+    "name": "Production Bot Pool — Account 1",
+    "email": "bot1@acme.onmicrosoft.com",
+    "password": "the-account-password",
+    "email_group": "bots@acme.onmicrosoft.com"
+  }'
+```
+
+| Field | Required | Notes |
+|-------|----------|-------|
+| `workspace_id` | ✅ | UUID of the parent teams workspace. |
+| `name` | ✅ | Friendly label. Not unique. |
+| `email` | ✅ | The Microsoft 365 account the bot signs in as. |
+| `password` | ✅ | The account password. **Write-only** — encrypted at rest (AES-256-GCM) and never returned. |
+| `email_group` | optional | Address for round-robin pooling. Logins sharing the same `email_group` form one pool. |
+| `extra` | optional | Free-form JSON for your own tags (filterable on the list endpoint). |
+
+<Callout type="info">
+Each `email` may exist at most once per team (`409 Conflict` on duplicates). An unknown `workspace_id` returns `404 Not Found`.
+</Callout>
+
+Repeat for each account. Logins sharing an `email_group` form a round-robin pool — add more logins to increase concurrent capacity (each login handles up to 20 concurrent sessions by default).
+
+## You're ready
+
+With at least one **active** workspace and one **active** login, you can send authenticated bots. Continue to [Sending Authenticated Bots](/docs/api-v2/authenticated-bots/teams/sending-authenticated-bots).
+
+## Maintenance
+
+### Rotating the password
+
+When an account's password changes, send the new value to `PATCH /v2/teams-logins/{credential_id}`. It's re-encrypted at rest immediately; keep the Microsoft 365 account and the stored login in sync so the bot can sign in.
+
+### Re-enabling an invalid login
+
+When a login flips to `invalid`, fix the underlying cause (update the password, turn MFA off for the account, un-suspend it), then re-enable it with a `PATCH` (`PATCH /v2/teams-logins/{credential_id}`). Check `last_error_message` for the reason.
+
+### Deleting a workspace
+
+`DELETE /v2/teams-workspaces/{workspace_id}` **cascades to all of its logins**. Delete a single login with `DELETE /v2/teams-logins/{credential_id}`.
