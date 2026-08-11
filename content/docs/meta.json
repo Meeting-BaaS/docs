@@ -6,6 +6,7 @@
     "mcp-servers",
     "speaking-bots",
     "transcript-seeker",
-    "self-hosting"
+    "self-hosting",
+    "bring-your-own-storage"
   ]
 }

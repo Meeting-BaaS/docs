@@ -1,0 +1,7 @@
+{
+  "title": "Bring Your Own Storage",
+  "icon": "HardDrive",
+  "description": "Connect your own S3-compatible object storage to Meeting BaaS.",
+  "root": true,
+  "pages": ["index"]
+}

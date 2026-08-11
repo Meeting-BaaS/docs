@@ -1,0 +1,89 @@
+---
+title: Bring Your Own Storage
+description: Connect your own S3-compatible object storage to Meeting BaaS
+icon: HardDrive
+index: true
+---
+
+## Overview
+
+Bring Your Own Storage lets you point Meeting BaaS at S3-compatible object storage
+that **you own**. Meeting artifacts (recordings, transcripts, logs) are written
+directly into your buckets with your credentials instead of landing on
+Meeting BaaS infrastructure.
+
+It's opt-in and additive — teams without a configuration keep using default
+storage with zero change.
+
+## What you need
+
+- **An S3-compatible endpoint** (AWS S3, Scaleway Object Storage, MinIO, Ceph, etc.)
+- **Three buckets** (they can be the same bucket — Meeting BaaS prefixes keys by bot UUID):
+  - Artifacts bucket (video, audio, screenshots)
+  - Audio chunks bucket
+  - Logs bucket
+- **Two access keys** on those buckets:
+
+| Key | Permissions | Used by |
+|-----|-------------|---------|
+| **Ingest** | `PutObject`, `PutObjectTagging`, `AbortMultipartUpload` | Bots only (upload recordings) |
+| **Service** | `GetObject`, `ListBucket`, `PutObject`, `DeleteObject` | API server (serve artifacts, write transcripts, delete on retention) |
+
+<Callout type="warn">
+  The ingest key is the only credential that leaves our infrastructure — it rides
+  alongside the bot into meetings. That's why it is **scoped to upload only**:
+  a compromised pod can add objects but cannot read, list, or delete your recordings.
+</Callout>
+
+## Configuring it
+
+### Dashboard
+
+1. Go to **Settings → Storage** (`/settings/storage`).
+2. Fill in your endpoint, region, bucket names, and both key pairs.
+3. Toggle **force path style** if your provider requires it (needed by MinIO, Ceph,
+   and most self-hosted gateways; not needed for AWS or Scaleway).
+4. Click **Save**. Meeting BaaS will verify your credentials by writing a test
+   object — you'll see the result immediately.
+
+### API
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/v2/storage-config` | Get current configuration (404 if unset) |
+| `PUT` | `/v2/storage-config` | Set or replace configuration |
+| `POST` | `/v2/storage-config/test` | Re-run the access check |
+| `DELETE` | `/v2/storage-config` | Disable — new bots go back to Meeting BaaS storage. Nothing is deleted. |
+
+The same endpoints are available at `/bff/storage-config` for dashboard auth.
+
+<Callout type="info">
+  Neither secret access key is ever returned by the API. Replacing a configuration
+  always requires re-entering both key pairs.
+</Callout>
+
+## How it works
+
+- **A bot always resolves to the storage it was written to**, regardless of your
+  current configuration. Changing or removing your storage config only affects
+  **future** bots — existing recordings stay where they are.
+- **Disabling** (via `DELETE`) makes new bots use Meeting BaaS storage again.
+  Nothing is deleted from your buckets.
+- **Revoking our access** on your side is what makes older artifacts unreadable
+  — not the delete operation.
+
+## Data residency
+
+Bots writing to your storage **skip the EFS fallback** by default. If an upload fails
+after retries, the artifact is reported as failed rather than copied onto
+Meeting BaaS infrastructure. This preserves the data residency guarantee.
+
+If you prefer durability over residency (e.g., you chose your own bucket for cost
+reasons), you can enable **allow transient spill** in the dashboard. A warning will
+confirm you understand the tradeoff.
+
+## Bucket requirements
+
+- Buckets should be **private** — artifacts are served through short-lived signed URLs.
+- Buckets must be **reachable from the public internet** — transcription providers
+  fetch audio directly from signed URLs.
