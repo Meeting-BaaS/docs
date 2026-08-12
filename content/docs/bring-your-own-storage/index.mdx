@@ -50,10 +50,10 @@ storage with zero change.
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| `GET` | `/v2/storage-config` | Get current configuration (404 if unset) |
-| `PUT` | `/v2/storage-config` | Set or replace configuration |
-| `POST` | `/v2/storage-config/test` | Re-run the access check |
-| `DELETE` | `/v2/storage-config` | Disable — new bots go back to Meeting BaaS storage. Nothing is deleted. |
+| `GET` | [`/v2/storage-config`](/docs/api-v2/reference/storage/getStorageConfig) | Get current configuration (404 if unset) |
+| `PUT` | [`/v2/storage-config`](/docs/api-v2/reference/storage/setStorageConfig) | Set or replace configuration |
+| `POST` | [`/v2/storage-config/test`](/docs/api-v2/reference/storage/testStorageConfig) | Re-run the access check |
+| `DELETE` | [`/v2/storage-config`](/docs/api-v2/reference/storage/deleteStorageConfig) | Disable — new bots go back to Meeting BaaS storage. Nothing is deleted. |
 
 The same endpoints are available at `/bff/storage-config` for dashboard auth.
 

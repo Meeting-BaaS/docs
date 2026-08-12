@@ -10,6 +10,7 @@
         "meet-workspaces",
         "meet-logins",
         "teams-workspaces",
-        "teams-logins"
+        "teams-logins",
+        "storage"
     ]
 }
