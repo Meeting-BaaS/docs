@@ -12,6 +12,12 @@ on:
       # Run immediately when the workflow itself changes on main
       - '.github/workflows/update-openapi.yml'
 
+# Runs from all triggers mutate the same generated files, branch, and PR;
+# serialize them. Never cancel a run that may already be writing.
+concurrency:
+  group: update-openapi
+  cancel-in-progress: false
+
 jobs:
   update-openapi:
     runs-on: ubuntu-latest
