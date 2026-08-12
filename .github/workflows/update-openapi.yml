@@ -2,9 +2,15 @@ name: Update OpenAPI Specification
 
 on:
   schedule:
-    # Run at minute 24 of every hour
-    - cron: '24 * * * *'
+    # Run twice a day (06:24 and 18:24 UTC)
+    - cron: '24 6,18 * * *'
   workflow_dispatch: # Allow manual trigger
+  push:
+    branches:
+      - main
+    paths:
+      # Run immediately when the workflow itself changes on main
+      - '.github/workflows/update-openapi.yml'
 
 jobs:
   update-openapi:
