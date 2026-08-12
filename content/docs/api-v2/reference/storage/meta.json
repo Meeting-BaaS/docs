@@ -1,0 +1,9 @@
+{
+    "title": "Storage",
+    "pages": [
+        "getStorageConfig",
+        "setStorageConfig",
+        "testStorageConfig",
+        "deleteStorageConfig"
+    ]
+}
