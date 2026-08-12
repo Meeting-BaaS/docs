@@ -3,5 +3,12 @@
   "icon": "HardDrive",
   "description": "Connect your own S3-compatible object storage to Meeting BaaS.",
   "root": true,
-  "pages": ["index"]
+  "pages": [
+    "index",
+    "---API Reference---",
+    "[Get storage config](/docs/api-v2/reference/storage/getStorageConfig)",
+    "[Set storage config](/docs/api-v2/reference/storage/setStorageConfig)",
+    "[Test storage config](/docs/api-v2/reference/storage/testStorageConfig)",
+    "[Delete storage config](/docs/api-v2/reference/storage/deleteStorageConfig)"
+  ]
 }
