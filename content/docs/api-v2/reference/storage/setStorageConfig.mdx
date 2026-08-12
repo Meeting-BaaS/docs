@@ -1,0 +1,160 @@
+---
+title: Set your storage configuration
+full: true
+_openapi:
+  method: PUT
+  toc: []
+  structuredData:
+    headings: []
+    contents:
+      - content: |-
+          Point MeetingBaas at object storage you own.
+
+              From the next bot onwards, every artifact we produce for you — recording, audio chunks, raw and diarized transcripts, screenshots and bot logs — is written to your buckets with your credentials. Nothing lands in MeetingBaas storage.
+
+              **Verified before it is accepted.** The ingest key writes a small marker object into each bucket and the service key reads, writes and deletes it — each operation exercised with the credential that will really perform it, which also catches two key pairs that point at different buckets. Ingest upload receives recordings; service upload writes transcripts and reconciled artifacts; read serves artifacts; and delete enforces data retention. If any step fails the request returns 400 with the reason and your existing configuration is left untouched.
+
+              **Settings:** `endpoint`, `region` and `force_path_style` are the same knobs as a self-hosted deployment. Any S3-compatible provider works; enable `force_path_style` for MinIO, Ceph and most self-hosted gateways. The three buckets may all be the same bucket — keys are prefixed with the bot id regardless.
+
+              **Two credentials.** The **ingest** key is write-only (`s3:PutObject`, `s3:PutObjectTagging`, `s3:AbortMultipartUpload`) and is the only one that leaves our infrastructure — it is handed to the recording bot, which runs a browser inside your meeting. Scoped this way, a compromised bot can add objects and nothing else. The **service** key (`s3:GetObject`, `s3:ListBucket`, `s3:PutObject`, `s3:DeleteObject`) stays in our API and does everything else: serving your recordings back, writing transcripts, and deleting artifacts when your retention period expires.
+
+              **Keep the buckets private** — artifacts are served through short-lived signed URLs — but they must be reachable from the public internet, because transcription providers fetch audio directly from a signed URL.
+
+              **Data residency.** By default (`allow_transient_spill: false`) nothing you record ever rests on MeetingBaas storage: if an upload to your bucket fails and retries are exhausted, the artifact is reported as failed and lost rather than parked on our infrastructure. Set it to `true` if you would rather we hold a copy until the upload can be retried.
+
+              **Replacing a configuration is safe.** Calling this again supersedes the previous configuration for new bots only. Bots recorded earlier keep resolving to the storage they were written to, so their artifacts stay readable and deletable — nothing is migrated or re-pointed.
+
+              Returns 200 with the stored configuration.
+      - content: >-
+          allow_transient_spill: Whether MeetingBaas may hold a recording on its
+          own storage when an upload to your buckets fails, until it can be
+          retried.
+
+
+          Defaults to `false`: nothing you record ever rests outside your
+          account, and an upload that exhausts its retries is reported as failed
+          and lost. Set `true` only if you would rather keep the recording than
+          hold that guarantee.
+      - content: >-
+          artifacts_bucket: The bucket to store recordings and transcripts in.
+
+
+          May be the same as the other buckets — object keys are prefixed with
+          the bot id either way.
+      - content: >-
+          audio_chunks_bucket: The bucket to store audio chunks in.
+
+
+          May be the same as the other buckets — object keys are prefixed with
+          the bot id either way.
+      - content: >-
+          endpoint: The S3(-compatible) endpoint to upload to.
+
+
+          Include the scheme. For AWS this is the regional endpoint
+          (`https://s3.<region>.amazonaws.com`); for other providers use the one
+          they document.
+      - content: >-
+          force_path_style: Use path-style addressing
+          (`https://endpoint/bucket/key`) instead of virtual-hosted style
+          (`https://bucket.endpoint/key`).
+
+
+          AWS and Scaleway work with the default; MinIO, Ceph and most
+          self-hosted gateways require this to be true.
+      - content: >-
+          ingest_access_key_id: The access key ID of the ingest credential
+          (needs PutObject, PutObjectTagging and AbortMultipartUpload — no read,
+          no delete).
+      - content: >-
+          ingest_secret_access_key: The matching secret for the ingest
+          credential.
+
+
+          Stored encrypted and never returned by this API — read the
+          configuration back and you get the access key IDs only.
+      - content: >-
+          logs_bucket: The bucket to store bot logs in.
+
+
+          May be the same as the other buckets — object keys are prefixed with
+          the bot id either way.
+      - content: 'region: The region the buckets live in.'
+      - content: >-
+          service_access_key_id: The access key ID of the service credential
+          (needs GetObject, ListBucket, PutObject and DeleteObject).
+      - content: >-
+          service_secret_access_key: The matching secret for the service
+          credential.
+
+
+          Stored encrypted and never returned by this API — read the
+          configuration back and you get the access key IDs only.
+      - content: data
+      - content: >-
+          data.allow_transient_spill: Whether a failed upload may rest on
+          MeetingBaas storage until it can be retried
+      - content: data.artifacts_bucket
+      - content: data.audio_chunks_bucket
+      - content: data.created_at
+      - content: >-
+          data.enabled: Whether new artifacts are being written here. False
+          means new artifacts go to MeetingBaas storage; artifacts already
+          written here stay readable either way.
+      - content: data.endpoint
+      - content: data.force_path_style
+      - content: >-
+          data.ingest_access_key_id: Access key ID of the write-only ingest
+          credential. Secrets are never returned.
+      - content: data.last_error_at
+      - content: data.last_error_message
+      - content: 'data.last_verified_at: When the access check last succeeded'
+      - content: data.logs_bucket
+      - content: data.region
+      - content: >-
+          data.service_access_key_id: Access key ID of the service credential.
+          Secrets are never returned.
+      - content: 'data.storage_config_id: The unique identifier of this configuration'
+      - content: data.updated_at
+      - content: success
+      - content: 'code: Error code for programmatic handling'
+      - content: 'error: Error name'
+      - content: 'message: Human-readable error message'
+      - content: 'statusCode: HTTP status code'
+      - content: success
+      - content: 'code: Error code for programmatic handling'
+      - content: 'details: Additional error details (string or null)'
+      - content: 'error: Human-readable error message'
+      - content: 'message: Human-readable error message'
+      - content: 'retryAfter: Number of seconds to wait before retrying'
+      - content: 'statusCode: HTTP status code'
+      - content: success
+      - content: 'code: Error code for programmatic handling'
+      - content: 'details: Additional error details (string or null)'
+      - content: 'error: Human-readable error message'
+      - content: 'message: Human-readable error message'
+      - content: 'statusCode: HTTP status code'
+      - content: success
+---
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Point MeetingBaas at object storage you own.
+
+    From the next bot onwards, every artifact we produce for you — recording, audio chunks, raw and diarized transcripts, screenshots and bot logs — is written to your buckets with your credentials. Nothing lands in MeetingBaas storage.
+
+    **Verified before it is accepted.** The ingest key writes a small marker object into each bucket and the service key reads, writes and deletes it — each operation exercised with the credential that will really perform it, which also catches two key pairs that point at different buckets. Ingest upload receives recordings; service upload writes transcripts and reconciled artifacts; read serves artifacts; and delete enforces data retention. If any step fails the request returns 400 with the reason and your existing configuration is left untouched.
+
+    **Settings:** `endpoint`, `region` and `force_path_style` are the same knobs as a self-hosted deployment. Any S3-compatible provider works; enable `force_path_style` for MinIO, Ceph and most self-hosted gateways. The three buckets may all be the same bucket — keys are prefixed with the bot id regardless.
+
+    **Two credentials.** The **ingest** key is write-only (`s3:PutObject`, `s3:PutObjectTagging`, `s3:AbortMultipartUpload`) and is the only one that leaves our infrastructure — it is handed to the recording bot, which runs a browser inside your meeting. Scoped this way, a compromised bot can add objects and nothing else. The **service** key (`s3:GetObject`, `s3:ListBucket`, `s3:PutObject`, `s3:DeleteObject`) stays in our API and does everything else: serving your recordings back, writing transcripts, and deleting artifacts when your retention period expires.
+
+    **Keep the buckets private** — artifacts are served through short-lived signed URLs — but they must be reachable from the public internet, because transcription providers fetch audio directly from a signed URL.
+
+    **Data residency.** By default (`allow_transient_spill: false`) nothing you record ever rests on MeetingBaas storage: if an upload to your bucket fails and retries are exhausted, the artifact is reported as failed and lost rather than parked on our infrastructure. Set it to `true` if you would rather we hold a copy until the upload can be retried.
+
+    **Replacing a configuration is safe.** Calling this again supersedes the previous configuration for new bots only. Bots recorded earlier keep resolving to the storage they were written to, so their artifacts stay readable and deletable — nothing is migrated or re-pointed.
+
+    Returns 200 with the stored configuration.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/storage-config","method":"put"}]} />

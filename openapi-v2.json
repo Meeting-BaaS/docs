@@ -4272,7 +4272,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends JSON messages: 'session.started' once live transcription is up, 'transcript.segment' for each transcript piece, and 'error' if the transcription session fails (e.g. invalid custom_params or provider outage). The connection is kept alive with WebSocket pings (~30s).",
+                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends JSON messages: 'session.started' once live transcription is up, 'transcript.segment' for each transcript piece, 'translation' for each real-time provider translation (e.g. Gladia live translation, enabled via streaming_config.transcription.custom_params), and 'error' if the transcription session fails (e.g. invalid custom_params or provider outage). The connection is kept alive with WebSocket pings (~30s).",
                     "example": null
                   },
                   "transcription": {
@@ -4427,11 +4427,12 @@
           "timeout_config": {
             "default": {
               "grace_period": 0,
+              "max_recording_duration": null,
               "no_one_joined_timeout": 600,
               "silence_timeout": 600,
               "waiting_room_timeout": 600
             },
-            "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout.",
+            "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 6 hours).",
             "properties": {
               "grace_period": {
                 "default": 0,
@@ -4440,6 +4441,21 @@
                 "maximum": 600,
                 "minimum": 0,
                 "type": "integer"
+              },
+              "max_recording_duration": {
+                "anyOf": [
+                  {
+                    "maximum": 21600,
+                    "minimum": 7200,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–21600 seconds (2–6 hours)",
+                "example": null
               },
               "no_one_joined_timeout": {
                 "default": 600,
@@ -4951,7 +4967,7 @@
                           }
                         ],
                         "default": null,
-                        "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends JSON messages: 'session.started' once live transcription is up, 'transcript.segment' for each transcript piece, and 'error' if the transcription session fails (e.g. invalid custom_params or provider outage). The connection is kept alive with WebSocket pings (~30s).",
+                        "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends JSON messages: 'session.started' once live transcription is up, 'transcript.segment' for each transcript piece, 'translation' for each real-time provider translation (e.g. Gladia live translation, enabled via streaming_config.transcription.custom_params), and 'error' if the transcription session fails (e.g. invalid custom_params or provider outage). The connection is kept alive with WebSocket pings (~30s).",
                         "example": null
                       },
                       "transcription": {
@@ -5122,11 +5138,12 @@
                 "additionalProperties": false,
                 "default": {
                   "grace_period": 0,
+                  "max_recording_duration": null,
                   "no_one_joined_timeout": 600,
                   "silence_timeout": 600,
                   "waiting_room_timeout": 600
                 },
-                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout.",
+                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 6 hours).",
                 "properties": {
                   "grace_period": {
                     "default": 0,
@@ -5135,6 +5152,21 @@
                     "maximum": 600,
                     "minimum": 0,
                     "type": "integer"
+                  },
+                  "max_recording_duration": {
+                    "anyOf": [
+                      {
+                        "maximum": 21600,
+                        "minimum": 7200,
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–21600 seconds (2–6 hours)",
+                    "example": null
                   },
                   "no_one_joined_timeout": {
                     "default": 600,
@@ -5165,7 +5197,8 @@
                   "waiting_room_timeout",
                   "no_one_joined_timeout",
                   "silence_timeout",
-                  "grace_period"
+                  "grace_period",
+                  "max_recording_duration"
                 ],
                 "type": "object"
               },
@@ -5634,7 +5667,7 @@
                           }
                         ],
                         "default": null,
-                        "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends JSON messages: 'session.started' once live transcription is up, 'transcript.segment' for each transcript piece, and 'error' if the transcription session fails (e.g. invalid custom_params or provider outage). The connection is kept alive with WebSocket pings (~30s).",
+                        "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends JSON messages: 'session.started' once live transcription is up, 'transcript.segment' for each transcript piece, 'translation' for each real-time provider translation (e.g. Gladia live translation, enabled via streaming_config.transcription.custom_params), and 'error' if the transcription session fails (e.g. invalid custom_params or provider outage). The connection is kept alive with WebSocket pings (~30s).",
                         "example": null
                       },
                       "transcription": {
@@ -5789,11 +5822,12 @@
               "timeout_config": {
                 "default": {
                   "grace_period": 0,
+                  "max_recording_duration": null,
                   "no_one_joined_timeout": 600,
                   "silence_timeout": 600,
                   "waiting_room_timeout": 600
                 },
-                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout.",
+                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 6 hours).",
                 "properties": {
                   "grace_period": {
                     "default": 0,
@@ -5802,6 +5836,21 @@
                     "maximum": 600,
                     "minimum": 0,
                     "type": "integer"
+                  },
+                  "max_recording_duration": {
+                    "anyOf": [
+                      {
+                        "maximum": 21600,
+                        "minimum": 7200,
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–21600 seconds (2–6 hours)",
+                    "example": null
                   },
                   "no_one_joined_timeout": {
                     "default": 600,
@@ -9417,6 +9466,19 @@
               "timeout_config": {
                 "additionalProperties": false,
                 "properties": {
+                  "max_recording_duration": {
+                    "anyOf": [
+                      {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Maximum recording duration in seconds (null if not set, max 12h)"
+                  },
                   "no_one_joined_timeout": {
                     "anyOf": [
                       {
@@ -9446,7 +9508,8 @@
                 },
                 "required": [
                   "waiting_room_timeout",
-                  "no_one_joined_timeout"
+                  "no_one_joined_timeout",
+                  "max_recording_duration"
                 ],
                 "type": "object"
               },
@@ -9819,6 +9882,19 @@
               },
               "timeout_config": {
                 "properties": {
+                  "max_recording_duration": {
+                    "anyOf": [
+                      {
+                        "maximum": 9007199254740991,
+                        "minimum": -9007199254740991,
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Maximum recording duration in seconds (null if not set, max 12h)"
+                  },
                   "no_one_joined_timeout": {
                     "anyOf": [
                       {
@@ -9848,7 +9924,8 @@
                 },
                 "required": [
                   "waiting_room_timeout",
-                  "no_one_joined_timeout"
+                  "no_one_joined_timeout",
+                  "max_recording_duration"
                 ],
                 "type": "object"
               },
@@ -13310,7 +13387,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends JSON messages: 'session.started' once live transcription is up, 'transcript.segment' for each transcript piece, and 'error' if the transcription session fails (e.g. invalid custom_params or provider outage). The connection is kept alive with WebSocket pings (~30s).",
+                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends JSON messages: 'session.started' once live transcription is up, 'transcript.segment' for each transcript piece, 'translation' for each real-time provider translation (e.g. Gladia live translation, enabled via streaming_config.transcription.custom_params), and 'error' if the transcription session fails (e.g. invalid custom_params or provider outage). The connection is kept alive with WebSocket pings (~30s).",
                     "example": null
                   },
                   "transcription": {
@@ -13474,11 +13551,12 @@
                 "additionalProperties": false,
                 "default": {
                   "grace_period": 0,
+                  "max_recording_duration": null,
                   "no_one_joined_timeout": 600,
                   "silence_timeout": 600,
                   "waiting_room_timeout": 600
                 },
-                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout.",
+                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 6 hours).",
                 "properties": {
                   "grace_period": {
                     "default": 0,
@@ -13487,6 +13565,21 @@
                     "maximum": 600,
                     "minimum": 0,
                     "type": "integer"
+                  },
+                  "max_recording_duration": {
+                    "anyOf": [
+                      {
+                        "maximum": 21600,
+                        "minimum": 7200,
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–21600 seconds (2–6 hours)",
+                    "example": null
                   },
                   "no_one_joined_timeout": {
                     "default": 600,
@@ -13517,7 +13610,8 @@
                   "waiting_room_timeout",
                   "no_one_joined_timeout",
                   "silence_timeout",
-                  "grace_period"
+                  "grace_period",
+                  "max_recording_duration"
                 ],
                 "type": "object"
               },
@@ -13950,7 +14044,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends JSON messages: 'session.started' once live transcription is up, 'transcript.segment' for each transcript piece, and 'error' if the transcription session fails (e.g. invalid custom_params or provider outage). The connection is kept alive with WebSocket pings (~30s).",
+                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends JSON messages: 'session.started' once live transcription is up, 'transcript.segment' for each transcript piece, 'translation' for each real-time provider translation (e.g. Gladia live translation, enabled via streaming_config.transcription.custom_params), and 'error' if the transcription session fails (e.g. invalid custom_params or provider outage). The connection is kept alive with WebSocket pings (~30s).",
                     "example": null
                   },
                   "transcription": {
@@ -14098,11 +14192,12 @@
               "timeout_config": {
                 "default": {
                   "grace_period": 0,
+                  "max_recording_duration": null,
                   "no_one_joined_timeout": 600,
                   "silence_timeout": 600,
                   "waiting_room_timeout": 600
                 },
-                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout.",
+                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 6 hours).",
                 "properties": {
                   "grace_period": {
                     "default": 0,
@@ -14111,6 +14206,21 @@
                     "maximum": 600,
                     "minimum": 0,
                     "type": "integer"
+                  },
+                  "max_recording_duration": {
+                    "anyOf": [
+                      {
+                        "maximum": 21600,
+                        "minimum": 7200,
+                        "type": "integer"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–21600 seconds (2–6 hours)",
+                    "example": null
                   },
                   "no_one_joined_timeout": {
                     "default": 600,
@@ -14909,7 +15019,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends JSON messages: 'session.started' once live transcription is up, 'transcript.segment' for each transcript piece, and 'error' if the transcription session fails (e.g. invalid custom_params or provider outage). The connection is kept alive with WebSocket pings (~30s).",
+                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends JSON messages: 'session.started' once live transcription is up, 'transcript.segment' for each transcript piece, 'translation' for each real-time provider translation (e.g. Gladia live translation, enabled via streaming_config.transcription.custom_params), and 'error' if the transcription session fails (e.g. invalid custom_params or provider outage). The connection is kept alive with WebSocket pings (~30s).",
                     "example": null
                   },
                   "transcription": {
@@ -15080,11 +15190,12 @@
             "additionalProperties": false,
             "default": {
               "grace_period": 0,
+              "max_recording_duration": null,
               "no_one_joined_timeout": 600,
               "silence_timeout": 600,
               "waiting_room_timeout": 600
             },
-            "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout.",
+            "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 6 hours).",
             "properties": {
               "grace_period": {
                 "default": 0,
@@ -15093,6 +15204,21 @@
                 "maximum": 600,
                 "minimum": 0,
                 "type": "integer"
+              },
+              "max_recording_duration": {
+                "anyOf": [
+                  {
+                    "maximum": 21600,
+                    "minimum": 7200,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–21600 seconds (2–6 hours)",
+                "example": null
               },
               "no_one_joined_timeout": {
                 "default": 600,
@@ -15123,7 +15249,8 @@
               "waiting_room_timeout",
               "no_one_joined_timeout",
               "silence_timeout",
-              "grace_period"
+              "grace_period",
+              "max_recording_duration"
             ],
             "type": "object"
           },
@@ -15559,7 +15686,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends JSON messages: 'session.started' once live transcription is up, 'transcript.segment' for each transcript piece, and 'error' if the transcription session fails (e.g. invalid custom_params or provider outage). The connection is kept alive with WebSocket pings (~30s).",
+                    "description": "When mode is 'audio': WebSocket URL where the bot sends raw audio. When mode is 'transcription': WebSocket URL where the bot sends JSON messages: 'session.started' once live transcription is up, 'transcript.segment' for each transcript piece, 'translation' for each real-time provider translation (e.g. Gladia live translation, enabled via streaming_config.transcription.custom_params), and 'error' if the transcription session fails (e.g. invalid custom_params or provider outage). The connection is kept alive with WebSocket pings (~30s).",
                     "example": null
                   },
                   "transcription": {
@@ -15714,11 +15841,12 @@
           "timeout_config": {
             "default": {
               "grace_period": 0,
+              "max_recording_duration": null,
               "no_one_joined_timeout": 600,
               "silence_timeout": 600,
               "waiting_room_timeout": 600
             },
-            "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout.",
+            "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 6 hours).",
             "properties": {
               "grace_period": {
                 "default": 0,
@@ -15727,6 +15855,21 @@
                 "maximum": 600,
                 "minimum": 0,
                 "type": "integer"
+              },
+              "max_recording_duration": {
+                "anyOf": [
+                  {
+                    "maximum": 21600,
+                    "minimum": 7200,
+                    "type": "integer"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–21600 seconds (2–6 hours)",
+                "example": null
               },
               "no_one_joined_timeout": {
                 "default": 600,
@@ -24801,6 +24944,839 @@
         ]
       }
     },
+    "/v2/storage-config": {
+      "delete": {
+        "description": "Go back to MeetingBaas-managed storage.\n\n    From the next bot onwards, artifacts are stored by MeetingBaas again.\n\n    **Nothing is deleted.** Artifacts already in your buckets stay where they are and stay accessible through the API and signed URLs — bots recorded while the configuration was active keep resolving to it. Your credentials are retained for exactly that purpose. Removing our access to those buckets on your side will make those older artifacts unreadable to us.\n\n    Returns 404 if you have no configuration.",
+        "operationId": "deleteStorageConfig",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "enabled": {
+                          "type": "boolean"
+                        },
+                        "message": {
+                          "type": "string"
+                        },
+                        "storage_config_id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "storage_config_id",
+                        "enabled",
+                        "message"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "Go back to MeetingBaas storage",
+        "tags": [
+          "Storage"
+        ]
+      },
+      "get": {
+        "description": "Get the object-storage configuration your artifacts are currently written to.\n\n    Returns 404 when you have not configured one — that is the default, and means MeetingBaas stores your artifacts.\n\n    The `secret_access_key` is never returned. `access_key_id` is, so you can tell which credential is in use.",
+        "operationId": "getStorageConfig",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "allow_transient_spill": {
+                          "description": "Whether a failed upload may rest on MeetingBaas storage until it can be retried",
+                          "type": "boolean"
+                        },
+                        "artifacts_bucket": {
+                          "type": "string"
+                        },
+                        "audio_chunks_bucket": {
+                          "type": "string"
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "enabled": {
+                          "description": "Whether new artifacts are being written here. False means new artifacts go to MeetingBaas storage; artifacts already written here stay readable either way.",
+                          "type": "boolean"
+                        },
+                        "endpoint": {
+                          "type": "string"
+                        },
+                        "force_path_style": {
+                          "type": "boolean"
+                        },
+                        "ingest_access_key_id": {
+                          "description": "Access key ID of the write-only ingest credential. Secrets are never returned.",
+                          "type": "string"
+                        },
+                        "last_error_at": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "last_error_message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "last_verified_at": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "When the access check last succeeded"
+                        },
+                        "logs_bucket": {
+                          "type": "string"
+                        },
+                        "region": {
+                          "type": "string"
+                        },
+                        "service_access_key_id": {
+                          "description": "Access key ID of the service credential. Secrets are never returned.",
+                          "type": "string"
+                        },
+                        "storage_config_id": {
+                          "description": "The unique identifier of this configuration",
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "storage_config_id",
+                        "enabled",
+                        "endpoint",
+                        "region",
+                        "force_path_style",
+                        "artifacts_bucket",
+                        "audio_chunks_bucket",
+                        "logs_bucket",
+                        "allow_transient_spill",
+                        "ingest_access_key_id",
+                        "service_access_key_id",
+                        "last_verified_at",
+                        "last_error_message",
+                        "last_error_at",
+                        "created_at",
+                        "updated_at"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "Get your storage configuration",
+        "tags": [
+          "Storage"
+        ]
+      },
+      "put": {
+        "description": "Point MeetingBaas at object storage you own.\n\n    From the next bot onwards, every artifact we produce for you — recording, audio chunks, raw and diarized transcripts, screenshots and bot logs — is written to your buckets with your credentials. Nothing lands in MeetingBaas storage.\n\n    **Verified before it is accepted.** The ingest key writes a small marker object into each bucket and the service key reads, writes and deletes it — each operation exercised with the credential that will really perform it, which also catches two key pairs that point at different buckets. Ingest upload receives recordings; service upload writes transcripts and reconciled artifacts; read serves artifacts; and delete enforces data retention. If any step fails the request returns 400 with the reason and your existing configuration is left untouched.\n\n    **Settings:** `endpoint`, `region` and `force_path_style` are the same knobs as a self-hosted deployment. Any S3-compatible provider works; enable `force_path_style` for MinIO, Ceph and most self-hosted gateways. The three buckets may all be the same bucket — keys are prefixed with the bot id regardless.\n\n    **Two credentials.** The **ingest** key is write-only (`s3:PutObject`, `s3:PutObjectTagging`, `s3:AbortMultipartUpload`) and is the only one that leaves our infrastructure — it is handed to the recording bot, which runs a browser inside your meeting. Scoped this way, a compromised bot can add objects and nothing else. The **service** key (`s3:GetObject`, `s3:ListBucket`, `s3:PutObject`, `s3:DeleteObject`) stays in our API and does everything else: serving your recordings back, writing transcripts, and deleting artifacts when your retention period expires.\n\n    **Keep the buckets private** — artifacts are served through short-lived signed URLs — but they must be reachable from the public internet, because transcription providers fetch audio directly from a signed URL.\n\n    **Data residency.** By default (`allow_transient_spill: false`) nothing you record ever rests on MeetingBaas storage: if an upload to your bucket fails and retries are exhausted, the artifact is reported as failed and lost rather than parked on our infrastructure. Set it to `true` if you would rather we hold a copy until the upload can be retried.\n\n    **Replacing a configuration is safe.** Calling this again supersedes the previous configuration for new bots only. Bots recorded earlier keep resolving to the storage they were written to, so their artifacts stay readable and deletable — nothing is migrated or re-pointed.\n\n    Returns 200 with the stored configuration.",
+        "operationId": "setStorageConfig",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "description": "Point MeetingBaas at object storage you own.\n\nEvery artifact produced for your bots from this point on — recordings, audio chunks, transcripts, screenshots and logs — is written to these buckets instead of ours.\n\nTwo credentials are required, scoped by where they end up. The **ingest** key is write-only and is the only one that leaves our infrastructure: it is handed to the recording bot, which runs a browser inside your meeting. The **service** key stays in our API and does everything else — serving your recordings back, writing transcripts, and deleting artifacts when your retention period expires.\n\nBoth are verified before the configuration is accepted: the ingest key writes a marker object and the service key reads, writes and deletes it.\n\nBots recorded before this call keep reading from wherever they were written, so setting, changing or removing a configuration never breaks existing artifacts.",
+                "properties": {
+                  "allow_transient_spill": {
+                    "default": false,
+                    "description": "Whether MeetingBaas may hold a recording on its own storage when an upload to your buckets fails, until it can be retried.\n\nDefaults to `false`: nothing you record ever rests outside your account, and an upload that exhausts its retries is reported as failed and lost. Set `true` only if you would rather keep the recording than hold that guarantee.",
+                    "type": "boolean"
+                  },
+                  "artifacts_bucket": {
+                    "description": "The bucket to store recordings and transcripts in.\n\nMay be the same as the other buckets — object keys are prefixed with the bot id either way.",
+                    "example": "acme-meeting-artifacts",
+                    "maxLength": 255,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "audio_chunks_bucket": {
+                    "description": "The bucket to store audio chunks in.\n\nMay be the same as the other buckets — object keys are prefixed with the bot id either way.",
+                    "example": "acme-meeting-audio-chunks",
+                    "maxLength": 255,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "endpoint": {
+                    "description": "The S3(-compatible) endpoint to upload to.\n\nInclude the scheme. For AWS this is the regional endpoint (`https://s3.<region>.amazonaws.com`); for other providers use the one they document.",
+                    "example": "https://s3.eu-west-3.amazonaws.com",
+                    "format": "uri",
+                    "type": "string"
+                  },
+                  "force_path_style": {
+                    "default": false,
+                    "description": "Use path-style addressing (`https://endpoint/bucket/key`) instead of virtual-hosted style (`https://bucket.endpoint/key`).\n\nAWS and Scaleway work with the default; MinIO, Ceph and most self-hosted gateways require this to be true.",
+                    "example": false,
+                    "type": "boolean"
+                  },
+                  "ingest_access_key_id": {
+                    "description": "The access key ID of the ingest credential (needs PutObject, PutObjectTagging and AbortMultipartUpload — no read, no delete).",
+                    "example": "AKIAIOSFODNN7EXAMPLE",
+                    "maxLength": 256,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "ingest_secret_access_key": {
+                    "description": "The matching secret for the ingest credential.\n\nStored encrypted and never returned by this API — read the configuration back and you get the access key IDs only.",
+                    "example": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+                    "maxLength": 512,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "logs_bucket": {
+                    "description": "The bucket to store bot logs in.\n\nMay be the same as the other buckets — object keys are prefixed with the bot id either way.",
+                    "example": "acme-meeting-logs",
+                    "maxLength": 255,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "region": {
+                    "description": "The region the buckets live in.",
+                    "example": "eu-west-3",
+                    "maxLength": 64,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "service_access_key_id": {
+                    "description": "The access key ID of the service credential (needs GetObject, ListBucket, PutObject and DeleteObject).",
+                    "example": "AKIAI44QH8DHBEXAMPLE",
+                    "maxLength": 256,
+                    "minLength": 1,
+                    "type": "string"
+                  },
+                  "service_secret_access_key": {
+                    "description": "The matching secret for the service credential.\n\nStored encrypted and never returned by this API — read the configuration back and you get the access key IDs only.",
+                    "example": "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+                    "maxLength": 512,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "endpoint",
+                  "region",
+                  "artifacts_bucket",
+                  "audio_chunks_bucket",
+                  "logs_bucket",
+                  "ingest_access_key_id",
+                  "ingest_secret_access_key",
+                  "service_access_key_id",
+                  "service_secret_access_key"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "description": "Point MeetingBaas at object storage you own.\n\nEvery artifact produced for your bots from this point on — recordings, audio chunks, transcripts, screenshots and logs — is written to these buckets instead of ours.\n\nTwo credentials are required, scoped by where they end up. The **ingest** key is write-only and is the only one that leaves our infrastructure: it is handed to the recording bot, which runs a browser inside your meeting. The **service** key stays in our API and does everything else — serving your recordings back, writing transcripts, and deleting artifacts when your retention period expires.\n\nBoth are verified before the configuration is accepted: the ingest key writes a marker object and the service key reads, writes and deletes it.\n\nBots recorded before this call keep reading from wherever they were written, so setting, changing or removing a configuration never breaks existing artifacts.",
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "allow_transient_spill": {
+                          "description": "Whether a failed upload may rest on MeetingBaas storage until it can be retried",
+                          "type": "boolean"
+                        },
+                        "artifacts_bucket": {
+                          "type": "string"
+                        },
+                        "audio_chunks_bucket": {
+                          "type": "string"
+                        },
+                        "created_at": {
+                          "type": "string"
+                        },
+                        "enabled": {
+                          "description": "Whether new artifacts are being written here. False means new artifacts go to MeetingBaas storage; artifacts already written here stay readable either way.",
+                          "type": "boolean"
+                        },
+                        "endpoint": {
+                          "type": "string"
+                        },
+                        "force_path_style": {
+                          "type": "boolean"
+                        },
+                        "ingest_access_key_id": {
+                          "description": "Access key ID of the write-only ingest credential. Secrets are never returned.",
+                          "type": "string"
+                        },
+                        "last_error_at": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "last_error_message": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "last_verified_at": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "When the access check last succeeded"
+                        },
+                        "logs_bucket": {
+                          "type": "string"
+                        },
+                        "region": {
+                          "type": "string"
+                        },
+                        "service_access_key_id": {
+                          "description": "Access key ID of the service credential. Secrets are never returned.",
+                          "type": "string"
+                        },
+                        "storage_config_id": {
+                          "description": "The unique identifier of this configuration",
+                          "type": "string"
+                        },
+                        "updated_at": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "storage_config_id",
+                        "enabled",
+                        "endpoint",
+                        "region",
+                        "force_path_style",
+                        "artifacts_bucket",
+                        "audio_chunks_bucket",
+                        "logs_bucket",
+                        "allow_transient_spill",
+                        "ingest_access_key_id",
+                        "service_access_key_id",
+                        "last_verified_at",
+                        "last_error_message",
+                        "last_error_at",
+                        "created_at",
+                        "updated_at"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "Set your storage configuration",
+        "tags": [
+          "Storage"
+        ]
+      }
+    },
+    "/v2/storage-config/test": {
+      "post": {
+        "description": "Re-run the access check against your current configuration and record the result.\n\n    Writes, reads back and deletes a marker object in each bucket, exactly as the check that runs when a configuration is set. Use it after rotating a key or changing a bucket policy: credentials that quietly stopped working would otherwise first surface as a failed upload at the end of a real meeting.\n\n    Returns 200 with `ok: true` when the storage is healthy, or 200 with `ok: false` and the reason when it is not — the request succeeded either way, it is the storage that is unhealthy. Returns 404 if you have no configuration.",
+        "operationId": "testStorageConfig",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "error": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ],
+                          "description": "Why the check failed, when `ok` is false"
+                        },
+                        "ok": {
+                          "description": "True when the buckets accepted ingest write and service read/write/delete",
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "ok",
+                        "error"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "Check that MeetingBaas can still use your buckets",
+        "tags": [
+          "Storage"
+        ]
+      }
+    },
     "/v2/teams-login/release-session": {
       "post": {
         "responses": {
@@ -29214,7 +30190,7 @@
   "servers": [
     {
       "description": "production server",
-      "url": "https://api.pre-prod-meetingbaas.com"
+      "url": "https://api.meetingbaas.com"
     }
   ],
   "tags": [

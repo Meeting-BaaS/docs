@@ -144,7 +144,8 @@ _openapi:
           wait in the waiting room, then no_one_joined_timeout to wait for
           participants when first joining the meeting, and finally switches to
           silence_timeout monitoring once participants are detected. Zoom only
-          uses waiting_room_timeout.
+          uses waiting_room_timeout. Optional max_recording_duration sets a hard
+          cap on total recording time (up to 6 hours).
       - content: >-
           timeout_config.grace_period: The grace period in seconds at the start
           of the meeting during which no timeout conditions (waiting room, no
@@ -154,6 +155,14 @@ _openapi:
           Default: 0 (disabled)
 
           Maximum: 600 seconds (10 minutes)
+      - content: >-
+          timeout_config.max_recording_duration: The maximum recording duration
+          in seconds. When set, the bot will automatically end the recording
+          after this duration regardless of silence or participant activity.
+          When null, the default 4-hour internal timeout applies.
+
+
+          Range: 7200–21600 seconds (2–6 hours)
       - content: >-
           timeout_config.no_one_joined_timeout: The timeout in seconds for the
           bot to wait for participants to join before leaving the meeting.
