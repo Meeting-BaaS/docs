@@ -49,6 +49,9 @@ _openapi:
           disabled)
       - content: data.timeout_config
       - content: >-
+          data.timeout_config.max_recording_duration: Maximum recording duration
+          in seconds (null if not set, max 12h)
+      - content: >-
           data.timeout_config.no_one_joined_timeout: Timeout in seconds if no
           one joins (null if not set)
       - content: >-
