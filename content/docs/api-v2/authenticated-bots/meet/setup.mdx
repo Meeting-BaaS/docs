@@ -149,6 +149,10 @@ These `/v2/meet-sso/*` URLs are SAML endpoints that Google calls during sign-in 
 <Step>
 ### Assign the profile to your bot group (or OU) only
 
+<Callout type="warn">
+**Do this assignment last** — only after your bot accounts exist and have completed their first interactive login ([Step 3](#step-3--prepare-the-workspace-users)). Once an account is in the assigned scope, Google routes *every* sign-in — including the first one — to the Meeting BaaS IdP, which only bots can complete; a human can then no longer finish the "Welcome to Workspace" flow. Configure the profile now, prepare the users, then return here to assign.
+</Callout>
+
 Open **Manage SSO profile assignments**. Under **Groups**, pick the group that contains your bot accounts (for example `bots@bots.acme.com`) — or choose the bot **organizational unit**. A new scope starts with **Select SSO profile: None**.
 
 <ImageZoom
@@ -172,6 +176,10 @@ Set **Select SSO profile** to **Legacy SSO profile**, then click **Override** (o
 <Callout type="warn">
 Assign the profile to the bot group/OU **only**. Never assign it to a scope that contains real users, or they will be redirected through the bot IdP. Changes take a few minutes to take effect.
 </Callout>
+
+<Callout type="warn">
+If you use a dedicated bot-only domain and scope the profile to the whole domain, every account on it — including ones you create later — is born inside SSO scope. For accounts added after this assignment, temporarily exclude them while you complete their first login (see the escape hatch in [Step 3](#step-3--prepare-the-workspace-users)).
+</Callout>
 </Step>
 
 </Steps>
@@ -183,6 +191,21 @@ For **each** Google account the bots will sign in as:
 1. Create the user in Google Admin Console (for example `bot1@bots.acme.com`).
 2. Sign in to that account once interactively and complete the **"Welcome to Workspace"** flow. This first-time interactive login is required before the account can be used programmatically — skipping it causes the login to flip to `invalid` on first use.
 3. Set the account language to **English (United States)** to ensure the sign-in and Meet UIs are in the expected state.
+
+<Callout type="warn">
+**Do the interactive first login while the account is *not yet* covered by the Legacy SSO profile.** An account already in SSO scope cannot complete a password login — Google sends it to the bot IdP and you'll see the message *"This page is used by Meeting BaaS bots during automated SSO sign-in…"*.
+
+Escape hatch for an already-scoped account, depending on how the profile is assigned:
+
+- **Group-assigned:** remove the account from the assigned group. Moving it to another OU is **not** enough — group membership keeps routing it to the IdP.
+- **OU-assigned:** move the account to an OU the profile is not assigned to.
+
+Then confirm no effective SSO assignment remains on the account, wait a few minutes for the change to propagate, complete the Welcome flow with the password, and restore the account to its group/OU.
+</Callout>
+
+### Verifying SSO routing (optional)
+
+Once an account has completed its first login **and is (back) in SSO scope**, you can check that Google routes it to Meeting BaaS: open an incognito window, go to `accounts.google.com`, and type the bot account's email. If routing works, you land on a Meeting BaaS page saying **"This page is used by Meeting BaaS bots during automated SSO sign-in… your SSO setup is working."** That error page **is** the success signal — the sign-in itself can only be completed by a bot, never by a human.
 
 <Callout type="tip">
 Create a **Google Group** (for example `bots@bots.acme.com`) and add the bot users as members. Putting this group on a calendar invite lets the assigned bot land in Meet's **verified queue** and bypass the waiting room. You'll reference this group as `email_group` in Step 4.
