@@ -89,7 +89,7 @@ Each login supports up to **20 concurrent SSO sessions**. When you dispatch bots
 Both workspaces and logins track health with a `state` field:
 
 - **`active`** — healthy and usable.
-- **`invalid`** — the system auto-disabled the resource after a failure (a SAML rejection for workspaces; a bot login failure such as a suspended user or a pending first-time interactive login for logins). Re-enable manually via `PATCH` after fixing the underlying issue.
+- **`invalid`** — the system auto-disabled the resource after a failure (a SAML rejection for workspaces; a bot login failure such as a suspended user, or a bot account that never completed its first-time interactive "Welcome to Workspace" login). Re-enable manually via `PATCH` after fixing the underlying issue.
 
 When a resource flips to `invalid`, `last_error_message` and `last_error_at` explain why.
 
@@ -101,7 +101,7 @@ The SAML certificate and private key are encrypted at rest using **AES-256-GCM**
 
 <Cards>
   <Card title="Setup" href="/docs/api-v2/authenticated-bots/meet/setup">
-    Create a meet workspace, configure the Legacy SSO profile in Google Admin Console, prepare Workspace users, and add logins.
+    Create a meet workspace, configure the Legacy SSO profile, create the bot accounts and complete their welcome flow, then assign the profile and add logins.
   </Card>
   <Card title="Sending Authenticated Bots" href="/docs/api-v2/authenticated-bots/meet/sending-authenticated-bots">
     Use `meet_config` to send authenticated bots, manage pools, configure fallback, and monitor utilization.
@@ -137,7 +137,11 @@ Bot creation returns `MEET_LOGIN_UNAVAILABLE` when `meet_config.fallback` is `fa
 </Accordion>
 
 <Accordion title="A workspace or login flipped to invalid — what do I do?">
-The system auto-disables a resource after a failure (a SAML rejection for workspaces; a bot login failure for logins). Check `last_error_message`, fix the cause (re-upload a matching cert, complete a user's first-time interactive login, un-suspend the account), then re-enable it with a `PATCH`.
+The system auto-disables a resource after a failure (a SAML rejection for workspaces; a bot login failure for logins). Check `last_error_message`, fix the cause (re-upload a matching cert, complete a bot account's first-time interactive "Welcome to Workspace" login, un-suspend the account), then re-enable it with a `PATCH`.
+</Accordion>
+
+<Accordion title="I can't sign in to a bot account to finish its welcome flow">
+Every new Google Workspace account has to be signed into once, interactively, to complete the **"Welcome to Workspace"** first-run flow — and that has to happen **before** the Legacy SSO profile is assigned to it. Once the profile applies, Google redirects the account's sign-in to Meeting BaaS and its password stops working, so the flow can't be completed by hand. If you're stuck, move the account out of the SSO scope (or set that scope's **Select SSO profile** back to **None**), complete the welcome flow, then re-assign the profile. See [Setup, Step 3](/docs/api-v2/authenticated-bots/meet/setup#step-3--create-the-bot-accounts-and-complete-the-welcome-flow).
 </Accordion>
 
 <Accordion title="Can I retrieve the private key later?">

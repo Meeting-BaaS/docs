@@ -131,7 +131,7 @@ curl https://api.meetingbaas.com/v2/meet-logins/utilization \
 | `MEET_LOGIN_UNAVAILABLE` | No login slot was available (pool saturated or no matching active login) and `fallback` was `fail`. | Add logins, lower concurrency, or set `fallback: "anonymous"`. Watch utilization. |
 | `MEET_LOGIN_REQUIRED` | The meeting required a signed-in user but the bot could not authenticate. | Ensure `meet_config` is set and the selected login is `active`. |
 | `MEET_LOGIN_FAILED_SAML_REJECTED` | Google rejected the SAML assertion. | Verify the certificate uploaded to Google Admin matches the workspace cert and the SSO profile is configured and assigned. The workspace auto-flips to `invalid`; re-enable after fixing. |
-| `MEET_LOGIN_FAILED_TIMEOUT` | The SSO sign-in did not complete in time. | Confirm the user completed the first-time interactive login and the account isn't suspended; retry. |
+| `MEET_LOGIN_FAILED_TIMEOUT` | The SSO sign-in did not complete in time. | Confirm the user completed the first-time interactive "Welcome to Workspace" login (done before the SSO profile was assigned) and the account isn't suspended; retry. |
 
 See [Error Codes](/docs/api-v2/error-codes#google-meet-authentication-errors) for the full list. These appear in the bot's `bot.failed` webhook and in the bot details `error_code` field.
 
