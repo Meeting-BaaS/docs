@@ -207,13 +207,13 @@ These errors apply to [authenticated Google Meet bots](/docs/api-v2/authenticate
 **Title:** Meet Login Failed — SAML Rejected
 **Description:** Google rejected the SAML assertion during sign-in. Usually the certificate uploaded to Google Admin Console no longer matches the workspace's certificate, or the Legacy SSO profile is misconfigured or unassigned.
 
-**Resolution:** Verify the certificate in Google Admin matches the workspace `cert_pem` and that the SSO profile points at the `/v2/meet-sso/*` endpoints and is assigned to all users. The workspace auto-flips to `invalid`; re-enable it via `PATCH /v2/meet-workspaces/{workspace_id}` after fixing the configuration.
+**Resolution:** Verify the certificate in Google Admin matches the workspace `cert_pem` and that the SSO profile points at the `/v2/meet-sso/*` endpoints and is assigned to the bot group/OU that contains the account. The workspace auto-flips to `invalid`; re-enable it via `PATCH /v2/meet-workspaces/{workspace_id}` after fixing the configuration.
 
 ### `MEET_LOGIN_FAILED_TIMEOUT`
 **Title:** Meet Login Failed — Timeout
 **Description:** The SSO sign-in flow did not complete within the expected time.
 
-**Resolution:** Confirm the Workspace user completed its first-time interactive "Welcome to Workspace" login and is not suspended, then retry. The login may auto-flip to `invalid`; re-enable it via `PATCH /v2/meet-logins/{credential_id}` after resolving the cause.
+**Resolution:** Confirm the Workspace user completed its first-time interactive "Welcome to Workspace" login — this must be done in a browser after the account is created and **before** the Legacy SSO profile is assigned to it — and that the account is not suspended, then retry. The login may auto-flip to `invalid`; re-enable it via `PATCH /v2/meet-logins/{credential_id}` after resolving the cause.
 
 ## System Errors
 

@@ -24,10 +24,11 @@ _openapi:
 
               **After creation, you must:**
               1. Upload the returned `cert_pem` to Google Admin Console → Security → Set up SSO with third-party IdP → Legacy SSO profile.
-              2. Set Sign-in URL to `https://api.meetingbaas.com/v2/meet-sso/sign-in` and Sign-out URL to `https://api.meetingbaas.com/v2/meet-sso/sign-out` in the same SSO profile. Enable "Use a domain-specific issuer" and assign the SSO profile to all users.
-              3. Create one or more Workspace users that bots will sign in as, complete the "Welcome to Workspace" interactive login for each, and set language to "English (United States)".
-              4. Add `meet_logins` (one per Workspace user) referencing this `workspace_id`.
-              5. Optionally call `POST /v2/meet-workspaces/:workspace_id/verify` to run pre-flight checks.
+              2. Set Sign-in URL to `https://api.meetingbaas.com/v2/meet-sso/sign-in` and Sign-out URL to `https://api.meetingbaas.com/v2/meet-sso/sign-out` in the same SSO profile. Enable "Use a domain-specific issuer". Do not assign the profile yet.
+              3. Create one or more Workspace users that bots will sign in as. Sign in to each new account in a browser and complete the "Welcome to Workspace" first-run flow before the SSO profile is assigned to it — once SSO applies, the account password stops working and this flow can no longer be completed. Set language to "English (United States)".
+              4. Assign the SSO profile to the bot group or organizational unit only (never to all users), now that each bot account has completed its welcome flow.
+              5. Add `meet_logins` (one per Workspace user) referencing this `workspace_id`.
+              6. Optionally call `POST /v2/meet-workspaces/:workspace_id/verify` to run pre-flight checks.
 
               **Security:** The cert and key are encrypted at rest using AES-256-GCM. `private_key_pem` is never echoed in any response — including subsequent GETs. If you need it back, you must rotate via PATCH.
 
@@ -114,10 +115,11 @@ Create a meet workspace — the parent resource that holds your SAML cert + priv
 
     **After creation, you must:**
     1. Upload the returned `cert_pem` to Google Admin Console → Security → Set up SSO with third-party IdP → Legacy SSO profile.
-    2. Set Sign-in URL to `https://api.meetingbaas.com/v2/meet-sso/sign-in` and Sign-out URL to `https://api.meetingbaas.com/v2/meet-sso/sign-out` in the same SSO profile. Enable "Use a domain-specific issuer" and assign the SSO profile to all users.
-    3. Create one or more Workspace users that bots will sign in as, complete the "Welcome to Workspace" interactive login for each, and set language to "English (United States)".
-    4. Add `meet_logins` (one per Workspace user) referencing this `workspace_id`.
-    5. Optionally call `POST /v2/meet-workspaces/:workspace_id/verify` to run pre-flight checks.
+    2. Set Sign-in URL to `https://api.meetingbaas.com/v2/meet-sso/sign-in` and Sign-out URL to `https://api.meetingbaas.com/v2/meet-sso/sign-out` in the same SSO profile. Enable "Use a domain-specific issuer". Do not assign the profile yet.
+    3. Create one or more Workspace users that bots will sign in as. Sign in to each new account in a browser and complete the "Welcome to Workspace" first-run flow before the SSO profile is assigned to it — once SSO applies, the account password stops working and this flow can no longer be completed. Set language to "English (United States)".
+    4. Assign the SSO profile to the bot group or organizational unit only (never to all users), now that each bot account has completed its welcome flow.
+    5. Add `meet_logins` (one per Workspace user) referencing this `workspace_id`.
+    6. Optionally call `POST /v2/meet-workspaces/:workspace_id/verify` to run pre-flight checks.
 
     **Security:** The cert and key are encrypted at rest using AES-256-GCM. `private_key_pem` is never echoed in any response — including subsequent GETs. If you need it back, you must rotate via PATCH.
 

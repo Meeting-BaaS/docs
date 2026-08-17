@@ -1,6 +1,6 @@
 ---
 title: Setup
-description: Create a meet workspace, configure the Legacy SSO profile in Google Admin Console, prepare Workspace users, and register meet logins
+description: Create a meet workspace, configure the Legacy SSO profile in Google Admin Console, create and sign in to the bot accounts, then assign the SSO profile and register meet logins
 icon: Settings
 ---
 
@@ -27,8 +27,9 @@ Either way, the SSO profile must target the bot accounts exclusively.
 
 <Steps>
 <Step>Create a **meet workspace** (holds the SAML certificate + key).</Step>
-<Step>Upload the certificate and configure the **Legacy SSO profile** in Google Admin Console.</Step>
-<Step>Create the **Google Workspace users** the bots will sign in as, and complete their first interactive login.</Step>
+<Step>Upload the certificate and configure the **Legacy SSO profile** in Google Admin Console — without assigning it yet.</Step>
+<Step>Create the **Google Workspace users** the bots will sign in as, and sign in to each one to complete the **"Welcome to Workspace"** flow.</Step>
+<Step>**Assign** the Legacy SSO profile to the bot group/OU — only after those accounts have completed their welcome flow.</Step>
 <Step>Register a **meet login** for each user.</Step>
 </Steps>
 
@@ -145,11 +146,35 @@ On the **Legacy SSO profile** page, fill in the following and **Save**:
 These `/v2/meet-sso/*` URLs are SAML endpoints that Google calls during sign-in — you configure them in Google, you never call them yourself. The certificate you upload here must always match the one stored on the workspace. If you [rotate the keypair](#rotating-the-keypair), upload the new certificate at the same time.
 </Callout>
 </Step>
+</Steps>
 
-<Step>
-### Assign the profile to your bot group (or OU) only
+<Callout type="warn">
+**Do not assign the profile to your bot accounts yet.** As soon as the Legacy SSO profile covers an account, Google stops accepting its password and redirects sign-in to Meeting BaaS — which means you can no longer complete that account's first-run setup by hand. Create the bot accounts and finish their welcome flow first ([Step 3](#step-3--create-the-bot-accounts-and-complete-the-welcome-flow)), then come back and assign the profile in [Step 4](#step-4--assign-the-sso-profile-to-your-bot-group-or-ou-only).
+</Callout>
 
-Open **Manage SSO profile assignments**. Under **Groups**, pick the group that contains your bot accounts (for example `bots@bots.acme.com`) — or choose the bot **organizational unit**. A new scope starts with **Select SSO profile: None**.
+## Step 3 — Create the bot accounts and complete the welcome flow
+
+Do this **before** assigning the SSO profile in [Step 4](#step-4--assign-the-sso-profile-to-your-bot-group-or-ou-only). For **each** Google account the bots will sign in as:
+
+1. Create the user in Google Admin Console (for example `bot1@bots.acme.com`) and note the temporary password.
+2. **Sign in to that account yourself, in a browser, using that password**, and complete the entire **"Welcome to Workspace"** first-run flow — accept the terms, set a new password if prompted, and dismiss the onboarding screens until you land on a normal signed-in Google page. A freshly created account that has never been signed into interactively cannot be used programmatically: the meet login flips to `invalid` on first use.
+3. Set the account language to **English (United States)** to ensure the sign-in and Meet UIs are in the expected state.
+
+<Callout type="warn">
+**Order matters.** Once the Legacy SSO profile is assigned to the account's group/OU, Google redirects its sign-in to Meeting BaaS and the account password no longer works — so the welcome flow can no longer be completed interactively. If you have already assigned the profile, temporarily move the account out of the SSO scope (or set that scope's **Select SSO profile** back to **None**), complete the welcome flow, then assign the profile again.
+</Callout>
+
+<Callout type="tip">
+Create a **Google Group** (for example `bots@bots.acme.com`) and add the bot users as members. Putting this group on a calendar invite lets the assigned bot land in Meet's **verified queue** and bypass the waiting room. You'll reference this group as `email_group` in Step 5.
+</Callout>
+
+## Step 4 — Assign the SSO profile to your bot group (or OU) only
+
+<Callout type="warn">
+Only do this once **every** bot account from [Step 3](#step-3--create-the-bot-accounts-and-complete-the-welcome-flow) has been signed into and has completed its **"Welcome to Workspace"** flow. Assigning the profile first locks you out of the interactive sign-in needed to finish that flow.
+</Callout>
+
+Back in **Security → Authentication → SSO with third party IdP**, open **Manage SSO profile assignments**. Under **Groups**, pick the group that contains your bot accounts (for example `bots@bots.acme.com`) — or choose the bot **organizational unit**. A new scope starts with **Select SSO profile: None**.
 
 <ImageZoom
   src={'/assets/meet-sso/4-assign-select-group.png'}
@@ -172,23 +197,8 @@ Set **Select SSO profile** to **Legacy SSO profile**, then click **Override** (o
 <Callout type="warn">
 Assign the profile to the bot group/OU **only**. Never assign it to a scope that contains real users, or they will be redirected through the bot IdP. Changes take a few minutes to take effect.
 </Callout>
-</Step>
 
-</Steps>
-
-## Step 3 — Prepare the Workspace users
-
-For **each** Google account the bots will sign in as:
-
-1. Create the user in Google Admin Console (for example `bot1@bots.acme.com`).
-2. Sign in to that account once interactively and complete the **"Welcome to Workspace"** flow. This first-time interactive login is required before the account can be used programmatically — skipping it causes the login to flip to `invalid` on first use.
-3. Set the account language to **English (United States)** to ensure the sign-in and Meet UIs are in the expected state.
-
-<Callout type="tip">
-Create a **Google Group** (for example `bots@bots.acme.com`) and add the bot users as members. Putting this group on a calendar invite lets the assigned bot land in Meet's **verified queue** and bypass the waiting room. You'll reference this group as `email_group` in Step 4.
-</Callout>
-
-## Step 4 — Register a meet login per user
+## Step 5 — Register a meet login per user
 
 Create one meet login for each Workspace user, referencing the `workspace_id` from Step 1.
 
@@ -230,7 +240,7 @@ Rotate a workspace's certificate and key by sending **both** `cert_pem` and `pri
 
 ### Re-enabling an invalid resource
 
-When a workspace or login flips to `invalid`, fix the underlying cause (re-upload a matching cert, complete a user's interactive login, un-suspend the account), then re-enable it with a `PATCH` (`PATCH /v2/meet-workspaces/{workspace_id}` or `PATCH /v2/meet-logins/{credential_id}`). Check `last_error_message` for the reason.
+When a workspace or login flips to `invalid`, fix the underlying cause (re-upload a matching cert, complete a user's interactive "Welcome to Workspace" login — temporarily removing it from the SSO scope if needed, un-suspend the account), then re-enable it with a `PATCH` (`PATCH /v2/meet-workspaces/{workspace_id}` or `PATCH /v2/meet-logins/{credential_id}`). Check `last_error_message` for the reason.
 
 ### Deleting a workspace
 
