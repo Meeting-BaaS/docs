@@ -1,12 +1,12 @@
 {
   "pages": [
-    "api",
     "api-v2",
     "typescript-sdk",
     "mcp-servers",
     "speaking-bots",
-    "transcript-seeker",
     "self-hosting",
-    "bring-your-own-storage"
+    "bring-your-own-storage",
+    "api",
+    "!transcript-seeker"
   ]
 }

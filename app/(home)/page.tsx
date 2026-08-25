@@ -1,127 +1,230 @@
+import { LogoMark, Mascot } from '@/components/brand';
+import { Stagger } from '@/components/motion';
 import { cn } from '@/lib/cn';
-import { BotIcon, CaptionsIcon, Server, ServerCog, Settings, WebhookIcon } from 'lucide-react';
-import type { LinkProps } from 'next/link';
+import {
+  ArrowRight,
+  BotIcon,
+  HardDriveIcon,
+  Server,
+  ServerCog,
+  Settings,
+  WebhookIcon,
+} from 'lucide-react';
 import Link from 'next/link';
+import type { ReactNode } from 'react';
+
+interface Area {
+  href: string;
+  slug: string;
+  title: string;
+  body: string;
+  icon: ReactNode;
+  /** Promoted to a full-width accented card at the top of the grid. */
+  featured?: boolean;
+}
+
+const AREAS: Area[] = [
+  {
+    href: '/api-v2',
+    slug: 'api-v2',
+    title: 'Meeting BaaS API v2',
+    body: 'The current API. Send a bot, get the recording, transcript and participant timeline back on one webhook.',
+    icon: <WebhookIcon />,
+    featured: true,
+  },
+  {
+    href: '/typescript-sdk',
+    slug: 'typescript-sdk',
+    title: 'TypeScript SDK',
+    body: 'A typed client, generated from the same spec the API serves.',
+    icon: <Settings />,
+  },
+  {
+    href: '/mcp-servers',
+    slug: 'mcp-servers',
+    title: 'MCP Servers',
+    body: 'Give Claude, Cursor and other AI tools access to meeting data.',
+    icon: <ServerCog />,
+  },
+  {
+    href: '/speaking-bots',
+    slug: 'speaking-bots',
+    title: 'Speaking Bots',
+    body: 'AI agents that talk back, powered by Pipecat.',
+    icon: <BotIcon />,
+  },
+  {
+    href: '/self-hosting',
+    slug: 'self-hosting',
+    title: 'Self Hosting',
+    body: 'Run v2 on your own infrastructure.',
+    icon: <Server />,
+  },
+  {
+    href: '/bring-your-own-storage',
+    slug: 'bring-your-own-storage',
+    title: 'Bring Your Own Storage',
+    body: 'Point recordings at a bucket you control.',
+    icon: <HardDriveIcon />,
+  },
+  {
+    href: '/api',
+    slug: 'api',
+    title: 'Meeting BaaS API v1 (legacy)',
+    body: 'Reference and guides for the previous API. Still supported.',
+    icon: <WebhookIcon />,
+  },
+];
+
+const START_HERE = [
+  {
+    n: '01',
+    href: '/api-v2/getting-started/getting-the-data',
+    title: 'Send your first bot',
+    body: 'One POST with a meeting URL and a webhook.',
+  },
+  {
+    n: '02',
+    href: '/api-v2/webhooks',
+    title: 'Receive the data',
+    body: 'Recording, transcript and participant timeline.',
+  },
+  {
+    n: '03',
+    href: '/api-v2/reference',
+    title: 'Read the reference',
+    body: 'Every endpoint, parameter and error code.',
+  },
+];
 
 export default function DocsPage(): React.ReactElement {
   return (
-    <main className="container mx-auto flex flex-col py-16">
-      <h1 className="text-2xl font-semibold md:text-3xl">
-        Welcome to Meeting BaaS Documentation
-      </h1>
-      <p className="text-fd-muted-foreground mt-1 text-lg">
-        Meeting Bots as a Service - Deploy AI bots to your video meetings
-        through a unified API.
-      </p>
-      <div className="mt-8 grid grid-cols-1 gap-4 text-left md:grid-cols-2">
-        <Item href="/api">
-          <Icon className="api">
-            <WebhookIcon className="size-full" />
-          </Icon>
-          <h2 className="mb-2 text-lg font-semibold">Meeting BaaS API</h2>
-          <p className="text-fd-muted-foreground text-sm">
-            API Documentation and guides. Deploy AI bots to Zoom, Teams, and Google Meet meetings
-          </p>
-        </Item>
-
-        <Item href="/api-v2">
-          <Icon className="api-v2">
-            <WebhookIcon className="size-full" />
-          </Icon>
-          <h2 className="mb-2 text-lg font-semibold">Meeting BaaS API v2</h2>
-          <p className="text-fd-muted-foreground text-sm">
-            Next-generation API with enhanced features, better error handling, and comprehensive webhook documentation
-          </p>
-        </Item>
-
-        <Item href="/typescript-sdk">
-          <Icon className="typescript-sdk">
-            <Settings className="size-full" />
-          </Icon>
-          <h2 className="mb-2 text-lg font-semibold">TypeScript SDK</h2>
-          <p className="text-fd-muted-foreground text-sm">
-            Official TypeScript SDK for direct integration with the Meeting BaaS API
-          </p>
-        </Item>
-
-        <Item href="/mcp-servers">
-          <Icon className="mcp-servers">
-            <ServerCog className="size-full" />
-          </Icon>
-          <h2 className="mb-2 text-lg font-semibold">MCP Servers</h2>
-          <p className="text-fd-muted-foreground text-sm">
-            Model Context Protocol servers for AI integration with Meeting BaaS services
-          </p>
-        </Item>
-
-        <Item href="/speaking-bots">
-          <Icon className="speaking-bots">
-            <BotIcon className="size-full" />
-          </Icon>
-          <h2 className="mb-2 text-lg font-semibold">Speaking Bots</h2>
-          <p className="text-fd-muted-foreground text-sm">
-            AI-powered speaking agents for Google Meet, Microsoft Teams and Zoom, powered by Pipecat
-          </p>
-        </Item>
-
-        <Item href="/transcript-seeker">
-          <Icon className="transcript-seeker">
-            <CaptionsIcon className="size-full" />
-          </Icon>
-          <h2 className="mb-2 text-lg font-semibold">Transcript Seeker</h2>
-          <p className="text-fd-muted-foreground text-sm">
-            Open-source platform for uploading, transcribing, and interacting with meeting recordings
-          </p>
-        </Item>
-
-        <Item href="/self-hosting">
-          <Icon className="self-hosting">
-            <Server className="size-full" />
-          </Icon>
-          <h2 className="mb-2 text-lg font-semibold">Self Hosting</h2>
-          <p className="text-fd-muted-foreground text-sm">
-            Deploy Meeting BaaS v2 in your own infrastructure with full control
-          </p>
-        </Item>
+    <main className="relative isolate flex flex-col overflow-hidden">
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 -z-10"
+      >
+        <div className="bg-blueprint mask-fade-top absolute inset-0 h-[26rem]" />
+        <div
+          className="absolute inset-x-0 top-0 h-56"
+          style={{
+            background:
+              'radial-gradient(55% 100% at 50% 0%, var(--blueprint-wash) 0%, transparent 70%)',
+          }}
+        />
       </div>
+
+      <section className="mx-auto w-full max-w-6xl px-4 pt-14 pb-12 sm:px-6 md:pt-16 lg:px-8">
+        <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_auto]">
+          <div className="max-w-2xl">
+            <div className="doc-enter-1 flex items-center gap-2.5">
+              <LogoMark className="size-5" />
+              <p className="meta">Documentation</p>
+            </div>
+
+            <h1 className="doc-enter-2 text-gradient mt-5 text-4xl leading-[1.08] font-semibold tracking-[-0.03em] text-balance">
+              Everything you need to put a bot in a meeting
+            </h1>
+
+            <p className="doc-enter-3 text-fd-muted-foreground mt-4 max-w-xl leading-relaxed text-pretty">
+              One API across Zoom, Google Meet and Microsoft Teams.
+            </p>
+
+            {/* A docs-only affordance, so the page reads as documentation
+                rather than as a second marketing hero. */}
+            <p className="doc-enter-3 text-fd-muted-foreground mt-5 text-[13.5px]">
+              Press{' '}
+              <kbd className="border-hairline bg-fd-muted rounded border px-1.5 py-0.5 font-mono text-[11px]">
+                &#8984;K
+              </kbd>{' '}
+              to search, or ask the AI anything about these docs.
+            </p>
+          </div>
+
+          {/* Bass, the same mascot the marketing site uses. */}
+          <div className="hidden justify-self-end lg:block">
+            <Mascot className="w-[21rem] xl:w-[25rem]" />
+          </div>
+        </div>
+
+        <Stagger className="mt-10 grid gap-3 md:grid-cols-3">
+          {START_HERE.map((step) => (
+            <Link
+              key={step.n}
+              href={step.href}
+              className="group border-hairline bg-fd-card hover:bg-fd-accent/50 relative isolate flex flex-col overflow-hidden rounded-lg border p-5 transition-colors duration-200"
+            >
+              <span
+                aria-hidden="true"
+                className="bg-fd-primary pointer-events-none absolute inset-y-0 left-0 w-0.5 origin-center scale-y-0 transition-transform duration-200 ease-[var(--ease-docs)] group-hover:scale-y-100"
+              />
+              <span className="meta text-fd-primary">{step.n}</span>
+              <span className="mt-2.5 flex items-center gap-1.5 text-[15px] font-medium tracking-tight">
+                {step.title}
+                <ArrowRight className="text-fd-muted-foreground size-3.5 opacity-0 transition-all duration-200 ease-[var(--ease-docs)] group-hover:translate-x-0.5 group-hover:opacity-100" />
+              </span>
+              <span className="text-fd-muted-foreground mt-1 text-[13.5px] leading-relaxed">
+                {step.body}
+              </span>
+            </Link>
+          ))}
+        </Stagger>
+      </section>
+
+      <section className="mx-auto w-full max-w-6xl px-4 pb-20 sm:px-6 lg:px-8">
+        <Stagger className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {AREAS.map((area) => (
+            <Link
+              key={area.href}
+              href={area.href}
+              className={cn(
+                area.slug,
+                'group border-hairline bg-fd-card hover:bg-fd-accent/50 relative isolate flex flex-col overflow-hidden rounded-lg border p-5 transition-colors duration-200',
+                // v2 is what we want people to read. It takes the full first
+                // row and carries the accent, so the eye lands on it before it
+                // reaches the legacy API sitting next to it.
+                area.featured &&
+                  'border-fd-primary/35 bg-fd-primary/[0.06] hover:bg-fd-primary/10 sm:col-span-2 lg:col-span-3',
+              )}
+            >
+              <span
+                aria-hidden="true"
+                className="bg-fd-primary pointer-events-none absolute inset-y-0 left-0 w-0.5 origin-center scale-y-0 transition-transform duration-200 ease-[var(--ease-docs)] group-hover:scale-y-100"
+              />
+              {area.featured && (
+                <span className="meta text-fd-primary mb-2">Start here</span>
+              )}
+              <span className="flex items-center gap-2">
+                <span
+                  className={cn(
+                    'text-fd-primary shrink-0',
+                    area.featured ? '[&_svg]:size-5' : '[&_svg]:size-4',
+                  )}
+                >
+                  {area.icon}
+                </span>
+                <span
+                  className={cn(
+                    'font-medium tracking-tight',
+                    area.featured ? 'text-[17px]' : 'text-[15px]',
+                  )}
+                >
+                  {area.title}
+                </span>
+                <ArrowRight className="text-fd-muted-foreground size-3.5 shrink-0 opacity-0 transition-all duration-200 ease-[var(--ease-docs)] group-hover:translate-x-0.5 group-hover:opacity-100" />
+              </span>
+              <span
+                className={cn(
+                  'text-fd-muted-foreground mt-1.5 leading-relaxed',
+                  area.featured ? 'max-w-2xl text-sm' : 'text-[13.5px]',
+                )}
+              >
+                {area.body}
+              </span>
+            </Link>
+          ))}
+        </Stagger>
+      </section>
     </main>
-  );
-}
-
-function Icon({
-  className,
-  children,
-}: {
-  className?: string;
-  children: React.ReactNode;
-}): React.ReactElement {
-  return (
-    <div
-      className={cn(
-        'shadow-fd-primary/30 mb-2 size-9 rounded-lg border p-1.5',
-        className,
-      )}
-      style={{
-        boxShadow: 'inset 0px 8px 8px 0px var(--tw-shadow-color)',
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-function Item(
-  props: LinkProps & { className?: string; children: React.ReactNode },
-): React.ReactElement {
-  return (
-    <Link
-      {...props}
-      className={cn(
-        'border-border hover:bg-fd-accent bg-fd-accent/30 rounded-lg border p-6 shadow-xs transition-all',
-        props.className,
-      )}
-    >
-      {props.children}
-    </Link>
   );
 }

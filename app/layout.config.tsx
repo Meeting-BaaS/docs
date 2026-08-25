@@ -1,26 +1,14 @@
-import Logo from '@/public/logo.png';
+import { LogoMark } from '@/components/brand';
 import type { BaseLayoutProps, LinkItemType } from 'fumadocs-ui/layouts/shared';
-import Image from 'next/image';
 
 export const logo = (
-  <>
-    <Image
-      alt="Meeting BaaS"
-      src={Logo}
-      sizes="100px"
-      className="size-4 in-[header]:size-5"
-      aria-label="Meeting BaaS"
-    />
-  </>
+  <LogoMark
+    className="size-5 shrink-0 in-[header]:size-6"
+    aria-label="Meeting BaaS"
+  />
 );
 
 export const linkItems: LinkItemType[] = [
-  // {
-  //   icon: <AlbumIcon />,
-  //   text: 'Blog',
-  //   url: '/blog',
-  //   active: 'nested-url',
-  // },
   {
     type: 'icon',
     url: 'https://github.com/Meeting-Baas',
@@ -35,18 +23,17 @@ export const linkItems: LinkItemType[] = [
 ];
 
 /**
- * Shared layout configurations
+ * Shared layout configuration.
  *
- * you can configure layouts individually from:
- * Home Layout: app/(home)/layout.tsx
- * Docs Layout: app/docs/layout.tsx
+ * Home layout: app/(home)/layout.tsx
+ * Docs layout: app/docs/layout.tsx
  */
 export const baseOptions: BaseLayoutProps = {
   nav: {
     title: (
       <>
         {logo}
-        <span className="font-medium in-[header]:text-[15px]">
+        <span className="font-semibold tracking-tight in-[header]:text-[15px]">
           Meeting BaaS
         </span>
       </>

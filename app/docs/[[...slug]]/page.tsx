@@ -1,10 +1,15 @@
 import { File, Files, Folder } from '@/components/fumadocs/files';
 import { ServiceIcon } from '@/components/ui/service-icon';
-import { ServiceCardSSR, ServicesCompactSSR, ServicesListSSR } from '@/components/ui/services-list-ssr';
+import {
+  ServiceCardSSR,
+  ServicesCompactSSR,
+  ServicesListSSR,
+} from '@/components/ui/services-list-ssr';
 import { owner, repo } from '@/lib/github';
 import { createMetadata } from '@/lib/metadata';
 import { metadataImage } from '@/lib/metadata-image';
 import { openapi, source } from '@/lib/source';
+import { cn } from '@/lib/cn';
 import { useMDXComponents } from '@/mdx-components';
 import { Popup, PopupContent, PopupTrigger } from 'fumadocs-twoslash/ui';
 import { createGenerator } from 'fumadocs-typescript';
@@ -19,28 +24,43 @@ import {
   DocsBody,
   DocsDescription,
   DocsPage,
-  DocsTitle
+  DocsTitle,
 } from 'fumadocs-ui/page';
 import { Card, Cards } from 'fumadocs-ui/components/card';
 import type { MDXComponents } from 'mdx/types';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import {
-  type ComponentProps,
-  type FC,
-  type ReactElement
-} from 'react';
+import { type ComponentProps, type FC, type ReactElement } from 'react';
 import type { Page } from '@/lib/source';
 
 const generator = createGenerator();
 
+const SECTION_LABELS: Record<string, string> = {
+  api: 'API v1 (legacy)',
+  'api-v2': 'API v2',
+  'typescript-sdk': 'TypeScript SDK',
+  'mcp-servers': 'MCP Servers',
+  'speaking-bots': 'Speaking Bots',
+  'transcript-seeker': 'Transcript Seeker',
+  'self-hosting': 'Self Hosting',
+  'bring-your-own-storage': 'Bring Your Own Storage',
+};
+
+function sectionLabel(slug: string): string {
+  return SECTION_LABELS[slug] ?? slug.replace(/-/g, ' ') ?? 'Docs';
+}
+
 // Replacement for removed DocsCategory component
 function CategoryCards({ page, from }: { page: Page; from: typeof source }) {
   const pagePath = page.url;
-  const pageDir = pagePath.includes('/') ? pagePath.substring(0, pagePath.lastIndexOf('/')) : '';
+  const pageDir = pagePath.includes('/')
+    ? pagePath.substring(0, pagePath.lastIndexOf('/'))
+    : '';
 
   const pages = from.getPages().filter((p) => {
-    const pDir = p.url.includes('/') ? p.url.substring(0, p.url.lastIndexOf('/')) : '';
+    const pDir = p.url.includes('/')
+      ? p.url.substring(0, p.url.lastIndexOf('/'))
+      : '';
     return pDir === pageDir && p.url !== pagePath;
   });
 
@@ -75,9 +95,6 @@ export default async function Page(props: {
 
   // Service property should now be directly accessible from the schema
   const serviceKey = page.data.service;
-
-  // Get the current slug to check if this is the updates page
-  const isUpdatesPage = params.slug && params.slug.length === 1 && params.slug[0] === 'updates';
 
   // Use useMDXComponents and merge with page-specific components
   const mdxComponents = useMDXComponents({
@@ -115,10 +132,15 @@ export default async function Page(props: {
     ServiceCardSSR,
     ServiceCard: ServiceCardSSR,
     ServiceIcon,
-    ...(await import(
-      '@/content/docs/api/community-and-support.client'
-    )),
+    ...(await import('@/content/docs/api/community-and-support.client')),
   });
+
+  // The top-level content folder drives the section accent (see globals.css)
+  const section = params.slug?.[0] ?? '';
+  // HTTP verb, present when the page was generated from the OpenAPI spec
+  const method = (page.data as { _openapi?: { method?: string } })._openapi
+    ?.method;
+  const isReference = Boolean(method) || Boolean(page.data.full);
 
   return (
     <DocsPage
@@ -136,17 +158,35 @@ export default async function Page(props: {
         path,
       }}
     >
-      <DocsTitle>
-        {serviceKey && (
-          <ServiceIcon
-            serviceKey={serviceKey}
-            className="inline-block mr-2 h-6 w-6"
-          />
+      <div
+        className={cn(
+          section,
+          'doc-enter-1 mb-1',
+          method ? 'endpoint-head' : 'spine-accent',
         )}
-        {page.data.title}
-      </DocsTitle>
-      <DocsDescription>{page.data.description}</DocsDescription>
-      <DocsBody className="text-fd-foreground/80">
+      >
+        <p className="meta mb-2 flex items-center gap-2">
+          {serviceKey && (
+            <ServiceIcon serviceKey={serviceKey} className="size-3.5" />
+          )}
+          <span>{sectionLabel(section)}</span>
+          {method && (
+            <>
+              <span className="text-fd-muted-foreground/50">/</span>
+              <span className="endpoint-verb">{method}</span>
+            </>
+          )}
+        </p>
+        <DocsTitle className="text-3xl tracking-[-0.025em]">
+          {page.data.title}
+        </DocsTitle>
+      </div>
+
+      <DocsDescription className="doc-enter-2 mb-8 text-[15px] leading-relaxed">
+        {page.data.description}
+      </DocsDescription>
+
+      <DocsBody className={cn('doc-enter-3', isReference && 'api-reference')}>
         <Mdx components={mdxComponents} />
         {page.data.index ? <CategoryCards page={page} from={source} /> : null}
       </DocsBody>
