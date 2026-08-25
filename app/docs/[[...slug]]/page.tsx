@@ -36,7 +36,7 @@ import type { Page } from '@/lib/source';
 const generator = createGenerator();
 
 const SECTION_LABELS: Record<string, string> = {
-  api: 'API v1',
+  api: 'API v1 (legacy)',
   'api-v2': 'API v2',
   'typescript-sdk': 'TypeScript SDK',
   'mcp-servers': 'MCP Servers',
