@@ -398,6 +398,41 @@
     );
   }
 
+  /* fumadocs-openapi sticks the request/response panel at
+     `calc(var(--fd-docs-row-1, 2rem) + 1rem)`. In the notebook layout that
+     variable resolves to 0, so the panel pins itself 16px from the top of the
+     viewport — underneath a 96px header — and its first ~80px (the method, the
+     URL, the start of the curl) is never visible while scrolling.
+     The variable cannot just be redefined: the header itself sticks at
+     `top-(--fd-docs-row-1)` and would drop down with it. So the offset is
+     corrected on the panel alone. */
+  .api-reference [class*='4xl:sticky'] {
+    top: 7rem;
+  }
+
+  /* The request/response panel is a flat `@4xl:w-[400px]`, which truncates the
+     endpoint URL mid-word and cuts ids out of the sample response. Let it grow
+     with the viewport, with a floor so it never collapses and a ceiling so the
+     parameter column keeps a readable measure. */
+  .api-reference [class*='4xl:w-[400px]'] {
+    width: clamp(400px, 34vw, 620px);
+  }
+
+  /* The sticky header is `bg-fd-background/80`, so page content ghosts through
+     it while scrolling. It sits above the page, so it is opaque always —
+     unconditional rather than `:not([data-transparent='true'])`, which leaves a
+     see-through window before hydration sets that attribute. */
+  #nd-subnav,
+  #nd-subnav[data-transparent='true'] {
+    background-color: var(--color-fd-background);
+  }
+
+  /* Reference fields are anchor targets; without this, jumping to one parks it
+     under the header. */
+  html {
+    scroll-padding-top: 7.5rem;
+  }
+
   .text-gradient {
     /* `background-image`, never the `background` shorthand: the production CSS
        minifier folds an adjacent `background-clip` into the shorthand, and the
