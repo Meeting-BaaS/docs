@@ -44,7 +44,6 @@ const SECTION_LABELS: Record<string, string> = {
   'transcript-seeker': 'Transcript Seeker',
   'self-hosting': 'Self Hosting',
   'bring-your-own-storage': 'Bring Your Own Storage',
-  updates: 'Updates',
 };
 
 function sectionLabel(slug: string): string {
@@ -96,10 +95,6 @@ export default async function Page(props: {
 
   // Service property should now be directly accessible from the schema
   const serviceKey = page.data.service;
-
-  // Get the current slug to check if this is the updates page
-  const isUpdatesPage =
-    params.slug && params.slug.length === 1 && params.slug[0] === 'updates';
 
   // Use useMDXComponents and merge with page-specific components
   const mdxComponents = useMDXComponents({

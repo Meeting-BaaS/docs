@@ -6,7 +6,6 @@ import {
   BotIcon,
   CaptionsIcon,
   HardDriveIcon,
-  MonitorUpIcon,
   Server,
   ServerCog,
   Settings,
@@ -79,13 +78,6 @@ const AREAS: Area[] = [
     title: 'Bring Your Own Storage',
     body: 'Point recordings at a bucket you control.',
     icon: <HardDriveIcon />,
-  },
-  {
-    href: '/docs/updates',
-    slug: 'updates',
-    title: 'Updates',
-    body: 'Release notes across the API, SDKs and bots.',
-    icon: <MonitorUpIcon />,
   },
 ];
 

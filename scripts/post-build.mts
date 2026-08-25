@@ -1,12 +1,10 @@
 import { run as generateLLMContent } from './generate-llm-content.mjs';
-import { generateAllUpdates } from './updates/generate-updates.mjs';
 
 async function postBuild() {
   try {
     console.log('Running post-build tasks...');
 
     await generateLLMContent();
-    await generateAllUpdates();
 
     console.log('Post-build tasks completed successfully');
   } catch (error) {
