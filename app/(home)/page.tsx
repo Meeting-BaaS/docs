@@ -33,13 +33,6 @@ const AREAS: Area[] = [
     featured: true,
   },
   {
-    href: '/api',
-    slug: 'api',
-    title: 'Meeting BaaS API v1 (legacy)',
-    body: 'Reference and guides for the previous API. Still supported.',
-    icon: <WebhookIcon />,
-  },
-  {
     href: '/typescript-sdk',
     slug: 'typescript-sdk',
     title: 'TypeScript SDK',
@@ -73,6 +66,13 @@ const AREAS: Area[] = [
     title: 'Bring Your Own Storage',
     body: 'Point recordings at a bucket you control.',
     icon: <HardDriveIcon />,
+  },
+  {
+    href: '/api',
+    slug: 'api',
+    title: 'Meeting BaaS API v1 (legacy)',
+    body: 'Reference and guides for the previous API. Still supported.',
+    icon: <WebhookIcon />,
   },
 ];
 

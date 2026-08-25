@@ -5,6 +5,9 @@ import { DocsLayout, type DocsLayoutProps } from 'fumadocs-ui/layouts/notebook';
 import 'katex/dist/katex.min.css';
 import type { ReactNode } from 'react';
 
+/** Sections that keep their pages but no longer earn a top-level tab. */
+const HIDDEN_TABS = new Set(['transcript-seeker']);
+
 const docsOptions: DocsLayoutProps = {
   ...baseOptions,
   tree: source.pageTree,
@@ -14,9 +17,15 @@ const docsOptions: DocsLayoutProps = {
         const meta = source.getNodeMeta(node);
         if (!meta) return option;
 
+        // Tabs are auto-collected from every folder marked `root: true`, so
+        // dropping a section from content/docs/meta.json does not hide it —
+        // returning a falsy option here does. The content and its own sidebar
+        // are untouched, so /transcript-seeker still works as a direct link.
+        const dirname = meta.path.split('/')[0] ?? '';
+        if (HIDDEN_TABS.has(dirname)) return null;
+
         // Each top-level content folder carries its own accent, defined as
         // --<folder>-color in globals.css.
-        const dirname = meta.path.split('/')[0] ?? '';
         const color = `var(--${dirname}-color, var(--color-fd-foreground))`;
 
         return {
