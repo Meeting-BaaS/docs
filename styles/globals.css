@@ -399,7 +399,12 @@
   }
 
   .text-gradient {
-    background: linear-gradient(
+    /* `background-image`, never the `background` shorthand: the production CSS
+       minifier folds an adjacent `background-clip` into the shorthand, and the
+       shorthand resets clip to border-box. The gradient then fills the box
+       while `color: transparent` still applies, so the heading renders as a
+       solid bar. Only reproduces in a production build. */
+    background-image: linear-gradient(
       180deg,
       var(--color-fd-foreground) 0%,
       color-mix(in oklab, var(--color-fd-foreground) 62%, transparent) 100%
