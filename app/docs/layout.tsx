@@ -14,6 +14,8 @@ const docsOptions: DocsLayoutProps = {
         const meta = source.getNodeMeta(node);
         if (!meta) return option;
 
+        // Each top-level content folder carries its own accent, defined as
+        // --<folder>-color in globals.css.
         const dirname = meta.path.split('/')[0] ?? '';
         const color = `var(--${dirname}-color, var(--color-fd-foreground))`;
 
@@ -21,12 +23,12 @@ const docsOptions: DocsLayoutProps = {
           ...option,
           icon: (
             <div
-              className="rounded-md p-1 shadow-lg ring-2 [&_svg]:size-5"
+              className="rounded-lg border p-1 transition-colors duration-300 [&_svg]:size-5"
               style={
                 {
                   color,
-                  border: `1px solid color-mix(in oklab, ${color} 50%, transparent)`,
-                  '--tw-ring-color': `color-mix(in oklab, ${color} 20%, transparent)`,
+                  borderColor: `color-mix(in oklab, ${color} 30%, transparent)`,
+                  backgroundColor: `color-mix(in oklab, ${color} 10%, transparent)`,
                 } as object
               }
             >
