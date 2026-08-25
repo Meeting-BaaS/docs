@@ -13,19 +13,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ==========================================================================
+   Meeting BaaS — Docs
+   Shares the landing site's token set 1:1 so the two properties read as one
+   product. Values here are duplicated rather than imported because the two
+   apps ship separately; keep them in sync.
+   ========================================================================== */
+
 @theme {
-  @keyframes stroke {
-    from {
-      stroke-dasharray: 1000;
-    }
-
-    to {
-      stroke-dasharray: 1000;
-      stroke-dashoffset: 2000;
-    }
-  }
-
-  --animate-stroke: stroke 5s linear infinite;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
@@ -38,6 +33,107 @@
     to bottom right,
     var(--tw-gradient-stops)
   );
+
+  /* Motion tokens — identical to the landing site */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  /* Docs motion is deliberately quicker and flatter than the marketing site:
+     this is an instrument, and instruments respond immediately. */
+  --ease-docs: cubic-bezier(0.2, 0, 0, 1);
+  --dur-1: 140ms;
+  --dur-2: 200ms;
+  --dur-3: 320ms;
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+
+  --animate-stroke: stroke 5s linear infinite;
+  --animate-drift: drift 22s ease-in-out infinite;
+  --animate-rise: rise 0.6s var(--ease-out-expo) both;
+  --animate-swim-1: swim 2.6s ease-in-out infinite alternate;
+  --animate-swim-2: swim 2.6s 0.12s ease-in-out infinite alternate;
+  --animate-swim-3: swim 2.6s 0.24s ease-in-out infinite alternate;
+  --animate-swim-4: swim 2.6s 0.36s ease-in-out infinite alternate;
+  --animate-blow: blow 3s ease-in-out infinite;
+  --animate-float: float 7s ease-in-out infinite;
+
+  /* Each logo slice undulates on its own phase, so the mark reads as swimming */
+}
+
+/* Keyframes live at the top level so Tailwind always emits them —
+   these are driven by inline styles and hand-written classes, which the
+   @theme tree-shaker cannot see. */
+
+@keyframes stroke {
+  from {
+    stroke-dasharray: 1000;
+  }
+  to {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 2000;
+  }
+}
+
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  33% {
+    transform: translate3d(3%, -4%, 0) scale(1.08);
+  }
+  66% {
+    transform: translate3d(-3%, 3%, 0) scale(0.96);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
+  }
+}
+
+@keyframes swim {
+  from {
+    transform: translateY(-0.9px);
+  }
+  to {
+    transform: translateY(0.9px);
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(-1.5deg);
+  }
+}
+
+@keyframes blow {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  25% {
+    transform: scale(1.15);
+    opacity: 0.9;
+  }
+  60% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0);
+    opacity: 0;
+  }
 }
 
 @theme {
@@ -68,56 +164,855 @@
   --color-border: var(--color-fd-border);
   --color-input: var(--color-fd-input);
   --color-ring: var(--color-fd-ring);
+
+  /* Shared surface scale */
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-hairline: var(--hairline);
+  --color-hairline-strong: var(--hairline-strong);
+  --color-baas-neutral-50: var(--baas-neutral-50);
+  --color-baas-black: var(--baas-black);
 }
 
 @layer base {
   :root {
-    --color-fd-background: hsl(300 50% 100%) !important;
-    --color-fd-primary: hsl(176 100% 43%) !important;
-    --color-fd-foreground: hsl(300 0% 4%) !important;
+    --color-fd-background: oklch(0.9915 0.0022 197.14) !important;
+    --color-fd-foreground: oklch(0.2478 0.0121 240.09) !important;
+    --color-fd-card: oklch(1 0 0) !important;
+    --color-fd-card-foreground: oklch(0.2478 0.0121 240.09) !important;
+    --color-fd-popover: oklch(1 0 0) !important;
+    --color-fd-popover-foreground: oklch(0.2478 0.0121 240.09) !important;
+    --color-fd-primary: oklch(0.6883 0.1204 186.32) !important;
+    --color-fd-primary-foreground: oklch(0.145 0.02 200) !important;
+    --color-fd-secondary: oklch(0.9762 0.0035 197.14) !important;
+    --color-fd-secondary-foreground: oklch(0.3211 0.0121 240.09) !important;
+    --color-fd-muted: oklch(0.9762 0.0035 197.14) !important;
+    --color-fd-muted-foreground: oklch(0.5285 0.0121 240.09) !important;
+    --color-fd-accent: oklch(0.9564 0.0045 197.14) !important;
+    --color-fd-accent-foreground: oklch(0.2478 0.0121 240.09) !important;
+    --color-fd-border: oklch(0.9042 0.0055 197.14) !important;
+    --color-fd-ring: oklch(0.6883 0.1204 186.32) !important;
 
-    --api-color: hsl(176 100% 43%);
-    --transcript-seeker-color: hsl(220deg 91% 54%);
-    --speaking-bots-color: hsl(250 80% 54%);
+    --surface: oklch(1 0 0);
+    --surface-2: oklch(0.9762 0.0035 197.14);
+    --surface-3: oklch(0.9564 0.0045 197.14);
+    --hairline: oklch(0.9042 0.0055 197.14);
+    --hairline-strong: oklch(0.8452 0.0075 197.14);
+
+    --grid-line: oklch(0.2478 0.0121 240.09 / 6%);
+    --glow-a: oklch(0.8 0.1406 186.32 / 0.2);
+    --glow-b: oklch(0.72 0.16 226 / 0.12);
+    --glow-c: oklch(0.78 0.15 150 / 0.1);
+
+    --baas-neutral-50: oklch(0.9781 0.0055 183.03);
+    --baas-black: oklch(0.1596 0.0055 220);
+
+    --shadow-sm:
+      0 1px 2px oklch(0.2478 0.0121 240.09 / 0.04),
+      0 2px 8px oklch(0.2478 0.0121 240.09 / 0.04);
+    --shadow-md:
+      0 2px 4px oklch(0.2478 0.0121 240.09 / 0.04),
+      0 8px 24px oklch(0.2478 0.0121 240.09 / 0.06);
+
+    /* Per-section accents, kept from the previous system */
+    --api-color: oklch(0.6883 0.1204 186.32);
+    --api-v2-color: oklch(0.6883 0.1204 186.32);
+    --typescript-sdk-color: oklch(0.58 0.16 253);
+    --mcp-servers-color: oklch(0.62 0.19 300);
+    --transcript-seeker-color: oklch(0.58 0.19 258);
+    --speaking-bots-color: oklch(0.58 0.2 292);
+    --self-hosting-color: oklch(0.64 0.14 158);
+    --bring-your-own-storage-color: oklch(0.68 0.15 62);
+    --updates-color: oklch(0.6 0.13 24);
   }
 
   .dark {
-    --color-fd-background: hsl(300 0% 4%) !important;
-    --color-fd-foreground: hsl(300 0% 98%) !important;
-    --color-fd-card: hsl(330 0% 9%) !important;
-    --color-fd-card-foreground: hsl(300 0% 98%) !important;
-    --color-fd-popover: hsl(330 0% 9%) !important;
-    --color-fd-popover-foreground: hsl(300 0% 98%) !important;
-    --color-fd-primary-foreground: hsl(213, 16%, 27%) !important;
-    --color-fd-secondary-foreground: hsl(0, 0%, 100%) !important;
-    --color-fd-muted: hsl(320 0% 15%) !important;
-    --color-fd-muted-foreground: hsl(0 0% 63%) !important;
-    --color-fd-border: hsl(300 50% 100% / 0.1) !important;
-    --color-fd-accent: hsl(320 0% 15%) !important;
-    --color-fd-accent-foreground: hsl(300 0% 98%) !important;
-    --color-fd-ring: hsl(197 100% 44%) !important;
+    --color-fd-background: oklch(0.1502 0.0102 250) !important;
+    --color-fd-foreground: oklch(0.9724 0.0032 250) !important;
+    --color-fd-card: oklch(0.1836 0.0118 250) !important;
+    --color-fd-card-foreground: oklch(0.9702 0.0025 220) !important;
+    --color-fd-popover: oklch(0.2154 0.013 250) !important;
+    --color-fd-popover-foreground: oklch(0.9702 0.0025 220) !important;
+    --color-fd-primary: oklch(0.8 0.140647 186.3213) !important;
+    --color-fd-primary-foreground: oklch(0.1502 0.0102 250) !important;
+    --color-fd-secondary: oklch(0.2154 0.013 250) !important;
+    --color-fd-secondary-foreground: oklch(0.9702 0.0025 220) !important;
+    --color-fd-muted: oklch(0.2154 0.013 250) !important;
+    --color-fd-muted-foreground: oklch(0.6912 0.0142 250) !important;
+    --color-fd-accent: oklch(0.2512 0.014 250) !important;
+    --color-fd-accent-foreground: oklch(0.9702 0.0025 220) !important;
+    --color-fd-border: oklch(1 0 0 / 8%) !important;
+    --color-fd-ring: oklch(0.8 0.140647 186.3213) !important;
 
-    --api-color: hsl(176 100% 43%);
-    --transcript-seeker-color: hsl(217deg 92% 76%);
-    --speaking-bots-color: hsl(250 100% 80%);
+    --surface: oklch(0.1836 0.0118 250);
+    --surface-2: oklch(0.2154 0.013 250);
+    --surface-3: oklch(0.2512 0.014 250);
+    --hairline: oklch(1 0 0 / 8%);
+    --hairline-strong: oklch(1 0 0 / 14%);
+
+    --grid-line: oklch(1 0 0 / 5%);
+    --glow-a: oklch(0.8 0.1406 186.32 / 0.2);
+    --glow-b: oklch(0.6 0.18 262 / 0.18);
+    --glow-c: oklch(0.7 0.15 160 / 0.12);
+
+    --shadow-sm: 0 1px 2px oklch(0 0 0 / 0.4), 0 2px 8px oklch(0 0 0 / 0.3);
+    --shadow-md: 0 2px 4px oklch(0 0 0 / 0.4), 0 8px 24px oklch(0 0 0 / 0.35);
+
+    --api-color: oklch(0.8 0.140647 186.3213);
+    --api-v2-color: oklch(0.8 0.140647 186.3213);
+    --typescript-sdk-color: oklch(0.74 0.13 253);
+    --mcp-servers-color: oklch(0.76 0.15 300);
+    --transcript-seeker-color: oklch(0.76 0.13 258);
+    --speaking-bots-color: oklch(0.76 0.15 292);
+    --self-hosting-color: oklch(0.78 0.13 158);
+    --bring-your-own-storage-color: oklch(0.8 0.13 72);
+    --updates-color: oklch(0.76 0.13 30);
   }
 }
 
 @layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
   body {
     overscroll-behavior-y: none;
     background-color: var(--color-fd-background);
   }
 
+  h1,
+  h2,
+  h3 {
+    letter-spacing: -0.022em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background-color: oklch(0.8 0.1406 186.32 / 0.28);
+    color: var(--color-fd-foreground);
+  }
+
+  /* Per-section primary accent, driven by the top-level content folder */
+  .api,
+  .api-v2,
+  .updates,
+  .typescript-sdk,
+  .mcp-servers,
+  .transcript-seeker,
+  .speaking-bots,
+  .self-hosting,
+  .bring-your-own-storage {
+    --color-fd-primary: var(--section-color) !important;
+  }
+
   .api {
-    --color-fd-primary: var(--api-color) !important;
+    --section-color: var(--api-color);
   }
-
+  .api-v2 {
+    --section-color: var(--api-v2-color);
+  }
+  .typescript-sdk {
+    --section-color: var(--typescript-sdk-color);
+  }
+  .mcp-servers {
+    --section-color: var(--mcp-servers-color);
+  }
   .transcript-seeker {
-    --color-fd-primary: var(--transcript-seeker-color) !important;
+    --section-color: var(--transcript-seeker-color);
+  }
+  .speaking-bots {
+    --section-color: var(--speaking-bots-color);
+  }
+  .self-hosting {
+    --section-color: var(--self-hosting-color);
+  }
+  .bring-your-own-storage {
+    --section-color: var(--bring-your-own-storage-color);
+  }
+  .updates {
+    --section-color: var(--updates-color);
+  }
+}
+
+@layer utilities {
+  .bg-grid {
+    background-size: 64px 64px;
+    background-image:
+      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
   }
 
-  .speaking-bots {
-    --color-fd-primary: var(--speaking-bots-color) !important;
+  .mask-fade-edges {
+    mask-image: radial-gradient(
+      ellipse 80% 70% at 50% 30%,
+      #000 40%,
+      transparent 100%
+    );
+  }
+
+  .aurora {
+    position: absolute;
+    inset: -20%;
+    pointer-events: none;
+    filter: blur(80px);
+    background:
+      radial-gradient(38% 44% at 22% 18%, var(--glow-a) 0%, transparent 70%),
+      radial-gradient(34% 40% at 78% 30%, var(--glow-b) 0%, transparent 70%),
+      radial-gradient(40% 46% at 55% 82%, var(--glow-c) 0%, transparent 70%);
+    animation: var(--animate-drift);
+  }
+
+  .edge-light {
+    position: relative;
+  }
+
+  .edge-light::before {
+    content: '';
+    position: absolute;
+    inset-inline: 12%;
+    top: 0;
+    height: 1px;
+    pointer-events: none;
+    background: linear-gradient(
+      to right,
+      transparent,
+      color-mix(in oklab, var(--color-fd-primary) 55%, transparent),
+      transparent
+    );
+  }
+
+  .rule-x {
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      var(--hairline-strong),
+      transparent
+    );
+  }
+
+  .text-gradient {
+    background: linear-gradient(
+      180deg,
+      var(--color-fd-foreground) 0%,
+      color-mix(in oklab, var(--color-fd-foreground) 62%, transparent) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Staggered entrance for the hub cards — CSS only, no JS on the docs side */
+  .rise {
+    animation: var(--animate-rise);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aurora,
+  .rise,
+  [class*='animate-swim'],
+  .animate-blow {
+    animation: none !important;
+  }
+}
+
+/* ==========================================================================
+   Docs surface — "blueprint"
+   The marketing site is lit and cinematic; the docs are a drafting surface.
+   Same palette and brand, different texture, density and motion character:
+   fine dot grid instead of drifting aurora, monospace metadata, crisper
+   geometry, and motion measured in 140–320ms rather than half-seconds.
+   ========================================================================== */
+
+@layer base {
+  :root {
+    --dot: oklch(0.2478 0.0121 240.09 / 0.16);
+    --blueprint-wash: oklch(0.8 0.1406 186.32 / 0.07);
+  }
+
+  .dark {
+    --dot: oklch(1 0 0 / 0.13);
+    --blueprint-wash: oklch(0.8 0.1406 186.32 / 0.06);
+  }
+}
+
+@layer utilities {
+  /* The docs backdrop. A dot lattice, not a line grid — it reads as graph
+     paper rather than as the landing page's architectural grid. */
+  .bg-blueprint {
+    background-image: radial-gradient(var(--dot) 1px, transparent 1px);
+    background-size: 22px 22px;
+    background-position: -1px -1px;
+  }
+
+  .mask-fade-top {
+    mask-image: linear-gradient(to bottom, #000 0%, #000 35%, transparent 100%);
+  }
+
+  /* Monospace metadata — the docs' loudest identity signal. */
+  .meta {
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 0.6875rem;
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--color-fd-muted-foreground);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Section spine: a hairline with an accent segment at the top, used down
+     the left edge of the page header. */
+  .spine-accent {
+    position: relative;
+    padding-left: 1.125rem;
+  }
+
+  .spine-accent::before {
+    content: '';
+    position: absolute;
+    inset-block: 0.15rem;
+    left: 0;
+    width: 2px;
+    border-radius: 1px;
+    background: linear-gradient(
+      to bottom,
+      var(--color-fd-primary),
+      color-mix(in oklab, var(--color-fd-primary) 10%, transparent)
+    );
+  }
+
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Motion
+   Every animation below is a compositor-only transform/opacity change, runs
+   once, and is disabled wholesale under prefers-reduced-motion.
+   -------------------------------------------------------------------------- */
+
+@keyframes doc-wipe-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    clip-path: inset(0 0 -10% 0);
+  }
+}
+
+@keyframes doc-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes doc-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes doc-scale-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@layer utilities {
+  /* Entrance sequence for a docs page: title wipes up, then description,
+     then the body. Three beats, 320ms total — quick enough to feel like
+     a response, slow enough to read as intentional. */
+  .doc-enter > * {
+    animation: doc-fade-up var(--dur-3) var(--ease-docs) both;
+  }
+
+  .doc-enter-1 {
+    animation: doc-wipe-up var(--dur-3) var(--ease-docs) both;
+  }
+
+  .doc-enter-2 {
+    animation: doc-fade-up var(--dur-3) var(--ease-docs) 60ms both;
+  }
+
+  .doc-enter-3 {
+    animation: doc-fade-up var(--dur-3) var(--ease-docs) 120ms both;
+  }
+
+  /* Scroll reveal, driven by the IntersectionObserver in components/motion. */
+  [data-reveal] {
+    opacity: 0;
+    transform: translateY(10px);
+    transition:
+      opacity var(--dur-3) var(--ease-docs),
+      transform var(--dur-3) var(--ease-docs);
+  }
+
+  [data-reveal='in'] {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Chrome: sidebar, TOC, navbar, links
+   -------------------------------------------------------------------------- */
+
+/* Sidebar items get an accent bar that scales in from the left rather than
+   a background swap — cheaper to animate and reads more precise. */
+#nd-sidebar a[data-active],
+#nd-sidebar a {
+  position: relative;
+  transition:
+    color var(--dur-2) var(--ease-docs),
+    background-color var(--dur-2) var(--ease-docs);
+}
+
+#nd-sidebar a::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.35rem;
+  bottom: 0.35rem;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--color-fd-primary);
+  transform: scaleY(0);
+  transform-origin: center;
+  transition: transform var(--dur-2) var(--ease-docs);
+}
+
+#nd-sidebar a[data-active='true']::before,
+#nd-sidebar a:hover::before {
+  transform: scaleY(1);
+}
+
+/* Table of contents */
+#nd-toc a,
+#nd-tocnav a {
+  transition: color var(--dur-1) var(--ease-docs);
+}
+
+/* Heading anchors: a monospace hash that slides in on hover. */
+.prose :is(h2, h3, h4) > a {
+  position: relative;
+  text-decoration: none !important;
+}
+
+.prose :is(h2, h3, h4) > a::before {
+  content: '#';
+  position: absolute;
+  left: -1.15em;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-weight: 400;
+  color: var(--color-fd-primary);
+  opacity: 0;
+  transform: translateX(4px);
+  transition:
+    opacity var(--dur-2) var(--ease-docs),
+    transform var(--dur-2) var(--ease-docs);
+}
+
+.prose :is(h2, h3, h4):hover > a::before {
+  opacity: 1;
+  transform: none;
+}
+
+/* Code blocks pick up an accent edge on hover. */
+.prose figure[data-rehype-pretty-code-figure],
+.prose pre {
+  position: relative;
+  transition: border-color var(--dur-2) var(--ease-docs);
+}
+
+.prose pre::before {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in oklab, var(--color-fd-primary) 60%, transparent),
+    transparent
+  );
+  opacity: 0;
+  transition: opacity var(--dur-2) var(--ease-docs);
+}
+
+.prose pre:hover::before {
+  opacity: 1;
+}
+
+/* Cards */
+.prose a[data-card] {
+  transition:
+    border-color var(--dur-2) var(--ease-docs),
+    background-color var(--dur-2) var(--ease-docs),
+    transform var(--dur-2) var(--ease-docs);
+}
+
+.prose a[data-card]:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in oklab, var(--color-fd-primary) 35%, transparent);
+}
+
+/* --------------------------------------------------------------------------
+   API reference
+   fumadocs-openapi renders semantic colours for HTTP methods; these rules
+   promote them into badges, panels and a proper endpoint bar without
+   hard-coding a colour per verb.
+   -------------------------------------------------------------------------- */
+
+.api-reference {
+  --api-radius: 0.5rem;
+}
+
+/* HTTP verb -> pill, tinted from whatever colour fumadocs assigned.
+   Scoped tightly to the endpoint bar and the sidebar: the same
+   `font-mono font-medium` classes are used for parameter names, and
+   uppercasing those turns `bot_name` into `BOT_NAME`, which is wrong —
+   they are literal field names and must render exactly as written. */
+.api-reference .rounded-xl.border.bg-fd-card > span.font-mono.font-medium,
+#nd-sidebar span.font-mono.font-medium {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 0.3rem;
+  border: 1px solid color-mix(in oklab, currentColor 32%, transparent);
+  background-color: color-mix(in oklab, currentColor 12%, transparent);
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  line-height: 1.4;
+}
+
+.api-reference .rounded-xl.border.bg-fd-card > span.font-mono.font-medium {
+  padding: 0.15rem 0.45rem;
+  font-size: 0.6563rem;
+}
+
+#nd-sidebar span.font-mono.font-medium {
+  padding: 0.05rem 0.3rem;
+  font-size: 0.5938rem;
+  letter-spacing: 0.06em;
+}
+
+/* Identifiers render exactly as written. `bot_name` is a field name, not a
+   label: nothing inside the reference body may be case-transformed. */
+.api-reference span,
+.api-reference code,
+.api-reference td,
+.api-reference h3,
+.api-reference h4 {
+  text-transform: none;
+}
+
+/* The endpoint bar: the most important object on the page, so it gets weight —
+   an accent edge, a tinted ground and a monospace path at a readable size. */
+.api-reference .rounded-xl.border.bg-fd-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--api-radius);
+  border-color: color-mix(
+    in oklab,
+    var(--color-fd-primary) 22%,
+    var(--hairline)
+  );
+  background-image: linear-gradient(
+    100deg,
+    color-mix(in oklab, var(--color-fd-primary) 7%, var(--surface-2)),
+    var(--surface-2) 55%
+  );
+  padding: 0.7rem 0.85rem;
+  transition:
+    border-color var(--dur-2) var(--ease-docs),
+    box-shadow var(--dur-2) var(--ease-docs);
+}
+
+.api-reference .rounded-xl.border.bg-fd-card::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 2px;
+  background: var(--color-fd-primary);
+}
+
+.api-reference .rounded-xl.border.bg-fd-card:hover {
+  border-color: color-mix(in oklab, var(--color-fd-primary) 45%, transparent);
+  box-shadow: 0 0 0 3px
+    color-mix(in oklab, var(--color-fd-primary) 8%, transparent);
+}
+
+.api-reference .rounded-xl.border.bg-fd-card > .flex-1 {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.8438rem;
+  color: var(--color-fd-foreground);
+}
+
+/* Each operation reads as its own card rather than as text separated by air. */
+.api-reference > .flex.flex-col.gap-24 {
+  gap: 0;
+}
+
+.api-reference > .flex.flex-col.gap-24 > * + * {
+  margin-top: 3rem;
+  padding-top: 3rem;
+  border-top: 1px solid var(--hairline);
+}
+
+/* Section headings inside an operation (Authorization, Request Body,
+   Responses) get a mono eyebrow treatment instead of prose headings. */
+.api-reference h2 {
+  margin-top: 2.5rem;
+  padding-top: 0;
+  border-top: 0;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--color-fd-muted-foreground);
+}
+
+.api-reference h3 {
+  font-size: 1rem;
+}
+
+/* Parameter and schema tables */
+.api-reference table {
+  font-size: 0.875rem;
+}
+
+.api-reference th {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.6875rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-fd-muted-foreground);
+}
+
+/* The sample / response column on the right reads as one instrument panel. */
+.api-reference [class*='@4xl:w-[400px]'] > * {
+  border-radius: var(--api-radius);
+}
+
+.api-reference pre {
+  font-size: 0.8125rem;
+}
+
+/* Inline parameter chips */
+.api-reference code:not(pre code) {
+  font-size: 0.8125em;
+}
+
+/* Field rows: a hairline ladder rather than loose paragraphs. */
+.api-reference .not-prose > .flex.flex-col > * + * {
+  border-top: 1px solid var(--hairline);
+  padding-top: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+/* The request playground reads as one instrument panel rather than a stack
+   of unrelated boxes. */
+.api-reference [class*='rounded-xl'][class*='border'] {
+  border-radius: var(--api-radius);
+}
+
+/* Inline parameter chips */
+.api-reference code:not(pre code) {
+  font-size: 0.8125em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .doc-enter > *,
+  .doc-enter-1,
+  .doc-enter-2,
+  .doc-enter-3 {
+    animation: none !important;
+  }
+
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+
+  #nd-sidebar a::before {
+    transition: none !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Route transitions
+   Navigating between docs pages cross-fades the body and lifts it 6px, so
+   moving through the reference feels continuous rather than like a reload.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (view-transition-name: none) {
+    ::view-transition-old(root) {
+      animation: doc-vt-out 120ms var(--ease-docs) both;
+    }
+
+    ::view-transition-new(root) {
+      animation: doc-vt-in 260ms var(--ease-docs) both;
+    }
+  }
+}
+
+@keyframes doc-vt-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes doc-vt-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Reference page header — an endpoint deserves more presence than a
+   prose heading, so it gets a tinted plate and a coloured verb. */
+.endpoint-head {
+  position: relative;
+  margin-bottom: 0.5rem;
+  border-radius: 0.5rem;
+  border: 1px solid
+    color-mix(in oklab, var(--color-fd-primary) 18%, var(--hairline));
+  background-image: linear-gradient(
+    120deg,
+    color-mix(in oklab, var(--color-fd-primary) 8%, var(--surface-2)),
+    transparent 65%
+  );
+  padding: 1rem 1.15rem 1.1rem;
+  overflow: hidden;
+}
+
+.endpoint-head::before {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: 3px;
+  background: linear-gradient(
+    to bottom,
+    var(--color-fd-primary),
+    color-mix(in oklab, var(--color-fd-primary) 20%, transparent)
+  );
+}
+
+.endpoint-verb {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 0.3rem;
+  border: 1px solid
+    color-mix(in oklab, var(--color-fd-primary) 35%, transparent);
+  background-color: color-mix(
+    in oklab,
+    var(--color-fd-primary) 14%,
+    transparent
+  );
+  padding: 0.1rem 0.4rem;
+  color: var(--color-fd-primary);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+/* Mascot motion — the CSS counterpart to the landing site's animated Bass. */
+@keyframes mascot-swim {
+  0%,
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(-1.6deg);
+  }
+}
+
+@keyframes mascot-bubble {
+  0% {
+    transform: translateY(0) scale(0.4);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(-150px) scale(1);
+    opacity: 0;
+  }
+}
+
+.mascot-lean {
+  translate: var(--lean-x, 0) var(--lean-y, 0);
+  rotate: var(--tilt, 0deg);
+  transition:
+    translate 400ms cubic-bezier(0.2, 0, 0, 1),
+    rotate 400ms cubic-bezier(0.2, 0, 0, 1);
+  will-change: translate, rotate;
+}
+
+.mascot-swim {
+  animation: mascot-swim 7s ease-in-out infinite;
+  will-change: transform;
+}
+
+.mascot-bubble {
+  /* Invisible unless the animation is actually running. If keyframes are
+     suppressed — reduced-motion, a stale stylesheet, anything — the bubbles
+     must vanish rather than sit there as four permanent dots. */
+  opacity: 0;
+  animation-name: mascot-bubble;
+  animation-timing-function: ease-in;
+  animation-iteration-count: infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mascot-swim,
+  .mascot-lean,
+  [class*='animate-swim'],
+  .fill-fd-primary[style*='blow'] {
+    animation: none !important;
+  }
+
+  /* Bubbles only make sense in motion — remove them entirely. */
+  .mascot-bubble {
+    display: none !important;
+  }
+
+  .mascot-lean {
+    translate: none !important;
+    rotate: none !important;
   }
 }
