@@ -4,7 +4,6 @@ import { cn } from '@/lib/cn';
 import {
   ArrowRight,
   BotIcon,
-  CaptionsIcon,
   HardDriveIcon,
   Server,
   ServerCog,
@@ -20,6 +19,8 @@ interface Area {
   title: string;
   body: string;
   icon: ReactNode;
+  /** Promoted to a full-width accented card at the top of the grid. */
+  featured?: boolean;
 }
 
 const AREAS: Area[] = [
@@ -27,14 +28,15 @@ const AREAS: Area[] = [
     href: '/api-v2',
     slug: 'api-v2',
     title: 'Meeting BaaS API v2',
-    body: 'The current API. Bots, recordings, transcripts and webhooks.',
+    body: 'The current API. Send a bot, get the recording, transcript and participant timeline back on one webhook.',
     icon: <WebhookIcon />,
+    featured: true,
   },
   {
     href: '/api',
     slug: 'api',
-    title: 'Meeting BaaS API',
-    body: 'The v1 API reference and guides.',
+    title: 'Meeting BaaS API v1 (legacy)',
+    body: 'Reference and guides for the previous API. Still supported.',
     icon: <WebhookIcon />,
   },
   {
@@ -57,13 +59,6 @@ const AREAS: Area[] = [
     title: 'Speaking Bots',
     body: 'AI agents that talk back, powered by Pipecat.',
     icon: <BotIcon />,
-  },
-  {
-    href: '/transcript-seeker',
-    slug: 'transcript-seeker',
-    title: 'Transcript Seeker',
-    body: 'Open-source uploading, transcribing and search.',
-    icon: <CaptionsIcon />,
   },
   {
     href: '/self-hosting',
@@ -152,12 +147,12 @@ export default function DocsPage(): React.ReactElement {
           </div>
         </div>
 
-        <Stagger className="border-hairline bg-hairline mt-10 grid gap-px overflow-hidden rounded-lg border md:grid-cols-3">
+        <Stagger className="mt-10 grid gap-3 md:grid-cols-3">
           {START_HERE.map((step) => (
             <Link
               key={step.n}
               href={step.href}
-              className="group bg-fd-card hover:bg-fd-accent/50 relative isolate flex flex-col p-4 transition-colors duration-200"
+              className="group border-hairline bg-fd-card hover:bg-fd-accent/50 relative isolate flex flex-col overflow-hidden rounded-lg border p-5 transition-colors duration-200"
             >
               <span
                 aria-hidden="true"
@@ -177,30 +172,53 @@ export default function DocsPage(): React.ReactElement {
       </section>
 
       <section className="mx-auto w-full max-w-6xl px-4 pb-20 sm:px-6 lg:px-8">
-        <Stagger className="border-hairline bg-hairline grid grid-cols-1 gap-px overflow-hidden rounded-lg border sm:grid-cols-2 lg:grid-cols-3">
+        <Stagger className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {AREAS.map((area) => (
             <Link
               key={area.href}
               href={area.href}
               className={cn(
                 area.slug,
-                'group bg-fd-card hover:bg-fd-accent/50 relative isolate flex flex-col p-4 transition-colors duration-200',
+                'group border-hairline bg-fd-card hover:bg-fd-accent/50 relative isolate flex flex-col overflow-hidden rounded-lg border p-5 transition-colors duration-200',
+                // v2 is what we want people to read. It takes the full first
+                // row and carries the accent, so the eye lands on it before it
+                // reaches the legacy API sitting next to it.
+                area.featured &&
+                  'border-fd-primary/35 bg-fd-primary/[0.06] hover:bg-fd-primary/10 sm:col-span-2 lg:col-span-3',
               )}
             >
               <span
                 aria-hidden="true"
                 className="bg-fd-primary pointer-events-none absolute inset-y-0 left-0 w-0.5 origin-center scale-y-0 transition-transform duration-200 ease-[var(--ease-docs)] group-hover:scale-y-100"
               />
+              {area.featured && (
+                <span className="meta text-fd-primary mb-2">Start here</span>
+              )}
               <span className="flex items-center gap-2">
-                <span className="text-fd-primary shrink-0 [&_svg]:size-4">
+                <span
+                  className={cn(
+                    'text-fd-primary shrink-0',
+                    area.featured ? '[&_svg]:size-5' : '[&_svg]:size-4',
+                  )}
+                >
                   {area.icon}
                 </span>
-                <span className="text-[15px] font-medium tracking-tight">
+                <span
+                  className={cn(
+                    'font-medium tracking-tight',
+                    area.featured ? 'text-[17px]' : 'text-[15px]',
+                  )}
+                >
                   {area.title}
                 </span>
                 <ArrowRight className="text-fd-muted-foreground size-3.5 shrink-0 opacity-0 transition-all duration-200 ease-[var(--ease-docs)] group-hover:translate-x-0.5 group-hover:opacity-100" />
               </span>
-              <span className="text-fd-muted-foreground mt-1.5 text-[13.5px] leading-relaxed">
+              <span
+                className={cn(
+                  'text-fd-muted-foreground mt-1.5 leading-relaxed',
+                  area.featured ? 'max-w-2xl text-sm' : 'text-[13.5px]',
+                )}
+              >
                 {area.body}
               </span>
             </Link>
