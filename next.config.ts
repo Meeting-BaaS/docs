@@ -8,6 +8,11 @@ const withAnalyzer = createBundleAnalyzer({
 
 const config: NextConfig = {
   reactStrictMode: true,
+  experimental: {
+    // Cross-fades the docs body between pages instead of snapping. The
+    // transition itself is styled in styles/globals.css.
+    viewTransition: true,
+  },
   // The /mcp and /api/chat routes read the docs MDX off disk at runtime
   // (fast-glob over content/**). Next can't statically trace a dynamic glob, so
   // force those files into the serverless function bundles — otherwise the docs
