@@ -257,7 +257,7 @@ _openapi:
           participants when first joining the meeting, and finally switches to
           silence_timeout monitoring once participants are detected. Zoom only
           uses waiting_room_timeout. Optional max_recording_duration sets a hard
-          cap on total recording time (up to 6 hours).
+          cap on total recording time (up to 12 hours).
       - content: >-
           timeout_config.grace_period: The grace period in seconds at the start
           of the meeting during which no timeout conditions (waiting room, no
@@ -274,7 +274,7 @@ _openapi:
           When null, the default 4-hour internal timeout applies.
 
 
-          Range: 7200–21600 seconds (2–6 hours)
+          Range: 7200–43200 seconds (2–12 hours)
       - content: >-
           timeout_config.no_one_joined_timeout: The timeout in seconds for the
           bot to wait for participants to join before leaving the meeting.
@@ -337,7 +337,7 @@ _openapi:
           gladia, deepgram, assemblyai, speechmatics, soniox
 
           - `api_key`: Your own API key for the provider (BYOK - available on
-          Pro plans and above)
+          all plans)
 
           - `region`: Provider region (e.g. "eu", "us"). Required for some
           providers like Speechmatics
