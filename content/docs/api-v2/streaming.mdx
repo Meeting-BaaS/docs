@@ -281,6 +281,7 @@ When the output WebSocket connection opens, the bot sends a JSON text message:
 | `bot_id` | `string` | UUID of the bot |
 | `offset` | `number` | Time offset in seconds. Currently always `0.0`: every connection (including reconnects) starts a fresh audio stream, so audio timing should be computed from the handshake receipt time plus the cumulative sample count. |
 | `sample_rate` | `number` | The audio sample rate in Hz, matching your `audio_frequency` config |
+| `start_time` | `number` or `null` | Epoch **milliseconds** when audio capture started, or `null` if capture has not started yet. The handshake is sent again with the updated value as soon as capture starts, before the first audio chunk. |
 
 Use this message to initialize your audio processing pipeline with the correct sample rate and to associate the stream with a specific bot.
 
