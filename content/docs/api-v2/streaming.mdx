@@ -271,7 +271,8 @@ When the output WebSocket connection opens, the bot sends a JSON text message:
   "protocol_version": 2,
   "bot_id": "123e4567-e89b-12d3-a456-426614174000",
   "offset": 0.0,
-  "sample_rate": 24000
+  "sample_rate": 24000,
+  "start_time": null
 }
 ```
 
@@ -285,7 +286,7 @@ When the output WebSocket connection opens, the bot sends a JSON text message:
 
 Use this message to initialize your audio processing pipeline with the correct sample rate and to associate the stream with a specific bot.
 
-To timestamp the audio stream: `audio_time = handshake_receipt_time + offset + cumulative_samples / sample_rate`. Audio capture starts when the bot opens the meeting page, which is later than `joined_at` in the bot details. On reconnection the bot sends a new handshake with `offset` reset to `0.0`, so restart the clock; audio during the disconnection is dropped.
+To timestamp the audio stream: `audio_time_ms = handshake_receipt_time_ms + (offset + cumulative_samples / sample_rate) * 1000`. Audio capture starts when the bot opens the meeting page, which is later than `joined_at` in the bot details. On reconnection the bot sends a new handshake with `offset` reset to `0.0`, so restart the clock; audio during the disconnection is dropped.
 
 ### Output Audio Chunks (Bot → Your Server)
 
