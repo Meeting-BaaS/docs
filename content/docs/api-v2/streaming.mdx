@@ -271,7 +271,8 @@ When the output WebSocket connection opens, the bot sends a JSON text message:
   "protocol_version": 2,
   "bot_id": "123e4567-e89b-12d3-a456-426614174000",
   "offset": 0.0,
-  "sample_rate": 24000
+  "sample_rate": 24000,
+  "start_time": null
 }
 ```
 
@@ -279,10 +280,13 @@ When the output WebSocket connection opens, the bot sends a JSON text message:
 |-------|------|-------------|
 | `protocol_version` | `number` | Protocol version. May vary by meeting platform (currently `1` or `2`). Treat as informational - do not depend on a specific value. |
 | `bot_id` | `string` | UUID of the bot |
-| `offset` | `number` | Time offset in seconds (typically `0.0`) |
+| `offset` | `number` | Time offset in seconds. Currently always `0.0`: every connection (including reconnects) starts a fresh audio stream, so audio timing should be computed from the handshake receipt time plus the cumulative sample count. |
 | `sample_rate` | `number` | The audio sample rate in Hz, matching your `audio_frequency` config |
+| `start_time` | `number` or `null` | Epoch **milliseconds** when audio capture started, or `null` if capture has not started yet. The handshake is sent again with the updated value as soon as capture starts, before the first audio chunk. |
 
 Use this message to initialize your audio processing pipeline with the correct sample rate and to associate the stream with a specific bot.
+
+To timestamp the audio stream: `audio_time_ms = handshake_receipt_time_ms + (offset + cumulative_samples / sample_rate) * 1000`. Audio capture starts when the bot opens the meeting page, which is later than `joined_at` in the bot details. On reconnection the bot sends a new handshake with `offset` reset to `0.0`, so restart the clock; audio during the disconnection is dropped.
 
 ### Output Audio Chunks (Bot → Your Server)
 
@@ -312,13 +316,13 @@ Alongside audio chunks, the bot sends **JSON text messages** with real-time spea
   {
     "name": "John Doe",
     "id": 1,
-    "timestamp": 1709654321.5,
+    "timestamp": 1788284782279,
     "isSpeaking": true
   },
   {
     "name": "Jane Smith",
     "id": 2,
-    "timestamp": 1709654321.5,
+    "timestamp": 1788284782279,
     "isSpeaking": false
   }
 ]
@@ -328,7 +332,7 @@ Alongside audio chunks, the bot sends **JSON text messages** with real-time spea
 |-------|------|-------------|
 | `name` | `string` | Participant's display name |
 | `id` | `number` or `null` | Sequential participant ID (stable within a session) |
-| `timestamp` | `number` | Unix timestamp (seconds, with fractional part) |
+| `timestamp` | `number` | Unix timestamp in **milliseconds** (the moment the speaker state was observed) |
 | `isSpeaking` | `boolean` | Whether the participant is currently speaking |
 
 These updates are sent on the **output WebSocket** as JSON text messages. Your server can distinguish them from audio chunks by checking the WebSocket message type: **text** messages are speaker state, **binary** messages are audio.
@@ -769,7 +773,7 @@ Your server should handle reconnection gracefully - when the bot reconnects, it 
   </Accordion>
 
   <Accordion title="Is the audio mixed or per-speaker?">
-    The streamed audio is **mixed** - all participants' audio is combined into a single mono stream. To identify who is speaking, use the **speaker state updates** sent alongside the audio. If you need per-speaker audio, you can use the speaker state timestamps to segment the mixed audio by speaker.
+    The streamed audio is **mixed** - all participants' audio is combined into a single mono stream. To identify who is speaking, use the **speaker state updates** sent alongside the audio. If you need per-speaker audio, you can use the speaker state timestamps to segment the mixed audio by speaker. Note that speaker timestamps are in **milliseconds**; compute your audio timeline in the same unit (see the handshake `offset` documentation).
   </Accordion>
 
   <Accordion title="Can I use the same WebSocket URL for input and output?">
