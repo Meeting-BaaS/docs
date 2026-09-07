@@ -4288,6 +4288,7 @@
                           "api_key": {
                             "anyOf": [
                               {
+                                "minLength": 1,
                                 "type": "string"
                               },
                               {
@@ -4432,7 +4433,7 @@
               "silence_timeout": 600,
               "waiting_room_timeout": 600
             },
-            "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 6 hours).",
+            "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
             "properties": {
               "grace_period": {
                 "default": 0,
@@ -4445,7 +4446,7 @@
               "max_recording_duration": {
                 "anyOf": [
                   {
-                    "maximum": 21600,
+                    "maximum": 43200,
                     "minimum": 7200,
                     "type": "integer"
                   },
@@ -4454,7 +4455,7 @@
                   }
                 ],
                 "default": null,
-                "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–21600 seconds (2–6 hours)",
+                "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–43200 seconds (2–12 hours)",
                 "example": null
               },
               "no_one_joined_timeout": {
@@ -4497,6 +4498,7 @@
                   "api_key": {
                     "anyOf": [
                       {
+                        "minLength": 1,
                         "type": "string"
                       },
                       {
@@ -4984,6 +4986,7 @@
                               "api_key": {
                                 "anyOf": [
                                   {
+                                    "minLength": 1,
                                     "type": "string"
                                   },
                                   {
@@ -5143,7 +5146,7 @@
                   "silence_timeout": 600,
                   "waiting_room_timeout": 600
                 },
-                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 6 hours).",
+                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
                 "properties": {
                   "grace_period": {
                     "default": 0,
@@ -5156,7 +5159,7 @@
                   "max_recording_duration": {
                     "anyOf": [
                       {
-                        "maximum": 21600,
+                        "maximum": 43200,
                         "minimum": 7200,
                         "type": "integer"
                       },
@@ -5165,7 +5168,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–21600 seconds (2–6 hours)",
+                    "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–43200 seconds (2–12 hours)",
                     "example": null
                   },
                   "no_one_joined_timeout": {
@@ -5216,6 +5219,7 @@
                       "api_key": {
                         "anyOf": [
                           {
+                            "minLength": 1,
                             "type": "string"
                           },
                           {
@@ -5683,6 +5687,7 @@
                               "api_key": {
                                 "anyOf": [
                                   {
+                                    "minLength": 1,
                                     "type": "string"
                                   },
                                   {
@@ -5827,7 +5832,7 @@
                   "silence_timeout": 600,
                   "waiting_room_timeout": 600
                 },
-                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 6 hours).",
+                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
                 "properties": {
                   "grace_period": {
                     "default": 0,
@@ -5840,7 +5845,7 @@
                   "max_recording_duration": {
                     "anyOf": [
                       {
-                        "maximum": 21600,
+                        "maximum": 43200,
                         "minimum": 7200,
                         "type": "integer"
                       },
@@ -5849,7 +5854,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–21600 seconds (2–6 hours)",
+                    "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–43200 seconds (2–12 hours)",
                     "example": null
                   },
                   "no_one_joined_timeout": {
@@ -5892,6 +5897,7 @@
                       "api_key": {
                         "anyOf": [
                           {
+                            "minLength": 1,
                             "type": "string"
                           },
                           {
@@ -13404,6 +13410,7 @@
                           "api_key": {
                             "anyOf": [
                               {
+                                "minLength": 1,
                                 "type": "string"
                               },
                               {
@@ -13556,7 +13563,7 @@
                   "silence_timeout": 600,
                   "waiting_room_timeout": 600
                 },
-                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 6 hours).",
+                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
                 "properties": {
                   "grace_period": {
                     "default": 0,
@@ -13569,7 +13576,7 @@
                   "max_recording_duration": {
                     "anyOf": [
                       {
-                        "maximum": 21600,
+                        "maximum": 43200,
                         "minimum": 7200,
                         "type": "integer"
                       },
@@ -13578,7 +13585,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–21600 seconds (2–6 hours)",
+                    "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–43200 seconds (2–12 hours)",
                     "example": null
                   },
                   "no_one_joined_timeout": {
@@ -13617,7 +13624,7 @@
               },
               "transcription_config": {
                 "additionalProperties": false,
-                "description": "The transcription configuration for the bot.\n\nRequired when `transcription_enabled` is `true`. Must not be provided when `transcription_enabled` is `false`.\n\n- `provider`: Speech-to-text provider (default: \"gladia\"). Supported: gladia, deepgram, assemblyai, speechmatics, soniox\n- `api_key`: Your own API key for the provider (BYOK - available on Pro plans and above)\n- `region`: Provider region (e.g. \"eu\", \"us\"). Required for some providers like Speechmatics\n- `custom_params`: Custom parameters for the transcription provider\n\nOmit this field to leave transcription configuration unchanged.",
+                "description": "The transcription configuration for the bot.\n\nRequired when `transcription_enabled` is `true`. Must not be provided when `transcription_enabled` is `false`.\n\n- `provider`: Speech-to-text provider (default: \"gladia\"). Supported: gladia, deepgram, assemblyai, speechmatics, soniox\n- `api_key`: Your own API key for the provider (BYOK - available on all plans)\n- `region`: Provider region (e.g. \"eu\", \"us\"). Required for some providers like Speechmatics\n- `custom_params`: Custom parameters for the transcription provider\n\nOmit this field to leave transcription configuration unchanged.",
                 "example": {
                   "api_key": null,
                   "custom_params": null,
@@ -13628,6 +13635,7 @@
                   "api_key": {
                     "anyOf": [
                       {
+                        "minLength": 1,
                         "type": "string"
                       },
                       {
@@ -14060,6 +14068,7 @@
                           "api_key": {
                             "anyOf": [
                               {
+                                "minLength": 1,
                                 "type": "string"
                               },
                               {
@@ -14197,7 +14206,7 @@
                   "silence_timeout": 600,
                   "waiting_room_timeout": 600
                 },
-                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 6 hours).",
+                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
                 "properties": {
                   "grace_period": {
                     "default": 0,
@@ -14210,7 +14219,7 @@
                   "max_recording_duration": {
                     "anyOf": [
                       {
-                        "maximum": 21600,
+                        "maximum": 43200,
                         "minimum": 7200,
                         "type": "integer"
                       },
@@ -14219,7 +14228,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–21600 seconds (2–6 hours)",
+                    "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–43200 seconds (2–12 hours)",
                     "example": null
                   },
                   "no_one_joined_timeout": {
@@ -14250,7 +14259,7 @@
                 "type": "object"
               },
               "transcription_config": {
-                "description": "The transcription configuration for the bot.\n\nRequired when `transcription_enabled` is `true`. Must not be provided when `transcription_enabled` is `false`.\n\n- `provider`: Speech-to-text provider (default: \"gladia\"). Supported: gladia, deepgram, assemblyai, speechmatics, soniox\n- `api_key`: Your own API key for the provider (BYOK - available on Pro plans and above)\n- `region`: Provider region (e.g. \"eu\", \"us\"). Required for some providers like Speechmatics\n- `custom_params`: Custom parameters for the transcription provider\n\nOmit this field to leave transcription configuration unchanged.",
+                "description": "The transcription configuration for the bot.\n\nRequired when `transcription_enabled` is `true`. Must not be provided when `transcription_enabled` is `false`.\n\n- `provider`: Speech-to-text provider (default: \"gladia\"). Supported: gladia, deepgram, assemblyai, speechmatics, soniox\n- `api_key`: Your own API key for the provider (BYOK - available on all plans)\n- `region`: Provider region (e.g. \"eu\", \"us\"). Required for some providers like Speechmatics\n- `custom_params`: Custom parameters for the transcription provider\n\nOmit this field to leave transcription configuration unchanged.",
                 "example": {
                   "api_key": null,
                   "custom_params": null,
@@ -14261,6 +14270,7 @@
                   "api_key": {
                     "anyOf": [
                       {
+                        "minLength": 1,
                         "type": "string"
                       },
                       {
@@ -15036,6 +15046,7 @@
                           "api_key": {
                             "anyOf": [
                               {
+                                "minLength": 1,
                                 "type": "string"
                               },
                               {
@@ -15195,7 +15206,7 @@
               "silence_timeout": 600,
               "waiting_room_timeout": 600
             },
-            "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 6 hours).",
+            "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
             "properties": {
               "grace_period": {
                 "default": 0,
@@ -15208,7 +15219,7 @@
               "max_recording_duration": {
                 "anyOf": [
                   {
-                    "maximum": 21600,
+                    "maximum": 43200,
                     "minimum": 7200,
                     "type": "integer"
                   },
@@ -15217,7 +15228,7 @@
                   }
                 ],
                 "default": null,
-                "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–21600 seconds (2–6 hours)",
+                "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–43200 seconds (2–12 hours)",
                 "example": null
               },
               "no_one_joined_timeout": {
@@ -15268,6 +15279,7 @@
                   "api_key": {
                     "anyOf": [
                       {
+                        "minLength": 1,
                         "type": "string"
                       },
                       {
@@ -15702,6 +15714,7 @@
                           "api_key": {
                             "anyOf": [
                               {
+                                "minLength": 1,
                                 "type": "string"
                               },
                               {
@@ -15846,7 +15859,7 @@
               "silence_timeout": 600,
               "waiting_room_timeout": 600
             },
-            "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 6 hours).",
+            "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
             "properties": {
               "grace_period": {
                 "default": 0,
@@ -15859,7 +15872,7 @@
               "max_recording_duration": {
                 "anyOf": [
                   {
-                    "maximum": 21600,
+                    "maximum": 43200,
                     "minimum": 7200,
                     "type": "integer"
                   },
@@ -15868,7 +15881,7 @@
                   }
                 ],
                 "default": null,
-                "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–21600 seconds (2–6 hours)",
+                "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–43200 seconds (2–12 hours)",
                 "example": null
               },
               "no_one_joined_timeout": {
@@ -15911,6 +15924,7 @@
                   "api_key": {
                     "anyOf": [
                       {
+                        "minLength": 1,
                         "type": "string"
                       },
                       {
@@ -16738,7 +16752,7 @@
     },
     "/v2/bots/batch": {
       "post": {
-        "description": "Create multiple bots in a single request with partial success support.\n    \n    Processes each bot creation request sequentially (index 0, 1, 2...). Each item is validated and processed independently. If some bots fail to create, the request still returns 201 with a `data` array containing successful creations and an `errors` array containing failures. Each error includes the `index` of the failed item in the original request array.\n    \n    **Processing Order:** Items are processed in the order they appear in the request array. Each item goes through the same validation and checks as a single bot creation: platform detection, BYOK transcription check, daily bot cap check, token availability check, and deduplication lock acquisition.\n    \n    **Partial Success:** The response always has `success: true`, even if all items fail. Check the `errors` array to identify failed items. The `data` array contains successfully created bots with their `bot_id` and preserved `extra` metadata. The `errors` array contains failed items with `index`, `code`, `message`, `details`, and preserved `extra` metadata.\n    \n    **Daily Bot Cap:** The daily bot cap is checked per item, not per batch. If the cap is reached mid-batch, subsequent items will fail with `DAILY_BOT_CAP_REACHED` error. The cap is based on bots created in the last 24 hours.\n    \n    **Token Reservation:** Tokens are reserved individually for each successful bot creation (0.5 tokens per bot). If token availability becomes insufficient mid-batch, subsequent items will fail with `INSUFFICIENT_TOKENS`.\n    \n    **Error Index Mapping:** Each error includes an `index` field (0-based) that corresponds to the item's position in the request array. Use this to correlate errors with your original request. Validation errors include detailed validation issues in the `details` field.\n    \n    **Error Isolation:** Each bot creation is processed independently. If one bot creation fails, it does not affect other bots in the batch. Failed items are included in the `errors` array while successful items are in the `data` array.\n    \n    Returns 201 with partial success response. All items may succeed, all may fail, or any combination. Always check both `data` and `errors` arrays.",
+        "description": "Create multiple bots in a single request with partial success support.\n    \n    Processes each bot creation request sequentially (index 0, 1, 2...). Each item is validated and processed independently. If some bots fail to create, the request still returns 201 with a `data` array containing successful creations and an `errors` array containing failures. Each error includes the `index` of the failed item in the original request array.\n    \n    **Processing Order:** Items are processed in the order they appear in the request array. Each item goes through the same validation and checks as a single bot creation: platform detection, transcription key availability, daily bot cap check, token availability check, and deduplication lock acquisition.\n    \n    **Partial Success:** The response always has `success: true`, even if all items fail. Check the `errors` array to identify failed items. The `data` array contains successfully created bots with their `bot_id` and preserved `extra` metadata. The `errors` array contains failed items with `index`, `code`, `message`, `details`, and preserved `extra` metadata.\n    \n    **Daily Bot Cap:** The daily bot cap is checked per item, not per batch. If the cap is reached mid-batch, subsequent items will fail with `DAILY_BOT_CAP_REACHED` error. The cap is based on bots created in the last 24 hours.\n    \n    **Token Reservation:** Tokens are reserved individually for each successful bot creation (0.5 tokens per bot). If token availability becomes insufficient mid-batch, subsequent items will fail with `INSUFFICIENT_TOKENS`.\n    \n    **Error Index Mapping:** Each error includes an `index` field (0-based) that corresponds to the item's position in the request array. Use this to correlate errors with your original request. Validation errors include detailed validation issues in the `details` field.\n    \n    **Error Isolation:** Each bot creation is processed independently. If one bot creation fails, it does not affect other bots in the batch. Failed items are included in the `errors` array while successful items are in the `data` array.\n    \n    Returns 201 with partial success response. All items may succeed, all may fail, or any combination. Always check both `data` and `errors` arrays.",
         "operationId": "batchCreateBots",
         "requestBody": {
           "content": {
@@ -17281,7 +17295,7 @@
     },
     "/v2/bots/scheduled/batch": {
       "post": {
-        "description": "Create multiple scheduled bots in a single request with partial success support.\n    \n    Processes each scheduled bot creation request sequentially. Each item is validated and processed independently. Token reservation and daily bot cap checks are NOT performed at creation time - they are performed when each bot actually joins the meeting.\n    \n    **Processing Order:** Items are processed in the order they appear in the request array. Each item goes through validation: platform detection, BYOK transcription check, and join time validation. Unlike immediate bot creation, daily bot cap and token availability are not checked at creation time.\n    \n    **Partial Success:** The response always has `success: true`, even if all items fail. Check the `errors` array to identify failed items. The `data` array contains successfully scheduled bots with their `bot_id` and preserved `extra` metadata.\n    \n    **Join Time Validation:** Each scheduled bot's `join_at` time must be in the future (at least 1 minute ahead). If a join time is invalid, that item will fail with a validation error, but other items will continue processing.\n    \n    **Error Scenarios:** \n    - Validation errors: Invalid join time, invalid meeting URL, invalid configuration\n    - Platform detection failures: `INVALID_MEETING_PLATFORM`\n    - BYOK not enabled: `BYOK_TRANSCRIPTION_NOT_ENABLED_ON_PLAN`\n    - System failures: `BOT_CREATE_FAILED`\n    \n    **Note:** Daily bot cap and token availability are checked when each bot joins, not at creation time. If these checks fail at join time, the bot will transition to `failed` status and send a failure webhook.\n    \n    Returns 201 with partial success response. All items may succeed, all may fail, or any combination.",
+        "description": "Create multiple scheduled bots in a single request with partial success support.\n    \n    Processes each scheduled bot creation request sequentially. Each item is validated and processed independently. Token reservation and daily bot cap checks are NOT performed at creation time - they are performed when each bot actually joins the meeting.\n    \n    **Processing Order:** Items are processed in the order they appear in the request array. Each item goes through validation: platform detection, transcription key availability, and join time validation. Unlike immediate bot creation, daily bot cap and token availability are not checked at creation time.\n    \n    **Partial Success:** The response always has `success: true`, even if all items fail. Check the `errors` array to identify failed items. The `data` array contains successfully scheduled bots with their `bot_id` and preserved `extra` metadata.\n    \n    **Join Time Validation:** Each scheduled bot's `join_at` time must be in the future (at least 1 minute ahead). If a join time is invalid, that item will fail with a validation error, but other items will continue processing.\n    \n    **Error Scenarios:** \n    - Validation errors: Invalid join time, invalid meeting URL, invalid configuration\n    - Platform detection failures: `INVALID_MEETING_PLATFORM`\n    - System failures: `BOT_CREATE_FAILED`\n    \n    **Note:** Daily bot cap and token availability are checked when each bot joins, not at creation time. If these checks fail at join time, the bot will transition to `failed` status and send a failure webhook.\n    \n    Returns 201 with partial success response. All items may succeed, all may fail, or any combination.",
         "operationId": "batchCreateScheduledBots",
         "requestBody": {
           "content": {
@@ -18818,6 +18832,7 @@
                           "api_key": {
                             "anyOf": [
                               {
+                                "minLength": 1,
                                 "type": "string"
                               },
                               {
@@ -23963,7 +23978,7 @@
         ]
       },
       "post": {
-        "description": "Create a meet workspace — the parent resource that holds your SAML cert + private key for one Google Workspace's SSO config.\n\n    A meet workspace represents one Google Workspace whose Legacy SSO profile points at our `/v2/meet-sso/*` endpoints. The cert and key on the workspace are shared by every `meet_login` (Workspace user identity) you attach to it, mirroring how Google Workspace stores a single verification certificate per SSO profile.\n\n    **Two creation paths, same response shape:**\n\n    - **Server-generated keypair** — pass `generate_keypair: true`. The server creates a self-signed RSA-2048 keypair with 10-year validity. Use this if you don't already have a SAML cert and want the simplest setup.\n    - **Bring-your-own keypair** — pass `cert_pem` and `private_key_pem` together. Use this if you want to manage your own crypto or already have a cert/key pair you trust.\n\n    Mutually exclusive: provide either `generate_keypair: true` OR (`cert_pem` + `private_key_pem`), not both.\n\n    **Response always includes `cert_pem`** so you can upload it to Google's Legacy SSO profile in your Workspace admin console. `private_key_pem` is never returned.\n\n    **After creation, you must:**\n    1. Upload the returned `cert_pem` to Google Admin Console → Security → Set up SSO with third-party IdP → Legacy SSO profile.\n    2. Set Sign-in URL to `https://api.meetingbaas.com/v2/meet-sso/sign-in` and Sign-out URL to `https://api.meetingbaas.com/v2/meet-sso/sign-out` in the same SSO profile. Enable \"Use a domain-specific issuer\". Do not assign the profile yet.\n    3. Create one or more Workspace users that bots will sign in as. Sign in to each new account in a browser and complete the \"Welcome to Workspace\" first-run flow before the SSO profile is assigned to it — once SSO applies, the account password stops working and this flow can no longer be completed. Set language to \"English (United States)\".\n    4. Assign the SSO profile to the bot group or organizational unit only (never to all users), now that each bot account has completed its welcome flow.\n    5. Add `meet_logins` (one per Workspace user) referencing this `workspace_id`.\n    6. Optionally call `POST /v2/meet-workspaces/:workspace_id/verify` to run pre-flight checks.\n\n    **Security:** The cert and key are encrypted at rest using AES-256-GCM. `private_key_pem` is never echoed in any response — including subsequent GETs. If you need it back, you must rotate via PATCH.\n\n    **Per-team uniqueness:** Each `domain` may exist at most once per team. Attempting to create a duplicate returns 409.\n\n    **Error Scenarios:**\n    - `409 Conflict`: A workspace for this `domain` already exists.\n    - `422 Unprocessable Entity`: Invalid cert/key (parse failure or modulus mismatch); both `generate_keypair` and `cert_pem` provided; neither provided.",
+        "description": "Create a meet workspace — the parent resource that holds your SAML cert + private key for one Google Workspace's SSO config.\n\n    A meet workspace represents one Google Workspace whose Legacy SSO profile points at our `/v2/meet-sso/*` endpoints. The cert and key on the workspace are shared by every `meet_login` (Workspace user identity) you attach to it, mirroring how Google Workspace stores a single verification certificate per SSO profile.\n\n    **Two creation paths, same response shape:**\n\n    - **Server-generated keypair** — pass `generate_keypair: true`. The server creates a self-signed RSA-2048 keypair with 10-year validity. Use this if you don't already have a SAML cert and want the simplest setup.\n    - **Bring-your-own keypair** — pass `cert_pem` and `private_key_pem` together. Use this if you want to manage your own crypto or already have a cert/key pair you trust.\n\n    Mutually exclusive: provide either `generate_keypair: true` OR (`cert_pem` + `private_key_pem`), not both.\n\n    **Response always includes `cert_pem`** so you can upload it to Google's Legacy SSO profile in your Workspace admin console. `private_key_pem` is never returned.\n\n    **After creation, you must:**\n    1. Upload the returned `cert_pem` to Google Admin Console → Security → Set up SSO with third-party IdP → Legacy SSO profile.\n    2. Set Sign-in URL to `https://api.meetingbaas.com/v2/meet-sso/sign-in` and Sign-out URL to `https://api.meetingbaas.com/v2/meet-sso/sign-out` in the same SSO profile. Enable \"Use a domain-specific issuer\" and assign the SSO profile to all users.\n    3. Create one or more Workspace users that bots will sign in as, complete the \"Welcome to Workspace\" interactive login for each, and set language to \"English (United States)\".\n    4. Add `meet_logins` (one per Workspace user) referencing this `workspace_id`.\n    5. Optionally call `POST /v2/meet-workspaces/:workspace_id/verify` to run pre-flight checks.\n\n    **Security:** The cert and key are encrypted at rest using AES-256-GCM. `private_key_pem` is never echoed in any response — including subsequent GETs. If you need it back, you must rotate via PATCH.\n\n    **Per-team uniqueness:** Each `domain` may exist at most once per team. Attempting to create a duplicate returns 409.\n\n    **Error Scenarios:**\n    - `409 Conflict`: A workspace for this `domain` already exists.\n    - `422 Unprocessable Entity`: Invalid cert/key (parse failure or modulus mismatch); both `generate_keypair` and `cert_pem` provided; neither provided.",
         "operationId": "createMeetWorkspace",
         "requestBody": {
           "content": {
@@ -25774,6 +25789,2329 @@
         "summary": "Check that MeetingBaas can still use your buckets",
         "tags": [
           "Storage"
+        ]
+      }
+    },
+    "/v2/sub_accounts": {
+      "get": {
+        "description": "Paginated with an opaque cursor. There is no limit on how many sub-accounts you may open — the page size only bounds the response.",
+        "operationId": "listSubAccounts",
+        "parameters": [
+          {
+            "description": "Maximum number of sub-accounts to return (default: 100, max: 250).",
+            "in": "query",
+            "name": "limit",
+            "required": true,
+            "schema": {
+              "default": 100,
+              "exclusiveMinimum": 0,
+              "maximum": 250,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Cursor from the previous response's `next_cursor`. Leave as `null` for the first page.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "items": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "created_at": {
+                            "format": "date-time",
+                            "type": "string"
+                          },
+                          "external_id": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "status": {
+                            "enum": [
+                              "active",
+                              "suspended"
+                            ],
+                            "type": "string"
+                          },
+                          "sub_account_id": {
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "sub_account_id",
+                          "name",
+                          "external_id",
+                          "status",
+                          "created_at"
+                        ],
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "next_cursor": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Pass back as `cursor` to fetch the next page; null when this is the last page"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data",
+                    "next_cursor"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden - The team is not reseller-enabled, is itself a sub-account, or the caller lacks the owner/admin role"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "List your sub-accounts",
+        "tags": [
+          "Sub-accounts"
+        ]
+      },
+      "post": {
+        "description": "Creates a sub-account under your master account and returns its API key. The key is shown once: store it server-side, keyed to your customer.",
+        "operationId": "createSubAccount",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "external_id": {
+                    "description": "Your own identifier for this customer, returned as-is on reads",
+                    "maxLength": 255,
+                    "type": "string"
+                  },
+                  "name": {
+                    "maxLength": 100,
+                    "minLength": 1,
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "api_key": {
+                          "description": "Shown once; store it now, it cannot be retrieved later",
+                          "type": "string"
+                        },
+                        "external_id": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "sub_account_id": {
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "sub_account_id",
+                        "name",
+                        "external_id",
+                        "api_key"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden - The team is not reseller-enabled, is itself a sub-account, or the caller lacks the owner/admin role"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict - A live sub-account with this external_id already exists under this master account"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "Create a sub-account",
+        "tags": [
+          "Sub-accounts"
+        ]
+      }
+    },
+    "/v2/sub_accounts/usage": {
+      "get": {
+        "description": "One row per sub-account, including ones you have deleted — a customer closed mid-period still has to be invoiced for it. This is the endpoint to build a billing run on.",
+        "operationId": "getSubAccountsUsage",
+        "parameters": [
+          {
+            "description": "Inclusive ISO date/datetime lower bound",
+            "in": "query",
+            "name": "start_date",
+            "required": true,
+            "schema": {}
+          },
+          {
+            "description": "Exclusive ISO date/datetime upper bound",
+            "in": "query",
+            "name": "end_date",
+            "required": true,
+            "schema": {}
+          },
+          {
+            "description": "Maximum number of sub-accounts to return (default: 100, max: 250).",
+            "in": "query",
+            "name": "limit",
+            "required": true,
+            "schema": {
+              "default": 100,
+              "exclusiveMinimum": 0,
+              "maximum": 250,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Cursor from the previous response's `next_cursor`. Leave as `null` for the first page.",
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "default": null
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "end_date": {
+                          "format": "date-time",
+                          "type": "string"
+                        },
+                        "start_date": {
+                          "format": "date-time",
+                          "type": "string"
+                        },
+                        "sub_accounts": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "bot_count": {
+                                "maximum": 9007199254740991,
+                                "minimum": -9007199254740991,
+                                "type": "integer"
+                              },
+                              "byok_transcription_tokens": {
+                                "type": "string"
+                              },
+                              "duration_seconds": {
+                                "type": "string"
+                              },
+                              "external_id": {
+                                "anyOf": [
+                                  {
+                                    "type": "string"
+                                  },
+                                  {
+                                    "type": "null"
+                                  }
+                                ]
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "recording_tokens": {
+                                "type": "string"
+                              },
+                              "refunded_tokens": {
+                                "type": "string"
+                              },
+                              "status": {
+                                "enum": [
+                                  "active",
+                                  "suspended",
+                                  "deleted"
+                                ],
+                                "type": "string"
+                              },
+                              "sub_account_id": {
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                                "type": "string"
+                              },
+                              "total_tokens": {
+                                "type": "string"
+                              },
+                              "transcription_tokens": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "bot_count",
+                              "total_tokens",
+                              "recording_tokens",
+                              "transcription_tokens",
+                              "byok_transcription_tokens",
+                              "refunded_tokens",
+                              "duration_seconds",
+                              "sub_account_id",
+                              "name",
+                              "external_id",
+                              "status"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        }
+                      },
+                      "required": [
+                        "start_date",
+                        "end_date",
+                        "sub_accounts"
+                      ],
+                      "type": "object"
+                    },
+                    "next_cursor": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Pass back as `cursor` to fetch the next page; null when this is the last page"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "next_cursor",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden - The team is not reseller-enabled, is itself a sub-account, or the caller lacks the owner/admin role"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "Get usage for every sub-account over a period",
+        "tags": [
+          "Sub-accounts"
+        ]
+      }
+    },
+    "/v2/sub_accounts/{sub_account_id}": {
+      "delete": {
+        "description": "Soft-deletes the sub-account and disables its API keys. Recorded data follows the normal retention policy.",
+        "operationId": "deleteSubAccount",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sub_account_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "deleted": {
+                          "enum": [
+                            true
+                          ],
+                          "type": "boolean"
+                        },
+                        "sub_account_id": {
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "sub_account_id",
+                        "deleted"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden - The team is not reseller-enabled, is itself a sub-account, or the caller lacks the owner/admin role"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found - No such sub-account under this master account"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "Delete a sub-account",
+        "tags": [
+          "Sub-accounts"
+        ]
+      },
+      "get": {
+        "operationId": "getSubAccount",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sub_account_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "calendar_integrations_limit": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "created_at": {
+                          "format": "date-time",
+                          "type": "string"
+                        },
+                        "daily_bot_cap": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "external_id": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "enum": [
+                            "active",
+                            "suspended"
+                          ],
+                          "type": "string"
+                        },
+                        "sub_account_id": {
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "sub_account_id",
+                        "name",
+                        "external_id",
+                        "status",
+                        "created_at",
+                        "daily_bot_cap",
+                        "calendar_integrations_limit"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden - The team is not reseller-enabled, is itself a sub-account, or the caller lacks the owner/admin role"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found - No such sub-account under this master account"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "Get a sub-account",
+        "tags": [
+          "Sub-accounts"
+        ]
+      },
+      "patch": {
+        "operationId": "updateSubAccount",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sub_account_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "calendar_integrations_limit": {
+                    "description": "Calendar connections allowed for this sub-account; capped at your master account's own limit",
+                    "maximum": 9007199254740991,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "daily_bot_cap": {
+                    "description": "Per-day bot limit for this sub-account; capped at your master account's own limit",
+                    "maximum": 9007199254740991,
+                    "minimum": 1,
+                    "type": "integer"
+                  },
+                  "status": {
+                    "description": "suspended blocks all bot dispatch and disables every API key of the sub-account",
+                    "enum": [
+                      "active",
+                      "suspended"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "calendar_integrations_limit": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "daily_bot_cap": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "status": {
+                          "enum": [
+                            "active",
+                            "suspended"
+                          ],
+                          "type": "string"
+                        },
+                        "sub_account_id": {
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "sub_account_id",
+                        "status",
+                        "daily_bot_cap",
+                        "calendar_integrations_limit"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden - The team is not reseller-enabled, is itself a sub-account, or the caller lacks the owner/admin role"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found - No such sub-account under this master account"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "Suspend or reactivate a sub-account",
+        "tags": [
+          "Sub-accounts"
+        ]
+      }
+    },
+    "/v2/sub_accounts/{sub_account_id}/keys/rotate": {
+      "post": {
+        "description": "Mints a new key and permanently revokes all previous keys of the sub-account. Refused while suspended.",
+        "operationId": "rotateSubAccountKey",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sub_account_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "api_key": {
+                          "description": "Shown once; all previous keys are disabled",
+                          "type": "string"
+                        },
+                        "sub_account_id": {
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "sub_account_id",
+                        "api_key"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden - The team is not reseller-enabled, is itself a sub-account, or the caller lacks the owner/admin role"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found - No such sub-account under this master account"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict - The sub-account is suspended; reactivate it before rotating its key"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "Rotate a sub-account's API key",
+        "tags": [
+          "Sub-accounts"
+        ]
+      }
+    },
+    "/v2/sub_accounts/{sub_account_id}/usage": {
+      "get": {
+        "description": "Aggregated consumption of the sub-account between start_date (inclusive) and end_date (exclusive) — the data you invoice your customer from. Still resolves after you delete the sub-account, so a closed customer's final period is billable.",
+        "operationId": "getSubAccountUsage",
+        "parameters": [
+          {
+            "description": "Inclusive ISO date/datetime lower bound",
+            "in": "query",
+            "name": "start_date",
+            "required": true,
+            "schema": {}
+          },
+          {
+            "description": "Exclusive ISO date/datetime upper bound",
+            "in": "query",
+            "name": "end_date",
+            "required": true,
+            "schema": {}
+          },
+          {
+            "in": "path",
+            "name": "sub_account_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "bot_count": {
+                          "maximum": 9007199254740991,
+                          "minimum": -9007199254740991,
+                          "type": "integer"
+                        },
+                        "byok_transcription_tokens": {
+                          "type": "string"
+                        },
+                        "duration_seconds": {
+                          "type": "string"
+                        },
+                        "end_date": {
+                          "format": "date-time",
+                          "type": "string"
+                        },
+                        "recording_tokens": {
+                          "type": "string"
+                        },
+                        "refunded_tokens": {
+                          "type": "string"
+                        },
+                        "start_date": {
+                          "format": "date-time",
+                          "type": "string"
+                        },
+                        "sub_account_id": {
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                          "type": "string"
+                        },
+                        "total_tokens": {
+                          "type": "string"
+                        },
+                        "transcription_tokens": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "sub_account_id",
+                        "start_date",
+                        "end_date",
+                        "bot_count",
+                        "total_tokens",
+                        "recording_tokens",
+                        "transcription_tokens",
+                        "byok_transcription_tokens",
+                        "refunded_tokens",
+                        "duration_seconds"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden - The team is not reseller-enabled, is itself a sub-account, or the caller lacks the owner/admin role"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found - No such sub-account under this master account"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "Get a sub-account's usage over a period",
+        "tags": [
+          "Sub-accounts"
+        ]
+      }
+    },
+    "/v2/sub_accounts/{sub_account_id}/webhook": {
+      "delete": {
+        "operationId": "deleteSubAccountWebhook",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sub_account_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "deleted": {
+                          "enum": [
+                            true
+                          ],
+                          "type": "boolean"
+                        },
+                        "sub_account_id": {
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "sub_account_id",
+                        "deleted"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden - The team is not reseller-enabled, is itself a sub-account, or the caller lacks the owner/admin role"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found - No such sub-account under this master account"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Implemented - Managed webhooks are not enabled on this deployment"
+          }
+        },
+        "summary": "Remove a sub-account's webhook endpoint",
+        "tags": [
+          "Sub-accounts"
+        ]
+      },
+      "get": {
+        "operationId": "getSubAccountWebhook",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sub_account_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "created_at": {
+                          "anyOf": [
+                            {
+                              "format": "date-time",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "sub_account_id": {
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                          "type": "string"
+                        },
+                        "url": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "sub_account_id",
+                        "url",
+                        "created_at"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden - The team is not reseller-enabled, is itself a sub-account, or the caller lacks the owner/admin role"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found - No such sub-account under this master account"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Implemented - Managed webhooks are not enabled on this deployment"
+          }
+        },
+        "summary": "Get a sub-account's webhook endpoint",
+        "tags": [
+          "Sub-accounts"
+        ]
+      },
+      "put": {
+        "description": "Where this sub-account's bot events are delivered. One endpoint per sub-account: setting a new URL replaces the previous one. Your customers have no dashboard of their own, so this is the only way to point their events anywhere.",
+        "operationId": "setSubAccountWebhook",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "sub_account_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "url": {
+                    "description": "HTTPS endpoint that this sub-account's bot events are delivered to",
+                    "format": "uri",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "url"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "created_at": {
+                          "anyOf": [
+                            {
+                              "format": "date-time",
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "sub_account_id": {
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                          "type": "string"
+                        },
+                        "url": {
+                          "anyOf": [
+                            {
+                              "type": "string"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "sub_account_id",
+                        "url",
+                        "created_at"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden - The team is not reseller-enabled, is itself a sub-account, or the caller lacks the owner/admin role"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found - No such sub-account under this master account"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          },
+          "501": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Implemented - Managed webhooks are not enabled on this deployment"
+          }
+        },
+        "summary": "Set a sub-account's webhook endpoint",
+        "tags": [
+          "Sub-accounts"
         ]
       }
     },
