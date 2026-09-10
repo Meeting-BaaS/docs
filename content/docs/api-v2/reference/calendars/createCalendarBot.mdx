@@ -39,10 +39,14 @@ _openapi:
           bot_image_config: Configuration for how bot avatar images are
           displayed. Only relevant when multiple images are provided in
           bot_image.
-      - content: |-
-          bot_name: The name of the bot.
+      - content: >-
+          bot_name: The name requested for the bot.
 
-          This name will be displayed as the bot's name in the meeting.
+
+          This name is displayed for anonymous joins. For an authenticated
+          Microsoft Teams join using `teams_config`, Microsoft Teams ignores
+          this value and displays the signed-in Microsoft 365 account's display
+          name and profile instead.
       - content: callback_config
       - content: >-
           callback_enabled: Enable callback for this bot. When enabled, the
@@ -130,9 +134,13 @@ _openapi:
           signed-in Microsoft account.
 
 
-          - credential_id: pin a specific login.
+          Microsoft Teams displays the selected account's Microsoft 365 name and
+          profile; `bot_name` is ignored for the authenticated join.
 
-          - email_group: pool selector (preferred — takes priority).
+
+          - credential_id: pin a specific login and display identity.
+
+          - email_group: least-loaded pool selector (takes priority).
 
           - fallback: 'fail' (default) or 'anonymous' on saturation.
 
@@ -145,7 +153,7 @@ _openapi:
           participants when first joining the meeting, and finally switches to
           silence_timeout monitoring once participants are detected. Zoom only
           uses waiting_room_timeout. Optional max_recording_duration sets a hard
-          cap on total recording time (up to 6 hours).
+          cap on total recording time (up to 12 hours).
       - content: >-
           timeout_config.grace_period: The grace period in seconds at the start
           of the meeting during which no timeout conditions (waiting room, no
@@ -162,7 +170,7 @@ _openapi:
           When null, the default 4-hour internal timeout applies.
 
 
-          Range: 7200–21600 seconds (2–6 hours)
+          Range: 7200–43200 seconds (2–12 hours)
       - content: >-
           timeout_config.no_one_joined_timeout: The timeout in seconds for the
           bot to wait for participants to join before leaving the meeting.
