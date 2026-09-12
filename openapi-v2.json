@@ -693,6 +693,182 @@
         ],
         "type": "object"
       },
+      "BotWebhookChatStatus": {
+        "$id": "#/components/schemas/BotWebhookChatStatus",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": false,
+            "properties": {
+              "available": {
+                "description": "Whether the bot can send and receive chat in this meeting",
+                "type": "boolean"
+              },
+              "bot_id": {
+                "description": "The UUID of the bot this chat status refers to",
+                "type": "string"
+              },
+              "event_id": {
+                "anyOf": [
+                  {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "The UUID of the calendar event series. Null when the bot was not created from a calendar event"
+              },
+              "reason": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "organizer_disabled",
+                      "panel_not_attached",
+                      "send_failed"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Why chat is unavailable. Null when available is true"
+              },
+              "sent_at": {
+                "description": "ISO 8601 timestamp when this webhook was sent",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "bot_id",
+              "event_id",
+              "available",
+              "reason",
+              "sent_at"
+            ],
+            "type": "object"
+          },
+          "event": {
+            "const": "bot.chat_status",
+            "description": "The webhook event type",
+            "type": "string"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "propertyNames": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking"
+          }
+        },
+        "required": [
+          "event",
+          "data",
+          "extra"
+        ],
+        "type": "object"
+      },
+      "BotWebhookChatStatusInput": {
+        "$id": "#/components/schemas/BotWebhookChatStatusInput",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "data": {
+            "properties": {
+              "available": {
+                "description": "Whether the bot can send and receive chat in this meeting",
+                "type": "boolean"
+              },
+              "bot_id": {
+                "description": "The UUID of the bot this chat status refers to",
+                "type": "string"
+              },
+              "event_id": {
+                "anyOf": [
+                  {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "The UUID of the calendar event series. Null when the bot was not created from a calendar event"
+              },
+              "reason": {
+                "anyOf": [
+                  {
+                    "enum": [
+                      "organizer_disabled",
+                      "panel_not_attached",
+                      "send_failed"
+                    ],
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Why chat is unavailable. Null when available is true"
+              },
+              "sent_at": {
+                "description": "ISO 8601 timestamp when this webhook was sent",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                "type": "string"
+              }
+            },
+            "required": [
+              "bot_id",
+              "event_id",
+              "available",
+              "reason",
+              "sent_at"
+            ],
+            "type": "object"
+          },
+          "event": {
+            "const": "bot.chat_status",
+            "description": "The webhook event type",
+            "type": "string"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "propertyNames": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking"
+          }
+        },
+        "required": [
+          "event",
+          "data",
+          "extra"
+        ],
+        "type": "object"
+      },
       "BotWebhookCompleted": {
         "$id": "#/components/schemas/CallbackCompleted",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -4044,7 +4220,7 @@
             "example": null
           },
           "bot_name": {
-            "description": "The name of the bot.\n\nThis name will be displayed as the bot's name in the meeting.",
+            "description": "The name requested for the bot.\n\nThis name is displayed for anonymous joins. For an authenticated Microsoft Teams join using `teams_config`, Microsoft Teams ignores this value and displays the signed-in Microsoft 365 account's display name and profile instead.\n\nFor a Microsoft Teams meeting the name must be one Teams accepts for a guest, or the request is rejected: at most 50 characters; only letters, numbers, spaces and ' ’ . _ @ - · ・; no consecutive spaces; and no leading, trailing or consecutive periods. This applies to authenticated joins too, because a failed sign-in falls back to joining as a guest under this name.",
             "example": "Meeting BaaS Bot",
             "maxLength": 255,
             "minLength": 1,
@@ -4288,6 +4464,7 @@
                           "api_key": {
                             "anyOf": [
                               {
+                                "minLength": 1,
                                 "type": "string"
                               },
                               {
@@ -4385,7 +4562,7 @@
               {
                 "properties": {
                   "credential_id": {
-                    "description": "UUID of a stored teams login (created via /v2/teams-logins). Pin a specific login for this bot.",
+                    "description": "UUID of a stored teams login (created via /v2/teams-logins). Pin a specific login—and therefore a specific Microsoft 365 display identity—for this bot. `bot_name` cannot override the signed-in account's display name.",
                     "format": "uuid",
                     "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
                     "type": "string"
@@ -4403,7 +4580,7 @@
                         "type": "string"
                       }
                     ],
-                    "description": "Round-robin pool selector. Bot will be assigned to the least-loaded active teams_login with this email_group value. Takes priority over credential_id when both are set. Pass an empty string (\"\") to round-robin across all active logins for the team without filtering by group."
+                    "description": "Round-robin pool selector. Bot will be assigned to the least-loaded active teams_login with this email_group value. Takes priority over credential_id when both are set. Pass an empty string (\"\") to round-robin across all active logins for the team without filtering by group. The selected account controls the bot's visible Teams name and profile, so use interchangeable identities in a pool when display identity matters."
                   },
                   "fallback": {
                     "description": "What to do if no teams_login slot is available.\n- 'fail' (default): bot creation fails with teams_login_unavailable.\n- 'anonymous': silently fall back to an anonymous (non-authenticated) bot.",
@@ -4421,7 +4598,7 @@
               }
             ],
             "default": null,
-            "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
+            "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\nMicrosoft Teams displays the selected account's Microsoft 365 name and profile; `bot_name` is ignored for the authenticated join.\n\n- credential_id: pin a specific login and display identity.\n- email_group: least-loaded pool selector (takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
             "example": null
           },
           "timeout_config": {
@@ -4432,7 +4609,7 @@
               "silence_timeout": 600,
               "waiting_room_timeout": 600
             },
-            "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 6 hours).",
+            "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
             "properties": {
               "grace_period": {
                 "default": 0,
@@ -4445,7 +4622,7 @@
               "max_recording_duration": {
                 "anyOf": [
                   {
-                    "maximum": 21600,
+                    "maximum": 43200,
                     "minimum": 7200,
                     "type": "integer"
                   },
@@ -4454,7 +4631,7 @@
                   }
                 ],
                 "default": null,
-                "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–21600 seconds (2–6 hours)",
+                "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–43200 seconds (2–12 hours)",
                 "example": null
               },
               "no_one_joined_timeout": {
@@ -4497,6 +4674,7 @@
                   "api_key": {
                     "anyOf": [
                       {
+                        "minLength": 1,
                         "type": "string"
                       },
                       {
@@ -4740,7 +4918,7 @@
                 "example": null
               },
               "bot_name": {
-                "description": "The name of the bot.\n\nThis name will be displayed as the bot's name in the meeting.",
+                "description": "The name requested for the bot.\n\nThis name is displayed for anonymous joins. For an authenticated Microsoft Teams join using `teams_config`, Microsoft Teams ignores this value and displays the signed-in Microsoft 365 account's display name and profile instead.\n\nFor a Microsoft Teams meeting the name must be one Teams accepts for a guest, or the request is rejected: at most 50 characters; only letters, numbers, spaces and ' ’ . _ @ - · ・; no consecutive spaces; and no leading, trailing or consecutive periods. This applies to authenticated joins too, because a failed sign-in falls back to joining as a guest under this name.",
                 "example": "Meeting BaaS Bot",
                 "maxLength": 255,
                 "minLength": 1,
@@ -4984,6 +5162,7 @@
                               "api_key": {
                                 "anyOf": [
                                   {
+                                    "minLength": 1,
                                     "type": "string"
                                   },
                                   {
@@ -5095,7 +5274,7 @@
                     "additionalProperties": false,
                     "properties": {
                       "credential_id": {
-                        "description": "UUID of a stored teams login (created via /v2/teams-logins). Pin a specific login for this bot.",
+                        "description": "UUID of a stored teams login (created via /v2/teams-logins). Pin a specific login—and therefore a specific Microsoft 365 display identity—for this bot. `bot_name` cannot override the signed-in account's display name.",
                         "format": "uuid",
                         "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
                         "type": "string"
@@ -5113,7 +5292,7 @@
                             "type": "string"
                           }
                         ],
-                        "description": "Round-robin pool selector. Bot will be assigned to the least-loaded active teams_login with this email_group value. Takes priority over credential_id when both are set. Pass an empty string (\"\") to round-robin across all active logins for the team without filtering by group."
+                        "description": "Round-robin pool selector. Bot will be assigned to the least-loaded active teams_login with this email_group value. Takes priority over credential_id when both are set. Pass an empty string (\"\") to round-robin across all active logins for the team without filtering by group. The selected account controls the bot's visible Teams name and profile, so use interchangeable identities in a pool when display identity matters."
                       },
                       "fallback": {
                         "description": "What to do if no teams_login slot is available.\n- 'fail' (default): bot creation fails with teams_login_unavailable.\n- 'anonymous': silently fall back to an anonymous (non-authenticated) bot.",
@@ -5131,7 +5310,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
+                "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\nMicrosoft Teams displays the selected account's Microsoft 365 name and profile; `bot_name` is ignored for the authenticated join.\n\n- credential_id: pin a specific login and display identity.\n- email_group: least-loaded pool selector (takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
                 "example": null
               },
               "timeout_config": {
@@ -5143,7 +5322,7 @@
                   "silence_timeout": 600,
                   "waiting_room_timeout": 600
                 },
-                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 6 hours).",
+                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
                 "properties": {
                   "grace_period": {
                     "default": 0,
@@ -5156,7 +5335,7 @@
                   "max_recording_duration": {
                     "anyOf": [
                       {
-                        "maximum": 21600,
+                        "maximum": 43200,
                         "minimum": 7200,
                         "type": "integer"
                       },
@@ -5165,7 +5344,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–21600 seconds (2–6 hours)",
+                    "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–43200 seconds (2–12 hours)",
                     "example": null
                   },
                   "no_one_joined_timeout": {
@@ -5216,6 +5395,7 @@
                       "api_key": {
                         "anyOf": [
                           {
+                            "minLength": 1,
                             "type": "string"
                           },
                           {
@@ -5445,7 +5625,7 @@
                 "example": null
               },
               "bot_name": {
-                "description": "The name of the bot.\n\nThis name will be displayed as the bot's name in the meeting.",
+                "description": "The name requested for the bot.\n\nThis name is displayed for anonymous joins. For an authenticated Microsoft Teams join using `teams_config`, Microsoft Teams ignores this value and displays the signed-in Microsoft 365 account's display name and profile instead.\n\nFor a Microsoft Teams meeting the name must be one Teams accepts for a guest, or the request is rejected: at most 50 characters; only letters, numbers, spaces and ' ’ . _ @ - · ・; no consecutive spaces; and no leading, trailing or consecutive periods. This applies to authenticated joins too, because a failed sign-in falls back to joining as a guest under this name.",
                 "example": "Meeting BaaS Bot",
                 "maxLength": 255,
                 "minLength": 1,
@@ -5683,6 +5863,7 @@
                               "api_key": {
                                 "anyOf": [
                                   {
+                                    "minLength": 1,
                                     "type": "string"
                                   },
                                   {
@@ -5780,7 +5961,7 @@
                   {
                     "properties": {
                       "credential_id": {
-                        "description": "UUID of a stored teams login (created via /v2/teams-logins). Pin a specific login for this bot.",
+                        "description": "UUID of a stored teams login (created via /v2/teams-logins). Pin a specific login—and therefore a specific Microsoft 365 display identity—for this bot. `bot_name` cannot override the signed-in account's display name.",
                         "format": "uuid",
                         "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
                         "type": "string"
@@ -5798,7 +5979,7 @@
                             "type": "string"
                           }
                         ],
-                        "description": "Round-robin pool selector. Bot will be assigned to the least-loaded active teams_login with this email_group value. Takes priority over credential_id when both are set. Pass an empty string (\"\") to round-robin across all active logins for the team without filtering by group."
+                        "description": "Round-robin pool selector. Bot will be assigned to the least-loaded active teams_login with this email_group value. Takes priority over credential_id when both are set. Pass an empty string (\"\") to round-robin across all active logins for the team without filtering by group. The selected account controls the bot's visible Teams name and profile, so use interchangeable identities in a pool when display identity matters."
                       },
                       "fallback": {
                         "description": "What to do if no teams_login slot is available.\n- 'fail' (default): bot creation fails with teams_login_unavailable.\n- 'anonymous': silently fall back to an anonymous (non-authenticated) bot.",
@@ -5816,7 +5997,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
+                "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\nMicrosoft Teams displays the selected account's Microsoft 365 name and profile; `bot_name` is ignored for the authenticated join.\n\n- credential_id: pin a specific login and display identity.\n- email_group: least-loaded pool selector (takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
                 "example": null
               },
               "timeout_config": {
@@ -5827,7 +6008,7 @@
                   "silence_timeout": 600,
                   "waiting_room_timeout": 600
                 },
-                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 6 hours).",
+                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
                 "properties": {
                   "grace_period": {
                     "default": 0,
@@ -5840,7 +6021,7 @@
                   "max_recording_duration": {
                     "anyOf": [
                       {
-                        "maximum": 21600,
+                        "maximum": 43200,
                         "minimum": 7200,
                         "type": "integer"
                       },
@@ -5849,7 +6030,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–21600 seconds (2–6 hours)",
+                    "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–43200 seconds (2–12 hours)",
                     "example": null
                   },
                   "no_one_joined_timeout": {
@@ -5892,6 +6073,7 @@
                       "api_key": {
                         "anyOf": [
                           {
+                            "minLength": 1,
                             "type": "string"
                           },
                           {
@@ -13169,7 +13351,7 @@
                 "example": null
               },
               "bot_name": {
-                "description": "The name of the bot.\n\nThis name will be displayed as the bot's name in the meeting.",
+                "description": "The name requested for the bot.\n\nThis name is displayed for anonymous joins. For an authenticated Microsoft Teams join using `teams_config`, Microsoft Teams ignores this value and displays the signed-in Microsoft 365 account's display name and profile instead.\n\nFor a Microsoft Teams meeting the name must be one Teams accepts for a guest, or the request is rejected: at most 50 characters; only letters, numbers, spaces and ' ’ . _ @ - · ・; no consecutive spaces; and no leading, trailing or consecutive periods. This applies to authenticated joins too, because a failed sign-in falls back to joining as a guest under this name.",
                 "example": "Meeting BaaS Bot",
                 "maxLength": 255,
                 "minLength": 1,
@@ -13404,6 +13586,7 @@
                           "api_key": {
                             "anyOf": [
                               {
+                                "minLength": 1,
                                 "type": "string"
                               },
                               {
@@ -13508,7 +13691,7 @@
                     "additionalProperties": false,
                     "properties": {
                       "credential_id": {
-                        "description": "UUID of a stored teams login (created via /v2/teams-logins). Pin a specific login for this bot.",
+                        "description": "UUID of a stored teams login (created via /v2/teams-logins). Pin a specific login—and therefore a specific Microsoft 365 display identity—for this bot. `bot_name` cannot override the signed-in account's display name.",
                         "format": "uuid",
                         "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
                         "type": "string"
@@ -13526,7 +13709,7 @@
                             "type": "string"
                           }
                         ],
-                        "description": "Round-robin pool selector. Bot will be assigned to the least-loaded active teams_login with this email_group value. Takes priority over credential_id when both are set. Pass an empty string (\"\") to round-robin across all active logins for the team without filtering by group."
+                        "description": "Round-robin pool selector. Bot will be assigned to the least-loaded active teams_login with this email_group value. Takes priority over credential_id when both are set. Pass an empty string (\"\") to round-robin across all active logins for the team without filtering by group. The selected account controls the bot's visible Teams name and profile, so use interchangeable identities in a pool when display identity matters."
                       },
                       "fallback": {
                         "description": "What to do if no teams_login slot is available.\n- 'fail' (default): bot creation fails with teams_login_unavailable.\n- 'anonymous': silently fall back to an anonymous (non-authenticated) bot.",
@@ -13544,7 +13727,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
+                "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\nMicrosoft Teams displays the selected account's Microsoft 365 name and profile; `bot_name` is ignored for the authenticated join.\n\n- credential_id: pin a specific login and display identity.\n- email_group: least-loaded pool selector (takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
                 "example": null
               },
               "timeout_config": {
@@ -13556,7 +13739,7 @@
                   "silence_timeout": 600,
                   "waiting_room_timeout": 600
                 },
-                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 6 hours).",
+                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
                 "properties": {
                   "grace_period": {
                     "default": 0,
@@ -13569,7 +13752,7 @@
                   "max_recording_duration": {
                     "anyOf": [
                       {
-                        "maximum": 21600,
+                        "maximum": 43200,
                         "minimum": 7200,
                         "type": "integer"
                       },
@@ -13578,7 +13761,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–21600 seconds (2–6 hours)",
+                    "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–43200 seconds (2–12 hours)",
                     "example": null
                   },
                   "no_one_joined_timeout": {
@@ -13617,7 +13800,7 @@
               },
               "transcription_config": {
                 "additionalProperties": false,
-                "description": "The transcription configuration for the bot.\n\nRequired when `transcription_enabled` is `true`. Must not be provided when `transcription_enabled` is `false`.\n\n- `provider`: Speech-to-text provider (default: \"gladia\"). Supported: gladia, deepgram, assemblyai, speechmatics, soniox\n- `api_key`: Your own API key for the provider (BYOK - available on Pro plans and above)\n- `region`: Provider region (e.g. \"eu\", \"us\"). Required for some providers like Speechmatics\n- `custom_params`: Custom parameters for the transcription provider\n\nOmit this field to leave transcription configuration unchanged.",
+                "description": "The transcription configuration for the bot.\n\nRequired when `transcription_enabled` is `true`. Must not be provided when `transcription_enabled` is `false`.\n\n- `provider`: Speech-to-text provider (default: \"gladia\"). Supported: gladia, deepgram, assemblyai, speechmatics, soniox\n- `api_key`: Your own API key for the provider (BYOK - available on all plans)\n- `region`: Provider region (e.g. \"eu\", \"us\"). Required for some providers like Speechmatics\n- `custom_params`: Custom parameters for the transcription provider\n\nOmit this field to leave transcription configuration unchanged.",
                 "example": {
                   "api_key": null,
                   "custom_params": null,
@@ -13628,6 +13811,7 @@
                   "api_key": {
                     "anyOf": [
                       {
+                        "minLength": 1,
                         "type": "string"
                       },
                       {
@@ -13831,7 +14015,7 @@
                 "example": null
               },
               "bot_name": {
-                "description": "The name of the bot.\n\nThis name will be displayed as the bot's name in the meeting.",
+                "description": "The name requested for the bot.\n\nThis name is displayed for anonymous joins. For an authenticated Microsoft Teams join using `teams_config`, Microsoft Teams ignores this value and displays the signed-in Microsoft 365 account's display name and profile instead.\n\nFor a Microsoft Teams meeting the name must be one Teams accepts for a guest, or the request is rejected: at most 50 characters; only letters, numbers, spaces and ' ’ . _ @ - · ・; no consecutive spaces; and no leading, trailing or consecutive periods. This applies to authenticated joins too, because a failed sign-in falls back to joining as a guest under this name.",
                 "example": "Meeting BaaS Bot",
                 "maxLength": 255,
                 "minLength": 1,
@@ -14060,6 +14244,7 @@
                           "api_key": {
                             "anyOf": [
                               {
+                                "minLength": 1,
                                 "type": "string"
                               },
                               {
@@ -14150,7 +14335,7 @@
                   {
                     "properties": {
                       "credential_id": {
-                        "description": "UUID of a stored teams login (created via /v2/teams-logins). Pin a specific login for this bot.",
+                        "description": "UUID of a stored teams login (created via /v2/teams-logins). Pin a specific login—and therefore a specific Microsoft 365 display identity—for this bot. `bot_name` cannot override the signed-in account's display name.",
                         "format": "uuid",
                         "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
                         "type": "string"
@@ -14168,7 +14353,7 @@
                             "type": "string"
                           }
                         ],
-                        "description": "Round-robin pool selector. Bot will be assigned to the least-loaded active teams_login with this email_group value. Takes priority over credential_id when both are set. Pass an empty string (\"\") to round-robin across all active logins for the team without filtering by group."
+                        "description": "Round-robin pool selector. Bot will be assigned to the least-loaded active teams_login with this email_group value. Takes priority over credential_id when both are set. Pass an empty string (\"\") to round-robin across all active logins for the team without filtering by group. The selected account controls the bot's visible Teams name and profile, so use interchangeable identities in a pool when display identity matters."
                       },
                       "fallback": {
                         "description": "What to do if no teams_login slot is available.\n- 'fail' (default): bot creation fails with teams_login_unavailable.\n- 'anonymous': silently fall back to an anonymous (non-authenticated) bot.",
@@ -14186,7 +14371,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
+                "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\nMicrosoft Teams displays the selected account's Microsoft 365 name and profile; `bot_name` is ignored for the authenticated join.\n\n- credential_id: pin a specific login and display identity.\n- email_group: least-loaded pool selector (takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
                 "example": null
               },
               "timeout_config": {
@@ -14197,7 +14382,7 @@
                   "silence_timeout": 600,
                   "waiting_room_timeout": 600
                 },
-                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 6 hours).",
+                "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
                 "properties": {
                   "grace_period": {
                     "default": 0,
@@ -14210,7 +14395,7 @@
                   "max_recording_duration": {
                     "anyOf": [
                       {
-                        "maximum": 21600,
+                        "maximum": 43200,
                         "minimum": 7200,
                         "type": "integer"
                       },
@@ -14219,7 +14404,7 @@
                       }
                     ],
                     "default": null,
-                    "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–21600 seconds (2–6 hours)",
+                    "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–43200 seconds (2–12 hours)",
                     "example": null
                   },
                   "no_one_joined_timeout": {
@@ -14250,7 +14435,7 @@
                 "type": "object"
               },
               "transcription_config": {
-                "description": "The transcription configuration for the bot.\n\nRequired when `transcription_enabled` is `true`. Must not be provided when `transcription_enabled` is `false`.\n\n- `provider`: Speech-to-text provider (default: \"gladia\"). Supported: gladia, deepgram, assemblyai, speechmatics, soniox\n- `api_key`: Your own API key for the provider (BYOK - available on Pro plans and above)\n- `region`: Provider region (e.g. \"eu\", \"us\"). Required for some providers like Speechmatics\n- `custom_params`: Custom parameters for the transcription provider\n\nOmit this field to leave transcription configuration unchanged.",
+                "description": "The transcription configuration for the bot.\n\nRequired when `transcription_enabled` is `true`. Must not be provided when `transcription_enabled` is `false`.\n\n- `provider`: Speech-to-text provider (default: \"gladia\"). Supported: gladia, deepgram, assemblyai, speechmatics, soniox\n- `api_key`: Your own API key for the provider (BYOK - available on all plans)\n- `region`: Provider region (e.g. \"eu\", \"us\"). Required for some providers like Speechmatics\n- `custom_params`: Custom parameters for the transcription provider\n\nOmit this field to leave transcription configuration unchanged.",
                 "example": {
                   "api_key": null,
                   "custom_params": null,
@@ -14261,6 +14446,7 @@
                   "api_key": {
                     "anyOf": [
                       {
+                        "minLength": 1,
                         "type": "string"
                       },
                       {
@@ -14780,7 +14966,7 @@
             "example": null
           },
           "bot_name": {
-            "description": "The name of the bot.\n\nThis name will be displayed as the bot's name in the meeting.",
+            "description": "The name requested for the bot.\n\nThis name is displayed for anonymous joins. For an authenticated Microsoft Teams join using `teams_config`, Microsoft Teams ignores this value and displays the signed-in Microsoft 365 account's display name and profile instead.\n\nFor a Microsoft Teams meeting the name must be one Teams accepts for a guest, or the request is rejected: at most 50 characters; only letters, numbers, spaces and ' ’ . _ @ - · ・; no consecutive spaces; and no leading, trailing or consecutive periods. This applies to authenticated joins too, because a failed sign-in falls back to joining as a guest under this name.",
             "example": "Meeting BaaS Bot",
             "maxLength": 255,
             "minLength": 1,
@@ -15036,6 +15222,7 @@
                           "api_key": {
                             "anyOf": [
                               {
+                                "minLength": 1,
                                 "type": "string"
                               },
                               {
@@ -15147,7 +15334,7 @@
                 "additionalProperties": false,
                 "properties": {
                   "credential_id": {
-                    "description": "UUID of a stored teams login (created via /v2/teams-logins). Pin a specific login for this bot.",
+                    "description": "UUID of a stored teams login (created via /v2/teams-logins). Pin a specific login—and therefore a specific Microsoft 365 display identity—for this bot. `bot_name` cannot override the signed-in account's display name.",
                     "format": "uuid",
                     "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
                     "type": "string"
@@ -15165,7 +15352,7 @@
                         "type": "string"
                       }
                     ],
-                    "description": "Round-robin pool selector. Bot will be assigned to the least-loaded active teams_login with this email_group value. Takes priority over credential_id when both are set. Pass an empty string (\"\") to round-robin across all active logins for the team without filtering by group."
+                    "description": "Round-robin pool selector. Bot will be assigned to the least-loaded active teams_login with this email_group value. Takes priority over credential_id when both are set. Pass an empty string (\"\") to round-robin across all active logins for the team without filtering by group. The selected account controls the bot's visible Teams name and profile, so use interchangeable identities in a pool when display identity matters."
                   },
                   "fallback": {
                     "description": "What to do if no teams_login slot is available.\n- 'fail' (default): bot creation fails with teams_login_unavailable.\n- 'anonymous': silently fall back to an anonymous (non-authenticated) bot.",
@@ -15183,7 +15370,7 @@
               }
             ],
             "default": null,
-            "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
+            "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\nMicrosoft Teams displays the selected account's Microsoft 365 name and profile; `bot_name` is ignored for the authenticated join.\n\n- credential_id: pin a specific login and display identity.\n- email_group: least-loaded pool selector (takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
             "example": null
           },
           "timeout_config": {
@@ -15195,7 +15382,7 @@
               "silence_timeout": 600,
               "waiting_room_timeout": 600
             },
-            "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 6 hours).",
+            "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
             "properties": {
               "grace_period": {
                 "default": 0,
@@ -15208,7 +15395,7 @@
               "max_recording_duration": {
                 "anyOf": [
                   {
-                    "maximum": 21600,
+                    "maximum": 43200,
                     "minimum": 7200,
                     "type": "integer"
                   },
@@ -15217,7 +15404,7 @@
                   }
                 ],
                 "default": null,
-                "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–21600 seconds (2–6 hours)",
+                "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–43200 seconds (2–12 hours)",
                 "example": null
               },
               "no_one_joined_timeout": {
@@ -15268,6 +15455,7 @@
                   "api_key": {
                     "anyOf": [
                       {
+                        "minLength": 1,
                         "type": "string"
                       },
                       {
@@ -15452,7 +15640,7 @@
             "example": null
           },
           "bot_name": {
-            "description": "The name of the bot.\n\nThis name will be displayed as the bot's name in the meeting.",
+            "description": "The name requested for the bot.\n\nThis name is displayed for anonymous joins. For an authenticated Microsoft Teams join using `teams_config`, Microsoft Teams ignores this value and displays the signed-in Microsoft 365 account's display name and profile instead.\n\nFor a Microsoft Teams meeting the name must be one Teams accepts for a guest, or the request is rejected: at most 50 characters; only letters, numbers, spaces and ' ’ . _ @ - · ・; no consecutive spaces; and no leading, trailing or consecutive periods. This applies to authenticated joins too, because a failed sign-in falls back to joining as a guest under this name.",
             "example": "Meeting BaaS Bot",
             "maxLength": 255,
             "minLength": 1,
@@ -15702,6 +15890,7 @@
                           "api_key": {
                             "anyOf": [
                               {
+                                "minLength": 1,
                                 "type": "string"
                               },
                               {
@@ -15799,7 +15988,7 @@
               {
                 "properties": {
                   "credential_id": {
-                    "description": "UUID of a stored teams login (created via /v2/teams-logins). Pin a specific login for this bot.",
+                    "description": "UUID of a stored teams login (created via /v2/teams-logins). Pin a specific login—and therefore a specific Microsoft 365 display identity—for this bot. `bot_name` cannot override the signed-in account's display name.",
                     "format": "uuid",
                     "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
                     "type": "string"
@@ -15817,7 +16006,7 @@
                         "type": "string"
                       }
                     ],
-                    "description": "Round-robin pool selector. Bot will be assigned to the least-loaded active teams_login with this email_group value. Takes priority over credential_id when both are set. Pass an empty string (\"\") to round-robin across all active logins for the team without filtering by group."
+                    "description": "Round-robin pool selector. Bot will be assigned to the least-loaded active teams_login with this email_group value. Takes priority over credential_id when both are set. Pass an empty string (\"\") to round-robin across all active logins for the team without filtering by group. The selected account controls the bot's visible Teams name and profile, so use interchangeable identities in a pool when display identity matters."
                   },
                   "fallback": {
                     "description": "What to do if no teams_login slot is available.\n- 'fail' (default): bot creation fails with teams_login_unavailable.\n- 'anonymous': silently fall back to an anonymous (non-authenticated) bot.",
@@ -15835,7 +16024,7 @@
               }
             ],
             "default": null,
-            "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
+            "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\nMicrosoft Teams displays the selected account's Microsoft 365 name and profile; `bot_name` is ignored for the authenticated join.\n\n- credential_id: pin a specific login and display identity.\n- email_group: least-loaded pool selector (takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
             "example": null
           },
           "timeout_config": {
@@ -15846,7 +16035,7 @@
               "silence_timeout": 600,
               "waiting_room_timeout": 600
             },
-            "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 6 hours).",
+            "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
             "properties": {
               "grace_period": {
                 "default": 0,
@@ -15859,7 +16048,7 @@
               "max_recording_duration": {
                 "anyOf": [
                   {
-                    "maximum": 21600,
+                    "maximum": 43200,
                     "minimum": 7200,
                     "type": "integer"
                   },
@@ -15868,7 +16057,7 @@
                   }
                 ],
                 "default": null,
-                "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–21600 seconds (2–6 hours)",
+                "description": "The maximum recording duration in seconds. When set, the bot will automatically end the recording after this duration regardless of silence or participant activity. When null, the default 4-hour internal timeout applies.\n\nRange: 7200–43200 seconds (2–12 hours)",
                 "example": null
               },
               "no_one_joined_timeout": {
@@ -15911,6 +16100,7 @@
                   "api_key": {
                     "anyOf": [
                       {
+                        "minLength": 1,
                         "type": "string"
                       },
                       {
@@ -16738,7 +16928,7 @@
     },
     "/v2/bots/batch": {
       "post": {
-        "description": "Create multiple bots in a single request with partial success support.\n    \n    Processes each bot creation request sequentially (index 0, 1, 2...). Each item is validated and processed independently. If some bots fail to create, the request still returns 201 with a `data` array containing successful creations and an `errors` array containing failures. Each error includes the `index` of the failed item in the original request array.\n    \n    **Processing Order:** Items are processed in the order they appear in the request array. Each item goes through the same validation and checks as a single bot creation: platform detection, BYOK transcription check, daily bot cap check, token availability check, and deduplication lock acquisition.\n    \n    **Partial Success:** The response always has `success: true`, even if all items fail. Check the `errors` array to identify failed items. The `data` array contains successfully created bots with their `bot_id` and preserved `extra` metadata. The `errors` array contains failed items with `index`, `code`, `message`, `details`, and preserved `extra` metadata.\n    \n    **Daily Bot Cap:** The daily bot cap is checked per item, not per batch. If the cap is reached mid-batch, subsequent items will fail with `DAILY_BOT_CAP_REACHED` error. The cap is based on bots created in the last 24 hours.\n    \n    **Token Reservation:** Tokens are reserved individually for each successful bot creation (0.5 tokens per bot). If token availability becomes insufficient mid-batch, subsequent items will fail with `INSUFFICIENT_TOKENS`.\n    \n    **Error Index Mapping:** Each error includes an `index` field (0-based) that corresponds to the item's position in the request array. Use this to correlate errors with your original request. Validation errors include detailed validation issues in the `details` field.\n    \n    **Error Isolation:** Each bot creation is processed independently. If one bot creation fails, it does not affect other bots in the batch. Failed items are included in the `errors` array while successful items are in the `data` array.\n    \n    Returns 201 with partial success response. All items may succeed, all may fail, or any combination. Always check both `data` and `errors` arrays.",
+        "description": "Create multiple bots in a single request with partial success support.\n    \n    Processes each bot creation request sequentially (index 0, 1, 2...). Each item is validated and processed independently. If some bots fail to create, the request still returns 201 with a `data` array containing successful creations and an `errors` array containing failures. Each error includes the `index` of the failed item in the original request array.\n    \n    **Processing Order:** Items are processed in the order they appear in the request array. Each item goes through the same validation and checks as a single bot creation: platform detection, transcription key availability, daily bot cap check, token availability check, and deduplication lock acquisition.\n    \n    **Partial Success:** The response always has `success: true`, even if all items fail. Check the `errors` array to identify failed items. The `data` array contains successfully created bots with their `bot_id` and preserved `extra` metadata. The `errors` array contains failed items with `index`, `code`, `message`, `details`, and preserved `extra` metadata.\n    \n    **Daily Bot Cap:** The daily bot cap is checked per item, not per batch. If the cap is reached mid-batch, subsequent items will fail with `DAILY_BOT_CAP_REACHED` error. The cap is based on bots created in the last 24 hours.\n    \n    **Token Reservation:** Tokens are reserved individually for each successful bot creation (0.5 tokens per bot). If token availability becomes insufficient mid-batch, subsequent items will fail with `INSUFFICIENT_TOKENS`.\n    \n    **Error Index Mapping:** Each error includes an `index` field (0-based) that corresponds to the item's position in the request array. Use this to correlate errors with your original request. Validation errors include detailed validation issues in the `details` field.\n    \n    **Error Isolation:** Each bot creation is processed independently. If one bot creation fails, it does not affect other bots in the batch. Failed items are included in the `errors` array while successful items are in the `data` array.\n    \n    Returns 201 with partial success response. All items may succeed, all may fail, or any combination. Always check both `data` and `errors` arrays.",
         "operationId": "batchCreateBots",
         "requestBody": {
           "content": {
@@ -17281,7 +17471,7 @@
     },
     "/v2/bots/scheduled/batch": {
       "post": {
-        "description": "Create multiple scheduled bots in a single request with partial success support.\n    \n    Processes each scheduled bot creation request sequentially. Each item is validated and processed independently. Token reservation and daily bot cap checks are NOT performed at creation time - they are performed when each bot actually joins the meeting.\n    \n    **Processing Order:** Items are processed in the order they appear in the request array. Each item goes through validation: platform detection, BYOK transcription check, and join time validation. Unlike immediate bot creation, daily bot cap and token availability are not checked at creation time.\n    \n    **Partial Success:** The response always has `success: true`, even if all items fail. Check the `errors` array to identify failed items. The `data` array contains successfully scheduled bots with their `bot_id` and preserved `extra` metadata.\n    \n    **Join Time Validation:** Each scheduled bot's `join_at` time must be in the future (at least 1 minute ahead). If a join time is invalid, that item will fail with a validation error, but other items will continue processing.\n    \n    **Error Scenarios:** \n    - Validation errors: Invalid join time, invalid meeting URL, invalid configuration\n    - Platform detection failures: `INVALID_MEETING_PLATFORM`\n    - BYOK not enabled: `BYOK_TRANSCRIPTION_NOT_ENABLED_ON_PLAN`\n    - System failures: `BOT_CREATE_FAILED`\n    \n    **Note:** Daily bot cap and token availability are checked when each bot joins, not at creation time. If these checks fail at join time, the bot will transition to `failed` status and send a failure webhook.\n    \n    Returns 201 with partial success response. All items may succeed, all may fail, or any combination.",
+        "description": "Create multiple scheduled bots in a single request with partial success support.\n    \n    Processes each scheduled bot creation request sequentially. Each item is validated and processed independently. Token reservation and daily bot cap checks are NOT performed at creation time - they are performed when each bot actually joins the meeting.\n    \n    **Processing Order:** Items are processed in the order they appear in the request array. Each item goes through validation: platform detection, transcription key availability, and join time validation. Unlike immediate bot creation, daily bot cap and token availability are not checked at creation time.\n    \n    **Partial Success:** The response always has `success: true`, even if all items fail. Check the `errors` array to identify failed items. The `data` array contains successfully scheduled bots with their `bot_id` and preserved `extra` metadata.\n    \n    **Join Time Validation:** Each scheduled bot's `join_at` time must be in the future (at least 1 minute ahead). If a join time is invalid, that item will fail with a validation error, but other items will continue processing.\n    \n    **Error Scenarios:** \n    - Validation errors: Invalid join time, invalid meeting URL, invalid configuration\n    - Platform detection failures: `INVALID_MEETING_PLATFORM`\n    - System failures: `BOT_CREATE_FAILED`\n    \n    **Note:** Daily bot cap and token availability are checked when each bot joins, not at creation time. If these checks fail at join time, the bot will transition to `failed` status and send a failure webhook.\n    \n    Returns 201 with partial success response. All items may succeed, all may fail, or any combination.",
         "operationId": "batchCreateScheduledBots",
         "requestBody": {
           "content": {
@@ -18818,6 +19008,7 @@
                           "api_key": {
                             "anyOf": [
                               {
+                                "minLength": 1,
                                 "type": "string"
                               },
                               {
@@ -23963,7 +24154,7 @@
         ]
       },
       "post": {
-        "description": "Create a meet workspace — the parent resource that holds your SAML cert + private key for one Google Workspace's SSO config.\n\n    A meet workspace represents one Google Workspace whose Legacy SSO profile points at our `/v2/meet-sso/*` endpoints. The cert and key on the workspace are shared by every `meet_login` (Workspace user identity) you attach to it, mirroring how Google Workspace stores a single verification certificate per SSO profile.\n\n    **Two creation paths, same response shape:**\n\n    - **Server-generated keypair** — pass `generate_keypair: true`. The server creates a self-signed RSA-2048 keypair with 10-year validity. Use this if you don't already have a SAML cert and want the simplest setup.\n    - **Bring-your-own keypair** — pass `cert_pem` and `private_key_pem` together. Use this if you want to manage your own crypto or already have a cert/key pair you trust.\n\n    Mutually exclusive: provide either `generate_keypair: true` OR (`cert_pem` + `private_key_pem`), not both.\n\n    **Response always includes `cert_pem`** so you can upload it to Google's Legacy SSO profile in your Workspace admin console. `private_key_pem` is never returned.\n\n    **After creation, you must:**\n    1. Upload the returned `cert_pem` to Google Admin Console → Security → Set up SSO with third-party IdP → Legacy SSO profile.\n    2. Set Sign-in URL to `https://api.meetingbaas.com/v2/meet-sso/sign-in` and Sign-out URL to `https://api.meetingbaas.com/v2/meet-sso/sign-out` in the same SSO profile. Enable \"Use a domain-specific issuer\". Do not assign the profile yet.\n    3. Create one or more Workspace users that bots will sign in as. Sign in to each new account in a browser and complete the \"Welcome to Workspace\" first-run flow before the SSO profile is assigned to it — once SSO applies, the account password stops working and this flow can no longer be completed. Set language to \"English (United States)\".\n    4. Assign the SSO profile to the bot group or organizational unit only (never to all users), now that each bot account has completed its welcome flow.\n    5. Add `meet_logins` (one per Workspace user) referencing this `workspace_id`.\n    6. Optionally call `POST /v2/meet-workspaces/:workspace_id/verify` to run pre-flight checks.\n\n    **Security:** The cert and key are encrypted at rest using AES-256-GCM. `private_key_pem` is never echoed in any response — including subsequent GETs. If you need it back, you must rotate via PATCH.\n\n    **Per-team uniqueness:** Each `domain` may exist at most once per team. Attempting to create a duplicate returns 409.\n\n    **Error Scenarios:**\n    - `409 Conflict`: A workspace for this `domain` already exists.\n    - `422 Unprocessable Entity`: Invalid cert/key (parse failure or modulus mismatch); both `generate_keypair` and `cert_pem` provided; neither provided.",
+        "description": "Create a meet workspace — the parent resource that holds your SAML cert + private key for one Google Workspace's SSO config.\n\n    A meet workspace represents one Google Workspace whose Legacy SSO profile points at our `/v2/meet-sso/*` endpoints. The cert and key on the workspace are shared by every `meet_login` (Workspace user identity) you attach to it, mirroring how Google Workspace stores a single verification certificate per SSO profile.\n\n    **Two creation paths, same response shape:**\n\n    - **Server-generated keypair** — pass `generate_keypair: true`. The server creates a self-signed RSA-2048 keypair with 10-year validity. Use this if you don't already have a SAML cert and want the simplest setup.\n    - **Bring-your-own keypair** — pass `cert_pem` and `private_key_pem` together. Use this if you want to manage your own crypto or already have a cert/key pair you trust.\n\n    Mutually exclusive: provide either `generate_keypair: true` OR (`cert_pem` + `private_key_pem`), not both.\n\n    **Response always includes `cert_pem`** so you can upload it to Google's Legacy SSO profile in your Workspace admin console. `private_key_pem` is never returned.\n\n    **After creation, you must:**\n    1. Upload the returned `cert_pem` to Google Admin Console → Security → Set up SSO with third-party IdP → Legacy SSO profile.\n    2. Set Sign-in URL to `https://api.meetingbaas.com/v2/meet-sso/sign-in` and Sign-out URL to `https://api.meetingbaas.com/v2/meet-sso/sign-out` in the same SSO profile. Enable \"Use a domain-specific issuer\" and assign the SSO profile to all users.\n    3. Create one or more Workspace users that bots will sign in as, complete the \"Welcome to Workspace\" interactive login for each, and set language to \"English (United States)\".\n    4. Add `meet_logins` (one per Workspace user) referencing this `workspace_id`.\n    5. Optionally call `POST /v2/meet-workspaces/:workspace_id/verify` to run pre-flight checks.\n\n    **Security:** The cert and key are encrypted at rest using AES-256-GCM. `private_key_pem` is never echoed in any response — including subsequent GETs. If you need it back, you must rotate via PATCH.\n\n    **Per-team uniqueness:** Each `domain` may exist at most once per team. Attempting to create a duplicate returns 409.\n\n    **Error Scenarios:**\n    - `409 Conflict`: A workspace for this `domain` already exists.\n    - `422 Unprocessable Entity`: Invalid cert/key (parse failure or modulus mismatch); both `generate_keypair` and `cert_pem` provided; neither provided.",
         "operationId": "createMeetWorkspace",
         "requestBody": {
           "content": {
