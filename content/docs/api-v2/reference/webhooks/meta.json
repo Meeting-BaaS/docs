@@ -2,6 +2,7 @@
   "title": "Webhooks",
   "pages": [
     "botwebhookchatmessage",
+    "botwebhookchatstatus",
     "botwebhookcompleted",
     "botwebhookfailed",
     "botwebhookstatuschange",
