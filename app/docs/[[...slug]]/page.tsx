@@ -50,19 +50,20 @@ function sectionLabel(slug: string): string {
   return SECTION_LABELS[slug] ?? slug.replace(/-/g, ' ') ?? 'Docs';
 }
 
-// Replacement for removed DocsCategory component
-function CategoryCards({ page, from }: { page: Page; from: typeof source }) {
-  const pagePath = page.url;
-  const pageDir = pagePath.includes('/')
-    ? pagePath.substring(0, pagePath.lastIndexOf('/'))
-    : '';
+const parentUrl = (url: string): string => url.slice(0, url.lastIndexOf('/'));
 
-  const pages = from.getPages().filter((p) => {
-    const pDir = p.url.includes('/')
-      ? p.url.substring(0, p.url.lastIndexOf('/'))
-      : '';
-    return pDir === pageDir && p.url !== pagePath;
-  });
+// Replacement for removed DocsCategory component.
+// A folder index page (`<dir>/index.mdx`) resolves to the folder URL itself, so
+// its category is the pages directly under it. Any other page lists its
+// siblings. Treating both the same way made index pages list the folder's
+// *siblings* (e.g. unrelated top-level sections on /bring-your-own-storage).
+function CategoryCards({ page, from }: { page: Page; from: typeof source }) {
+  const isIndex = page.path === 'index.mdx' || page.path.endsWith('/index.mdx');
+  const dir = isIndex ? page.url : parentUrl(page.url);
+
+  const pages = from
+    .getPages()
+    .filter((p) => p.url !== page.url && parentUrl(p.url) === dir);
 
   if (pages.length === 0) return null;
 
@@ -81,6 +82,12 @@ function CategoryCards({ page, from }: { page: Page; from: typeof source }) {
 }
 
 export const revalidate = false;
+
+// Every docs page is known at build time (generateStaticParams below), so a slug
+// that was not generated is a 404, not a page to render on demand. Without this,
+// unknown paths (including folders that have no index page) invoke the docs
+// lambda on Vercel, which fails and surfaces as a 500 instead of a 404.
+export const dynamicParams = false;
 
 export default async function Page(props: {
   params: Promise<{ slug: string[] }>;
