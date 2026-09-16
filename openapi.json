@@ -3502,7 +3502,7 @@
           },
           "last_updated": {
             "description": "Timestamp of when this data was generated (in ISO-8601 format)\n\nThis field is maintained for backwards compatibility. It is automatically set to the current time when the response is created.",
-            "default": "2026-09-08T08:44:32.172305190+00:00",
+            "default": "2026-09-14T14:45:39.411379249+00:00",
             "type": "string",
             "format": "date-time"
           },
