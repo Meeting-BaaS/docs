@@ -62,16 +62,18 @@ export async function POST(request: NextRequest) {
     });
 
     return result.toDataStreamResponse({
+      // The message is shown to visitors verbatim, so never pass through a
+      // provider error (billing, quota, keys); those go to the server log only.
       getErrorMessage: (error) => {
         console.error('[chat] stream error:', error);
-        if (NoSuchToolError.isInstance(error)) {
-          return 'The model tried to call a unknown tool.';
-        } else if (InvalidToolArgumentsError.isInstance(error)) {
-          return 'The model called a tool with invalid arguments.';
-        } else if (ToolExecutionError.isInstance(error)) {
-          return 'An error occurred during tool execution.';
+        if (
+          NoSuchToolError.isInstance(error) ||
+          InvalidToolArgumentsError.isInstance(error) ||
+          ToolExecutionError.isInstance(error)
+        ) {
+          return 'I hit a snag while searching the docs. Please try asking again.';
         }
-        return error instanceof Error ? error.message : 'An unknown error occurred.';
+        return 'The docs assistant is temporarily unavailable. Please try again in a few minutes, or browse the docs with the search above.';
       },
     });
   } catch (error) {
