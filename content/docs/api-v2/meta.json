@@ -9,6 +9,8 @@
     "authenticated-bots",
     "new-features",
     "migration-guide",
+    "versioning",
+    "[History][Releases](/api-v2/releases)",
     "api-keys",
     "webhooks",
     "alerts",
