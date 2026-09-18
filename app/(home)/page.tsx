@@ -1,4 +1,5 @@
 import { LogoMark, Mascot } from '@/components/brand';
+import { LatestReleasePill } from '@/components/releases/latest-release-pill';
 import { Stagger } from '@/components/motion';
 import { cn } from '@/lib/cn';
 import {
@@ -97,7 +98,7 @@ const START_HERE = [
   },
 ];
 
-export default function DocsPage(): React.ReactElement {
+export default async function DocsPage(): Promise<React.ReactElement> {
   return (
     <main className="relative isolate flex flex-col overflow-hidden">
       <div
@@ -129,6 +130,9 @@ export default function DocsPage(): React.ReactElement {
             <p className="doc-enter-3 text-fd-muted-foreground mt-4 max-w-xl leading-relaxed text-pretty">
               One API across Zoom, Google Meet and Microsoft Teams.
             </p>
+
+            {/* Latest API release, read live from GitHub; absent when unreachable. */}
+            <LatestReleasePill className="doc-enter-3 mt-5" />
 
             {/* A docs-only affordance, so the page reads as documentation
                 rather than as a second marketing hero. */}
