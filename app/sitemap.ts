@@ -16,6 +16,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
+  // Release notes are rendered from GitHub at request time, not from content
+  sitemap.push({
+    url: url('/api-v2/releases'),
+    changeFrequency: 'daily' as const,
+    priority: 0.6,
+  });
+
   // Process pages with error handling
   const pages = source.getPages();
   for (const page of pages) {

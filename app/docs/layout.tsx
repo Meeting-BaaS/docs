@@ -1,5 +1,6 @@
 import { baseOptions } from '@/app/layout.config';
 import DocsGradient from '@/components/docs-gradient';
+import { ReleasePathnameProvider } from '@/components/releases/release-pathname-provider';
 import { source } from '@/lib/source';
 import { DocsLayout, type DocsLayoutProps } from 'fumadocs-ui/layouts/notebook';
 import 'katex/dist/katex.min.css';
@@ -52,13 +53,15 @@ const docsOptions: DocsLayoutProps = {
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <DocsLayout
-      {...docsOptions}
-      nav={{ ...docsOptions.nav, mode: 'top' }}
-      tabMode="navbar"
-    >
-      <DocsGradient />
-      {children}
-    </DocsLayout>
+    <ReleasePathnameProvider>
+      <DocsLayout
+        {...docsOptions}
+        nav={{ ...docsOptions.nav, mode: 'top' }}
+        tabMode="navbar"
+      >
+        <DocsGradient />
+        {children}
+      </DocsLayout>
+    </ReleasePathnameProvider>
   );
 }
