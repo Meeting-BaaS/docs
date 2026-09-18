@@ -8,16 +8,20 @@ icon: Send
 
 Once you have at least one **active** teams workspace and login (see [Setup](/docs/api-v2/authenticated-bots/teams/setup)), add a `teams_config` object to your `POST /v2/bots` request to make the bot sign in before joining.
 
+<Callout type="info">
+Microsoft controls the visible identity of a signed-in Teams participant. The selected Microsoft 365 account supplies the display name and profile picture; `bot_name` is ignored for authenticated joins.
+</Callout>
+
 ## Round-robin pool (recommended)
 
-Assign the bot to the least-loaded active login in a pool by passing `email_group`. This spreads load across all logins sharing that group and is the right default for unattended recording at scale.
+Assign the bot to the least-loaded active login in a pool by passing `email_group`. This spreads load across all logins sharing that group and is the right default when those accounts are interchangeable—for example, when they all use the same public display name.
 
 ```bash
 curl -X POST https://api.meetingbaas.com/v2/bots \
   -H "x-meeting-baas-api-key: $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "bot_name": "Recording Bot",
+    "bot_name": "Guest fallback name",
     "meeting_url": "https://teams.microsoft.com/meet/1234567890?p=AbCdEfGhIj",
     "teams_config": {
       "email_group": "bots@acme.onmicrosoft.com",
@@ -38,7 +42,7 @@ Use `credential_id` to force the bot to use one particular login.
 
 ```json
 {
-  "bot_name": "Recording Bot",
+  "bot_name": "Ignored for this authenticated join",
   "meeting_url": "https://teams.microsoft.com/meet/1234567890?p=AbCdEfGhIj",
   "teams_config": {
     "credential_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
@@ -49,6 +53,27 @@ Use `credential_id` to force the bot to use one particular login.
 <Callout type="info">
 If you set both `email_group` and `credential_id`, **`email_group` wins** — the pool selector takes priority. Use `credential_id` alone when you need a deterministic, fixed identity.
 </Callout>
+
+## Control the visible identity per bot
+
+Use one Microsoft 365 account per desired display identity, [register each account as a teams login](/docs/api-v2/reference/teams-logins/createTeamsLogin), then pin the intended login with `credential_id`:
+
+```json
+{
+  "bot_name": "Ignored for this authenticated join",
+  "meeting_url": "https://teams.microsoft.com/meet/1234567890?p=AbCdEfGhIj",
+  "teams_config": {
+    "credential_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+    "fallback": "fail"
+  }
+}
+```
+
+The `name` stored on a teams login is an internal Meeting BaaS label. It does not change what participants see. Change the account's display name and profile picture in Microsoft 365.
+
+Use separate `email_group` values for separate brands, and place only interchangeable identities in each pool. Pool selection is load-based, so a pool containing different public identities cannot guarantee which one appears in a given meeting.
+
+Microsoft Teams can merge multiple participants using the same Microsoft 365 account into one attendee in the same meeting. Give simultaneous bots distinct accounts when each must appear separately.
 
 ## Fallback behavior
 
@@ -62,6 +87,8 @@ If you set both `email_group` and `credential_id`, **`email_group` wins** — th
 ```json
 { "teams_config": { "email_group": "bots@acme.onmicrosoft.com", "fallback": "anonymous" } }
 ```
+
+When fallback occurs, the anonymous participant uses `bot_name` instead of the Microsoft 365 account identity.
 
 ## Getting admitted past the lobby
 
@@ -132,5 +159,6 @@ See [Error Codes](/docs/api-v2/error-codes) for the full list. These appear in t
 ## Related resources
 
 - [Setup](/docs/api-v2/authenticated-bots/teams/setup) — one-time workspace and login configuration
+- [Create a teams login](/docs/api-v2/reference/teams-logins/createTeamsLogin) — register a Microsoft 365 identity
 - [Create a bot](/docs/api-v2/reference/bots/createBot) — full bot creation reference
 - [Teams Logins utilization](/docs/api-v2/reference/teams-logins/getTeamsLoginUtilization) — pool metrics endpoint
