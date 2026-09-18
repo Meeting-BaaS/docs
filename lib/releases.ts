@@ -12,6 +12,8 @@
 export const RELEASES_REPO =
   process.env.RELEASES_GITHUB_REPO ?? 'Meeting-BaaS/meeting-baas-v2';
 export const RELEASES_REVALIDATE = 300; // seconds
+/** One deadline for the whole read, so a stalled GitHub call cannot hold a page render open. */
+const RELEASES_TIMEOUT_MS = 8_000;
 const GITHUB_API_URL = process.env.GITHUB_API_URL ?? 'https://api.github.com';
 export { RELEASES_URL, VERSIONING_URL } from './release-urls';
 import { RELEASES_URL } from './release-urls';
@@ -65,6 +67,9 @@ export async function fetchReleases(): Promise<ReleasesResult> {
   if (token) headers.Authorization = `Bearer ${token}`;
 
   const releases: GitHubRelease[] = [];
+  // `next.revalidate` bounds how stale a cached response may be, not how long a
+  // pending request may take; one signal covers every page of the walk below.
+  const signal = AbortSignal.timeout(RELEASES_TIMEOUT_MS);
   try {
     // The API pages at 100; walk `page` until a short page comes back.
     for (let page = 1; page <= 10; page++) {
@@ -72,6 +77,7 @@ export async function fetchReleases(): Promise<ReleasesResult> {
         `${GITHUB_API_URL}/repos/${RELEASES_REPO}/releases?per_page=100&page=${page}`,
         {
           headers,
+          signal,
           next: { revalidate: RELEASES_REVALIDATE, tags: ['releases'] },
         },
       );
@@ -90,9 +96,16 @@ export async function fetchReleases(): Promise<ReleasesResult> {
       if (batch.length < 100) break;
     }
   } catch (error) {
+    const timedOut =
+      error instanceof Error &&
+      (error.name === 'TimeoutError' || error.name === 'AbortError');
     return {
       status: 'error',
-      message: error instanceof Error ? error.message : String(error),
+      message: timedOut
+        ? `GitHub did not answer within ${RELEASES_TIMEOUT_MS / 1000}s for ${RELEASES_REPO}`
+        : error instanceof Error
+          ? error.message
+          : String(error),
     };
   }
 
@@ -149,11 +162,39 @@ function compareReleases(a: GitHubRelease, b: GitHubRelease): number {
     }
     if (va.pre && !vb.pre) return 1;
     if (!va.pre && vb.pre) return -1;
-    return (vb.pre ?? '').localeCompare(va.pre ?? '');
+    return comparePreRelease(vb.pre ?? '', va.pre ?? '');
   }
   if (va) return -1;
   if (vb) return 1;
   return (b.published_at ?? '').localeCompare(a.published_at ?? '');
+}
+
+/**
+ * Semver pre-release ordering, oldest first: dot-separated identifiers, the
+ * numeric ones compared as numbers so `rc.2` sorts before `rc.10`, and a
+ * numeric identifier ranking below an alphanumeric one.
+ */
+function comparePreRelease(a: string, b: string): number {
+  const left = a.split('.');
+  const right = b.split('.');
+  for (let i = 0; i < Math.max(left.length, right.length); i++) {
+    const x = left[i];
+    const y = right[i];
+    // A shorter identifier list precedes a longer one that starts with it.
+    if (x === undefined) return -1;
+    if (y === undefined) return 1;
+    const xIsNumber = /^\d+$/.test(x);
+    const yIsNumber = /^\d+$/.test(y);
+    if (xIsNumber && yIsNumber) {
+      const diff = Number(x) - Number(y);
+      if (diff !== 0) return diff;
+    } else if (xIsNumber !== yIsNumber) {
+      return xIsNumber ? -1 : 1;
+    } else if (x !== y) {
+      return x < y ? -1 : 1;
+    }
+  }
+  return 0;
 }
 
 export function slugForVersion(tag: string): string {
@@ -258,6 +299,9 @@ function stripPrivateReferences(text: string): string {
 const EMPTY_SECTION =
   /^(none|n\/a|nothing|no (breaking )?changes?|no deprecations?)[.!]?$/i;
 const HEADING = /^(#{1,6})\s/;
+const HEADING_LINE = /^(#{1,6})\s+(.*)$/;
+/** A "**Breaking changes:** …" lead-in, used where notes carry no heading. */
+const BOLD_LEAD = /^\s*[*_]{2}([^*_\n]+?)[*_]{2}\s*[:\-–—]*\s*(.*)$/;
 
 function stripMarkdown(text: string): string {
   return text
@@ -327,11 +371,14 @@ function normaliseHeadings(segments: Segment[]): void {
 }
 
 function cleanBody(raw: string): string {
-  const withoutComments = raw.replace(/\r\n/g, '\n').replace(/<!--[\s\S]*?-->/g, '');
-  const segments = splitFences(withoutComments);
+  // Split first: a fenced HTML example may legitimately contain `<!-- -->`,
+  // and fenced code is never rewritten.
+  const segments = splitFences(raw.replace(/\r\n/g, '\n'));
   for (const segment of segments) {
     if (segment.code) continue;
-    segment.text = dropEmptySections(stripPrivateReferences(segment.text));
+    segment.text = dropEmptySections(
+      stripPrivateReferences(segment.text.replace(/<!--[\s\S]*?-->/g, '')),
+    );
   }
   normaliseHeadings(segments);
   return segments
@@ -347,15 +394,49 @@ function cleanBody(raw: string): string {
  */
 function hasSection(body: string, pattern: RegExp): boolean {
   const lines = plainText(body).split('\n');
-  const heading = new RegExp(`^#{1,6}\\s.*${pattern.source}`, 'i');
-  const boldLead = new RegExp(`^\\s*[*_]{2}[^*_\\n]*${pattern.source}`, 'i');
+  const matches = new RegExp(pattern.source, 'i');
+
   for (let i = 0; i < lines.length; i++) {
-    if (boldLead.test(lines[i])) return true;
-    if (!heading.test(lines[i])) continue;
+    const heading = HEADING_LINE.exec(lines[i]);
+    if (heading) {
+      if (!matches.test(heading[2])) continue;
+      // The section runs to the next heading of the same or higher level, so
+      // its own sub-headings and their bullets stay part of it.
+      const level = heading[1].length;
+      let end = i + 1;
+      while (end < lines.length) {
+        const next = HEADING_LINE.exec(lines[end]);
+        if (next && next[1].length <= level) break;
+        end++;
+      }
+      // Sub-headings themselves are not content: "### API" over "None." is
+      // still an empty section.
+      const content = sectionContent(lines, i + 1, end).filter(
+        (line) => !HEADING.test(line),
+      );
+      if (content.length > 0 && !saysNone(content)) return true;
+      i = end - 1;
+      continue;
+    }
+
+    const bold = BOLD_LEAD.exec(lines[i]);
+    if (!bold || !matches.test(bold[1])) continue;
+    const trailing = stripMarkdown(bold[2]);
+    if (trailing) {
+      if (!EMPTY_SECTION.test(trailing)) return true;
+      continue;
+    }
+    // Label on a line of its own: the entries follow it.
     let end = i + 1;
-    while (end < lines.length && !HEADING.test(lines[end])) end++;
+    while (
+      end < lines.length &&
+      !HEADING.test(lines[end]) &&
+      !BOLD_LEAD.test(lines[end])
+    )
+      end++;
     const content = sectionContent(lines, i + 1, end);
-    return content.length > 0 && !saysNone(content);
+    if (content.length > 0 && !saysNone(content)) return true;
+    i = end - 1;
   }
   return false;
 }

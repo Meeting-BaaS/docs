@@ -4,7 +4,7 @@ description: What an API v2 version number means, what we count as a breaking ch
 icon: GitBranch
 ---
 
-The v2 API is versioned as `v2.MINOR.PATCH`. The `/v2` in the URL is the major version and is what your integration targets; it does not change between releases. The minor and patch numbers identify individual releases and are what the [release notes](/docs/api-v2/releases) are organised by.
+The v2 API is versioned as `v2.MINOR.PATCH`. The `/v2` in the URL is the major version and is what your integration targets; it does not change between releases. The minor and patch numbers identify individual releases and are what the [release notes](/api-v2/releases) are organised by.
 
 ## What a release number means
 
@@ -31,7 +31,7 @@ Your integration should tolerate these without a code change; they can appear in
 - Changing the HTTP status or error code returned for an existing condition
 - Changing authentication or rate-limiting rules in a way that rejects previously valid traffic
 
-Every release carries a **Breaking Changes** section in its notes. When it is not "None", the entry says what changed, who is affected and what to do, and the release is flagged on the [releases timeline](/docs/api-v2/releases).
+Every release carries a **Breaking Changes** section in its notes. When it is not "None", the entry says what changed, who is affected and what to do, and the release is flagged on the [releases timeline](/api-v2/releases).
 
 ## Deprecations
 
@@ -39,6 +39,6 @@ When something is going away, it is announced under **Deprecations** in the rele
 
 ## Staying informed
 
-- The [releases page](/docs/api-v2/releases) reads the release notes straight from GitHub, so it reflects a new version within minutes of it shipping.
+- The [releases page](/api-v2/releases) reads the release notes straight from GitHub, so it reflects a new version within minutes of it shipping.
 - The [API reference](/docs/api-v2/reference) and the [OpenAPI specification](https://api.meetingbaas.com/v2/openapi.json) always describe the currently deployed version.
 - The [TypeScript SDK](/docs/typescript-sdk) is versioned independently of the API; SDK releases follow API releases that add or change surface.

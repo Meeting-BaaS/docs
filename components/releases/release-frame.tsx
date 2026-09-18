@@ -56,8 +56,8 @@ export function ReleaseFrame({
 export function ReleasesUnavailable() {
   return (
     <Callout type="warn" title="Release notes are temporarily unavailable">
-      We could not reach GitHub to load the release notes. This page retries on
-      its own; please check back in a few minutes.
+      We could not reach GitHub to load the release notes. Please refresh the
+      page in a few minutes.
     </Callout>
   );
 }

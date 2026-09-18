@@ -2,7 +2,10 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Callout } from 'fumadocs-ui/components/callout';
-import { ReleaseFrame } from '@/components/releases/release-frame';
+import {
+  ReleaseFrame,
+  ReleasesUnavailable,
+} from '@/components/releases/release-frame';
 import { ReleaseBadges, SectionChips } from '@/components/releases/release-list';
 import { renderReleaseNotes } from '@/components/releases/release-notes';
 import { cn } from '@/lib/cn';
@@ -53,9 +56,15 @@ function NeighbourCard({
 export default async function ReleasePage({ params }: Params) {
   const { version } = await params;
   const result = await fetchReleases();
-  if (result.status !== 'ok') {
-    if (result.status === 'error') console.error(`[releases] ${result.message}`);
-    notFound();
+  if (result.status === 'error') {
+    // A GitHub outage must not turn every valid release URL into a 404: show
+    // the unavailable state and keep the page indexable.
+    console.error(`[releases] ${result.message}`);
+    return (
+      <ReleaseFrame title="Release notes">
+        <ReleasesUnavailable />
+      </ReleaseFrame>
+    );
   }
 
   const release = result.releases.find((item) => item.slug === version);
@@ -134,10 +143,9 @@ export default async function ReleasePage({ params }: Params) {
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const { version } = await params;
   const result = await fetchReleases();
-  const release =
-    result.status === 'ok'
-      ? result.releases.find((item) => item.slug === version)
-      : undefined;
+  if (result.status !== 'ok') return createMetadata({ title: 'Release notes' });
+
+  const release = result.releases.find((item) => item.slug === version);
   if (!release) return createMetadata({ title: 'Release not found' });
 
   return createMetadata({

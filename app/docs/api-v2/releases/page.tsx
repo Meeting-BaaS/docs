@@ -47,7 +47,7 @@ function Overview({ releases }: { releases: Release[] }) {
         value={<Link href={latest.href} className="hover:text-fd-primary">{latest.version}</Link>}
         sub={latest.dateLabel}
       />
-      <Stat label={`Shipped in ${thisYear}`} value={shippedThisYear} sub={`${stable.length} releases in total`} />
+      <Stat label={`Shipped in ${thisYear}`} value={shippedThisYear} sub={`${releases.length} releases in total`} />
       <Stat
         label="Last breaking change"
         value={

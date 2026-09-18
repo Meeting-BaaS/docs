@@ -1,4 +1,5 @@
 import { createCompiler } from '@fumadocs/mdx-remote';
+import { Callout } from 'fumadocs-ui/components/callout';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
 import type { TableOfContents } from 'fumadocs-core/toc';
 import type { MDXComponents } from 'mdx/types';
@@ -79,9 +80,30 @@ export async function renderReleaseNotes(
       toc: [],
     };
   }
-  const { body: Body, toc } = await compiler.compile({ source: markdown });
-  return {
-    content: <Body components={components} />,
-    toc,
-  };
+  try {
+    const { body: Body, toc } = await compiler.compile({ source: markdown });
+    return {
+      content: <Body components={components} />,
+      toc,
+    };
+  } catch (error) {
+    // A mistyped fence language (```pyhton) makes the lazy Shiki loader reject
+    // after the transformer has returned, so nothing downstream can recover it.
+    // The notes matter more than their formatting: show the source instead of
+    // failing the route.
+    console.error('[releases] could not compile release notes', error);
+    return {
+      content: (
+        <>
+          <Callout type="warn" title="These notes could not be formatted">
+            They are shown below exactly as they were written.
+          </Callout>
+          <pre className="whitespace-pre-wrap">
+            <code>{markdown}</code>
+          </pre>
+        </>
+      ),
+      toc: [],
+    };
+  }
 }
