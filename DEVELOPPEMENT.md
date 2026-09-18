@@ -18,6 +18,14 @@ pnpm build
 
 Open http://localhost:3000 with your browser to see the result.
 
+## Release Notes
+
+`/api-v2/releases` and `/api-v2/releases/<version>` are not content pages: `app/docs/api-v2/releases/` renders them from the GitHub Releases of `meeting-baas-v2` at request time (`lib/releases.ts`), revalidated every 5 minutes. Publishing or editing a release on GitHub is all it takes to update the docs; there is no build or sync step.
+
+The repository is private, so set `GITHUB_RELEASES_TOKEN` (a fine-grained token with read access to that repository's contents) in the environment. Without it the pages render an "unavailable" notice rather than failing the build. `RELEASES_GITHUB_REPO` overrides the repository and `GITHUB_API_URL` the API host, which is handy for pointing at a fixture server locally.
+
+Release bodies are plain GitHub markdown, compiled with `format: 'md'` so nothing in a note can break the page. Links, PR attributions and the "Full Changelog" footer that point at the private repository are stripped, headings are normalised so the smallest level becomes `##`, and a section that only says "None." is dropped. A release is flagged as breaking when its "Breaking Changes" section says more than "None.", and likewise for "Deprecations".
+
 ## Documentation Updates
 
 The project includes several scripts for managing documentation updates:

@@ -60,7 +60,7 @@ export async function createAiSdkEngine(): Promise<Engine> {
       if (error instanceof Error && error.name !== 'AbortError') {
         console.error('Error in AI stream:', error);
         const errorMessage =
-          'Sorry, an error occurred while generating a response.';
+          'The docs assistant is temporarily unavailable. Please try again in a few minutes, or browse the docs with the search above.';
         onEnd?.(errorMessage);
         return errorMessage;
       }

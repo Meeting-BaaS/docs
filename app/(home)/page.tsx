@@ -1,4 +1,5 @@
 import { LogoMark, Mascot } from '@/components/brand';
+import { LatestReleaseRow } from '@/components/releases/latest-release-row';
 import { Stagger } from '@/components/motion';
 import { cn } from '@/lib/cn';
 import {
@@ -97,7 +98,27 @@ const START_HERE = [
   },
 ];
 
-export default function DocsPage(): React.ReactElement {
+/** A plain link card, or — for the featured area — a div whose title link is stretched over it. */
+function CardShell({
+  href,
+  featured,
+  className,
+  children,
+}: {
+  href: string;
+  featured: boolean;
+  className?: string;
+  children: ReactNode;
+}) {
+  if (featured) return <div className={className}>{children}</div>;
+  return (
+    <Link href={href} className={className}>
+      {children}
+    </Link>
+  );
+}
+
+export default async function DocsPage(): Promise<React.ReactElement> {
   return (
     <main className="relative isolate flex flex-col overflow-hidden">
       <div
@@ -174,9 +195,12 @@ export default function DocsPage(): React.ReactElement {
       <section className="mx-auto w-full max-w-6xl px-4 pb-20 sm:px-6 lg:px-8">
         <Stagger className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {AREAS.map((area) => (
-            <Link
+            // The featured card holds extra links (latest release), so it is a
+            // div with a stretched title link instead of one big anchor.
+            <CardShell
               key={area.href}
               href={area.href}
+              featured={Boolean(area.featured)}
               className={cn(
                 area.slug,
                 'group border-hairline bg-fd-card hover:bg-fd-accent/50 relative isolate flex flex-col overflow-hidden rounded-lg border p-5 transition-colors duration-200',
@@ -203,14 +227,18 @@ export default function DocsPage(): React.ReactElement {
                 >
                   {area.icon}
                 </span>
-                <span
-                  className={cn(
-                    'font-medium tracking-tight',
-                    area.featured ? 'text-[17px]' : 'text-[15px]',
-                  )}
-                >
-                  {area.title}
-                </span>
+                {area.featured ? (
+                  <Link
+                    href={area.href}
+                    className="text-[17px] font-medium tracking-tight no-underline after:absolute after:inset-0 after:content-['']"
+                  >
+                    {area.title}
+                  </Link>
+                ) : (
+                  <span className="text-[15px] font-medium tracking-tight">
+                    {area.title}
+                  </span>
+                )}
                 <ArrowRight className="text-fd-muted-foreground size-3.5 shrink-0 opacity-0 transition-all duration-200 ease-[var(--ease-docs)] group-hover:translate-x-0.5 group-hover:opacity-100" />
               </span>
               <span
@@ -221,7 +249,8 @@ export default function DocsPage(): React.ReactElement {
               >
                 {area.body}
               </span>
-            </Link>
+              {area.featured && <LatestReleaseRow className="mt-4" />}
+            </CardShell>
           ))}
         </Stagger>
       </section>
