@@ -4,7 +4,8 @@ import { Callout } from 'fumadocs-ui/components/callout';
 import { ReleaseFrame, ReleasesUnavailable } from '@/components/releases/release-frame';
 import { ReleaseList } from '@/components/releases/release-list';
 import { createMetadata } from '@/lib/metadata';
-import { fetchReleases, VERSIONING_URL } from '@/lib/releases';
+import { SECTION_META } from '@/lib/release-sections';
+import { fetchReleases, type Release, VERSIONING_URL } from '@/lib/releases';
 
 // Rendered from the live GitHub Releases of the API repository; the data is
 // re-read every RELEASES_REVALIDATE seconds, so there is no build step.
@@ -20,35 +21,58 @@ export const metadata: Metadata = createMetadata({
   openGraph: { url: '/api-v2/releases' },
 });
 
+function Stat({ label, value, sub }: { label: string; value: React.ReactNode; sub?: string }) {
+  return (
+    <div className="rounded-xl border border-fd-border bg-fd-card/60 px-4 py-3">
+      <p className="meta">{label}</p>
+      <p className="mt-1 font-mono text-xl font-semibold text-fd-foreground">{value}</p>
+      {sub && <p className="mt-0.5 text-xs text-fd-muted-foreground">{sub}</p>}
+    </div>
+  );
+}
+
+function Overview({ releases }: { releases: Release[] }) {
+  const stable = releases.filter((release) => !release.prerelease);
+  const latest = stable[0] ?? releases[0];
+  const latestBreaking = stable.find((release) => release.breaking);
+  const thisYear = new Date().getUTCFullYear();
+  const shippedThisYear = stable.filter(
+    (release) => release.date && new Date(release.date).getUTCFullYear() === thisYear,
+  ).length;
+
+  return (
+    <div className="not-prose my-6 grid gap-3 sm:grid-cols-3">
+      <Stat
+        label="Latest"
+        value={<Link href={latest.href} className="hover:text-fd-primary">{latest.version}</Link>}
+        sub={latest.dateLabel}
+      />
+      <Stat label={`Shipped in ${thisYear}`} value={shippedThisYear} sub={`${stable.length} releases in total`} />
+      <Stat
+        label="Last breaking change"
+        value={
+          latestBreaking ? (
+            <Link href={latestBreaking.href} className="hover:text-fd-primary">
+              {SECTION_META.breaking.emoji} {latestBreaking.version}
+            </Link>
+          ) : (
+            '—'
+          )
+        }
+        sub={latestBreaking ? latestBreaking.dateLabel : 'None so far'}
+      />
+    </div>
+  );
+}
+
 export default async function ReleasesPage() {
   const result = await fetchReleases();
   if (result.status === 'error') {
     console.error(`[releases] ${result.message}`);
   }
 
-  const latestBreaking =
-    result.status === 'ok'
-      ? result.releases.find((release) => release.breaking && !release.prerelease)
-      : undefined;
-
   return (
     <ReleaseFrame title="Releases" description={description}>
-      <p>
-        Each entry links to the full notes for that version. Releases are read
-        straight from the API&apos;s GitHub releases, so this page reflects a new
-        version within minutes of it shipping. Read the{' '}
-        <Link href={VERSIONING_URL}>versioning policy</Link> for what a version
-        number means and how breaking changes are announced.
-      </p>
-
-      {latestBreaking && (
-        <Callout type="warn" title="Most recent breaking change">
-          <Link href={latestBreaking.href}>{latestBreaking.version}</Link> (
-          {latestBreaking.dateLabel})
-          {latestBreaking.headline ? ` — ${latestBreaking.headline}` : ''}
-        </Callout>
-      )}
-
       {result.status !== 'ok' ? (
         <ReleasesUnavailable />
       ) : result.releases.length === 0 ? (
@@ -56,7 +80,17 @@ export default async function ReleasesPage() {
           Release notes appear here as soon as the first version is published.
         </Callout>
       ) : (
-        <ReleaseList releases={result.releases} />
+        <>
+          <Overview releases={result.releases} />
+          <p className="text-sm text-fd-muted-foreground">
+            Read straight from the API&apos;s GitHub releases, so a new version shows
+            up here within minutes of shipping. The{' '}
+            <Link href={VERSIONING_URL}>versioning policy</Link> explains what a
+            version number means and how {SECTION_META.breaking.emoji} breaking
+            changes and {SECTION_META.deprecations.emoji} deprecations are announced.
+          </p>
+          <ReleaseList releases={result.releases} />
+        </>
       )}
     </ReleaseFrame>
   );

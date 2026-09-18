@@ -15,6 +15,7 @@ export const RELEASES_REVALIDATE = 300; // seconds
 const GITHUB_API_URL = process.env.GITHUB_API_URL ?? 'https://api.github.com';
 export { RELEASES_URL, VERSIONING_URL } from './release-urls';
 import { RELEASES_URL } from './release-urls';
+import { classifyHeading, type SectionKey } from './release-sections';
 
 const SOURCE_REPO_URL = `https://github.com/${RELEASES_REPO}`;
 
@@ -41,6 +42,8 @@ export type Release = {
   breaking: boolean;
   deprecations: boolean;
   prerelease: boolean;
+  /** Bullet counts per section of the notes, for the timeline chips. */
+  sections: { key: SectionKey; count: number }[];
   /** Notes as markdown, cleaned of private-repo links and empty sections. */
   body: string;
 };
@@ -387,6 +390,30 @@ function summaryFor(body: string, limit = 180): string {
   return '';
 }
 
+/** Count the items under each `##`-level section so the timeline can show what a release contains. */
+function sectionCounts(body: string): { key: SectionKey; count: number }[] {
+  const lines = plainText(body).split('\n');
+  const counts = new Map<SectionKey, number>();
+  let current: SectionKey | null = null;
+  let level = 0;
+  for (const line of lines) {
+    const heading = /^(#{1,6})\s+(.*)$/.exec(line);
+    if (heading) {
+      // A sub-heading inside a known section belongs to it; under a group
+      // heading (classified as "other") it is a section of its own.
+      if (current !== null && current !== 'other' && heading[1].length > level) continue;
+      current = classifyHeading(heading[2]);
+      level = heading[1].length;
+      if (!counts.has(current)) counts.set(current, 0);
+      continue;
+    }
+    if (current !== null && /^ {0,3}(?:[-*+]|\d+\.)\s+/.test(line)) {
+      counts.set(current, (counts.get(current) ?? 0) + 1);
+    }
+  }
+  return [...counts.entries()].map(([key, count]) => ({ key, count }));
+}
+
 function toRelease(release: GitHubRelease): Release {
   const slug = slugForVersion(release.tag_name);
   const body = cleanBody(release.body ?? '');
@@ -401,6 +428,7 @@ function toRelease(release: GitHubRelease): Release {
     breaking: hasSection(body, /breaking/i),
     deprecations: hasSection(body, /deprecat/i),
     prerelease: Boolean(release.prerelease),
+    sections: sectionCounts(body),
     body,
   };
 }

@@ -1,7 +1,10 @@
 import { createCompiler } from '@fumadocs/mdx-remote';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
 import type { TableOfContents } from 'fumadocs-core/toc';
-import type { ReactNode } from 'react';
+import type { MDXComponents } from 'mdx/types';
+import { Children, isValidElement, type ComponentProps, type ReactNode } from 'react';
+import { cn } from '@/lib/cn';
+import { classifyHeading, SECTION_META } from '@/lib/release-sections';
 
 /**
  * Release notes are plain GitHub markdown, so they are compiled with
@@ -20,6 +23,49 @@ const compiler = createCompiler({
   },
 });
 
+function textOf(node: ReactNode): string {
+  return Children.toArray(node)
+    .map((child) => {
+      if (typeof child === 'string' || typeof child === 'number') return String(child);
+      if (isValidElement<{ children?: ReactNode }>(child)) return textOf(child.props.children);
+      return '';
+    })
+    .join('');
+}
+
+/** Section headings get their emoji marker; the anchor id from rehype is kept. */
+function sectionHeading(level: 'h2' | 'h3') {
+  const Default = defaultMdxComponents[level] ?? level;
+  return function SectionHeading(props: ComponentProps<'h2'>) {
+    const key = classifyHeading(textOf(props.children));
+    if (key === 'other') return <Default {...props} />;
+    const meta = SECTION_META[key];
+    return (
+      <Default {...props}>
+        <span className="inline-flex items-center gap-3 align-middle">
+          <span
+            aria-hidden
+            className={cn(
+              'inline-flex shrink-0 items-center justify-center rounded-lg ring-1 ring-inset',
+              level === 'h2' ? 'size-9 text-lg' : 'size-7 text-sm',
+              meta.marker,
+            )}
+          >
+            {meta.emoji}
+          </span>
+          <span>{props.children}</span>
+        </span>
+      </Default>
+    );
+  };
+}
+
+const components: MDXComponents = {
+  ...defaultMdxComponents,
+  h2: sectionHeading('h2'),
+  h3: sectionHeading('h3'),
+};
+
 export async function renderReleaseNotes(
   markdown: string,
 ): Promise<{ content: ReactNode; toc: TableOfContents }> {
@@ -35,7 +81,7 @@ export async function renderReleaseNotes(
   }
   const { body: Body, toc } = await compiler.compile({ source: markdown });
   return {
-    content: <Body components={defaultMdxComponents} />,
+    content: <Body components={components} />,
     toc,
   };
 }

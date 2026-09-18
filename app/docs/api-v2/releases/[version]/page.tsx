@@ -3,13 +3,15 @@ import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Callout } from 'fumadocs-ui/components/callout';
 import { ReleaseFrame } from '@/components/releases/release-frame';
-import { ReleaseBadges } from '@/components/releases/release-list';
+import { ReleaseBadges, SectionChips } from '@/components/releases/release-list';
 import { renderReleaseNotes } from '@/components/releases/release-notes';
+import { cn } from '@/lib/cn';
 import { createMetadata } from '@/lib/metadata';
 import {
   fetchReleases,
   headingAnchor,
   neighbours,
+  type Release,
   RELEASES_URL,
   VERSIONING_URL,
 } from '@/lib/releases';
@@ -18,6 +20,35 @@ import {
 export const revalidate = 300;
 
 type Params = { params: Promise<{ version: string }> };
+
+function NeighbourCard({
+  release,
+  direction,
+}: {
+  release?: Release;
+  direction: 'newer' | 'older';
+}) {
+  if (!release) return <div />;
+  return (
+    <Link
+      href={release.href}
+      className={cn(
+        'group flex flex-col gap-1 rounded-xl border border-fd-border bg-fd-card/60 p-4 no-underline transition-colors hover:border-fd-primary/50 hover:bg-fd-card',
+        direction === 'older' && 'items-end text-right',
+      )}
+    >
+      <span className="meta">{direction === 'newer' ? '← Newer' : 'Older →'}</span>
+      <span className="font-mono text-base font-semibold text-fd-foreground">
+        {release.version}
+      </span>
+      {release.headline && (
+        <span className="line-clamp-2 text-sm text-fd-muted-foreground">
+          {release.headline}
+        </span>
+      )}
+    </Link>
+  );
+}
 
 export default async function ReleasePage({ params }: Params) {
   const { version } = await params;
@@ -35,10 +66,22 @@ export default async function ReleasePage({ params }: Params) {
   const breakingAnchor = release.breaking
     ? headingAnchor(release.body, /breaking/i)
     : null;
+  const isLatest =
+    (result.releases.find((item) => !item.prerelease) ?? result.releases[0])?.slug ===
+    release.slug;
 
   return (
     <ReleaseFrame
-      title={release.version}
+      title={
+        <span className="inline-flex flex-wrap items-center gap-3">
+          <span className="font-mono">{release.version}</span>
+          {isLatest && (
+            <span className="rounded-full bg-fd-primary px-2.5 py-0.5 align-middle text-xs font-semibold uppercase tracking-wide text-fd-primary-foreground">
+              Latest
+            </span>
+          )}
+        </span>
+      }
       description={release.headline}
       meta={
         <>
@@ -47,9 +90,11 @@ export default async function ReleasePage({ params }: Params) {
         </>
       }
       toc={toc}
+      footer={false}
     >
-      <div className="not-prose -mt-4 mb-6 flex flex-wrap items-center gap-2 empty:hidden">
+      <div className="not-prose -mt-4 mb-8 flex flex-wrap items-center gap-2 empty:hidden">
         <ReleaseBadges release={release} />
+        <SectionChips release={release} className="ml-auto" />
       </div>
 
       {release.breaking ? (
@@ -73,19 +118,14 @@ export default async function ReleasePage({ params }: Params) {
 
       {content}
 
-      <hr />
-      <p className="text-sm">
-        {newer && (
-          <>
-            Newer: <Link href={newer.href}>{newer.version}</Link> ·{' '}
-          </>
-        )}
-        {older && (
-          <>
-            Older: <Link href={older.href}>{older.version}</Link> ·{' '}
-          </>
-        )}
-        <Link href={RELEASES_URL}>All releases</Link>
+      <div className="not-prose mt-12 grid gap-4 border-t border-fd-border pt-8 sm:grid-cols-2">
+        <NeighbourCard release={newer} direction="newer" />
+        <NeighbourCard release={older} direction="older" />
+      </div>
+      <p className="not-prose mt-4 text-center text-sm">
+        <Link href={RELEASES_URL} className="text-fd-muted-foreground hover:text-fd-primary">
+          ↩ All releases
+        </Link>
       </p>
     </ReleaseFrame>
   );

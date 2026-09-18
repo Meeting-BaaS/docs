@@ -18,18 +18,22 @@ export function ReleaseFrame({
   description,
   meta,
   toc = [],
+  footer = true,
   children,
 }: {
   title: ReactNode;
   description?: ReactNode;
   meta?: ReactNode;
   toc?: TableOfContents;
+  /** The previous/next cards fumadocs draws from the page tree; off for release pages, which bring their own. */
+  footer?: boolean;
   children: ReactNode;
 }) {
   return (
     <DocsPage
       toc={toc}
       tableOfContent={{ style: 'clerk', single: false }}
+      footer={{ enabled: footer }}
     >
       <div className="api-v2 doc-enter-1 spine-accent mb-1">
         <p className="meta mb-2 flex items-center gap-2">
