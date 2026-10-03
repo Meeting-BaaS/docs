@@ -7351,8 +7351,7 @@
                 "type": "string"
               },
               "meeting_url": {
-                "description": "The URL of the meeting",
-                "format": "uri",
+                "description": "The URL of the meeting, set to \"[deleted]\" once the bot's data has been deleted",
                 "type": "string"
               },
               "participants": {
@@ -7902,8 +7901,7 @@
                 "type": "string"
               },
               "meeting_url": {
-                "description": "The URL of the meeting",
-                "format": "uri",
+                "description": "The URL of the meeting, set to \"[deleted]\" once the bot's data has been deleted",
                 "type": "string"
               },
               "participants": {
@@ -10447,8 +10445,7 @@
                   "type": "string"
                 },
                 "meeting_url": {
-                  "description": "The URL of the meeting",
-                  "format": "uri",
+                  "description": "The URL of the meeting, set to \"[deleted]\" once the bot's data has been deleted",
                   "type": "string"
                 },
                 "status": {
@@ -10707,8 +10704,7 @@
                   "type": "string"
                 },
                 "meeting_url": {
-                  "description": "The URL of the meeting",
-                  "format": "uri",
+                  "description": "The URL of the meeting, set to \"[deleted]\" once the bot's data has been deleted",
                   "type": "string"
                 },
                 "status": {
@@ -14897,7 +14893,6 @@
         "additionalProperties": false,
         "properties": {
           "allow_multiple_bots": {
-            "default": true,
             "description": "Whether to allow multiple bots to join the same meeting.\n\nIf set to `false`, only a single bot will be allowed to join using the same meeting URL within the last 5 minutes. This prevents duplicate bots from joining the same meeting.\n\nIf set to `true` (default), multiple bots can join the same meeting URL.\n\nDefault: `true`",
             "example": true,
             "type": "boolean"
@@ -14925,7 +14920,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "description": "The bot's avatar image(s).\n\nAccepts a single HTTPS URL or an array of up to 5 HTTPS URLs pointing to image files (JPEG, PNG, or WebP). When multiple images are provided, they will be cycled based on the bot_image_config settings.",
             "example": null
           },
@@ -14961,7 +14955,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "description": "Configuration for how bot avatar images are displayed. Only relevant when multiple images are provided in bot_image.",
             "example": null
           },
@@ -15016,11 +15009,9 @@
               {
                 "type": "null"
               }
-            ],
-            "default": null
+            ]
           },
           "callback_enabled": {
-            "default": false,
             "description": "Enable callback for this bot. When enabled, the callback_config property is used to provide the configuration.",
             "type": "boolean"
           },
@@ -15033,7 +15024,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "description": "The message that the bot will send when it joins the meeting.\n\nThis message will be posted in the meeting chat when the bot successfully joins.\n\nAvailable for Google Meet, Microsoft Teams, and Zoom meetings.\n\nMaximum: 4096 characters",
             "example": "Hello! I'm here to record this meeting."
           },
@@ -15050,12 +15040,10 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "description": "An optional extra configuration object for the bot.\n\nThis object can contain any custom key-value pairs that you want to associate with the bot. The data will be:\n\n- Included in all webhook event payloads (if a webhook endpoint is configured)\n- Part of the callback payload (if callback is enabled)\n- Returned when fetching the bot's details via the API\n\nUseful for storing custom metadata, tracking information, or any other data you need to correlate with the bot.",
             "example": null
           },
           "ignored_participant_names": {
-            "default": [],
             "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants matching these names when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging).\n\nBy ignoring other bots' participant names, each bot can correctly detect when human participants have left and leave the meeting rather than remaining indefinitely.",
             "example": [
               "Sandbox Bot",
@@ -15113,7 +15101,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "description": "Meet-only configuration for authenticated bots via SAML SSO.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Meet joins, Zoom, or Microsoft Teams.",
             "example": null
           },
@@ -15124,7 +15111,6 @@
             "type": "string"
           },
           "recording_mode": {
-            "default": "speaker_view",
             "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records the entire gallery view (coming soon).\n\nDefault: `speaker_view`",
             "enum": [
               "audio_only",
@@ -15320,11 +15306,9 @@
               {
                 "type": "null"
               }
-            ],
-            "default": null
+            ]
           },
           "streaming_enabled": {
-            "default": false,
             "description": "Enable audio streaming for this bot. When enabled, the streaming_config property is used to provide the configuration.",
             "type": "boolean"
           },
@@ -15369,19 +15353,11 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\nMicrosoft Teams displays the selected account's Microsoft 365 name and profile; `bot_name` is ignored for the authenticated join.\n\n- credential_id: pin a specific login and display identity.\n- email_group: least-loaded pool selector (takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
             "example": null
           },
           "timeout_config": {
             "additionalProperties": false,
-            "default": {
-              "grace_period": 0,
-              "max_recording_duration": null,
-              "no_one_joined_timeout": 600,
-              "silence_timeout": 600,
-              "waiting_room_timeout": 600
-            },
             "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
             "properties": {
               "grace_period": {
@@ -15520,11 +15496,9 @@
               {
                 "type": "null"
               }
-            ],
-            "default": null
+            ]
           },
           "transcription_enabled": {
-            "default": false,
             "description": "Enable transcription for this bot. When enabled, the transcription_config property is used to customise the transcription provider and parameters.",
             "type": "boolean"
           },
@@ -15564,7 +15538,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "description": "Zoom-only configuration for authentication and join method.\n\n- **credential_id**: Use a stored Zoom credential (OBF token fetched by the bot from the API server).\n- **credential_user_id**: Resolve a stored credential by Zoom user ID.\n- **obf_token**: Provide a direct OBF token (one-off join).\n- **obf_token_url**: URL that returns an OBF token when the bot joins.\n- **zak_token_url**: URL that returns a ZAK for joining without the host.\n\nLeave `null` for Google Meet and Microsoft Teams.",
             "example": null
           }
@@ -15576,7 +15549,6 @@
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "properties": {
           "allow_multiple_bots": {
-            "default": true,
             "description": "Whether to allow multiple bots to join the same meeting.\n\nIf set to `false`, only a single bot will be allowed to join using the same meeting URL within the last 5 minutes. This prevents duplicate bots from joining the same meeting.\n\nIf set to `true` (default), multiple bots can join the same meeting URL.\n\nDefault: `true`",
             "example": true,
             "type": "boolean"
@@ -15604,7 +15576,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "description": "The bot's avatar image(s).\n\nAccepts a single HTTPS URL or an array of up to 5 HTTPS URLs pointing to image files (JPEG, PNG, or WebP). When multiple images are provided, they will be cycled based on the bot_image_config settings.",
             "example": null
           },
@@ -15635,7 +15606,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "description": "Configuration for how bot avatar images are displayed. Only relevant when multiple images are provided in bot_image.",
             "example": null
           },
@@ -15687,11 +15657,9 @@
               {
                 "type": "null"
               }
-            ],
-            "default": null
+            ]
           },
           "callback_enabled": {
-            "default": false,
             "description": "Enable callback for this bot. When enabled, the callback_config property is used to provide the configuration.",
             "type": "boolean"
           },
@@ -15704,7 +15672,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "description": "The message that the bot will send when it joins the meeting.\n\nThis message will be posted in the meeting chat when the bot successfully joins.\n\nAvailable for Google Meet, Microsoft Teams, and Zoom meetings.\n\nMaximum: 4096 characters",
             "example": "Hello! I'm here to record this meeting."
           },
@@ -15721,12 +15688,10 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "description": "An optional extra configuration object for the bot.\n\nThis object can contain any custom key-value pairs that you want to associate with the bot. The data will be:\n\n- Included in all webhook event payloads (if a webhook endpoint is configured)\n- Part of the callback payload (if callback is enabled)\n- Returned when fetching the bot's details via the API\n\nUseful for storing custom metadata, tracking information, or any other data you need to correlate with the bot.",
             "example": null
           },
           "ignored_participant_names": {
-            "default": [],
             "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants matching these names when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging).\n\nBy ignoring other bots' participant names, each bot can correctly detect when human participants have left and leave the meeting rather than remaining indefinitely.",
             "example": [
               "Sandbox Bot",
@@ -15783,7 +15748,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "description": "Meet-only configuration for authenticated bots via SAML SSO.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Meet joins, Zoom, or Microsoft Teams.",
             "example": null
           },
@@ -15794,7 +15758,6 @@
             "type": "string"
           },
           "recording_mode": {
-            "default": "speaker_view",
             "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records the entire gallery view (coming soon).\n\nDefault: `speaker_view`",
             "enum": [
               "audio_only",
@@ -15975,11 +15938,9 @@
               {
                 "type": "null"
               }
-            ],
-            "default": null
+            ]
           },
           "streaming_enabled": {
-            "default": false,
             "description": "Enable audio streaming for this bot. When enabled, the streaming_config property is used to provide the configuration.",
             "type": "boolean"
           },
@@ -16023,18 +15984,10 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "description": "Teams-only configuration for authenticated bots via a signed-in Microsoft account.\n\nMicrosoft Teams displays the selected account's Microsoft 365 name and profile; `bot_name` is ignored for the authenticated join.\n\n- credential_id: pin a specific login and display identity.\n- email_group: least-loaded pool selector (takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Teams joins, Zoom, or Google Meet.",
             "example": null
           },
           "timeout_config": {
-            "default": {
-              "grace_period": 0,
-              "max_recording_duration": null,
-              "no_one_joined_timeout": 600,
-              "silence_timeout": 600,
-              "waiting_room_timeout": 600
-            },
             "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. Zoom only uses waiting_room_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
             "properties": {
               "grace_period": {
@@ -16159,11 +16112,9 @@
               {
                 "type": "null"
               }
-            ],
-            "default": null
+            ]
           },
           "transcription_enabled": {
-            "default": false,
             "description": "Enable transcription for this bot. When enabled, the transcription_config property is used to customise the transcription provider and parameters.",
             "type": "boolean"
           },
@@ -16202,7 +16153,6 @@
                 "type": "null"
               }
             ],
-            "default": null,
             "description": "Zoom-only configuration for authentication and join method.\n\n- **credential_id**: Use a stored Zoom credential (OBF token fetched by the bot from the API server).\n- **credential_user_id**: Resolve a stored credential by Zoom user ID.\n- **obf_token**: Provide a direct OBF token (one-off join).\n- **obf_token_url**: URL that returns an OBF token when the bot joins.\n- **zak_token_url**: URL that returns a ZAK for joining without the host.\n\nLeave `null` for Google Meet and Microsoft Teams.",
             "example": null
           }
