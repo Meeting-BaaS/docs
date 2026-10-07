@@ -1,0 +1,179 @@
+# bring-your-own-storage Documentation
+
+Documentation for bring-your-own-storage.
+
+## Bring Your Own Storage
+
+Connect your own S3-compatible object storage to Meeting BaaS
+
+### Source: ./content/docs/bring-your-own-storage/index.mdx
+
+
+## Overview
+
+Bring Your Own Storage lets you point Meeting BaaS at S3-compatible object storage
+that **you own**. Meeting artifacts (recordings, transcripts, logs) are written
+directly into your buckets with your credentials instead of landing on
+Meeting BaaS infrastructure.
+
+It's opt-in and additive — teams without a configuration keep using default
+storage with zero change.
+
+## What you need
+
+- **An S3-compatible endpoint** (AWS S3, Scaleway Object Storage, MinIO, Ceph, etc.)
+- **Three buckets** (they can be the same bucket — Meeting BaaS prefixes keys by bot UUID):
+  - Artifacts bucket (video, audio, screenshots)
+  - Audio chunks bucket
+  - Logs bucket
+- **Two access keys** on those buckets:
+
+| Key | Permissions | Used by |
+|-----|-------------|---------|
+| **Ingest** | `PutObject`, `PutObjectTagging`, `AbortMultipartUpload` | Bots only (upload recordings) |
+| **Service** | `GetObject`, `ListBucket`, `PutObject`, `DeleteObject` | API server (serve artifacts, write transcripts, delete on retention) |
+
+<Callout type="warn">
+  The ingest key is the only credential that leaves our infrastructure — it rides
+  alongside the bot into meetings. That's why it is **scoped to upload only**:
+  a compromised pod can add objects but cannot read, list, or delete your recordings.
+</Callout>
+
+## Configuring it
+
+### Dashboard
+
+1. Go to **Settings → Storage** (`/settings/storage`).
+2. Fill in your endpoint, region, bucket names, and both key pairs.
+3. Toggle **force path style** if your provider requires it (needed by MinIO, Ceph,
+   and most self-hosted gateways; not needed for AWS or Scaleway).
+4. Click **Save**. Meeting BaaS will verify your credentials by writing a test
+   object — you'll see the result immediately.
+
+### API
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | [`/v2/storage-config`](/docs/api-v2/reference/storage/getStorageConfig) | Get current configuration (404 if unset) |
+| `PUT` | [`/v2/storage-config`](/docs/api-v2/reference/storage/setStorageConfig) | Set or replace configuration |
+| `POST` | [`/v2/storage-config/test`](/docs/api-v2/reference/storage/testStorageConfig) | Re-run the access check |
+| `DELETE` | [`/v2/storage-config`](/docs/api-v2/reference/storage/deleteStorageConfig) | Disable — new bots go back to Meeting BaaS storage. Nothing is deleted. |
+
+The same endpoints are available at `/bff/storage-config` for dashboard auth.
+
+<Callout type="info">
+  Neither secret access key is ever returned by the API. Replacing a configuration
+  always requires re-entering both key pairs.
+</Callout>
+
+## How it works
+
+- **A bot always resolves to the storage it was written to**, regardless of your
+  current configuration. Changing or removing your storage config only affects
+  **future** bots — existing recordings stay where they are.
+- **Disabling** (via `DELETE`) makes new bots use Meeting BaaS storage again.
+  Nothing is deleted from your buckets.
+- **Revoking our access** on your side is what makes older artifacts unreadable
+  — not the delete operation.
+
+## Data residency
+
+Bots writing to your storage **skip the EFS fallback** by default. If an upload fails
+after retries, the artifact is reported as failed rather than copied onto
+Meeting BaaS infrastructure. This preserves the data residency guarantee.
+
+If you prefer durability over residency (e.g., you chose your own bucket for cost
+reasons), you can enable **allow transient spill** in the dashboard. A warning will
+confirm you understand the tradeoff.
+
+## Bucket requirements
+
+- Buckets should be **private** — artifacts are served through short-lived signed URLs.
+- Buckets must be **reachable from the public internet** — transcription providers
+  fetch audio directly from signed URLs.
+- Buckets must allow **cross-origin reads from the dashboard** — see below.
+
+### CORS
+
+The dashboard does not hand your browser a plain download link. It fetches the
+object and rebuilds it locally, and it reads transcript JSON the same way. Both
+are cross-origin reads against *your* endpoint, so without a CORS rule the
+browser discards the response before the dashboard ever sees it.
+
+Symptom: artifacts are listed on the bot page but clicking one reports
+`Failed to download file`, and transcripts never render. The browser console
+shows `No 'Access-Control-Allow-Origin' header is present on the requested
+resource`. The signed URL itself is fine — paste it into a new tab and the file
+downloads, because top-level navigation is not subject to CORS.
+
+The rule your **artifacts bucket** needs, whichever provider you are on:
+
+| | Value |
+|---|---|
+| Allowed origins | `https://dashboard.meetingbaas.com` |
+| Allowed methods | `GET`, `HEAD` |
+| Allowed headers | `*` |
+| Exposed headers | `Content-Length`, `Content-Type` |
+| Max age | `3000` |
+
+<Callout type="warn">
+  Two different URLs are involved and they are easy to swap. The **allowed
+  origin** is the Meeting BaaS dashboard — that is who is asking to read. The
+  **endpoint** in the commands below is your own storage provider's S3 API —
+  that is where the bucket lives and where the policy is stored. Neither is ever
+  the other.
+</Callout>
+
+CORS is part of the S3 API (`PutBucketCors`), so every S3-compatible provider
+supports it; only the way you reach it differs.
+
+```json title="cors.json"
+{
+  "CORSRules": [
+    {
+      "AllowedOrigins": ["https://dashboard.meetingbaas.com"],
+      "AllowedMethods": ["GET", "HEAD"],
+      "AllowedHeaders": ["*"],
+      "ExposeHeaders": ["Content-Length", "Content-Type"],
+      "MaxAgeSeconds": 3000
+    }
+  ]
+}
+```
+
+```bash title="aws-cli — works against any S3-compatible endpoint"
+aws s3api put-bucket-cors \
+  --endpoint-url https://<your-storage-endpoint> \
+  --bucket <artifacts-bucket> \
+  --cors-configuration file://cors.json
+```
+
+Other routes to the same call:
+
+- **s3cmd** — `s3cmd setcors cors.xml s3://<artifacts-bucket>`, using the XML
+  form of the same rule rather than JSON.
+- **MinIO client** — `mc` against your alias.
+- **Provider console** — AWS S3 and Cloudflare R2 expose CORS in their bucket
+  UI. Scaleway does not, at time of writing; use the API or a CLI there.
+- **Terraform** — a `cors_rule` block on your bucket resource, if the bucket is
+  managed as code.
+
+<Callout type="warn">
+  `PutBucketCors` is a bucket-*configuration* call, one tier above the object
+  read/write/delete your Service key holds — that key will return `Forbidden`,
+  and the scoping is deliberate. Run it with an owner-level credential: on
+  Scaleway, an API key whose application has `ObjectStorageFullAccess` on the
+  project holding the bucket; on AWS, a principal with `s3:PutBucketCORS`. Note
+  that it **replaces** the bucket's entire CORS policy rather than appending
+  to it.
+</Callout>
+
+<Callout type="info">
+  The storage access check does not cover this. It runs server-side, where CORS
+  does not apply, so a configuration can pass verification and still leave the
+  dashboard unable to display anything.
+</Callout>
+
+
+---
+

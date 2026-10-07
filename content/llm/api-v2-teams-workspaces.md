@@ -38,6 +38,18 @@ Reference documentation for teams-workspaces in api-v2.
 
 ---
 
+## Teams Workspaces
+
+Manage Microsoft Teams workspaces for authenticated bots.
+
+### Source: ./content/docs/api-v2/reference/teams-workspaces/index.mdx
+
+
+Endpoints for the workspaces described in [Microsoft Teams authenticated bots](/docs/api-v2/authenticated-bots/teams).
+
+
+---
+
 ## List teams workspaces
 
 ### Source: ./content/docs/api-v2/reference/teams-workspaces/listTeamsWorkspaces.mdx

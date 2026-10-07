@@ -76,6 +76,18 @@ Get detailed information about a specific Zoom credential.
 
 ---
 
+## Zoom Credentials
+
+Manage the Zoom credentials used to send authenticated bots.
+
+### Source: ./content/docs/api-v2/reference/zoom-credentials/index.mdx
+
+
+Endpoints for the credentials described in [Zoom credentials](/docs/api-v2/authenticated-bots/zoom/credentials).
+
+
+---
+
 ## List Zoom credentials
 
 ### Source: ./content/docs/api-v2/reference/zoom-credentials/listZoomCredentials.mdx

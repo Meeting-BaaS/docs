@@ -50,6 +50,18 @@ Reference documentation for teams-logins in api-v2.
 
 ---
 
+## Teams Logins
+
+Manage the Microsoft Teams logins in a workspace login pool.
+
+### Source: ./content/docs/api-v2/reference/teams-logins/index.mdx
+
+
+Endpoints for the logins described in [Microsoft Teams authenticated bots](/docs/api-v2/authenticated-bots/teams).
+
+
+---
+
 ## List teams logins
 
 ### Source: ./content/docs/api-v2/reference/teams-logins/listTeamsLogins.mdx

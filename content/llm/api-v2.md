@@ -1170,7 +1170,7 @@ Each login supports up to **20 concurrent SSO sessions**. When you dispatch bots
 Both workspaces and logins track health with a `state` field:
 
 - **`active`** — healthy and usable.
-- **`invalid`** — the system auto-disabled the resource after a failure (a SAML rejection for workspaces; a bot login failure such as a suspended user or a pending first-time interactive login for logins). Re-enable manually via `PATCH` after fixing the underlying issue.
+- **`invalid`** — the system auto-disabled the resource after a failure (a SAML rejection for workspaces; a bot login failure such as a suspended user, or a bot account that never completed its first-time interactive "Welcome to Workspace" login). Re-enable manually via `PATCH` after fixing the underlying issue.
 
 When a resource flips to `invalid`, `last_error_message` and `last_error_at` explain why.
 
@@ -1182,7 +1182,7 @@ The SAML certificate and private key are encrypted at rest using **AES-256-GCM**
 
 <Cards>
   <Card title="Setup" href="/docs/api-v2/authenticated-bots/meet/setup">
-    Create a meet workspace, configure the Legacy SSO profile in Google Admin Console, prepare Workspace users, and add logins.
+    Create a meet workspace, configure the Legacy SSO profile, create the bot accounts and complete their welcome flow, then assign the profile and add logins.
   </Card>
   <Card title="Sending Authenticated Bots" href="/docs/api-v2/authenticated-bots/meet/sending-authenticated-bots">
     Use `meet_config` to send authenticated bots, manage pools, configure fallback, and monitor utilization.
@@ -1218,7 +1218,11 @@ Bot creation returns `MEET_LOGIN_UNAVAILABLE` when `meet_config.fallback` is `fa
 </Accordion>
 
 <Accordion title="A workspace or login flipped to invalid — what do I do?">
-The system auto-disables a resource after a failure (a SAML rejection for workspaces; a bot login failure for logins). Check `last_error_message`, fix the cause (re-upload a matching cert, complete a user's first-time interactive login, un-suspend the account), then re-enable it with a `PATCH`.
+The system auto-disables a resource after a failure (a SAML rejection for workspaces; a bot login failure for logins). Check `last_error_message`, fix the cause (re-upload a matching cert, complete a bot account's first-time interactive "Welcome to Workspace" login, un-suspend the account), then re-enable it with a `PATCH`.
+</Accordion>
+
+<Accordion title="I can't sign in to a bot account to finish its welcome flow">
+Every new Google Workspace account has to be signed into once, interactively, to complete the **"Welcome to Workspace"** first-run flow — and that has to happen **before** the Legacy SSO profile is assigned to it. Once the profile applies, Google redirects the account's sign-in to Meeting BaaS and its password stops working, so the flow can't be completed by hand. If you're stuck, move the account out of the SSO scope (or set that scope's **Select SSO profile** back to **None**), complete the welcome flow, then re-assign the profile. See [Setup, Step 3](/docs/api-v2/authenticated-bots/meet/setup#step-3--create-the-bot-accounts-and-complete-the-welcome-flow).
 </Accordion>
 
 <Accordion title="Can I retrieve the private key later?">
@@ -1375,7 +1379,7 @@ curl https://api.meetingbaas.com/v2/meet-logins/utilization \
 | `MEET_LOGIN_UNAVAILABLE` | No login slot was available (pool saturated or no matching active login) and `fallback` was `fail`. | Add logins, lower concurrency, or set `fallback: "anonymous"`. Watch utilization. |
 | `MEET_LOGIN_REQUIRED` | The meeting required a signed-in user but the bot could not authenticate. | Ensure `meet_config` is set and the selected login is `active`. |
 | `MEET_LOGIN_FAILED_SAML_REJECTED` | Google rejected the SAML assertion. | Verify the certificate uploaded to Google Admin matches the workspace cert and the SSO profile is configured and assigned. The workspace auto-flips to `invalid`; re-enable after fixing. |
-| `MEET_LOGIN_FAILED_TIMEOUT` | The SSO sign-in did not complete in time. | Confirm the user completed the first-time interactive login and the account isn't suspended; retry. |
+| `MEET_LOGIN_FAILED_TIMEOUT` | The SSO sign-in did not complete in time. | Confirm the user completed the first-time interactive "Welcome to Workspace" login (done before the SSO profile was assigned) and the account isn't suspended; retry. |
 
 See [Error Codes](/docs/api-v2/error-codes#google-meet-authentication-errors) for the full list. These appear in the bot's `bot.failed` webhook and in the bot details `error_code` field.
 
@@ -1390,7 +1394,7 @@ See [Error Codes](/docs/api-v2/error-codes#google-meet-authentication-errors) fo
 
 ## Setup
 
-Create a meet workspace, configure the Legacy SSO profile in Google Admin Console, prepare Workspace users, and register meet logins
+Create a meet workspace, configure the Legacy SSO profile in Google Admin Console, create and sign in to the bot accounts, then assign the SSO profile and register meet logins
 
 ### Source: ./content/docs/api-v2/authenticated-bots/meet/setup.mdx
 
@@ -1418,8 +1422,9 @@ Either way, the SSO profile must target the bot accounts exclusively.
 
 <Steps>
 <Step>Create a **meet workspace** (holds the SAML certificate + key).</Step>
-<Step>Upload the certificate and configure the **Legacy SSO profile** in Google Admin Console.</Step>
-<Step>Create the **Google Workspace users** the bots will sign in as, and complete their first interactive login.</Step>
+<Step>Upload the certificate and configure the **Legacy SSO profile** in Google Admin Console — without assigning it yet.</Step>
+<Step>Create the **Google Workspace users** the bots will sign in as, and sign in to each one to complete the **"Welcome to Workspace"** flow.</Step>
+<Step>**Assign** the Legacy SSO profile to the bot group/OU — only after those accounts have completed their welcome flow.</Step>
 <Step>Register a **meet login** for each user.</Step>
 </Steps>
 
@@ -1536,11 +1541,35 @@ On the **Legacy SSO profile** page, fill in the following and **Save**:
 These `/v2/meet-sso/*` URLs are SAML endpoints that Google calls during sign-in — you configure them in Google, you never call them yourself. The certificate you upload here must always match the one stored on the workspace. If you [rotate the keypair](#rotating-the-keypair), upload the new certificate at the same time.
 </Callout>
 </Step>
+</Steps>
 
-<Step>
-### Assign the profile to your bot group (or OU) only
+<Callout type="warn">
+**Do not assign the profile to your bot accounts yet.** As soon as the Legacy SSO profile covers an account, Google stops accepting its password and redirects sign-in to Meeting BaaS — which means you can no longer complete that account's first-run setup by hand. Create the bot accounts and finish their welcome flow first ([Step 3](#step-3--create-the-bot-accounts-and-complete-the-welcome-flow)), then come back and assign the profile in [Step 4](#step-4--assign-the-sso-profile-to-your-bot-group-or-ou-only).
+</Callout>
 
-Open **Manage SSO profile assignments**. Under **Groups**, pick the group that contains your bot accounts (for example `bots@bots.acme.com`) — or choose the bot **organizational unit**. A new scope starts with **Select SSO profile: None**.
+## Step 3 — Create the bot accounts and complete the welcome flow
+
+Do this **before** assigning the SSO profile in [Step 4](#step-4--assign-the-sso-profile-to-your-bot-group-or-ou-only). For **each** Google account the bots will sign in as:
+
+1. Create the user in Google Admin Console (for example `bot1@bots.acme.com`) and note the temporary password.
+2. **Sign in to that account yourself, in a browser, using that password**, and complete the entire **"Welcome to Workspace"** first-run flow — accept the terms, set a new password if prompted, and dismiss the onboarding screens until you land on a normal signed-in Google page. A freshly created account that has never been signed into interactively cannot be used programmatically: the meet login flips to `invalid` on first use.
+3. Set the account language to **English (United States)** to ensure the sign-in and Meet UIs are in the expected state.
+
+<Callout type="warn">
+**Order matters.** Once the Legacy SSO profile is assigned to the account's group/OU, Google redirects its sign-in to Meeting BaaS and the account password no longer works — so the welcome flow can no longer be completed interactively. If you have already assigned the profile, temporarily move the account out of the SSO scope (or set that scope's **Select SSO profile** back to **None**), complete the welcome flow, then assign the profile again.
+</Callout>
+
+<Callout type="tip">
+Create a **Google Group** (for example `bots@bots.acme.com`) and add the bot users as members. Putting this group on a calendar invite lets the assigned bot land in Meet's **verified queue** and bypass the waiting room. You'll reference this group as `email_group` in Step 5.
+</Callout>
+
+## Step 4 — Assign the SSO profile to your bot group (or OU) only
+
+<Callout type="warn">
+Only do this once **every** bot account from [Step 3](#step-3--create-the-bot-accounts-and-complete-the-welcome-flow) has been signed into and has completed its **"Welcome to Workspace"** flow. Assigning the profile first locks you out of the interactive sign-in needed to finish that flow.
+</Callout>
+
+Back in **Security → Authentication → SSO with third party IdP**, open **Manage SSO profile assignments**. Under **Groups**, pick the group that contains your bot accounts (for example `bots@bots.acme.com`) — or choose the bot **organizational unit**. A new scope starts with **Select SSO profile: None**.
 
 <ImageZoom
   src={'/assets/meet-sso/4-assign-select-group.png'}
@@ -1563,23 +1592,8 @@ Set **Select SSO profile** to **Legacy SSO profile**, then click **Override** (o
 <Callout type="warn">
 Assign the profile to the bot group/OU **only**. Never assign it to a scope that contains real users, or they will be redirected through the bot IdP. Changes take a few minutes to take effect.
 </Callout>
-</Step>
 
-</Steps>
-
-## Step 3 — Prepare the Workspace users
-
-For **each** Google account the bots will sign in as:
-
-1. Create the user in Google Admin Console (for example `bot1@bots.acme.com`).
-2. Sign in to that account once interactively and complete the **"Welcome to Workspace"** flow. This first-time interactive login is required before the account can be used programmatically — skipping it causes the login to flip to `invalid` on first use.
-3. Set the account language to **English (United States)** to ensure the sign-in and Meet UIs are in the expected state.
-
-<Callout type="tip">
-Create a **Google Group** (for example `bots@bots.acme.com`) and add the bot users as members. Putting this group on a calendar invite lets the assigned bot land in Meet's **verified queue** and bypass the waiting room. You'll reference this group as `email_group` in Step 4.
-</Callout>
-
-## Step 4 — Register a meet login per user
+## Step 5 — Register a meet login per user
 
 Create one meet login for each Workspace user, referencing the `workspace_id` from Step 1.
 
@@ -1621,7 +1635,7 @@ Rotate a workspace's certificate and key by sending **both** `cert_pem` and `pri
 
 ### Re-enabling an invalid resource
 
-When a workspace or login flips to `invalid`, fix the underlying cause (re-upload a matching cert, complete a user's interactive login, un-suspend the account), then re-enable it with a `PATCH` (`PATCH /v2/meet-workspaces/{workspace_id}` or `PATCH /v2/meet-logins/{credential_id}`). Check `last_error_message` for the reason.
+When a workspace or login flips to `invalid`, fix the underlying cause (re-upload a matching cert, complete a user's interactive "Welcome to Workspace" login — temporarily removing it from the SSO scope if needed, un-suspend the account), then re-enable it with a `PATCH` (`PATCH /v2/meet-workspaces/{workspace_id}` or `PATCH /v2/meet-logins/{credential_id}`). Check `last_error_message` for the reason.
 
 ### Deleting a workspace
 
@@ -1952,6 +1966,7 @@ Authenticated Teams bots sign in to a Microsoft 365 account **you control** with
 - **Exclude the bots from a Conditional Access policy (recommended for mixed tenants):** Keep MFA for humans, put the bot accounts in a dedicated group (for example `svc-teams-bots`), and **exclude that group** from your "require MFA" policy. Requires Microsoft Entra ID P1.
 
 Either way, the bot accounts must reach a password-only sign-in with no security-info prompt.
+
 </Callout>
 
 ## Prerequisites
@@ -1964,94 +1979,134 @@ Either way, the bot accounts must reach a password-only sign-in with no security
 ## Overview
 
 <Steps>
-<Step>Create a **Microsoft 365 account** for the bot and assign it a Teams license.</Step>
-<Step>Make the account **MFA-free** (Security Defaults off, or exclude it from your MFA policy).</Step>
-<Step>Complete the account's **first interactive sign-in** once.</Step>
-<Step>Create a **teams workspace** (the tenant grouping) and register a **teams login** per account.</Step>
+  <Step>
+    Create a **Microsoft 365 account** for the bot and assign it a Teams
+    license.
+  </Step>
+  <Step>
+    Make the account **MFA-free** (Security Defaults off, or exclude it from
+    your MFA policy).
+  </Step>
+  <Step>Complete the account's **first interactive sign-in** once.</Step>
+  <Step>
+    Create a **teams workspace** (the tenant grouping) and register a **teams
+    login** per account.
+  </Step>
 </Steps>
 
 ## Step 1 — Create the Microsoft 365 account
 
-In the [Microsoft Entra admin center](https://entra.microsoft.com), go to **Identity → Users → All users → New user → Create new user**. Give the bot a clear name (for example `bot1@acme.onmicrosoft.com`) and set a strong password you'll store with Meeting BaaS.
+The simplest path is the **[Microsoft 365 admin center](https://admin.microsoft.com)** → **Users → Active users → Add a user**: set a clear username (for example `bot1@acme.onmicrosoft.com`) and a strong password you'll store with Meeting BaaS (uncheck **"Require this user to change their password"**) — this wizard can also assign the license in the same flow (next). The new account then shows up under **Active users**:
 
 <ImageZoom
-  src={'/assets/teams-sso/1-create-user.png'}
-  alt="Microsoft Entra admin center: Identity → Users → New user (creating the bot account)"
+  src={'/assets/teams-sso/1-create-user-m365.png'}
+  alt="Microsoft 365 admin center → Users → Active users, showing the created bot account"
   width={2400}
-  height={1350}
+  height={1136}
   className="rounded-lg border"
 />
 
-Then assign the account a **Microsoft Teams** license (part of most Microsoft 365 / Office 365 plans) in the [Microsoft 365 admin center](https://admin.microsoft.com) under **Users → Active users → the bot → Licenses and apps**. A bot without a Teams license can't be admitted as an organization member.
+You can also create it in the **[Microsoft Entra admin center](https://entra.microsoft.com)** → **Users → All users → + New user → Create new user**. In Entra, "Users" sits under the **Identity** group in the left nav; if you don't see it, click **Show more** or type **Users** in the top search bar.
 
 <ImageZoom
-  src={'/assets/teams-sso/2-assign-license.png'}
-  alt="Microsoft 365 admin center: assigning a Microsoft Teams license to the bot account"
+  src={'/assets/teams-sso/2-create-user-entra.png'}
+  alt="Microsoft Entra admin center → Users → the New user button in the command bar"
   width={2400}
-  height={1350}
+  height={1136}
+  className="rounded-lg border"
+/>
+
+Then give the account a **Microsoft Teams** license (part of most Microsoft 365 / Office 365 plans): in the [Microsoft 365 admin center](https://admin.microsoft.com), select the bot in **Users → Active users** and click **Manage product licenses** (you can also do this inside the **Add a user** wizard above). A bot without a Teams license can't be admitted as an organization member.
+
+<ImageZoom
+  src={'/assets/teams-sso/3-assign-license.png'}
+  alt="Microsoft 365 admin center: bot selected, Manage product licenses in the command bar"
+  width={2400}
+  height={1136}
   className="rounded-lg border"
 />
 
 <Callout type="tip">
-Put your bot accounts in a dedicated group (for example `svc-teams-bots`). You'll use it to scope the MFA exclusion in Step 2, and you can reuse its address as the `email_group` for round-robin pooling in Step 4.
+  Put your bot accounts in a dedicated group (for example `svc-teams-bots`).
+  You'll use it for the MFA setup in Step 2, and you can reuse its
+  address as the `email_group` for round-robin pooling in Step 4.
 </Callout>
 
 ## Step 2 — Make the account MFA-free
 
-This is the step that lets a bot complete sign-in without a human. Choose the option that fits your tenant.
+The bot signs in by typing the password on `login.microsoftonline.com`, so anything that forces multi-factor or security-info registration stalls it on the **"Let's keep your account secure"** page. Two things can force that on a Teams sign-in today:
+
+1. **Security Defaults** — the tenant-wide toggle that makes everyone register for and use MFA.
+2. **Conditional Access "require MFA" policies** — including the **Microsoft-managed** ones Entra now auto-creates on licensed tenants (see Option C).
+
+<Callout type="info">
+Microsoft's 2024–2025 **mandatory MFA** rollout only covers the **admin portals and Azure resource management** — it does **not** block a bot's interactive sign-in to Teams/Office, so that mandate isn't your blocker. The two items above are.
+</Callout>
+
+Pick the option that matches your tenant.
 
 <Steps>
 
 <Step>
-### Option A — Turn off Security Defaults (dedicated bot tenant)
+### Option A — Disable Security Defaults (free / dedicated bot tenant)
 
-In the Entra admin center, go to **Identity → Overview → Properties → Manage security defaults**, set **Security defaults** to **Disabled**, and save. This removes the forced MFA / security-info registration for the whole tenant.
+If the tenant has **no** Entra ID P1/P2 or Microsoft 365 Business Premium license (so no Conditional Access), turning off Security Defaults is enough.
+
+1. Go to **Entra ID → Overview → Properties**, scroll to the bottom and open **Manage security defaults**, set **Security defaults** to **Disabled (not recommended)**, and **Save**. Some tenants label the top node **Identity** instead of **Entra ID** — it's the same **Properties** page. (Requires the **Conditional Access Administrator** role.)
+2. Set the bot's per-user MFA state to **Disabled**: **Identity → Users → All users → Per-user MFA** (in the command bar, or under the **···** menu) → select the account → **Disabled** → **Save**. (`Disabled` is the default, so usually it's already set.)
 
 <ImageZoom
-  src={'/assets/teams-sso/3-disable-security-defaults.png'}
-  alt="Microsoft Entra admin center: Properties → Manage security defaults set to Disabled"
+  src={'/assets/teams-sso/4-disable-security-defaults.png'}
+  alt="Microsoft Entra admin center: Entra ID → Overview → Properties → Manage security defaults set to Disabled"
   width={2400}
-  height={1350}
+  height={1137}
   className="rounded-lg border"
 />
 
 <Callout type="warn">
-Only disable Security Defaults on a tenant **dedicated to bots**. On a tenant with real users, use Option B instead so your humans keep MFA.
+Only disable Security Defaults on a tenant **dedicated to bots** — it drops baseline MFA for everyone in the tenant. On a tenant with real users, use **Option B**.
 </Callout>
 </Step>
 
 <Step>
-### Option B — Exclude the bots from your MFA policy (mixed tenant)
+### Option B — Turn MFA off for just the bot (per-user MFA — easiest way to keep people on MFA)
 
-Keep MFA on for everyone else and carve out the bots. In **Entra → Protection → Conditional Access**, open your "require MFA" policy, and under **Assignments → Users → Exclude**, add the `svc-teams-bots` group. Also confirm **legacy per-user MFA is Disabled** for the bot accounts (**Users → Per-user MFA**). Requires Microsoft Entra ID P1.
+Keep MFA on for your real users and switch it off for the bot only — no Conditional Access or premium license needed. First make sure **Security Defaults** is **Off** (Option A, step 1), since per-user MFA is ignored while Security Defaults is on. Then, in the **[Microsoft 365 admin center](https://admin.microsoft.com)** → **Users → Active users**, tick the bot, click **Multi-factor authentication** in the command bar, select the account, and set its status to **Disabled**.
 
 <ImageZoom
-  src={'/assets/teams-sso/4-conditional-access-exclude.png'}
-  alt="Conditional Access policy excluding the bot group from the require-MFA assignment"
+  src={'/assets/teams-sso/5-per-user-mfa.png'}
+  alt="Microsoft 365 admin center → Active users → the Multi-factor authentication button (set the bot's per-user MFA to Disabled)"
   width={2400}
-  height={1350}
+  height={1134}
   className="rounded-lg border"
 />
 </Step>
 
+<Step>
+### Option C — Exclude the bot via Conditional Access (tenants that enforce MFA with CA)
+
+If your tenant enforces MFA through **Conditional Access** — including the **Microsoft-managed** policies Entra auto-creates on **Entra ID P1/P2 or Business Premium** tenants — per-user MFA won't exempt the bot; you have to exclude it from those policies.
+
+1. Make sure **Security Defaults** is **Off** (Option A, step 1) — Conditional Access and Security Defaults can't both be on.
+2. Put the bot accounts in a dedicated group, e.g. `svc-teams-bots`.
+3. Exclude that group from **every** "require MFA" policy — your own **and the Microsoft-managed** ones (rows with **Created by = Microsoft**, e.g. *"Multifactor authentication for all users"*): **Protection → Conditional Access → Policies** → open each MFA policy → **Assignments → Users → Exclude → Users and groups** → add `svc-teams-bots` → **Save**. You can't delete the Microsoft-managed policies, but you can exclude a group or set them **Off**.
+
+<Callout type="warn">
+**Re-check this periodically.** On P2 / Business Premium tenants, Microsoft auto-creates Conditional Access MFA policies in **report-only** and **auto-enables them ~45 days later**. If a new *"Multifactor authentication for all users"* policy appears, exclude your bot group from it (or set it Off) before it turns on — otherwise the bot starts failing sign-in weeks later.
+</Callout>
+</Step>
+
 </Steps>
 
-The end state, either way: signing in with the bot account is **email → password → "Stay signed in?"** with **no** "Let's keep your account secure" prompt in between.
+The end state, either way: signing in with the bot account is **email → password → "Stay signed in?"** with **no** "Let's keep your account secure" prompt in between — verify in [Step 3](#step-3--complete-the-first-interactive-sign-in).
 
 ## Step 3 — Complete the first interactive sign-in
 
 Sign in to the bot account **once** interactively at [https://login.microsoftonline.com](https://login.microsoftonline.com) and click through **"Stay signed in?"**. This clears any first-run interstitials so the bot's automated sign-in reaches the password step cleanly. If you still see a "keep your account secure" page here, MFA is not fully off — revisit Step 2.
 
-<ImageZoom
-  src={'/assets/teams-sso/5-complete-first-signin.png'}
-  alt="First interactive sign-in reaching the Stay signed in? prompt with no security-info registration"
-  width={2400}
-  height={1350}
-  className="rounded-lg border"
-/>
-
 <Callout type="tip">
-Set the account's language to **English (United States)** so the sign-in and Teams UIs are in the expected state.
+  Set the account's language to **English (United States)** so the sign-in and
+  Teams UIs are in the expected state.
 </Callout>
 
 ## Step 4 — Register the workspace and logins
@@ -2070,11 +2125,11 @@ curl -X POST https://api.meetingbaas.com/v2/teams-workspaces \
   }'
 ```
 
-| Field | Required | Notes |
-|-------|----------|-------|
-| `domain` | ✅ | The Microsoft 365 tenant primary domain (for example `acme.onmicrosoft.com`, or a verified custom domain). |
-| `name` | optional | Friendly label. Not unique. |
-| `extra` | optional | Free-form JSON for your own tags. |
+| Field    | Required | Notes                                                                                                      |
+| -------- | -------- | ---------------------------------------------------------------------------------------------------------- |
+| `domain` | ✅       | The Microsoft 365 tenant primary domain (for example `acme.onmicrosoft.com`, or a verified custom domain). |
+| `name`   | optional | Friendly label. Not unique.                                                                                |
+| `extra`  | optional | Free-form JSON for your own tags.                                                                          |
 
 The response includes the `workspace_id` you'll reference when creating logins:
 
@@ -2109,17 +2164,18 @@ curl -X POST https://api.meetingbaas.com/v2/teams-logins \
   }'
 ```
 
-| Field | Required | Notes |
-|-------|----------|-------|
-| `workspace_id` | ✅ | UUID of the parent teams workspace. |
-| `name` | ✅ | Friendly label. Not unique. |
-| `email` | ✅ | The Microsoft 365 account the bot signs in as. |
-| `password` | ✅ | The account password. **Write-only** — encrypted at rest (AES-256-GCM) and never returned. |
-| `email_group` | optional | Address for round-robin pooling. Logins sharing the same `email_group` form one pool. |
-| `extra` | optional | Free-form JSON for your own tags (filterable on the list endpoint). |
+| Field          | Required | Notes                                                                                      |
+| -------------- | -------- | ------------------------------------------------------------------------------------------ |
+| `workspace_id` | ✅       | UUID of the parent teams workspace.                                                        |
+| `name`         | ✅       | Friendly label. Not unique.                                                                |
+| `email`        | ✅       | The Microsoft 365 account the bot signs in as.                                             |
+| `password`     | ✅       | The account password. **Write-only** — encrypted at rest (AES-256-GCM) and never returned. |
+| `email_group`  | optional | Address for round-robin pooling. Logins sharing the same `email_group` form one pool.      |
+| `extra`        | optional | Free-form JSON for your own tags (filterable on the list endpoint).                        |
 
 <Callout type="info">
-Each `email` may exist at most once per team (`409 Conflict` on duplicates). An unknown `workspace_id` returns `404 Not Found`.
+  Each `email` may exist at most once per team (`409 Conflict` on duplicates).
+  An unknown `workspace_id` returns `404 Not Found`.
 </Callout>
 
 Repeat for each account. Logins sharing an `email_group` form a round-robin pool — add more logins to increase concurrent capacity (each login handles up to 20 concurrent sessions by default).
@@ -4494,6 +4550,10 @@ These codes indicate the bot ended normally (not a failure):
 **Title:** No Speaker  
 **Description:** No speakers detected during recording.
 
+### `ALL_PARTICIPANTS_LEFT`
+**Title:** All Participants Left  
+**Description:** All human participants left the meeting. The bot leaves `timeout_config.everyone_left_timeout` seconds after the last participant (30 by default).
+
 ### `RECORDING_TIMEOUT`
 **Title:** Recording Timeout  
 **Description:** Recording timeout reached.
@@ -4671,13 +4731,13 @@ These errors apply to [authenticated Google Meet bots](/docs/api-v2/authenticate
 **Title:** Meet Login Failed — SAML Rejected
 **Description:** Google rejected the SAML assertion during sign-in. Usually the certificate uploaded to Google Admin Console no longer matches the workspace's certificate, or the Legacy SSO profile is misconfigured or unassigned.
 
-**Resolution:** Verify the certificate in Google Admin matches the workspace `cert_pem` and that the SSO profile points at the `/v2/meet-sso/*` endpoints and is assigned to all users. The workspace auto-flips to `invalid`; re-enable it via `PATCH /v2/meet-workspaces/{workspace_id}` after fixing the configuration.
+**Resolution:** Verify the certificate in Google Admin matches the workspace `cert_pem` and that the SSO profile points at the `/v2/meet-sso/*` endpoints and is assigned to the bot group/OU that contains the account. The workspace auto-flips to `invalid`; re-enable it via `PATCH /v2/meet-workspaces/{workspace_id}` after fixing the configuration.
 
 ### `MEET_LOGIN_FAILED_TIMEOUT`
 **Title:** Meet Login Failed — Timeout
 **Description:** The SSO sign-in flow did not complete within the expected time.
 
-**Resolution:** Confirm the Workspace user completed its first-time interactive "Welcome to Workspace" login and is not suspended, then retry. The login may auto-flip to `invalid`; re-enable it via `PATCH /v2/meet-logins/{credential_id}` after resolving the cause.
+**Resolution:** Confirm the Workspace user completed its first-time interactive "Welcome to Workspace" login — this must be done in a browser after the account is created and **before** the Legacy SSO profile is assigned to it — and that the account is not suspended, then retry. The login may auto-flip to `invalid`; re-enable it via `PATCH /v2/meet-logins/{credential_id}` after resolving the cause.
 
 ## System Errors
 
@@ -5556,8 +5616,13 @@ To schedule a bot to join at a specific time, use `POST /v2/bots/scheduled`:
 
 - `timeout_config`: Optional object:
   - `waiting_room_timeout`: Seconds to wait in waiting room (default: 600, min: 120, max: 1800)
-  - `no_one_joined_timeout`: Seconds to wait if no one joins (default: 600, min: 120, max: 1800, isn't used by Zoom)
-  - `silence_timeout`: Once a participant has been identified, no_one_joined_timeout stops and silence_timeout kicks in. When there is continued silence for the seconds provided, the bot leaves the meeting (default: 600, min: 300, max: 3600, isn't used by Zoom)
+  - `no_one_joined_timeout`: Seconds to wait if no one joins (default: 600, min: 120, max: 1800)
+  - `silence_timeout`: Once a participant has been identified, no_one_joined_timeout stops and silence_timeout kicks in. When there is continued silence for the seconds provided, the bot leaves the meeting (default: 600, min: 300, max: 3600)
+  - `everyone_left_timeout`: Seconds the bot stays once every other participant has left, then it leaves with `ALL_PARTICIPANTS_LEFT` (default: 30, min: 10, max: 1800). Participants listed in `ignored_participant_names` are not counted. The bot starts checking for an empty meeting 5 minutes into the recording.
+
+<Callout type="info">
+Zoom bots that join with Zoom credentials (`zoom_config`) use `waiting_room_timeout`, `no_one_joined_timeout` (only when nobody else ever joins) and `everyone_left_timeout`, but not `silence_timeout`. Zoom bots that join without credentials cannot see who is in the meeting, so they ignore `everyone_left_timeout` and leave an empty meeting through `silence_timeout`.
+</Callout>
 
 ### Advanced Options
 
@@ -6465,28 +6530,6 @@ Discover all the enhancements and improvements in Meeting BaaS API v2
 
 Meeting BaaS v2 introduces significant improvements across security, transparency, developer experience, and feature availability. This document highlights the key enhancements that make v2 a compelling upgrade from v1.
 
-## Google Meet Authenticated Bots
-
-v2 lets bots join Google Meet as **authenticated Google Workspace users** via SAML SSO, instead of only as anonymous guests.
-
-**v1**: Anonymous Meet joins only — bots failed on meetings restricted to signed-in or in-organization users and had to wait for manual admission.
-
-**v2**:
-- **Authenticated joins**: Bots sign in as a real Google Workspace user from a domain you control, so they can join meetings restricted to signed-in / organizational users.
-- **Waiting-room bypass**: Invite a login's Google Group (`email_group`) to a meeting and the assigned bot lands in Meet's verified queue, skipping the waiting room.
-- **Meet Workspaces & Meet Logins**: New `/v2/meet-workspaces` and `/v2/meet-logins` resources manage your SAML SSO configuration and the Workspace user identities bots sign in as. Meeting BaaS acts as the SAML IdP; keys are encrypted at rest with AES-256-GCM and the private key is never returned.
-- **Round-robin pools**: Group logins by `email_group` and the dispatcher assigns the least-loaded active login (up to 20 concurrent sessions each by default). Add logins to scale capacity linearly.
-- **Configurable fallback**: Per bot, choose to `fail` (default) or fall back to an `anonymous` join when the pool is saturated.
-- **Utilization & alerts**: `GET /v2/meet-logins/utilization` reports live pool concurrency, with `Meet Login Utilization` and `Meet Login Unavailable` alert types to warn you before saturation.
-
-### Benefits
-
-- Record meetings that block anonymous guests
-- Skip waiting rooms for fully unattended recording
-- Scale authenticated capacity by adding logins, with visibility into headroom
-
-See the [Google Meet Authentication guide](/docs/api-v2/authenticated-bots/meet) to get started.
-
 ## Microsoft Teams Authenticated Bots
 
 v2 lets bots join Microsoft Teams as **authenticated Microsoft 365 users** with stored credentials, instead of only as anonymous guests.
@@ -6508,6 +6551,28 @@ v2 lets bots join Microsoft Teams as **authenticated Microsoft 365 users** with 
 - Scale authenticated capacity by adding logins
 
 See the [Microsoft Teams Authentication guide](/docs/api-v2/authenticated-bots/teams) to get started.
+
+## Google Meet Authenticated Bots
+
+v2 lets bots join Google Meet as **authenticated Google Workspace users** via SAML SSO, instead of only as anonymous guests.
+
+**v1**: Anonymous Meet joins only — bots failed on meetings restricted to signed-in or in-organization users and had to wait for manual admission.
+
+**v2**:
+- **Authenticated joins**: Bots sign in as a real Google Workspace user from a domain you control, so they can join meetings restricted to signed-in / organizational users.
+- **Waiting-room bypass**: Invite a login's Google Group (`email_group`) to a meeting and the assigned bot lands in Meet's verified queue, skipping the waiting room.
+- **Meet Workspaces & Meet Logins**: New `/v2/meet-workspaces` and `/v2/meet-logins` resources manage your SAML SSO configuration and the Workspace user identities bots sign in as. Meeting BaaS acts as the SAML IdP; keys are encrypted at rest with AES-256-GCM and the private key is never returned.
+- **Round-robin pools**: Group logins by `email_group` and the dispatcher assigns the least-loaded active login (up to 20 concurrent sessions each by default). Add logins to scale capacity linearly.
+- **Configurable fallback**: Per bot, choose to `fail` (default) or fall back to an `anonymous` join when the pool is saturated.
+- **Utilization & alerts**: `GET /v2/meet-logins/utilization` reports live pool concurrency, with `Meet Login Utilization` and `Meet Login Unavailable` alert types to warn you before saturation.
+
+### Benefits
+
+- Record meetings that block anonymous guests
+- Skip waiting rooms for fully unattended recording
+- Scale authenticated capacity by adding logins, with visibility into headroom
+
+See the [Google Meet Authentication guide](/docs/api-v2/authenticated-bots/meet) to get started.
 
 ## Enhanced Webhook Management
 
@@ -6913,7 +6978,7 @@ Create multiple bots in a single request with partial success support.
     
     Processes each bot creation request sequentially (index 0, 1, 2...). Each item is validated and processed independently. If some bots fail to create, the request still returns 201 with a `data` array containing successful creations and an `errors` array containing failures. Each error includes the `index` of the failed item in the original request array.
     
-    **Processing Order:** Items are processed in the order they appear in the request array. Each item goes through the same validation and checks as a single bot creation: platform detection, BYOK transcription check, daily bot cap check, token availability check, and deduplication lock acquisition.
+    **Processing Order:** Items are processed in the order they appear in the request array. Each item goes through the same validation and checks as a single bot creation: platform detection, transcription key availability, daily bot cap check, token availability check, and deduplication lock acquisition.
     
     **Partial Success:** The response always has `success: true`, even if all items fail. Check the `errors` array to identify failed items. The `data` array contains successfully created bots with their `bot_id` and preserved `extra` metadata. The `errors` array contains failed items with `index`, `code`, `message`, `details`, and preserved `extra` metadata.
     
@@ -6943,7 +7008,7 @@ Create multiple scheduled bots in a single request with partial success support.
     
     Processes each scheduled bot creation request sequentially. Each item is validated and processed independently. Token reservation and daily bot cap checks are NOT performed at creation time - they are performed when each bot actually joins the meeting.
     
-    **Processing Order:** Items are processed in the order they appear in the request array. Each item goes through validation: platform detection, BYOK transcription check, and join time validation. Unlike immediate bot creation, daily bot cap and token availability are not checked at creation time.
+    **Processing Order:** Items are processed in the order they appear in the request array. Each item goes through validation: platform detection, transcription key availability, and join time validation. Unlike immediate bot creation, daily bot cap and token availability are not checked at creation time.
     
     **Partial Success:** The response always has `success: true`, even if all items fail. Check the `errors` array to identify failed items. The `data` array contains successfully scheduled bots with their `bot_id` and preserved `extra` metadata.
     
@@ -6952,7 +7017,6 @@ Create multiple scheduled bots in a single request with partial success support.
     **Error Scenarios:** 
     - Validation errors: Invalid join time, invalid meeting URL, invalid configuration
     - Platform detection failures: `INVALID_MEETING_PLATFORM`
-    - BYOK not enabled: `BYOK_TRANSCRIPTION_NOT_ENABLED_ON_PLAN`
     - System failures: `BOT_CREATE_FAILED`
     
     **Note:** Daily bot cap and token availability are checked when each bot joins, not at creation time. If these checks fail at join time, the bot will transition to `failed` status and send a failure webhook.
@@ -7184,6 +7248,18 @@ Retrieve detailed information about a specific scheduled bot.
     Returns 404 if the scheduled bot is not found or does not belong to your team.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/scheduled/{bot_id}","method":"get"}]} />
+
+
+---
+
+## Bots
+
+Create, list, and manage meeting bots and scheduled bots.
+
+### Source: ./content/docs/api-v2/reference/bots/index.mdx
+
+
+Endpoints for sending bots into meetings, controlling recordings, and managing scheduled bots.
 
 
 ---
@@ -7666,6 +7742,18 @@ Retrieve detailed information about a specific calendar event.
     Returns 404 if the event is not found or does not belong to the specified calendar.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}/events/{event_id}","method":"get"}]} />
+
+
+---
+
+## Calendars
+
+Connect calendars, manage events, and schedule calendar bots.
+
+### Source: ./content/docs/api-v2/reference/calendars/index.mdx
+
+
+Endpoints for calendar connections, event listing, and per-event bot scheduling.
 
 
 ---
@@ -8211,6 +8299,18 @@ Get current concurrency utilization for your team's meet login pool.
 
 ---
 
+## Meet Logins
+
+Manage the Google Meet logins in a workspace login pool.
+
+### Source: ./content/docs/api-v2/reference/meet-logins/index.mdx
+
+
+Endpoints for the logins described in [Google Meet authenticated bots](/docs/api-v2/authenticated-bots/meet).
+
+
+---
+
 ## List meet logins
 
 ### Source: ./content/docs/api-v2/reference/meet-logins/listMeetLogins.mdx
@@ -8344,6 +8444,18 @@ Get full details for a single meet workspace.
 
 ---
 
+## Meet Workspaces
+
+Manage Google Meet workspaces for authenticated bots.
+
+### Source: ./content/docs/api-v2/reference/meet-workspaces/index.mdx
+
+
+Endpoints for the workspaces described in [Google Meet authenticated bots](/docs/api-v2/authenticated-bots/meet).
+
+
+---
+
 ## List meet workspaces
 
 ### Source: ./content/docs/api-v2/reference/meet-workspaces/listMeetWorkspaces.mdx
@@ -8395,6 +8507,104 @@ Update a meet workspace — rename it, rotate its keypair, or re-enable it after
 
 ---
 
+## Go back to MeetingBaas storage
+
+### Source: ./content/docs/api-v2/reference/storage/deleteStorageConfig.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Go back to MeetingBaas-managed storage.
+
+    From the next bot onwards, artifacts are stored by MeetingBaas again.
+
+    **Nothing is deleted.** Artifacts already in your buckets stay where they are and stay accessible through the API and signed URLs — bots recorded while the configuration was active keep resolving to it. Your credentials are retained for exactly that purpose. Removing our access to those buckets on your side will make those older artifacts unreadable to us.
+
+    Returns 404 if you have no configuration.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/storage-config","method":"delete"}]} />
+
+
+---
+
+## Get your storage configuration
+
+### Source: ./content/docs/api-v2/reference/storage/getStorageConfig.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Get the object-storage configuration your artifacts are currently written to.
+
+    Returns 404 when you have not configured one — that is the default, and means MeetingBaas stores your artifacts.
+
+    The `secret_access_key` is never returned. `access_key_id` is, so you can tell which credential is in use.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/storage-config","method":"get"}]} />
+
+
+---
+
+## Storage
+
+Configure, verify, and remove your own S3-compatible storage.
+
+### Source: ./content/docs/api-v2/reference/storage/index.mdx
+
+
+Endpoints for the storage configuration described in [Bring Your Own Storage](/docs/bring-your-own-storage).
+
+
+---
+
+## Set your storage configuration
+
+### Source: ./content/docs/api-v2/reference/storage/setStorageConfig.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Point MeetingBaas at object storage you own.
+
+    From the next bot onwards, every artifact we produce for you — recording, audio chunks, raw and diarized transcripts, screenshots and bot logs — is written to your buckets with your credentials. Nothing lands in MeetingBaas storage.
+
+    **Verified before it is accepted.** The ingest key writes a small marker object into each bucket and the service key reads, writes and deletes it — each operation exercised with the credential that will really perform it, which also catches two key pairs that point at different buckets. Ingest upload receives recordings; service upload writes transcripts and reconciled artifacts; read serves artifacts; and delete enforces data retention. If any step fails the request returns 400 with the reason and your existing configuration is left untouched.
+
+    **Settings:** `endpoint`, `region` and `force_path_style` are the same knobs as a self-hosted deployment. Any S3-compatible provider works; enable `force_path_style` for MinIO, Ceph and most self-hosted gateways. The three buckets may all be the same bucket — keys are prefixed with the bot id regardless.
+
+    **Two credentials.** The **ingest** key is write-only (`s3:PutObject`, `s3:PutObjectTagging`, `s3:AbortMultipartUpload`) and is the only one that leaves our infrastructure — it is handed to the recording bot, which runs a browser inside your meeting. Scoped this way, a compromised bot can add objects and nothing else. The **service** key (`s3:GetObject`, `s3:ListBucket`, `s3:PutObject`, `s3:DeleteObject`) stays in our API and does everything else: serving your recordings back, writing transcripts, and deleting artifacts when your retention period expires.
+
+    **Keep the buckets private** — artifacts are served through short-lived signed URLs — but they must be reachable from the public internet, because transcription providers fetch audio directly from a signed URL.
+
+    **Data residency.** By default (`allow_transient_spill: false`) nothing you record ever rests on MeetingBaas storage: if an upload to your bucket fails and retries are exhausted, the artifact is reported as failed and lost rather than parked on our infrastructure. Set it to `true` if you would rather we hold a copy until the upload can be retried.
+
+    **Replacing a configuration is safe.** Calling this again supersedes the previous configuration for new bots only. Bots recorded earlier keep resolving to the storage they were written to, so their artifacts stay readable and deletable — nothing is migrated or re-pointed.
+
+    Returns 200 with the stored configuration.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/storage-config","method":"put"}]} />
+
+
+---
+
+## Check that MeetingBaas can still use your buckets
+
+### Source: ./content/docs/api-v2/reference/storage/testStorageConfig.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Re-run the access check against your current configuration and record the result.
+
+    Writes, reads back and deletes a marker object in each bucket, exactly as the check that runs when a configuration is set. Use it after rotating a key or changing a bucket policy: credentials that quietly stopped working would otherwise first surface as a failed upload at the end of a real meeting.
+
+    Returns 200 with `ok: true` when the storage is healthy, or 200 with `ok: false` and the reason when it is not — the request succeeded either way, it is the storage that is unhealthy. Returns 404 if you have no configuration.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/storage-config/test","method":"post"}]} />
+
+
+---
+
 ## Create a teams login
 
 ### Source: ./content/docs/api-v2/reference/teams-logins/createTeamsLogin.mdx
@@ -8439,6 +8649,18 @@ Update a meet workspace — rename it, rotate its keypair, or re-enable it after
 {/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/teams-logins/utilization","method":"get"}]} />
+
+
+---
+
+## Teams Logins
+
+Manage the Microsoft Teams logins in a workspace login pool.
+
+### Source: ./content/docs/api-v2/reference/teams-logins/index.mdx
+
+
+Endpoints for the logins described in [Microsoft Teams authenticated bots](/docs/api-v2/authenticated-bots/teams).
 
 
 ---
@@ -8499,6 +8721,18 @@ Update a meet workspace — rename it, rotate its keypair, or re-enable it after
 {/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/teams-workspaces/{workspace_id}","method":"get"}]} />
+
+
+---
+
+## Teams Workspaces
+
+Manage Microsoft Teams workspaces for authenticated bots.
+
+### Source: ./content/docs/api-v2/reference/teams-workspaces/index.mdx
+
+
+Endpoints for the workspaces described in [Microsoft Teams authenticated bots](/docs/api-v2/authenticated-bots/teams).
 
 
 ---
@@ -8590,6 +8824,70 @@ Bot Chat Message payload structure
     "sender_name": "examplesender_name",
     "sent_at": "examplesent_at",
     "text": "exampletext"
+  },
+  "event": "exampleevent",
+  "extra": null
+}
+```
+
+
+---
+
+## Bot Chat Status
+
+Bot Chat Status payload structure
+
+### Source: ./content/docs/api-v2/reference/webhooks/botwebhookchatstatus.mdx
+
+
+
+
+## Payload Structure
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
+| `extra` | object | null | Yes | Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking |
+
+## Field Details
+
+- **`data`** (object) **Required**
+
+  Properties:
+    - **`available`** (boolean) **Required**
+      Whether the bot can send and receive chat in this meeting
+
+    - **`bot_id`** (string) **Required**
+      The UUID of the bot this chat status refers to
+
+    - **`event_id`** (string (uuid) | null) **Required**
+      The UUID of the calendar event series. Null when the bot was not created from a calendar event
+
+    - **`reason`** ("organizer_disabled" | "panel_not_attached" | "send_failed" | null) **Required**
+      Why chat is unavailable. Null when available is true
+
+    - **`sent_at`** (string (date-time)) **Required**
+      ISO 8601 timestamp when this webhook was sent
+
+
+- **`event`** (string) **Required**
+  The webhook event type
+
+- **`extra`** (object | null) **Required**
+  Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking
+
+
+## Example
+
+```json
+{
+  "data": {
+    "available": true,
+    "bot_id": "examplebot_id",
+    "event_id": null,
+    "reason": null,
+    "sent_at": "examplesent_at"
   },
   "event": "exampleevent",
   "extra": null
@@ -9242,6 +9540,7 @@ This section contains reference documentation for all webhook payload structures
 ## Bot Webhooks
 
 - [Bot Webhook Chat Message](/docs/api-v2/reference/webhooks/botwebhookchatmessage)
+- [Bot Webhook Chat Status](/docs/api-v2/reference/webhooks/botwebhookchatstatus)
 - [Bot Webhook Completed](/docs/api-v2/reference/webhooks/botwebhookcompleted)
 - [Bot Webhook Failed](/docs/api-v2/reference/webhooks/botwebhookfailed)
 - [Bot Webhook Status Change](/docs/api-v2/reference/webhooks/botwebhookstatuschange)
@@ -9329,6 +9628,18 @@ Get detailed information about a specific Zoom credential.
     Returns 404 if the credential is not found or does not belong to your team.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/zoom-credentials/{id}","method":"get"}]} />
+
+
+---
+
+## Zoom Credentials
+
+Manage the Zoom credentials used to send authenticated bots.
+
+### Source: ./content/docs/api-v2/reference/zoom-credentials/index.mdx
+
+
+Endpoints for the credentials described in [Zoom credentials](/docs/api-v2/authenticated-bots/zoom/credentials).
 
 
 ---
@@ -9670,7 +9981,8 @@ When the output WebSocket connection opens, the bot sends a JSON text message:
   "protocol_version": 2,
   "bot_id": "123e4567-e89b-12d3-a456-426614174000",
   "offset": 0.0,
-  "sample_rate": 24000
+  "sample_rate": 24000,
+  "start_time": null
 }
 ```
 
@@ -9678,10 +9990,13 @@ When the output WebSocket connection opens, the bot sends a JSON text message:
 |-------|------|-------------|
 | `protocol_version` | `number` | Protocol version. May vary by meeting platform (currently `1` or `2`). Treat as informational - do not depend on a specific value. |
 | `bot_id` | `string` | UUID of the bot |
-| `offset` | `number` | Time offset in seconds (typically `0.0`) |
+| `offset` | `number` | Time offset in seconds. Currently always `0.0`: every connection (including reconnects) starts a fresh audio stream, so audio timing should be computed from the handshake receipt time plus the cumulative sample count. |
 | `sample_rate` | `number` | The audio sample rate in Hz, matching your `audio_frequency` config |
+| `start_time` | `number` or `null` | Epoch **milliseconds** when audio capture started, or `null` if capture has not started yet. The handshake is sent again with the updated value as soon as capture starts, before the first audio chunk. |
 
 Use this message to initialize your audio processing pipeline with the correct sample rate and to associate the stream with a specific bot.
+
+To timestamp the audio stream: `audio_time_ms = handshake_receipt_time_ms + (offset + cumulative_samples / sample_rate) * 1000`. Audio capture starts when the bot opens the meeting page, which is later than `joined_at` in the bot details. On reconnection the bot sends a new handshake with `offset` reset to `0.0`, so restart the clock; audio during the disconnection is dropped.
 
 ### Output Audio Chunks (Bot → Your Server)
 
@@ -9711,13 +10026,13 @@ Alongside audio chunks, the bot sends **JSON text messages** with real-time spea
   {
     "name": "John Doe",
     "id": 1,
-    "timestamp": 1709654321.5,
+    "timestamp": 1788284782279,
     "isSpeaking": true
   },
   {
     "name": "Jane Smith",
     "id": 2,
-    "timestamp": 1709654321.5,
+    "timestamp": 1788284782279,
     "isSpeaking": false
   }
 ]
@@ -9727,7 +10042,7 @@ Alongside audio chunks, the bot sends **JSON text messages** with real-time spea
 |-------|------|-------------|
 | `name` | `string` | Participant's display name |
 | `id` | `number` or `null` | Sequential participant ID (stable within a session) |
-| `timestamp` | `number` | Unix timestamp (seconds, with fractional part) |
+| `timestamp` | `number` | Unix timestamp in **milliseconds** (the moment the speaker state was observed) |
 | `isSpeaking` | `boolean` | Whether the participant is currently speaking |
 
 These updates are sent on the **output WebSocket** as JSON text messages. Your server can distinguish them from audio chunks by checking the WebSocket message type: **text** messages are speaker state, **binary** messages are audio.
@@ -10168,7 +10483,7 @@ Your server should handle reconnection gracefully - when the bot reconnects, it 
   </Accordion>
 
   <Accordion title="Is the audio mixed or per-speaker?">
-    The streamed audio is **mixed** - all participants' audio is combined into a single mono stream. To identify who is speaking, use the **speaker state updates** sent alongside the audio. If you need per-speaker audio, you can use the speaker state timestamps to segment the mixed audio by speaker.
+    The streamed audio is **mixed** - all participants' audio is combined into a single mono stream. To identify who is speaking, use the **speaker state updates** sent alongside the audio. If you need per-speaker audio, you can use the speaker state timestamps to segment the mixed audio by speaker. Note that speaker timestamps are in **milliseconds**; compute your audio timeline in the same unit (see the handshake `offset` documentation).
   </Accordion>
 
   <Accordion title="Can I use the same WebSocket URL for input and output?">
@@ -10669,6 +10984,55 @@ curl -X POST "https://api.meetingbaas.com/v2/bots" \
 - Set up [Webhooks](/docs/api-v2/webhooks) to receive transcription URLs automatically
 - Check the [API Reference](/docs/api-v2/reference) for complete parameter documentation
 
+
+
+---
+
+## Versioning
+
+What an API v2 version number means, what we count as a breaking change, and how changes reach you.
+
+### Source: ./content/docs/api-v2/versioning.mdx
+
+
+The v2 API is versioned as `v2.MINOR.PATCH`. The `/v2` in the URL is the major version and is what your integration targets; it does not change between releases. The minor and patch numbers identify individual releases and are what the [release notes](/api-v2/releases) are organised by.
+
+## What a release number means
+
+- **Patch** (`v2.6.15` → `v2.6.16`): fixes and behaviour improvements. Nothing you have to do.
+- **Minor** (`v2.5.x` → `v2.6.0`): new capabilities, such as new endpoints, fields or webhook events. Existing calls keep working.
+- **Major** (`v1` → `v2`): a new API surface with its own base path. The previous major keeps running while you migrate; see the [migration guide](/docs/api-v2/migration-guide).
+
+## Changes we consider compatible
+
+Your integration should tolerate these without a code change; they can appear in any release:
+
+- New endpoints, and new optional request parameters or body fields
+- New fields in responses and webhook payloads
+- New values in enumerations such as bot status codes, error codes and webhook event types
+- New webhook events (your handler should ignore events it does not recognise)
+- Changes to the order of fields in a JSON object
+- More specific error messages behind an unchanged HTTP status and error code
+
+## Changes we consider breaking
+
+- Removing or renaming an endpoint, request parameter, response field or webhook event
+- Changing a field's type, format or meaning
+- Making an optional parameter required, or tightening validation so that previously accepted requests are rejected
+- Changing the HTTP status or error code returned for an existing condition
+- Changing authentication or rate-limiting rules in a way that rejects previously valid traffic
+
+Every release carries a **Breaking Changes** section in its notes. When it is not "None", the entry says what changed, who is affected and what to do, and the release is flagged on the [releases timeline](/api-v2/releases).
+
+## Deprecations
+
+When something is going away, it is announced under **Deprecations** in the release notes of the version that deprecates it, together with the replacement to use. The deprecated behaviour keeps working until the release that removes it, which lists the removal under Breaking Changes.
+
+## Staying informed
+
+- The [releases page](/api-v2/releases) reads the release notes straight from GitHub, so it reflects a new version within minutes of it shipping.
+- The [API reference](/docs/api-v2/reference) and the [OpenAPI specification](https://api.meetingbaas.com/v2/openapi.json) always describe the currently deployed version.
+- The [TypeScript SDK](/docs/typescript-sdk) is versioned independently of the API; SDK releases follow API releases that add or change surface.
 
 
 ---

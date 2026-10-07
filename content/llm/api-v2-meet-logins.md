@@ -99,6 +99,18 @@ Get current concurrency utilization for your team's meet login pool.
 
 ---
 
+## Meet Logins
+
+Manage the Google Meet logins in a workspace login pool.
+
+### Source: ./content/docs/api-v2/reference/meet-logins/index.mdx
+
+
+Endpoints for the logins described in [Google Meet authenticated bots](/docs/api-v2/authenticated-bots/meet).
+
+
+---
+
 ## List meet logins
 
 ### Source: ./content/docs/api-v2/reference/meet-logins/listMeetLogins.mdx

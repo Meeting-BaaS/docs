@@ -74,6 +74,70 @@ Bot Chat Message payload structure
 
 ---
 
+## Bot Chat Status
+
+Bot Chat Status payload structure
+
+### Source: ./content/docs/api-v2/reference/webhooks/botwebhookchatstatus.mdx
+
+
+
+
+## Payload Structure
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
+| `extra` | object | null | Yes | Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking |
+
+## Field Details
+
+- **`data`** (object) **Required**
+
+  Properties:
+    - **`available`** (boolean) **Required**
+      Whether the bot can send and receive chat in this meeting
+
+    - **`bot_id`** (string) **Required**
+      The UUID of the bot this chat status refers to
+
+    - **`event_id`** (string (uuid) | null) **Required**
+      The UUID of the calendar event series. Null when the bot was not created from a calendar event
+
+    - **`reason`** ("organizer_disabled" | "panel_not_attached" | "send_failed" | null) **Required**
+      Why chat is unavailable. Null when available is true
+
+    - **`sent_at`** (string (date-time)) **Required**
+      ISO 8601 timestamp when this webhook was sent
+
+
+- **`event`** (string) **Required**
+  The webhook event type
+
+- **`extra`** (object | null) **Required**
+  Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking
+
+
+## Example
+
+```json
+{
+  "data": {
+    "available": true,
+    "bot_id": "examplebot_id",
+    "event_id": null,
+    "reason": null,
+    "sent_at": "examplesent_at"
+  },
+  "event": "exampleevent",
+  "extra": null
+}
+```
+
+
+---
+
 ## Bot Completed
 
 Bot Completed payload structure
@@ -717,6 +781,7 @@ This section contains reference documentation for all webhook payload structures
 ## Bot Webhooks
 
 - [Bot Webhook Chat Message](/docs/api-v2/reference/webhooks/botwebhookchatmessage)
+- [Bot Webhook Chat Status](/docs/api-v2/reference/webhooks/botwebhookchatstatus)
 - [Bot Webhook Completed](/docs/api-v2/reference/webhooks/botwebhookcompleted)
 - [Bot Webhook Failed](/docs/api-v2/reference/webhooks/botwebhookfailed)
 - [Bot Webhook Status Change](/docs/api-v2/reference/webhooks/botwebhookstatuschange)
