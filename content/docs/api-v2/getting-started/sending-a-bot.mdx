@@ -175,8 +175,13 @@ To schedule a bot to join at a specific time, use `POST /v2/bots/scheduled`:
 
 - `timeout_config`: Optional object:
   - `waiting_room_timeout`: Seconds to wait in waiting room (default: 600, min: 120, max: 1800)
-  - `no_one_joined_timeout`: Seconds to wait if no one joins (default: 600, min: 120, max: 1800, isn't used by Zoom)
-  - `silence_timeout`: Once a participant has been identified, no_one_joined_timeout stops and silence_timeout kicks in. When there is continued silence for the seconds provided, the bot leaves the meeting (default: 600, min: 300, max: 3600, isn't used by Zoom)
+  - `no_one_joined_timeout`: Seconds to wait if no one joins (default: 600, min: 120, max: 1800)
+  - `silence_timeout`: Once a participant has been identified, no_one_joined_timeout stops and silence_timeout kicks in. When there is continued silence for the seconds provided, the bot leaves the meeting (default: 600, min: 300, max: 3600)
+  - `everyone_left_timeout`: Seconds the bot stays once every other participant has left, then it leaves with `ALL_PARTICIPANTS_LEFT` (default: 30, min: 10, max: 1800). Participants listed in `ignored_participant_names` are not counted. The bot starts checking for an empty meeting 5 minutes into the recording.
+
+<Callout type="info">
+Zoom bots that join with Zoom credentials (`zoom_config`) use `waiting_room_timeout`, `no_one_joined_timeout` (only when nobody else ever joins) and `everyone_left_timeout`, but not `silence_timeout`. Zoom bots that join without credentials cannot see who is in the meeting, so they ignore `everyone_left_timeout` and leave an empty meeting through `silence_timeout`.
+</Callout>
 
 ### Advanced Options
 

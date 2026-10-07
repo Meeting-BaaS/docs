@@ -84,6 +84,18 @@ Get full details for a single meet workspace.
 
 ---
 
+## Meet Workspaces
+
+Manage Google Meet workspaces for authenticated bots.
+
+### Source: ./content/docs/api-v2/reference/meet-workspaces/index.mdx
+
+
+Endpoints for the workspaces described in [Google Meet authenticated bots](/docs/api-v2/authenticated-bots/meet).
+
+
+---
+
 ## List meet workspaces
 
 ### Source: ./content/docs/api-v2/reference/meet-workspaces/listMeetWorkspaces.mdx

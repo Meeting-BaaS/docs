@@ -13,7 +13,7 @@ Create multiple bots in a single request with partial success support.
     
     Processes each bot creation request sequentially (index 0, 1, 2...). Each item is validated and processed independently. If some bots fail to create, the request still returns 201 with a `data` array containing successful creations and an `errors` array containing failures. Each error includes the `index` of the failed item in the original request array.
     
-    **Processing Order:** Items are processed in the order they appear in the request array. Each item goes through the same validation and checks as a single bot creation: platform detection, BYOK transcription check, daily bot cap check, token availability check, and deduplication lock acquisition.
+    **Processing Order:** Items are processed in the order they appear in the request array. Each item goes through the same validation and checks as a single bot creation: platform detection, transcription key availability, daily bot cap check, token availability check, and deduplication lock acquisition.
     
     **Partial Success:** The response always has `success: true`, even if all items fail. Check the `errors` array to identify failed items. The `data` array contains successfully created bots with their `bot_id` and preserved `extra` metadata. The `errors` array contains failed items with `index`, `code`, `message`, `details`, and preserved `extra` metadata.
     
@@ -43,7 +43,7 @@ Create multiple scheduled bots in a single request with partial success support.
     
     Processes each scheduled bot creation request sequentially. Each item is validated and processed independently. Token reservation and daily bot cap checks are NOT performed at creation time - they are performed when each bot actually joins the meeting.
     
-    **Processing Order:** Items are processed in the order they appear in the request array. Each item goes through validation: platform detection, BYOK transcription check, and join time validation. Unlike immediate bot creation, daily bot cap and token availability are not checked at creation time.
+    **Processing Order:** Items are processed in the order they appear in the request array. Each item goes through validation: platform detection, transcription key availability, and join time validation. Unlike immediate bot creation, daily bot cap and token availability are not checked at creation time.
     
     **Partial Success:** The response always has `success: true`, even if all items fail. Check the `errors` array to identify failed items. The `data` array contains successfully scheduled bots with their `bot_id` and preserved `extra` metadata.
     
@@ -52,7 +52,6 @@ Create multiple scheduled bots in a single request with partial success support.
     **Error Scenarios:** 
     - Validation errors: Invalid join time, invalid meeting URL, invalid configuration
     - Platform detection failures: `INVALID_MEETING_PLATFORM`
-    - BYOK not enabled: `BYOK_TRANSCRIPTION_NOT_ENABLED_ON_PLAN`
     - System failures: `BOT_CREATE_FAILED`
     
     **Note:** Daily bot cap and token availability are checked when each bot joins, not at creation time. If these checks fail at join time, the bot will transition to `failed` status and send a failure webhook.
@@ -284,6 +283,18 @@ Retrieve detailed information about a specific scheduled bot.
     Returns 404 if the scheduled bot is not found or does not belong to your team.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/bots/scheduled/{bot_id}","method":"get"}]} />
+
+
+---
+
+## Bots
+
+Create, list, and manage meeting bots and scheduled bots.
+
+### Source: ./content/docs/api-v2/reference/bots/index.mdx
+
+
+Endpoints for sending bots into meetings, controlling recordings, and managing scheduled bots.
 
 
 ---
@@ -766,6 +777,18 @@ Retrieve detailed information about a specific calendar event.
     Returns 404 if the event is not found or does not belong to the specified calendar.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/calendars/{calendar_id}/events/{event_id}","method":"get"}]} />
+
+
+---
+
+## Calendars
+
+Connect calendars, manage events, and schedule calendar bots.
+
+### Source: ./content/docs/api-v2/reference/calendars/index.mdx
+
+
+Endpoints for calendar connections, event listing, and per-event bot scheduling.
 
 
 ---
@@ -1311,6 +1334,18 @@ Get current concurrency utilization for your team's meet login pool.
 
 ---
 
+## Meet Logins
+
+Manage the Google Meet logins in a workspace login pool.
+
+### Source: ./content/docs/api-v2/reference/meet-logins/index.mdx
+
+
+Endpoints for the logins described in [Google Meet authenticated bots](/docs/api-v2/authenticated-bots/meet).
+
+
+---
+
 ## List meet logins
 
 ### Source: ./content/docs/api-v2/reference/meet-logins/listMeetLogins.mdx
@@ -1444,6 +1479,18 @@ Get full details for a single meet workspace.
 
 ---
 
+## Meet Workspaces
+
+Manage Google Meet workspaces for authenticated bots.
+
+### Source: ./content/docs/api-v2/reference/meet-workspaces/index.mdx
+
+
+Endpoints for the workspaces described in [Google Meet authenticated bots](/docs/api-v2/authenticated-bots/meet).
+
+
+---
+
 ## List meet workspaces
 
 ### Source: ./content/docs/api-v2/reference/meet-workspaces/listMeetWorkspaces.mdx
@@ -1495,6 +1542,104 @@ Update a meet workspace — rename it, rotate its keypair, or re-enable it after
 
 ---
 
+## Go back to MeetingBaas storage
+
+### Source: ./content/docs/api-v2/reference/storage/deleteStorageConfig.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Go back to MeetingBaas-managed storage.
+
+    From the next bot onwards, artifacts are stored by MeetingBaas again.
+
+    **Nothing is deleted.** Artifacts already in your buckets stay where they are and stay accessible through the API and signed URLs — bots recorded while the configuration was active keep resolving to it. Your credentials are retained for exactly that purpose. Removing our access to those buckets on your side will make those older artifacts unreadable to us.
+
+    Returns 404 if you have no configuration.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/storage-config","method":"delete"}]} />
+
+
+---
+
+## Get your storage configuration
+
+### Source: ./content/docs/api-v2/reference/storage/getStorageConfig.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Get the object-storage configuration your artifacts are currently written to.
+
+    Returns 404 when you have not configured one — that is the default, and means MeetingBaas stores your artifacts.
+
+    The `secret_access_key` is never returned. `access_key_id` is, so you can tell which credential is in use.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/storage-config","method":"get"}]} />
+
+
+---
+
+## Storage
+
+Configure, verify, and remove your own S3-compatible storage.
+
+### Source: ./content/docs/api-v2/reference/storage/index.mdx
+
+
+Endpoints for the storage configuration described in [Bring Your Own Storage](/docs/bring-your-own-storage).
+
+
+---
+
+## Set your storage configuration
+
+### Source: ./content/docs/api-v2/reference/storage/setStorageConfig.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Point MeetingBaas at object storage you own.
+
+    From the next bot onwards, every artifact we produce for you — recording, audio chunks, raw and diarized transcripts, screenshots and bot logs — is written to your buckets with your credentials. Nothing lands in MeetingBaas storage.
+
+    **Verified before it is accepted.** The ingest key writes a small marker object into each bucket and the service key reads, writes and deletes it — each operation exercised with the credential that will really perform it, which also catches two key pairs that point at different buckets. Ingest upload receives recordings; service upload writes transcripts and reconciled artifacts; read serves artifacts; and delete enforces data retention. If any step fails the request returns 400 with the reason and your existing configuration is left untouched.
+
+    **Settings:** `endpoint`, `region` and `force_path_style` are the same knobs as a self-hosted deployment. Any S3-compatible provider works; enable `force_path_style` for MinIO, Ceph and most self-hosted gateways. The three buckets may all be the same bucket — keys are prefixed with the bot id regardless.
+
+    **Two credentials.** The **ingest** key is write-only (`s3:PutObject`, `s3:PutObjectTagging`, `s3:AbortMultipartUpload`) and is the only one that leaves our infrastructure — it is handed to the recording bot, which runs a browser inside your meeting. Scoped this way, a compromised bot can add objects and nothing else. The **service** key (`s3:GetObject`, `s3:ListBucket`, `s3:PutObject`, `s3:DeleteObject`) stays in our API and does everything else: serving your recordings back, writing transcripts, and deleting artifacts when your retention period expires.
+
+    **Keep the buckets private** — artifacts are served through short-lived signed URLs — but they must be reachable from the public internet, because transcription providers fetch audio directly from a signed URL.
+
+    **Data residency.** By default (`allow_transient_spill: false`) nothing you record ever rests on MeetingBaas storage: if an upload to your bucket fails and retries are exhausted, the artifact is reported as failed and lost rather than parked on our infrastructure. Set it to `true` if you would rather we hold a copy until the upload can be retried.
+
+    **Replacing a configuration is safe.** Calling this again supersedes the previous configuration for new bots only. Bots recorded earlier keep resolving to the storage they were written to, so their artifacts stay readable and deletable — nothing is migrated or re-pointed.
+
+    Returns 200 with the stored configuration.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/storage-config","method":"put"}]} />
+
+
+---
+
+## Check that MeetingBaas can still use your buckets
+
+### Source: ./content/docs/api-v2/reference/storage/testStorageConfig.mdx
+
+
+{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
+
+Re-run the access check against your current configuration and record the result.
+
+    Writes, reads back and deletes a marker object in each bucket, exactly as the check that runs when a configuration is set. Use it after rotating a key or changing a bucket policy: credentials that quietly stopped working would otherwise first surface as a failed upload at the end of a real meeting.
+
+    Returns 200 with `ok: true` when the storage is healthy, or 200 with `ok: false` and the reason when it is not — the request succeeded either way, it is the storage that is unhealthy. Returns 404 if you have no configuration.
+
+<APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/storage-config/test","method":"post"}]} />
+
+
+---
+
 ## Create a teams login
 
 ### Source: ./content/docs/api-v2/reference/teams-logins/createTeamsLogin.mdx
@@ -1539,6 +1684,18 @@ Update a meet workspace — rename it, rotate its keypair, or re-enable it after
 {/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/teams-logins/utilization","method":"get"}]} />
+
+
+---
+
+## Teams Logins
+
+Manage the Microsoft Teams logins in a workspace login pool.
+
+### Source: ./content/docs/api-v2/reference/teams-logins/index.mdx
+
+
+Endpoints for the logins described in [Microsoft Teams authenticated bots](/docs/api-v2/authenticated-bots/teams).
 
 
 ---
@@ -1599,6 +1756,18 @@ Update a meet workspace — rename it, rotate its keypair, or re-enable it after
 {/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/teams-workspaces/{workspace_id}","method":"get"}]} />
+
+
+---
+
+## Teams Workspaces
+
+Manage Microsoft Teams workspaces for authenticated bots.
+
+### Source: ./content/docs/api-v2/reference/teams-workspaces/index.mdx
+
+
+Endpoints for the workspaces described in [Microsoft Teams authenticated bots](/docs/api-v2/authenticated-bots/teams).
 
 
 ---
@@ -1690,6 +1859,70 @@ Bot Chat Message payload structure
     "sender_name": "examplesender_name",
     "sent_at": "examplesent_at",
     "text": "exampletext"
+  },
+  "event": "exampleevent",
+  "extra": null
+}
+```
+
+
+---
+
+## Bot Chat Status
+
+Bot Chat Status payload structure
+
+### Source: ./content/docs/api-v2/reference/webhooks/botwebhookchatstatus.mdx
+
+
+
+
+## Payload Structure
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
+| `extra` | object | null | Yes | Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking |
+
+## Field Details
+
+- **`data`** (object) **Required**
+
+  Properties:
+    - **`available`** (boolean) **Required**
+      Whether the bot can send and receive chat in this meeting
+
+    - **`bot_id`** (string) **Required**
+      The UUID of the bot this chat status refers to
+
+    - **`event_id`** (string (uuid) | null) **Required**
+      The UUID of the calendar event series. Null when the bot was not created from a calendar event
+
+    - **`reason`** ("organizer_disabled" | "panel_not_attached" | "send_failed" | null) **Required**
+      Why chat is unavailable. Null when available is true
+
+    - **`sent_at`** (string (date-time)) **Required**
+      ISO 8601 timestamp when this webhook was sent
+
+
+- **`event`** (string) **Required**
+  The webhook event type
+
+- **`extra`** (object | null) **Required**
+  Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking
+
+
+## Example
+
+```json
+{
+  "data": {
+    "available": true,
+    "bot_id": "examplebot_id",
+    "event_id": null,
+    "reason": null,
+    "sent_at": "examplesent_at"
   },
   "event": "exampleevent",
   "extra": null
@@ -2342,6 +2575,7 @@ This section contains reference documentation for all webhook payload structures
 ## Bot Webhooks
 
 - [Bot Webhook Chat Message](/docs/api-v2/reference/webhooks/botwebhookchatmessage)
+- [Bot Webhook Chat Status](/docs/api-v2/reference/webhooks/botwebhookchatstatus)
 - [Bot Webhook Completed](/docs/api-v2/reference/webhooks/botwebhookcompleted)
 - [Bot Webhook Failed](/docs/api-v2/reference/webhooks/botwebhookfailed)
 - [Bot Webhook Status Change](/docs/api-v2/reference/webhooks/botwebhookstatuschange)
@@ -2429,6 +2663,18 @@ Get detailed information about a specific Zoom credential.
     Returns 404 if the credential is not found or does not belong to your team.
 
 <APIPage document={"./openapi-v2.json"} operations={[{"path":"/v2/zoom-credentials/{id}","method":"get"}]} />
+
+
+---
+
+## Zoom Credentials
+
+Manage the Zoom credentials used to send authenticated bots.
+
+### Source: ./content/docs/api-v2/reference/zoom-credentials/index.mdx
+
+
+Endpoints for the credentials described in [Zoom credentials](/docs/api-v2/authenticated-bots/zoom/credentials).
 
 
 ---

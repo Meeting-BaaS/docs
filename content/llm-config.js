@@ -108,6 +108,13 @@ export const categoryConfig = {
       "./content/docs/api-v2/reference/meet-workspaces/**/*.mdx"
     ]
   },
+  "api-v2/storage": {
+    "title": "storage api-v2 Reference",
+    "description": "Reference documentation for storage in api-v2.",
+    "patterns": [
+      "./content/docs/api-v2/reference/storage/**/*.mdx"
+    ]
+  },
   "api-v2/teams-logins": {
     "title": "teams-logins api-v2 Reference",
     "description": "Reference documentation for teams-logins in api-v2.",
@@ -134,6 +141,13 @@ export const categoryConfig = {
     "description": "Reference documentation for zoom-credentials in api-v2.",
     "patterns": [
       "./content/docs/api-v2/reference/zoom-credentials/**/*.mdx"
+    ]
+  },
+  "bring-your-own-storage": {
+    "title": "bring-your-own-storage Documentation",
+    "description": "Documentation for bring-your-own-storage.",
+    "patterns": [
+      "./content/docs/bring-your-own-storage/**/*.mdx"
     ]
   },
   "mcp-servers": {
@@ -197,13 +211,6 @@ export const categoryConfig = {
     "description": "TypeScript SDK documentation for programmatically interacting with Meeting BaaS APIs.",
     "patterns": [
       "./content/docs/typescript-sdk/**/*.mdx"
-    ]
-  },
-  "updates": {
-    "title": "updates Documentation",
-    "description": "Documentation for updates.",
-    "patterns": [
-      "./content/docs/updates/**/*.mdx"
     ]
   }
 };
@@ -287,6 +294,11 @@ export const knownTxtPaths = [
   [
     "llms",
     "api-v2",
+    "storage"
+  ],
+  [
+    "llms",
+    "api-v2",
     "teams-logins"
   ],
   [
@@ -303,6 +315,10 @@ export const knownTxtPaths = [
     "llms",
     "api-v2",
     "zoom-credentials"
+  ],
+  [
+    "llms",
+    "bring-your-own-storage"
   ],
   [
     "llms",
@@ -343,9 +359,5 @@ export const knownTxtPaths = [
   [
     "llms",
     "typescript-sdk"
-  ],
-  [
-    "llms",
-    "updates"
   ]
 ];

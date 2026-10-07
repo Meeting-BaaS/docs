@@ -181,6 +181,18 @@ Retrieve detailed information about a specific calendar event.
 
 ---
 
+## Calendars
+
+Connect calendars, manage events, and schedule calendar bots.
+
+### Source: ./content/docs/api-v2/reference/calendars/index.mdx
+
+
+Endpoints for calendar connections, event listing, and per-event bot scheduling.
+
+
+---
+
 ## List calendar connections
 
 ### Source: ./content/docs/api-v2/reference/calendars/listCalendars.mdx
