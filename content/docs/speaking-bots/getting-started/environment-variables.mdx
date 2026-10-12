@@ -4,12 +4,12 @@ description: Configure environment variables for Speaking Bots
 icon: Variable
 ---
 
-Speaking Bots requires several API keys and configuration values to function properly. Here's a quick setup guide:
+Speaking Bots requires a few API keys and configuration values to function. Here's a quick setup guide:
 
 1. Copy the example environment file:
 
 ```bash
-cp .env.example .env
+cp env.example .env
 ```
 
 {" "}
@@ -19,38 +19,41 @@ cp .env.example .env
   keys that should be kept private.
 </Callout>
 
-2. Add your credentials to `.env`: You'll need 4 required API keys for core functionality (MeetingBaas, OpenAI, Speech-to-Text, and Text-to-Speech). Additional keys can be added later for optional features.
+2. Add your credentials to `.env`: you need 3 keys for core functionality (an LLM provider, speech-to-text and text-to-speech). Additional keys can be added later for optional features.
+
+<Callout>
+  Your MeetingBaas API key is not an environment variable of the server. Each `POST /bots` request carries it in the `x-meeting-baas-api-key` header, and the bot is created on that account.
+</Callout>
 
 ## Core Bot Functionality (Required)
 
 <Steps>
 <Step>
-### MeetingBaas Configuration
+### LLM Configuration
 
-Required for sending meeting bots as personas to various platforms:
-
-```txt
-MEETING_BAAS_API_KEY=your_meetingbaas_api_key_here
-```
-
-Get your API key by:
-
-1. Signing up for [MeetingBaas](https://meetingbaas.com)
-2. Accessing your API key from the MeetingBaas dashboard
-
-</Step>
-
-<Step>
-### OpenAI Configuration
-
-Powers in-meeting AI interactions and persona management:
+Powers in-meeting AI interactions. Pick a provider and set its key; a request can override the provider and model per bot with `llm_provider` and `llm_model`.
 
 ```txt
+# openai (default), anthropic or zai
+LLM_PROVIDER=openai
+
 OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_MODEL=gpt-5.5
+# responses (default, newest models) or chat
+OPENAI_API_SURFACE=responses
+
+# ANTHROPIC_API_KEY=your_anthropic_api_key_here
+# ANTHROPIC_MODEL=claude-opus-4-8
+
+# ZAI_API_KEY=your_zai_api_key_here
+# ZAI_MODEL=glm-5.2
+# ZAI_BASE_URL=https://api.z.ai/api/paas/v4/
 ```
+
+`LLM_MODEL` is an optional global fallback model; the provider-specific variables take precedence.
 
 <Callout>
-  This key is used both for in-meeting interactions and persona creation functionality.
+  The OpenAI key is also used by the persona creation CLI, which matches a new persona to a Cartesia voice.
 </Callout>
 </Step>
 
@@ -81,12 +84,60 @@ Required for voice synthesis and persona voices:
 ```txt
 CARTESIA_API_KEY=your_cartesia_api_key_here
 CARTESIA_VOICE_ID="79a125e8-cd45-4c13-8a67-188112f4dd22"
+# Default speaking speed when a request sets no speech_speed (0.6 to 1.5)
+CARTESIA_TTS_SPEED=1.2
 ```
 
 </Step>
 </Steps>
 
+## Server Configuration
+
+```txt
+# Port the API listens on
+PORT=7014
+
+# Public https URL of this server. The MeetingBaas bot connects back to
+# wss://<this host>/ws/<client_id> for audio, so set it everywhere except a
+# local ngrok run (where it is detected automatically).
+BASE_URL=https://your-server-domain.com
+
+# MeetingBaas API the bots are created on (pre-prod: https://api.pre-prod-meetingbaas.com)
+MEETING_BAAS_API_URL=https://api.meetingbaas.com
+
+# Comma-separated CORS origins; unset allows every origin
+CORS_ALLOW_ORIGINS=
+
+# When set, MeetingBaas callbacks to /webhook must carry it in x-mb-secret
+WEBHOOK_SECRET=
+
+# Writable directory for transcripts, floor files and call summaries
+# (defaults to the repository root)
+SPEAKING_BOT_STATE_DIR=/data
+```
+
 ## Optional Features
+
+### External Context and MCP Tools
+
+```txt
+# Cap on each prompt_data_sources URL fetch
+PROMPT_DATA_SOURCE_MAX_BYTES=1000000
+# Allow prompt_data_sources URLs on localhost / private networks (trusted networks only)
+PROMPT_DATA_ALLOW_PRIVATE_URLS=false
+
+# Allow remote MCP servers on localhost / private networks (trusted networks only),
+# or list exact private URLs that are allowed
+MCP_ALLOW_PRIVATE_URLS=false
+MCP_ALLOWED_PRIVATE_URLS=
+
+# Local mcpproxy groups behind the mcp_profile presets
+MCP_PROXY_ALL_URL=http://127.0.0.1:8109/mcp
+MCP_PROXY_PERSONAL_URL=http://127.0.0.1:8110/mcp
+MCP_PROXY_PROFESSIONAL_URL=http://127.0.0.1:8111/mcp
+```
+
+MCP server credentials are passed per request in `mcp.servers[].headers`; no global MCP secret is needed.
 
 ### Multiple Bots Support
 
@@ -105,6 +156,11 @@ NGROK_AUTHTOKEN=your_ngrok_auth_token_here
 
 ### Persona Creation
 
-<Steps>
-  <Step>Required for AI image generation and storage:</Step>
-</Steps>
+Required only for AI image generation and hosting when creating personas (`POST /personas/generate-image` and the persona CLI):
+
+```txt
+REPLICATE_KEY=your_replicate_key_here
+STABILITY_AI_API_KEY=your_stability_ai_key_here
+UTFS_KEY=your_utfs_key_here
+APP_ID=your_app_id_here
+```

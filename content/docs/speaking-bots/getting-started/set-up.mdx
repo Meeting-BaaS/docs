@@ -18,22 +18,11 @@ cd speaking-meeting-bot
 ### 1. Prerequisites
 
 - Python 3.11+
-- `grpc_tools` for protocol buffer compilation
+- [Poetry](https://python-poetry.org/) for dependency management
+- `ffmpeg` on your `PATH` (`brew install ffmpeg` / `apt-get install ffmpeg`)
 - Ngrok for local development (follow our [Ngrok Setup Guide](/docs/speaking-bots/getting-started/ngrok-setup))
-- Poetry for dependency management
 
-You'll also need system dependencies for scientific libraries:
-
-```bash
-# macOS (using Homebrew)
-brew install llvm cython
-
-# Ubuntu/Debian
-sudo apt-get install llvm python3-dev cython
-
-# Fedora/RHEL
-sudo dnf install llvm-devel python3-devel Cython
-```
+The repository ships a `flake.nix` with a ready-made shell (`nix develop`) if you prefer Nix.
 
 ### 2. Set Up Poetry Environment
 
@@ -44,17 +33,9 @@ curl -sSL https://install.python-poetry.org | python3 -
 # Install Poetry (Windows)
 (Invoke-WebRequest -Uri https://install.python-poetry.org -UseBasicParsing).Content | py -
 
-# Configure Poetry to use Python 3.11+
+# Use Python 3.11+ and install the locked dependencies
 poetry env use python3.11
-
-# Install dependencies with LLVM config path
-# On macOS:
-LLVM_CONFIG=$(brew --prefix llvm)/bin/llvm-config poetry install
-# On Linux (path may vary):
-# LLVM_CONFIG=/usr/bin/llvm-config poetry install
-
-# Activate virtual environment
-poetry shell
+poetry install
 ```
 
 ### 3. Compile Protocol Buffers
@@ -84,12 +65,13 @@ Edit the `.env` file with your API keys. You'll need:
 
 **Required API Keys:**
 
-- `MEETING_BAAS_API_KEY`: For meeting platform integration
-- `OPENAI_API_KEY`: For the conversation LLM
+- `OPENAI_API_KEY` (or `ANTHROPIC_API_KEY` / `ZAI_API_KEY` with `LLM_PROVIDER` set accordingly): For the conversation LLM
 - `CARTESIA_API_KEY`: For text-to-speech
-- `GLADIA_API_KEY` or `DEEPGRAM_API_KEY`: For speech-to-text
+- `DEEPGRAM_API_KEY` or `GLADIA_API_KEY`: For speech-to-text
 
-For production, also set:
+Your MeetingBaas API key is not stored on the server: every `POST /bots` request carries it in the `x-meeting-baas-api-key` header and the bot is created on that account.
+
+For anything other than a local run, also set the public URL the MeetingBaas bot will stream audio to:
 
 ```
 BASE_URL=https://your-server-domain.com
@@ -99,37 +81,33 @@ See our full [Environment Variables Guide](/docs/speaking-bots/getting-started/e
 
 ### 5. Run the API Server
 
-The project now follows an API-first approach. There are two ways to run the server:
-
 ```bash
-# Standard mode
-poetry run uvicorn app:app --reload --host 0.0.0.0 --port 8766
+# Standard mode (port 7014 by default, override with PORT)
+poetry run uvicorn app:app --reload --host 0.0.0.0 --port 7014
 
 # Local development mode with ngrok auto-configuration
-poetry run python run.py --local-dev
+poetry run python app/main.py --local-dev
 ```
 
 Once the server is running, you can access:
 
-- Interactive API docs: `http://localhost:8766/docs`
-- OpenAPI specification: `http://localhost:8766/openapi.json`
+- Interactive API docs: `http://localhost:7014/docs`
+- OpenAPI specification: `http://localhost:7014/openapi.json`
+- Health and readiness: `http://localhost:7014/health`, `http://localhost:7014/ready` (shows the public base URL the server resolved)
 
 To create a bot via the API:
 
 ```bash
-curl -X POST http://localhost:8766/run-bots \
+curl -X POST http://localhost:7014/bots \
   -H "Content-Type: application/json" \
+  -H "x-meeting-baas-api-key: your-api-key" \
   -d '{
     "meeting_url": "https://meet.google.com/xxx-yyyy-zzz",
-    "personas": ["interviewer"],
-    "meeting_baas_api_key": "your-api-key"
+    "personas": ["baas_onboarder"],
+    "entry_message": "Hello! I am here to help."
   }'
 ```
 
-You can also use our CLI tools for testing:
+The response is the MeetingBaas `bot_id`; the bot joins the lobby, waits to be admitted, then speaks its `entry_message`. Remove it with `DELETE /bots/{bot_id}`.
 
-```bash
-poetry run python scripts/batch.py -c 1 --meeting-url LINK
-```
-
-Follow our [Command Line Guide](/docs/speaking-bots/command-line) for more examples and options.
+Follow our [Command Line Guide](/docs/speaking-bots/command-line) for more examples, including several bots in the same call.
