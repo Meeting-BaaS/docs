@@ -1,81 +1,114 @@
 ---
 title: Command line usage
-description: Complete command-line interface options for launching Speaking Bots
+description: Drive the Speaking Bots API from a terminal, including several bots in one call
 icon: Terminal
 ---
 
-## Basic Usage
+Bots are launched through the HTTP API, so the command line you need is `curl` (or any HTTP client) against either the hosted service or your local server. Set two variables once:
 
 ```bash
-poetry run python scripts/batch.py [options]
+# Hosted production service, or http://localhost:7014 for a local run
+API=https://speaking.meetingbaas.com
+KEY=your-meetingbaas-api-key
 ```
 
-## Core Options
-
-| Option             | Description                      | Required | Default | Example                                              |
-| ------------------ | -------------------------------- | -------- | ------- | ---------------------------------------------------- |
-| `-c, --count`      | Number of bot instances          | Yes      | -       | `-c 2`                                               |
-| `--meeting-url`    | Video meeting URL to join        | Yes      | -       | `--meeting-url https://meet.google.com/xxx-yyyy-zzz` |
-| `--personas`       | Space-separated list of personas | No       | Random  | `--personas baas_onboarder arctic_prospector`        |
-| `-s, --start-port` | Starting port for services       | No       | 8765    | `--start-port 8765`                                  |
-| `--add-recorder`   | Add recording-only bot           | No       | False   | `--add-recorder`                                     |
-
-## Example Commands
-
-### Basic Bot Launch
+## Send a bot
 
 ```bash
-poetry run python scripts/batch.py -c 1 --meeting-url LINK
+curl -s -X POST $API/bots \
+  -H "Content-Type: application/json" \
+  -H "x-meeting-baas-api-key: $KEY" \
+  -d '{
+    "meeting_url": "https://meet.google.com/abc-defg-hij",
+    "bot_name": "Vibe",
+    "prompt": "You are Vibe, an upbeat engineer. Keep turns to 2-3 sentences.",
+    "entry_message": "Hey everyone, Vibe here. Let us get into it.",
+    "enable_tools": false
+  }'
+# → 201 {"bot_id":"c804aa7c-cfe3-474c-ac87-a1907fce5db1"}
 ```
 
-### Multiple Bots with Specific Personas
+The call returns as soon as the bot is created; the bot then joins and waits in the lobby until a host admits it, and speaks its `entry_message` the moment it is in the call. Omit `entry_message` and the bot stays silent until someone speaks to it.
+
+Unknown body fields are rejected; see the [`POST /bots` reference](/docs/speaking-bots/reference/bots/join_meeting_bots_post) for every option.
+
+## Use a bundled persona
 
 ```bash
-poetry run python scripts/batch.py -c 2 --meeting-url LINK --personas baas_onboarder arctic_prospector
+curl -s -X POST $API/bots \
+  -H "Content-Type: application/json" \
+  -H "x-meeting-baas-api-key: $KEY" \
+  -d '{
+    "meeting_url": "https://meet.google.com/abc-defg-hij",
+    "personas": ["baas_onboarder"]
+  }'
 ```
 
-### Additional "passive" bot with recording
+`personas` lists persona folder names from `config/personas`; the first one available is used. See [Personas](/docs/speaking-bots/personas).
+
+## Check status and remove the bot
+
+Status comes from the regular MeetingBaas API under the same `bot_id`:
 
 ```bash
-poetry run python scripts/batch.py -c 1 --meeting-url LINK --add-recorder
+curl -s https://api.meetingbaas.com/v2/bots/<bot_id>/status \
+  -H "x-meeting-baas-api-key: $KEY"
+# data.status: queued → joining_call → in_waiting_room → in_call_recording → …
 ```
 
-## Technical Details
+Removing the bot leaves the call and stops its pipeline:
 
-### Port Allocation
+```bash
+curl -s -X DELETE $API/bots/<bot_id> \
+  -H "x-meeting-baas-api-key: $KEY"
+# → 200 {"ok":true}
+```
 
-- Each bot requires 2 consecutive ports:
-  - Bot process: port N
-  - Proxy process: port N+1
-- Default starting port: 8765
-- Example with 2 bots:
-  - Bot 1: 8765 (bot), 8766 (proxy)
-  - Bot 2: 8767 (bot), 8768 (proxy)
+## Several bots in one call
 
-### Persona Selection
+`POST /bots` once per bot with the same `meeting_url`. Three rules keep a panel or debate coherent:
 
-- If specific personas provided: uses them in order
-- If not enough personas specified: fills with random selections
-- Validates persona existence before launch
-- Avoids duplicate personas when possible
-- Logs selected persona names and prompts
+- **Distinct `bot_name` per bot.** Floor control (bots not talking over each other) keys off the display name MeetingBaas reports back, so two bots with the same name are not gated against each other.
+- **Only one bot gets an `entry_message`** (the opener). The others stay reactive and respond instead of all greeting at once.
+- **Keep turns short** in each `prompt` ("2-3 sentences"). The floor is held while a sibling speaks, with a 20 s maximum hold, so long monologues get cut off.
 
-### Interactive Controls
+```bash
+# Opener
+curl -s -X POST $API/bots -H "Content-Type: application/json" -H "x-meeting-baas-api-key: $KEY" \
+  -d '{"meeting_url":"https://meet.google.com/abc-defg-hij","bot_name":"Vibe","entry_message":"Let us debate: should every team ship on Fridays?","prompt":"You are Vibe. Argue FOR shipping on Fridays. 2-3 sentences per turn."}'
 
-- Press Enter: Add more bots with same configuration. You might be blocked by the default deduplication key settings.
-- Ctrl+C: Graceful shutdown of all processes
+# Reactive sibling
+curl -s -X POST $API/bots -H "Content-Type: application/json" -H "x-meeting-baas-api-key: $KEY" \
+  -d '{"meeting_url":"https://meet.google.com/abc-defg-hij","bot_name":"Skeptic","prompt":"You are Skeptic. Argue AGAINST shipping on Fridays. 2-3 sentences per turn."}'
+```
 
-### Error Handling
+## Tuning a bot
 
-- URL validation (must start with https://)
-- Port availability checking
-- Process monitoring and auto-recovery
-- Ngrok tunnel management
-- Graceful resource cleanup
+```bash
+curl -s -X POST $API/bots -H "Content-Type: application/json" -H "x-meeting-baas-api-key: $KEY" \
+  -d '{
+    "meeting_url": "https://meet.google.com/abc-defg-hij",
+    "bot_name": "Analyst",
+    "llm_provider": "anthropic",
+    "speech_speed": 1.1,
+    "turn_config": {"stop_secs": 0.8},
+    "prompt_data_sources": [{"name": "Account notes", "type": "url", "url": "https://example.com/notes.md"}],
+    "prompt": "You are Analyst. Use the account notes when asked about the customer."
+  }'
+```
 
-### Process Management
+- `llm_provider` / `llm_model` pick the model per bot (`openai`, `anthropic`, `zai`).
+- `speech_speed` is a TTS multiplier between 0.6 and 1.5.
+- `turn_config` tunes voice activity detection (`confidence`, `start_secs`, `stop_secs`, `min_volume`): a larger `stop_secs` makes the bot wait longer before taking the floor.
+- `prompt_data_sources` appends text or fetched URLs to the system prompt, capped by `prompt_data_token_limit`.
+- `mcp` connects the bot to MCP tool servers for the duration of the call.
 
-- Automatic ngrok tunnel creation
-- Process output logging
-- Auto-cleanup on shutdown
-- Graceful termination of all components
+## Local server
+
+Running the server yourself (see [Set Up](/docs/speaking-bots/getting-started/set-up)) changes only `API`:
+
+```bash
+API=http://localhost:7014
+```
+
+In `--local-dev` mode the server detects your ngrok tunnels and uses them as the public WebSocket URL; otherwise set `BASE_URL`. The Pipecat pipeline each bot runs in is `scripts/meetingbaas.py` (`poetry run meetingbaas`); the API starts it for you, so you never need to call it directly.
