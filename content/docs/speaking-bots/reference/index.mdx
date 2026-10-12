@@ -5,14 +5,16 @@ description: API reference documentation for Speaking Bots
 
 # Speaking Bots API Reference
 
-This section contains detailed documentation for the Speaking Bots API, which allows you to programmatically create and manage speaking bots in your meetings.
+This section contains detailed documentation for the Speaking Bots API, which allows you to programmatically create and manage speaking bots in your meetings. It is generated from the service's live OpenAPI document, also served at [speaking.meetingbaas.com/openapi.json](https://speaking.meetingbaas.com/openapi.json).
 
 The Speaking Bots API provides endpoints to:
 
-- Have bots join meetings
+- Have bots join meetings, with a persona or an ad-hoc prompt, a chosen LLM provider, external context and MCP tools
 - Make bots leave meetings
-- Control bot behavior during meetings
 - Generate persona images for bots
+- Check the service (`/health`, `/ready`)
+
+`POST /webhook` is the callback endpoint MeetingBaas itself calls with bot status changes; you do not call it.
 
 Each endpoint is documented with:
 
@@ -21,6 +23,6 @@ Each endpoint is documented with:
 - Response details
 - Example requests and responses
 
-All API requests require a MeetingBaas API key to be passed in the `x-meeting-baas-api-key` header.
+All API requests except the system endpoints require a MeetingBaas API key to be passed in the `x-meeting-baas-api-key` header. The bot is created on that account, so its status, recording and transcript are available through the [MeetingBaas API](/docs/api-v2) under the returned `bot_id`.
 
 Use the navigation to explore the available endpoints.
