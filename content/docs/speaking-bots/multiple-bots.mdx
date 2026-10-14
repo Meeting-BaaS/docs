@@ -1,0 +1,125 @@
+---
+title: Multiple Bots & Turn-Taking
+description: Run several speaking bots in one meeting and have them take turns instead of talking over each other
+icon: MessagesSquare
+---
+
+You can send more than one speaking bot to the same meeting — each with its own
+persona — and they will hold a conversation, taking turns rather than talking
+over one another. This is how you build a panel, an interview, or a two-sided
+debate.
+
+## Sending two bots
+
+Send one `POST /bots` request per bot, all pointing at the same `meeting_url`.
+Give each a **distinct** `bot_name`, and give **only one** of them an
+`entry_message` — that bot opens the conversation, the others react to it.
+
+<Tabs items={['Opener bot', 'Reactive bot']}>
+  <Tab value="Opener bot">
+    ```bash
+    curl -X POST https://speaking.meetingbaas.com/bots \
+      -H "Content-Type: application/json" \
+      -d '{
+        "meeting_url": "https://meet.google.com/abc-defg-hij",
+        "bot_name": "Ada",
+        "prompt": "You are Ada, arguing that remote work beats the office. Keep each turn to 2-3 sentences and rebut your opponent directly.",
+        "entry_message": "Remote work wins — deep focus, no commute, hire anyone anywhere. Convince me otherwise.",
+        "meeting_baas_api_key": "your-api-key"
+      }'
+    ```
+  </Tab>
+  <Tab value="Reactive bot">
+    ```bash
+    curl -X POST https://speaking.meetingbaas.com/bots \
+      -H "Content-Type: application/json" \
+      -d '{
+        "meeting_url": "https://meet.google.com/abc-defg-hij",
+        "bot_name": "Bruno",
+        "prompt": "You are Bruno, arguing for the office. Wait for Ada to speak, then push back hard. Keep each turn to 2-3 sentences.",
+        "meeting_baas_api_key": "your-api-key"
+      }'
+    ```
+  </Tab>
+</Tabs>
+
+<Callout type="warn">
+  **Give each bot a distinct `bot_name`.** Turn-taking identifies who is
+  speaking by display name — two bots sharing a name can't yield the floor to
+  each other and will talk over one another.
+</Callout>
+
+<Callout type="info">
+  **Only the opener gets an `entry_message`.** If every bot has one, they all
+  greet at once. Leave the others without it so they stay reactive and answer
+  what they hear.
+</Callout>
+
+## How turn-taking works
+
+Each bot receives MeetingBaas' live speaker-state for the meeting — the set of
+participants currently speaking. While one of your bots is speaking, the others
+**hold their own speech** until the floor is free, then release it (with a small
+random delay so two bots don't grab a freed floor at the same instant).
+
+The result is a back-and-forth conversation instead of a wall of overlapping
+audio. A few things worth knowing:
+
+<Steps>
+<Step>
+### Keep turns short
+
+Prompt your bots for **2-3 sentence turns**. There is a safety cap on how long
+one bot will hold its speech waiting for the floor, so very long monologues can
+still overlap. Short turns keep the exchange snappy and gap-free.
+</Step>
+
+<Step>
+### Admit the bots together
+
+Both bots knock on the meeting's lobby. Admit them close together: the opener
+speaks its line once it is in the call, and the reactive bot needs to already be
+present to hear it and respond.
+</Step>
+
+<Step>
+### Entry messages are spoken verbatim
+
+Whatever you pass as `entry_message` is spoken exactly as written. If you omit
+it, the bot introduces itself from its persona instead of opening cold.
+</Step>
+</Steps>
+
+## Removing bots
+
+Remove each bot by its `bot_id` (returned in the create response) with
+`DELETE /bots/{bot_id}`:
+
+```bash
+curl -X DELETE https://speaking.meetingbaas.com/bots/BOT_ID \
+  -H "Content-Type: application/json" \
+  -d '{"meeting_baas_api_key": "your-api-key"}'
+```
+
+This makes the bot leave the meeting and tears down its pipeline. Removing one
+bot does not affect the others in the meeting.
+
+<Callout type="info">
+  Sending the same persona to a meeting twice? Give each instance a different
+  `bot_name` so they remain distinguishable for turn-taking and for removal.
+</Callout>
+
+## What to try next
+
+<Cards>
+  <Card
+    title="Personas System"
+    href="/docs/speaking-bots/personas"
+    description="Give each bot a distinct voice, personality, and knowledge"
+  />
+  <Card
+    title="Environment Variables"
+    href="/docs/speaking-bots/getting-started/environment-variables"
+    description="Tune voice, turn-taking, and LLM behavior"
+  />
+</Cards>
