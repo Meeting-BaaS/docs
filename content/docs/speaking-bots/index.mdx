@@ -55,6 +55,7 @@ The API follows a minimalist design with sensible defaults while offering option
 - `turn_config` for Voice Activity Detection tuning (how eagerly the bot takes the floor)
 - `prompt_data_sources` and `prompt_data_token_limit` to feed documents or URLs into the system prompt
 - `mcp` to connect the bot to MCP tool servers, and `enable_tools` for the built-in weather/time tools
+- `credentials` to bring your own provider keys (LLM, Deepgram, Cartesia) for that bot instead of the server's
 
 Remove a bot with [`DELETE /bots/{bot_id}`](/docs/speaking-bots/reference/bots/leave_bot_bots__bot_id__delete). Its status and recording are available through the regular [MeetingBaas API](/docs/api-v2) under the same `bot_id`.
 

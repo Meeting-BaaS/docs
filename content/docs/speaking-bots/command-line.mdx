@@ -103,6 +103,26 @@ curl -s -X POST $API/bots -H "Content-Type: application/json" -H "x-meeting-baas
 - `prompt_data_sources` appends text or fetched URLs to the system prompt, capped by `prompt_data_token_limit`.
 - `mcp` connects the bot to MCP tool servers for the duration of the call.
 
+## Bring your own keys
+
+Each bot can run on your own provider accounts. Pass a `credentials` object with any of `llm_api_key` (for the provider in `llm_provider`), `stt_api_key` (Deepgram) and `tts_api_key` (Cartesia); whatever you leave out falls back to the server's keys.
+
+```bash
+curl -s -X POST $API/bots -H "Content-Type: application/json" -H "x-meeting-baas-api-key: $KEY" \
+  -d '{
+    "meeting_url": "https://meet.google.com/abc-defg-hij",
+    "bot_name": "Analyst",
+    "llm_provider": "anthropic",
+    "credentials": {
+      "llm_api_key": "sk-ant-...",
+      "stt_api_key": "<deepgram key>",
+      "tts_api_key": "<cartesia key>"
+    }
+  }'
+```
+
+The keys are handed to that bot's pipeline process only. They are never stored, never logged and never returned — a `422` on a malformed body does not echo the input either.
+
 ## Local server
 
 Running the server yourself (see [Set Up](/docs/speaking-bots/getting-started/set-up)) changes only `API`:

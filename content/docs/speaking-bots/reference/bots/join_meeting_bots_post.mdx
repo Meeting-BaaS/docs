@@ -64,6 +64,11 @@ _openapi:
           (the runner clamps to it); values outside are rejected. Defaults to
           CARTESIA_TTS_SPEED, TTS_SPEED, SPEECH_SPEED, or the runner default.
       - content: >-
+          credentials: Bring your own provider keys for this bot (LLM,
+          speech-to-text, text-to-speech). Any key left out falls back to the
+          server's own configuration. Keys are used only by this bot's pipeline
+          and are never stored or returned.
+      - content: >-
           bot_id: The MeetingBaas bot ID used for API operations with
           MeetingBaas
       - content: detail
