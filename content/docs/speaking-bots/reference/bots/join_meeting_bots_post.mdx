@@ -15,18 +15,66 @@ _openapi:
           MeetingBaas
 
           and processes audio using Pipecat's voice AI framework.
+      - content: bot_image
+      - content: 'bot_name: Name to display for the bot in the meeting'
+      - content: >-
+          credentials: Bring your own provider keys for this bot (LLM,
+          speech-to-text, text-to-speech). Any key left out falls back to the
+          server's own configuration. Keys are used only by this bot's pipeline
+          and are never stored or returned.
+      - content: enable_tools
+      - content: entry_message
+      - content: extra
+      - content: >-
+          llm_model: Provider model for this bot. Defaults to provider-specific
+          env vars.
+      - content: >-
+          llm_provider: LLM provider for this bot. Defaults to LLM_PROVIDER,
+          then openai.
+      - content: 'mcp: MCP server/tool metadata and optional live connection details'
+      - content: >-
+          mcp_profile: Optional trusted local mcpproxy group preset.
+          'professional' connects to MCP_PROXY_PROFESSIONAL_URL or
+          http://127.0.0.1:8111/mcp; 'personal' connects to
+          MCP_PROXY_PERSONAL_URL or http://127.0.0.1:8110/mcp; 'all' connects to
+          MCP_PROXY_ALL_URL or http://127.0.0.1:8109/mcp. The preset is merged
+          with explicit mcp servers when both are supplied.
+      - content: >-
+          mcp_profile_tool_access: Tool exposure for mcp_profile presets.
+          'read_only' exposes retrieve_tools, call_tool_read, read_cache, and
+          set_profile. 'read_write' also exposes call_tool_write. Presets never
+          expose upstream_servers, call_tool_destructive, code_execution,
+          registry, or quarantine tools.
       - content: >-
           meeting_url: URL of the Google Meet, Zoom or Microsoft Teams meeting
           to join
-      - content: 'bot_name: Name to display for the bot in the meeting'
       - content: >-
           personas: List of persona names to use. The first available will be
           selected.
-      - content: bot_image
-      - content: entry_message
-      - content: extra
-      - content: enable_tools
       - content: prompt
+      - content: >-
+          prompt_data_sources: External text or URL data sources to append to
+          the bot prompt
+      - content: >-
+          prompt_data_token_limit: Approximate total token cap for loaded
+          prompt_data_sources. 0 disables loading.
+      - content: >-
+          speech_speed: TTS speaking speed multiplier. Honored range is 0.6-1.5
+          (the runner clamps to it); values outside are rejected. Defaults to
+          CARTESIA_TTS_SPEED, TTS_SPEED, SPEECH_SPEED, or the runner default.
+      - content: >-
+          transcription_enabled: Have MeetingBaas transcribe the recording once
+          the meeting ends, with the bot's own turns attributed to it by name.
+          Set false for a recording without a transcript.
+      - content: >-
+          transcription_provider: MeetingBaas speech-to-text provider for that
+          transcript.
+      - content: >-
+          turn_config: Per-bot turn-taking tuning (VAD
+          confidence/start_secs/stop_secs/min_volume)
+      - content: >-
+          websocket_url: Optional public WebSocket base URL override, e.g.
+          wss://bot.example.com
       - content: >-
           bot_id: The MeetingBaas bot ID used for API operations with
           MeetingBaas

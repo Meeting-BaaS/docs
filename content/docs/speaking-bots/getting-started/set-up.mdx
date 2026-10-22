@@ -85,9 +85,9 @@ Edit the `.env` file with your API keys. You'll need:
 **Required API Keys:**
 
 - `MEETING_BAAS_API_KEY`: For meeting platform integration
-- `OPENAI_API_KEY`: For the conversation LLM
+- `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` or `ZAI_API_KEY`: For the conversation LLM (`LLM_PROVIDER` selects which, default `openai`)
 - `CARTESIA_API_KEY`: For text-to-speech
-- `GLADIA_API_KEY` or `DEEPGRAM_API_KEY`: For speech-to-text
+- `DEEPGRAM_API_KEY`: For speech-to-text
 
 For production, also set:
 
@@ -103,33 +103,25 @@ The project now follows an API-first approach. There are two ways to run the ser
 
 ```bash
 # Standard mode
-poetry run uvicorn app:app --reload --host 0.0.0.0 --port 8766
+poetry run uvicorn app:app --reload --host 0.0.0.0 --port 7014
 
 # Local development mode with ngrok auto-configuration
-poetry run python run.py --local-dev
+poetry run python app/main.py --local-dev
 ```
 
 Once the server is running, you can access:
 
-- Interactive API docs: `http://localhost:8766/docs`
-- OpenAPI specification: `http://localhost:8766/openapi.json`
+- Interactive API docs: `http://localhost:7014/docs`
+- OpenAPI specification: `http://localhost:7014/openapi.json`
 
 To create a bot via the API:
 
 ```bash
-curl -X POST http://localhost:8766/run-bots \
+curl -X POST http://localhost:7014/bots \
   -H "Content-Type: application/json" \
+  -H "x-meeting-baas-api-key: your-api-key" \
   -d '{
     "meeting_url": "https://meet.google.com/xxx-yyyy-zzz",
-    "personas": ["interviewer"],
-    "meeting_baas_api_key": "your-api-key"
+    "personas": ["interviewer"]
   }'
 ```
-
-You can also use our CLI tools for testing:
-
-```bash
-poetry run python scripts/batch.py -c 1 --meeting-url LINK
-```
-
-Follow our [Command Line Guide](/docs/speaking-bots/command-line) for more examples and options.

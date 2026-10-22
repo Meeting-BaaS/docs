@@ -14,10 +14,10 @@ This small open-source API demonstrates the capabilities of [MeetingBaas](https:
 ```bash
 curl -X POST https://speaking.meetingbaas.com/bots \
   -H "Content-Type: application/json" \
+  -H "x-meeting-baas-api-key: your-api-key" \
   -d '{
     "meeting_url": "https://us06web.zoom.us/j/123456789?pwd=example",
-    "personas": ["baas_onboarder"],
-    "meeting_baas_api_key": "your-api-key"
+    "personas": ["baas_onboarder"]
   }'
 ```
 
@@ -47,92 +47,51 @@ The API follows a minimalist design with sensible defaults while offering option
 
 The API includes features not explicitly defined in the routes documentation:
 
-- WebSocket infrastructure for bidirectional audio streaming with selectable quality (16/24kHz)
+- WebSocket infrastructure for bidirectional audio streaming between the bot and your voice pipeline (the bot streams at 16 kHz internally; the underlying MeetingBaas v2 API supports 16–48 kHz samples rates)
 - Persona system with custom voice selection, language preferences, and contextual knowledge
-- Voice Activity Detection with configurable parameters for natural conversation
+- Per-bot LLM provider and model selection (OpenAI, Anthropic or Z.ai)
+- Bring-your-own provider keys per bot (LLM, speech-to-text, text-to-speech)
+- Prompt data sources: inline text or fetched URLs, loaded under a token budget
+- MCP servers and trusted proxy profiles for tool access
+- Voice Activity Detection with configurable parameters for natural conversation (per-bot turn-taking tuning)
+- TTS speaking speed control
 - Function calling tools (weather, time, etc.) that can be enabled or disabled
-- LLM context management for consistent, coherent conversations
+- Post-call transcription with the bot's own turns attributed to it by name
 
-The join route supports options like custom bot names, avatar images, entry messages, and specialized persona selection.
+The join route supports options like custom bot names, avatar images, entry messages, ad-hoc prompts and specialized persona selection.
 
 The API and implementation are open source. We welcome contributions and pull requests from the community. See our [getting started guide](/docs/speaking-bots/getting-started/set-up) for local development setup.
 
 ## Directory Structure
 
 <Files>
-  <Folder name="config" description="Core configuration and persona management">
-    <Folder name="personas" description="Persona definitions and behaviors">
-      <Folder
-        name="baas_onboarder"
-        description="MeetingBaas API presentation persona"
-      >
-        <File
-          name="README.md"
-          description="Core persona definition and behavior"
-        />
-        <File
-          name="Content.md"
-          description="Knowledge and contextual information"
-        />
-        <File
-          name="Rules.md"
-          description="Interaction and behavior guidelines"
-        />
+  <Folder name="app" description="FastAPI server">
+    <File name="main.py" description="Server startup and middleware" />
+    <File name="routes.py" description="/bots, /personas and /webhook routes" />
+    <File name="models.py" description="Request and response models" />
+    <Folder name="services" description="Prompt context, MCP presets, persona details, images" />
+  </Folder>
+  <Folder name="config" description="Configuration and personas">
+    <Folder name="personas" description="One folder per persona: README.md plus knowledge .md files">
+      <Folder name="baas_onboarder" description="MeetingBaas API presentation persona">
+        <File name="README.md" description="Persona definition and behaviour" />
+        <File name="Content.md" description="Knowledge and contextual information" />
+        <File name="Rules.md" description="Interaction and behavior guidelines" />
       </Folder>
-      <Folder
-        name="noota_assistant"
-        description="Noota software sales persona"
-      />
-      <Folder name="gladia_sales" description="Gladia API sales persona" />
     </Folder>
-    <File
-      name="persona_types.py"
-      description="Data structures and type definitions for personas"
-    />
-    <File
-      name="persona_utils.py"
-      description="Persona management and utility functions"
-    />
+    <File name="persona_utils.py" description="Persona loading and management" />
     <File name="prompts.py" description="Default prompts and system messages" />
-    <File
-      name="create_persona.py"
-      description="Tools for creating new personas"
-    />
-    <File
-      name="migrate_personas.py"
-      description="Migration utilities for persona updates"
-    />
+    <File name="voice_utils.py" description="Cartesia voice matching" />
+    <File name="create_persona.py" description="Tools for creating new personas" />
   </Folder>
-  <Folder
-    name="meetingbaas_pipecat"
-    description="Core bot functionality and communications"
-  >
-    <Folder name="bot" description="Bot implementation and behavior">
-      <File
-        name="bot.py"
-        description="Main bot class and meeting interactions"
-      />
-      <File
-        name="runner.py"
-        description="Bot execution and lifecycle management"
-      />
-      <File name="__init__.py" />
-    </Folder>
-    <Folder
-      name="proxy"
-      description="Proxy handling for multiple bot instances"
-    />
-    <Folder name="utils" description="Shared utilities">
-      <File name="logger.py" description="Logging configuration" />
-      <File name="__init__.py" />
-    </Folder>
-    <File name="__init__.py" />
+  <Folder name="core" description="Process and connection management">
+    <File name="process.py" description="Pipecat child process lifecycle" />
+    <File name="connection.py" description="WebSocket connection registry" />
   </Folder>
-  <Folder name="scripts" description="Command-line tools and utilities">
-    <File
-      name="meetingbaas.py"
-      description="MeetingBaas API interaction script"
-    />
-    <File name="batch.py" description="Multiple bot deployment script" />
+  <Folder name="meetingbaas_pipecat" description="Bot runtime package" />
+  <Folder name="scripts" description="Bot runner and MeetingBaas client">
+    <File name="meetingbaas.py" description="Pipecat voice pipeline runner (STT → LLM → TTS)" />
+    <File name="meetingbaas_api.py" description="MeetingBaas v2 API client" />
   </Folder>
+  <Folder name="utils" description="Floor control, LLM config, MCP client, ngrok, runtime" />
 </Files>
