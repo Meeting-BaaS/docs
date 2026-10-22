@@ -60,9 +60,9 @@ _openapi:
           llm_model: Provider model for this bot. Defaults to provider-specific
           env vars.
       - content: >-
-          speech_speed: TTS speaking speed multiplier. Honored range is 0.6-1.5
-          (the runner clamps to it); values outside are rejected. Defaults to
-          CARTESIA_TTS_SPEED, TTS_SPEED, SPEECH_SPEED, or the runner default.
+          speech_speed: TTS speaking speed multiplier between 0.6 and 1.5;
+          values outside are rejected. Defaults to CARTESIA_TTS_SPEED,
+          TTS_SPEED, SPEECH_SPEED, or the runner default.
       - content: >-
           credentials: Bring your own provider keys for this bot (LLM,
           speech-to-text, text-to-speech). Any key left out falls back to the

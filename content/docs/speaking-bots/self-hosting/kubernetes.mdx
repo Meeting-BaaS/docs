@@ -38,8 +38,8 @@ data:
   BASE_URL: "https://speaking.example.com"
   MEETING_BAAS_API_URL: "https://api.meetingbaas.com"
   LLM_PROVIDER: "anthropic"
-  ANTHROPIC_MODEL: "claude-opus-4-7"
-  OPENAI_MODEL: "gpt-5.5"
+  ANTHROPIC_MODEL: "claude-haiku-4-5"
+  OPENAI_MODEL: "gpt-5.4-mini"
   OPENAI_API_SURFACE: "responses"
   CARTESIA_VOICE_ID: "79a125e8-cd45-4c13-8a67-188112f4dd22"
   CARTESIA_TTS_SPEED: "1.2"
@@ -55,10 +55,7 @@ metadata:
 spec:
   replicas: 1
   strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxSurge: 1
-      maxUnavailable: 0
+    type: Recreate
   selector:
     matchLabels:
       app: speaking-bot
@@ -151,4 +148,4 @@ Budget about 0.5 vCPU and 600 MB per bot you expect to be in a call at the same 
 
 ## Rolling out a new version
 
-A new image tag means a new pod and the end of every bot in a call at that moment. Deploy in quiet hours, or drain by refusing new `POST /bots` upstream for the length of a meeting first. The hosted API tags release images `<YYYY-MM-DD>-vX.Y.Z`; `GET /ready` reports the running tag as `version`, which is a quick way to confirm what a host is running.
+A new image tag means a new pod and the end of every bot in a call at that moment. The Deployment uses the `Recreate` strategy on purpose: with a rolling update the old and new pods are briefly ready together, the Service can route a bot's WebSocket to the pod that did not create it, and each pod has its own `/data`, so the bot loses its audio. Deploy in quiet hours, or drain by refusing new `POST /bots` upstream for the length of a meeting first. The hosted API tags release images `<YYYY-MM-DD>-vX.Y.Z`; `GET /ready` reports the running tag as `version`, which is a quick way to confirm what a host is running.

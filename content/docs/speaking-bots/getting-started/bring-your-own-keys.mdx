@@ -4,7 +4,7 @@ description: Run a bot on your own LLM, speech-to-text and text-to-speech accoun
 icon: KeyRound
 ---
 
-By default the hosted API pays for the model, the transcription and the voice behind every bot. If you would rather use your own provider accounts — for billing, rate limits, data-processing agreements, or a model the server does not have a key for — pass them per bot in `credentials`:
+By default the hosted API pays for the model, the transcription and the voice behind every bot. If you would rather use your own provider accounts — for billing, rate limits, data-processing agreements, or a model the server does not have a key for — pass them per bot in `credentials`. One limit to weigh first, especially for a data-processing agreement: the keys live only in the memory of the running API, so if it restarts while the bot is in a call, the bot is respawned on the server's own keys.
 
 ```json
 {
@@ -34,7 +34,6 @@ Every key is optional. Whatever you leave out falls back to the server's own key
 - They are used only by the pipeline process of that one bot, passed to it through its environment, and discarded when the bot leaves.
 - They are never written to disk, never logged, and never returned by any endpoint.
 - Validation errors (`422`) do not echo the request body.
-- If the API restarts while the bot is in a call, the bot is restarted on the server's own keys, since yours are no longer held anywhere.
 
 ## What stays on the server's keys
 

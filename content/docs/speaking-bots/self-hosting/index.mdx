@@ -47,7 +47,7 @@ docker run -d --name speaking-bot -p 7014:7014 \
   speaking-bot
 ```
 
-The image sets `SPEAKING_BOT_STATE_DIR=/data` and `PORT=7014`; the volume keeps meeting state across a container restart so a bot whose audio reconnects can be respawned. Put a TLS-terminating reverse proxy in front of port 7014 that forwards WebSockets (nginx: `proxy_http_version 1.1`, `Upgrade`/`Connection` headers, `proxy_read_timeout 3600`), and point `BASE_URL` at its public hostname.
+The image sets `SPEAKING_BOT_STATE_DIR=/data` and `PORT=7014`; the volume keeps meeting state across a container restart so a bot whose audio reconnects can be respawned — on the server's own provider keys, since per-bot [`credentials`](/docs/speaking-bots/getting-started/bring-your-own-keys) are held only in memory and are not restored. Put a TLS-terminating reverse proxy in front of port 7014 that forwards WebSockets (nginx: `proxy_http_version 1.1`, `Upgrade`/`Connection` headers, `proxy_read_timeout 3600`), and point `BASE_URL` at its public hostname.
 
 Check it:
 

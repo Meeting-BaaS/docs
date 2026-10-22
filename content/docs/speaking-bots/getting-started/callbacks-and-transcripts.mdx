@@ -15,7 +15,7 @@ When the API creates a bot it registers its own `/webhook` as the bot's callback
 
 ## Your own webhooks
 
-Want to be notified yourself? Use the MeetingBaas account-level webhooks: the speaking bot is an ordinary bot on your account, so every event documented under [API v2 webhooks](/docs/api-v2/webhooks) fires for it — `bot.status_change`, `complete` with the recording and transcript, `failed`, and so on.
+Want to be notified yourself? Use the MeetingBaas account-level webhooks: the speaking bot is an ordinary bot on your account, so every event documented under [API v2 webhooks](/docs/api-v2/webhooks) fires for it — `bot.status_change` as it joins and leaves, `bot.completed` with the recording and transcript, `bot.failed`, and so on.
 
 ## Recording and transcript
 

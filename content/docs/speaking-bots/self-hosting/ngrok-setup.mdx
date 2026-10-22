@@ -8,17 +8,17 @@ MeetingBaas streams meeting audio *to* the server, so even a laptop run needs a 
 
 ## Setup
 
-1. Sign up for a free account at [ngrok.com](https://dashboard.ngrok.com/signup)
-2. Get your authtoken from the [Your Authtoken page](https://dashboard.ngrok.com/get-started/your-authtoken)
-3. Put it in `.env`:
+1. Install the ngrok CLI: `brew install ngrok` on macOS, or the [download](https://ngrok.com/download) for your platform
+2. Sign up for a free account at [ngrok.com](https://dashboard.ngrok.com/signup) and copy the token from the [Your Authtoken page](https://dashboard.ngrok.com/get-started/your-authtoken)
+3. Register it with the CLI once; the server does not read it, so it does not belong in `.env`:
 
 ```bash
-NGROK_AUTHTOKEN=your_ngrok_auth_token_here
+ngrok config add-authtoken <your token>
 ```
 
 ## Tunnels
 
-The repository ships a configuration at `config/ngrok/config.yml` with two tunnels, on ports `7014` and `7015`:
+The repository ships a configuration at `config/ngrok/config.yml` with two tunnels, both forwarding to the one server on port `7014`:
 
 ```yaml
 version: "2"
@@ -29,7 +29,7 @@ tunnels:
     addr: 7014
   proxy2:
     proto: http
-    addr: 7015
+    addr: 7014
 ```
 
 Start them together:
@@ -38,7 +38,7 @@ Start them together:
 ngrok start --all --config config/ngrok/config.yml
 ```
 
-ngrok's free tier allows two concurrent tunnels, which is why the file defines two: in local-dev mode each tunnel serves one bot at a time, so you can have two bots in meetings at once from a laptop. Your own ngrok config lives at `~/.config/ngrok/ngrok.yml` (Linux), `~/Library/Application Support/ngrok/ngrok.yml` (macOS) or `%HOMEPATH%\AppData\Local\ngrok\ngrok.yml` (Windows); `ngrok config check` prints the path in use.
+ngrok's free tier allows two concurrent tunnels, which is why the file defines two: in local-dev mode each tunnel URL is handed to one bot at a time, so you can have two bots in meetings at once from a laptop. Both reach the same server, which tells bots apart by `client_id`. Your own ngrok config lives at `~/.config/ngrok/ngrok.yml` (Linux), `~/Library/Application Support/ngrok/ngrok.yml` (macOS) or `%HOMEPATH%\AppData\Local\ngrok\ngrok.yml` (Windows); `ngrok config check` prints the path in use.
 
 ## Run the server in local-dev mode
 
@@ -53,7 +53,7 @@ At startup the server lists the tunnels it found and uses them, in turn, as the 
 3. an ngrok tunnel, in local-dev mode
 4. the request's own `Host` header (fallback, fine behind a trusted proxy only)
 
-`GET /ready` shows which one won as `public_base_url`.
+The server logs the winner as `WebSocket URL:` when it sends the bot. `GET /ready` reports `public_base_url` too, but without `BASE_URL` it echoes the host you called it on, so in local-dev mode it says `localhost` rather than the tunnel.
 
 ## When the bot joins but stays silent
 

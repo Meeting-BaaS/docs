@@ -56,7 +56,7 @@ Then:
 
 - Swagger UI: `http://localhost:7014/docs`
 - OpenAPI document: `http://localhost:7014/openapi.json`
-- `http://localhost:7014/ready` shows the public base URL the server resolved — check it before sending a bot
+- `http://localhost:7014/ready` shows `public_base_url`: `BASE_URL` when set, otherwise the host you called it on. In local-dev mode that is `localhost`, so confirm the tunnel from the `WebSocket URL:` line the server logs when you send a bot
 
 ## 6. Send a bot
 
