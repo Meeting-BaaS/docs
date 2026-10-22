@@ -31,7 +31,7 @@ The hosted API is at `https://speaking.meetingbaas.com` and creates bots on `api
 
 ## Authentication
 
-Every request except `/`, `/health`, `/ready`, `/docs`, `/openapi.json` and `/webhook` carries your MeetingBaas API key in the `x-meeting-baas-api-key` header. The bot is created on that account, so it appears in your dashboard, consumes your recording time, and its recording and transcript are retrieved through the regular [MeetingBaas API](/docs/api-v2) under the `bot_id` you get back.
+Every request carries your MeetingBaas API key in the `x-meeting-baas-api-key` header. The bot is created on that account, so it appears in your dashboard, consumes your recording time, and its recording and transcript are retrieved through the regular [MeetingBaas API](/docs/api-v2) under the `bot_id` you get back.
 
 The speech and language providers behind the bot (LLM, speech-to-text, text-to-speech) run on MeetingBaas accounts by default. You can [bring your own keys](/docs/speaking-bots/getting-started/bring-your-own-keys) per bot instead.
 

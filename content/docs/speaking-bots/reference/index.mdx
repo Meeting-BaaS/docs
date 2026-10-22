@@ -10,7 +10,5 @@ Generated from the service's live OpenAPI document, also served at [speaking.mee
 - [`POST /bots`](/docs/speaking-bots/reference/bots/join_meeting_bots_post): send a bot — persona or prompt, model, voice, turn-taking, documents, MCP servers, your own keys
 - [`DELETE /bots/{bot_id}`](/docs/speaking-bots/reference/bots/leave_bot_bots__bot_id__delete): remove it
 - [`POST /personas/generate-image`](/docs/speaking-bots/reference/personas/generate_persona_image_personas_generate_image_post): generate an avatar for a persona
-- `GET /health`, `GET /ready`: service status and the public base URL in use
-- `POST /webhook`: the MeetingBaas callback the server registers for its own bots — not for you to call
 
-All requests except the system endpoints and the webhook carry a MeetingBaas API key in `x-meeting-baas-api-key`. The bot is created on that account; its status, recording and transcript come from the [MeetingBaas API](/docs/api-v2) under the returned `bot_id`.
+Every request carries a MeetingBaas API key in `x-meeting-baas-api-key`. The bot is created on that account; its status, recording and transcript come from the [MeetingBaas API](/docs/api-v2) under the returned `bot_id`.

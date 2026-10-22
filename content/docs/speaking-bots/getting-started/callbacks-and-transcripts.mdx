@@ -11,7 +11,7 @@ When the API creates a bot it registers its own `/webhook` as the bot's callback
 - **`in_call_recording`**: the bot has been admitted. The pipeline is told it may speak, and the entry message goes out. (The API also polls the bot's status for this, so a lost callback only delays the greeting.)
 - **`call_ended`** (and `bot_left`, `meeting_ended`, `complete`): the pipeline stops and, if the bot kept a transcript of its own turns, a short call summary is produced server-side.
 
-`POST /webhook` is listed in the [reference](/docs/speaking-bots/reference) because it is part of the service's surface, but it is not for you to call: it only acts on bot IDs the server launched itself, and a self-hosted server can require a shared secret on it (`WEBHOOK_SECRET`, echoed by MeetingBaas in the `x-mb-secret` header).
+`POST /webhook` is not part of the public API and is not for you to call: it only acts on bot IDs the server launched itself, and a self-hosted server can require a shared secret on it (`WEBHOOK_SECRET`, echoed by MeetingBaas in the `x-mb-secret` header).
 
 ## Your own webhooks
 
