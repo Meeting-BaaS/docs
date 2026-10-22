@@ -1,0 +1,116 @@
+---
+title: Sending a bot
+description: The request that puts a speaking bot in a meeting, and what happens next
+icon: Send
+---
+
+Everything starts with [`POST /bots`](/docs/speaking-bots/reference/bots/join_meeting_bots_post). The only required field is `meeting_url`; the rest shapes who the bot is and how it behaves.
+
+```bash
+API=https://speaking.meetingbaas.com
+KEY=your-meetingbaas-api-key
+
+curl -s -X POST $API/bots \
+  -H "Content-Type: application/json" \
+  -H "x-meeting-baas-api-key: $KEY" \
+  -d '{
+    "meeting_url": "https://meet.google.com/abc-defg-hij",
+    "bot_name": "Vibe",
+    "prompt": "You are Vibe, an upbeat engineer. Keep turns to 2-3 sentences.",
+    "entry_message": "Hey everyone, Vibe here. Can you hear me?",
+    "enable_tools": false
+  }'
+# → 201 {"bot_id":"c804aa7c-cfe3-474c-ac87-a1907fce5db1"}
+```
+
+The call returns as soon as MeetingBaas has accepted the bot. The `bot_id` is a regular MeetingBaas bot ID: use it with the [MeetingBaas API](/docs/api-v2) for status, recording and transcript, and with `DELETE /bots/{bot_id}` here to remove the bot.
+
+<Callout type="warn">
+  The body is a strict schema: a field the API does not know is rejected with a `422`. The error names the field but never echoes your input.
+</Callout>
+
+## Who the bot is
+
+There are two ways to give the bot a personality, and they are resolved in this order:
+
+<Steps>
+<Step>
+### `prompt` — a one-off persona
+
+A system prompt written in the request. The API derives a short description from it and the bot speaks as that character for this call only. Best for bots you define programmatically.
+
+```json
+{ "meeting_url": "...", "bot_name": "Analyst", "prompt": "You are Analyst, a calm financial analyst. Answer questions about the Q3 numbers in two sentences." }
+```
+
+The prompt is spoken, so write it for speech: no markdown, no code, short turns.
+</Step>
+
+<Step>
+### `personas` — a bundled persona
+
+A list of persona keys from the [persona library](/docs/speaking-bots/personas); the first one available is used. A persona brings its own prompt, extra knowledge files, Cartesia voice, avatar image and default entry message.
+
+```json
+{ "meeting_url": "...", "personas": ["baas_onboarder"] }
+```
+
+If `bot_name` matches a persona key and `personas` is empty, that persona is used. With no `prompt`, no `personas` and no matching `bot_name`, a persona is picked at random from the library — set one of the three to keep control.
+</Step>
+</Steps>
+
+`bot_name` is the display name in the call and the name MeetingBaas attributes the bot's own turns to in the transcript. It defaults to the persona's name. Keep it distinct per bot when you run [several bots in one call](/docs/speaking-bots/getting-started/multiple-bots). `bot_image` sets the avatar URL; personas carry their own.
+
+## The entry message
+
+`entry_message` is spoken verbatim the moment the bot is admitted into the call. It is resolved as:
+
+1. `entry_message` from the request, if set
+2. otherwise the persona's own entry message (bundled personas usually have one)
+3. otherwise, for a `prompt` bot, a short default greeting ("Hello, I'm Analyst, ready to assist you throughout this session.")
+
+A bundled persona with no entry message stays silent until someone speaks to it. A `prompt` bot always greets, so set `entry_message` when you want control over the first words.
+
+## Lifecycle
+
+1. **Created**: `201` returned, bot queued on MeetingBaas.
+2. **In the lobby**: the bot asks to be let in. The API polls the bot's status for up to 15 minutes; if nobody admits it, it never speaks.
+3. **Admitted**: `in_call_recording` on the MeetingBaas side. The pipeline starts speaking: entry message first, then it listens and replies.
+4. **Quiet room**: if nobody has said anything for 15 seconds after admission, the bot says something on its own, up to three times, so a conversation can start even when every participant is waiting for someone else.
+5. **Ends**: on `DELETE /bots/{bot_id}`, when the host removes it, or when the meeting ends. MeetingBaas then transcribes the recording (see [Callbacks and transcripts](/docs/speaking-bots/getting-started/callbacks-and-transcripts)).
+
+Status along the way comes from MeetingBaas, not from this API:
+
+```bash
+curl -s https://api.meetingbaas.com/v2/bots/<bot_id>/status \
+  -H "x-meeting-baas-api-key: $KEY"
+# data.status: queued → joining_call → in_waiting_room → in_call_recording → …
+```
+
+## Removing the bot
+
+```bash
+curl -s -X DELETE $API/bots/<bot_id> \
+  -H "Content-Type: application/json" \
+  -H "x-meeting-baas-api-key: $KEY" -d '{}'
+# → 200 {"message":"Bot removal request processed","status":"success","bot_id":"<bot_id>"}
+```
+
+The bot leaves the call, its audio channel is closed and its pipeline is stopped. `status` is `partial` when MeetingBaas confirmed the leave but the pipeline was already gone.
+
+## Transcription of the recording
+
+By default the meeting is recorded and transcribed by MeetingBaas once it ends (`transcription_enabled: true`, provider `gladia`), with the bot's own turns attributed to its `bot_name`. Set `transcription_enabled: false` for a recording without a transcript, or `transcription_provider` to another MeetingBaas provider. Retrieve the result with the MeetingBaas API using the `bot_id`.
+
+## Errors you may see
+
+| Status | Meaning |
+|---|---|
+| `400` | The provider you asked for in `llm_provider` is unknown, or has no key on the server and you supplied none in `credentials` |
+| `401` | Missing `x-meeting-baas-api-key` |
+| `409`, `401`, … passed through | MeetingBaas rejected the bot creation (duplicate bot for the meeting, bad key, no recording time left); the message is MeetingBaas's |
+| `422` | Body validation failed: unknown field, bad URL, out-of-range value |
+| `400` / `502` | A `prompt_data_sources` entry was refused or could not be fetched |
+| `503` | The server's default provider is not configured — a hosting problem, not yours |
+
+Next: [conversation tuning](/docs/speaking-bots/getting-started/conversation-tuning) — choosing the model and how the bot takes turns.

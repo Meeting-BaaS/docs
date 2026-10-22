@@ -1,0 +1,84 @@
+---
+title: Local development
+description: Run the server from a checkout and send a bot from your laptop
+icon: Wrench
+---
+
+## 1. Clone and install
+
+```bash
+git clone https://github.com/Meeting-Baas/speaking-meeting-bot.git
+cd speaking-meeting-bot
+
+# Poetry (Unix/macOS)
+curl -sSL https://install.python-poetry.org | python3 -
+
+poetry env use python3.11
+poetry install
+```
+
+You need Python 3.11+, [Poetry](https://python-poetry.org/) and `ffmpeg` on your `PATH` (`brew install ffmpeg` / `apt-get install ffmpeg`). The repository also ships a `flake.nix`; `nix develop` gives you a shell with everything.
+
+## 2. Compile the protobufs
+
+```bash
+poetry run python -m grpc_tools.protoc --proto_path=./protobufs --python_out=./protobufs frames.proto
+```
+
+Pipecat frames the audio stream with Protocol Buffers; `frames.proto` defines the `TextFrame`, `AudioRawFrame` and `TranscriptionFrame` messages exchanged with MeetingBaas.
+
+## 3. Configure
+
+```bash
+cp env.example .env
+```
+
+Fill in a provider key for your `LLM_PROVIDER`, `DEEPGRAM_API_KEY` and `CARTESIA_API_KEY`. Everything else has a default; the full list is in [Environment variables](/docs/speaking-bots/self-hosting/environment-variables).
+
+## 4. A public hostname
+
+MeetingBaas has to reach your laptop to stream audio, so the server needs a public `https://` URL. Two ways:
+
+- **ngrok, detected automatically**: follow [Ngrok setup](/docs/speaking-bots/self-hosting/ngrok-setup), then start the server in local-dev mode (below). It picks the tunnel up as the bot's WebSocket URL.
+- **Any tunnel, set by hand**: expose port `7014` however you like and put the public URL in `BASE_URL`.
+
+## 5. Run
+
+```bash
+# Local-dev mode: detects ngrok tunnels, reloads on change
+poetry run python app/main.py --local-dev
+
+# Or plain uvicorn, with BASE_URL set in .env
+poetry run uvicorn app:app --reload --host 0.0.0.0 --port 7014
+```
+
+Then:
+
+- Swagger UI: `http://localhost:7014/docs`
+- OpenAPI document: `http://localhost:7014/openapi.json`
+- `http://localhost:7014/ready` shows the public base URL the server resolved — check it before sending a bot
+
+## 6. Send a bot
+
+```bash
+curl -X POST http://localhost:7014/bots \
+  -H "Content-Type: application/json" \
+  -H "x-meeting-baas-api-key: your-meetingbaas-api-key" \
+  -d '{
+    "meeting_url": "https://meet.google.com/xxx-yyyy-zzz",
+    "personas": ["baas_onboarder"]
+  }'
+```
+
+Admit it from the lobby and it speaks. The server log shows the Pipecat child's output prefixed `[Pipecat STDOUT]`; a wrong provider key shows up there right after "Started Pipecat process".
+
+## Tests and the OpenAPI snapshot
+
+```bash
+poetry run pytest tests
+poetry run ruff check .
+# after changing a request/response model:
+poetry run python scripts/export_openapi.py
+```
+
+`openapi.json` is committed and a test fails when it drifts from the app, so regenerate it with any API change. The docs site's reference pages are generated from that file.

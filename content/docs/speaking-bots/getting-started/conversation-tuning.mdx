@@ -1,0 +1,70 @@
+---
+title: Conversation tuning
+description: Choose the model, the voice speed and how eagerly the bot takes its turn
+icon: SlidersHorizontal
+---
+
+Every knob below is optional and per bot; leave it out and the server default applies.
+
+## The model
+
+```json
+{
+  "meeting_url": "...",
+  "prompt": "...",
+  "llm_provider": "anthropic",
+  "llm_model": "claude-opus-4-7"
+}
+```
+
+| Field | Values | Default |
+|---|---|---|
+| `llm_provider` | `openai`, `anthropic`, `zai` | the server's `LLM_PROVIDER` (Anthropic on the hosted API) |
+| `llm_model` | any model name the provider accepts | the server's model for that provider |
+
+The provider must have a key: the server's own, or one you pass in [`credentials`](/docs/speaking-bots/getting-started/bring-your-own-keys). Asking for a provider the server has no key for returns a `400` that names the missing one.
+
+## Speech
+
+Text-to-speech is Cartesia; the voice comes from the persona (`cartesia_voice_id` in its metadata) or the server default. `speech_speed` is a multiplier between `0.6` and `1.5`:
+
+```json
+{ "speech_speed": 1.15 }
+```
+
+A `prompt` bot that should sound brisk benefits from both a higher `speech_speed` and an instruction like "answer in two sentences" — the LLM decides how much is said, the speed only how fast.
+
+## Turn-taking
+
+The bot decides that someone has finished talking with voice-activity detection. `turn_config` tunes it:
+
+```json
+{
+  "turn_config": {
+    "confidence": 0.5,
+    "start_secs": 0.25,
+    "stop_secs": 0.8,
+    "min_volume": 0.6
+  }
+}
+```
+
+| Field | What it does | Default |
+|---|---|---|
+| `confidence` | How sure the detector must be that it hears speech (0–1) | `0.5` |
+| `start_secs` | Sustained speech before a turn registers | `0.25` |
+| `stop_secs` | Silence before the bot considers the speaker done and replies | `0.8` |
+| `min_volume` | Minimum input level counted as speech (0–1) | `0.6` |
+
+Two patterns cover most needs:
+
+- **Humans talking to a bot**: keep the defaults, or lower `stop_secs` to `0.5` for snappier replies.
+- **Bots talking to bots**: raise `stop_secs` to `1.2`–`1.5` and `start_secs` to `0.4` so they stop barging in on each other, and read [Multiple bots](/docs/speaking-bots/getting-started/multiple-bots).
+
+## Re-engagement when the room is quiet
+
+Once admitted, a bot that hears no new conversation for 15 seconds says something on its own, at most three times, then waits. This is what lets two reactive bots start a conversation without a human, and it stops a bot alone in a room from monologuing. On a self-hosted server the timing is `BOT_IDLE_REENGAGE_SECS` and the cap `BOT_MAX_REENGAGE`.
+
+## Built-in tools
+
+`enable_tools` (default `true`) gives the LLM two small functions, current weather and current time, plus the ability to save a short call summary. Set it to `false` for a pure conversation; it has no effect on [MCP tools](/docs/speaking-bots/getting-started/context-and-tools), which are configured separately.

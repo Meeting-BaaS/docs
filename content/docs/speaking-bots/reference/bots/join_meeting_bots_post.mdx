@@ -69,6 +69,13 @@ _openapi:
           server's own configuration. Keys are used only by this bot's pipeline
           and are never stored or returned.
       - content: >-
+          transcription_enabled: Have MeetingBaas transcribe the recording once
+          the meeting ends, with the bot's own turns attributed to it by name.
+          Set false for a recording without a transcript.
+      - content: >-
+          transcription_provider: MeetingBaas speech-to-text provider for that
+          transcript.
+      - content: >-
           bot_id: The MeetingBaas bot ID used for API operations with
           MeetingBaas
       - content: detail

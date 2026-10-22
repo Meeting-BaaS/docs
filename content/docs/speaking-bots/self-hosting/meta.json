@@ -1,0 +1,11 @@
+{
+  "title": "Self-hosting",
+  "icon": "Server",
+  "pages": [
+    "index",
+    "environment-variables",
+    "kubernetes",
+    "local-development",
+    "ngrok-setup"
+  ]
+}

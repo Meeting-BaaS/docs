@@ -1,6 +1,6 @@
 ---
 title: Introduction
-description: Deploy AI-powered speaking agents in video meetings
+description: AI agents that join your meetings and talk
 icon: Book
 ---
 
@@ -9,7 +9,7 @@ icon: Book
   see [LLMs](/llms/speaking-bots) and for MCP access, visit [auth.meetingbaas.com](https://auth.meetingbaas.com/home).
 </Callout>
 
-This open-source API demonstrates the capabilities of [MeetingBaas](https://meetingbaas.com) 🐟's video meeting APIs by integrating with [Pipecat](https://github.com/pipecat-ai/pipecat)'s Python framework for building voice and multimodal conversational agents. One request sends a bot that joins the call, listens, and talks back:
+Speaking Bots is a hosted API that sends an AI participant into a Google Meet, Zoom or Microsoft Teams call. The bot joins through [MeetingBaas](https://meetingbaas.com) 🐟 like any recording bot, but it also listens, thinks and talks back, with a voice pipeline built on [Pipecat](https://github.com/pipecat-ai/pipecat). One request is enough:
 
 ```bash
 curl -X POST https://speaking.meetingbaas.com/bots \
@@ -23,66 +23,45 @@ curl -X POST https://speaking.meetingbaas.com/bots \
   }'
 ```
 
-<Card
-  icon={<Github />}
-  title="Speaking Meeting Bot"
-  href="https://github.com/Meeting-Baas/speaking-meeting-bot"
-  description="Clone to customize and deploy your own meeting agents"
-  external
+The bot joins the lobby, waits to be admitted, speaks its entry message, and then holds a conversation with whoever is in the call until you remove it or the meeting ends. The meeting is recorded and transcribed on your MeetingBaas account like any other bot.
+
+## Endpoint
+
+The hosted API is at `https://speaking.meetingbaas.com` and creates bots on `api.meetingbaas.com`. The live OpenAPI document is at [`/openapi.json`](https://speaking.meetingbaas.com/openapi.json) and there is a Swagger UI at [`/docs`](https://speaking.meetingbaas.com/docs).
+
+## Authentication
+
+Every request except `/`, `/health`, `/ready`, `/docs`, `/openapi.json` and `/webhook` carries your MeetingBaas API key in the `x-meeting-baas-api-key` header. The bot is created on that account, so it appears in your dashboard, consumes your recording time, and its recording and transcript are retrieved through the regular [MeetingBaas API](/docs/api-v2) under the `bot_id` you get back.
+
+The speech and language providers behind the bot (LLM, speech-to-text, text-to-speech) run on MeetingBaas accounts by default. You can [bring your own keys](/docs/speaking-bots/getting-started/bring-your-own-keys) per bot instead.
+
+## What a bot can do
+
+- Speak as a reusable **persona** from the bundled library, or as a one-off **prompt** you write in the request
+- Use **OpenAI, Anthropic or Z.ai** as its brain, with the model chosen per bot
+- Read **documents and URLs** you attach to the request, and call tools on your **MCP servers** during the call
+- Take turns politely: configurable voice-activity detection, a re-engagement nudge when the room goes quiet, and **floor control** so several bots in one call do not talk over each other
+- Speak faster or slower, with a Cartesia voice picked per persona
+- Leave on request, and have the meeting **transcribed** by MeetingBaas with its own turns attributed to it by name
+
+## How it works
+
+<ImageZoom
+  src={'/assets/speaking-bots/how-it-works.png'}
+  alt="One request creates a MeetingBaas bot; meeting audio streams both ways between MeetingBaas and the Speaking Bots API's voice pipeline over a WebSocket"
+  width={2800}
+  height={1260}
+  className="rounded-lg border"
 />
 
-Our implementation creates AI meeting agents that can join and participate in Google Meet, Zoom and Microsoft Teams meetings with distinct personalities and context, defined either per request (`prompt`) or as reusable personas in Markdown files.
+The API starts one voice pipeline per bot (speech-to-text → LLM → text-to-speech). Meeting audio streams both ways between MeetingBaas and that pipeline over a WebSocket on the API's own hostname, so the public hostname is part of the contract — which matters when you [self-host](/docs/speaking-bots/self-hosting).
 
-It extends Pipecat's [WebSocket server implementation](https://github.com/pipecat-ai/pipecat/tree/main/examples/websocket-server) to create:
+## Where to go next
 
-- Meeting agents that join Google Meet, Zoom or Microsoft Teams through the [MeetingBaas API](https://meetingbaas.com)
-- Customizable personas with unique context
-- Several bots in the same call, with floor control so they take turns
-- Per-bot choice of LLM provider (OpenAI, Anthropic, Z.ai), model, speaking speed and turn-taking sensitivity
-- External context (`prompt_data_sources`) and MCP tool servers (`mcp`) per bot
+- [Sending a bot](/docs/speaking-bots/getting-started/sending-a-bot): the request, personas vs prompts, the bot's lifecycle
+- [Conversation tuning](/docs/speaking-bots/getting-started/conversation-tuning): model, voice speed, turn-taking
+- [Context and tools](/docs/speaking-bots/getting-started/context-and-tools): documents, URLs and MCP servers
+- [API reference](/docs/speaking-bots/reference): every field, generated from the live schema
+- [Self-hosting](/docs/speaking-bots/self-hosting): run the open-source server yourself
 
-## API Access
-
-The hosted API is available at [speaking.meetingbaas.com](https://speaking.meetingbaas.com) (production) and [speaking.pre-prod-meetingbaas.com](https://speaking.pre-prod-meetingbaas.com) (pre-production, tracks the `preprod` branch). The OpenAPI specification is served live at [speaking.meetingbaas.com/openapi.json](https://speaking.meetingbaas.com/openapi.json), with an interactive Swagger UI at [speaking.meetingbaas.com/docs](https://speaking.meetingbaas.com/docs).
-
-Every request except `/`, `/health`, `/ready`, `/docs`, `/openapi.json` and `/webhook` must carry your MeetingBaas API key in the `x-meeting-baas-api-key` header. The bot is created on your MeetingBaas account with that key, so it shows up in your dashboard and consumes your recording time like any other bot.
-
-The API follows a minimalist design with sensible defaults while offering optional customization. A bot can be deployed with just a meeting URL, but the [`POST /bots`](/docs/speaking-bots/reference/bots/join_meeting_bots_post) body accepts parameters for tailoring behavior:
-
-- `bot_name`, `bot_image` and `entry_message` for how the bot appears and what it says once admitted
-- `prompt` for an ad-hoc persona, or `personas` to pick from the bundled persona library
-- `llm_provider`, `llm_model` and `speech_speed`
-- `turn_config` for Voice Activity Detection tuning (how eagerly the bot takes the floor)
-- `prompt_data_sources` and `prompt_data_token_limit` to feed documents or URLs into the system prompt
-- `mcp` to connect the bot to MCP tool servers, and `enable_tools` for the built-in weather/time tools
-- `credentials` to bring your own provider keys (LLM, Deepgram, Cartesia) for that bot instead of the server's
-
-Remove a bot with [`DELETE /bots/{bot_id}`](/docs/speaking-bots/reference/bots/leave_bot_bots__bot_id__delete). Its status and recording are available through the regular [MeetingBaas API](/docs/api-v2) under the same `bot_id`.
-
-The API includes infrastructure not visible in the route list: a bidirectional audio WebSocket per bot (`/ws/{client_id}`), one Pipecat pipeline process per bot, and a floor-control layer so several bots in one call do not talk over each other.
-
-The API and implementation are open source. We welcome contributions and pull requests from the community. See our [getting started guide](/docs/speaking-bots/getting-started/set-up) for local development setup.
-
-## Directory Structure
-
-<Files>
-  <Folder name="app" description="FastAPI application" defaultOpen>
-    <File name="main.py" description="App factory, API-key middleware, OpenAPI, /health and /ready" />
-    <File name="routes.py" description="/bots, /personas/generate-image and /webhook handlers" />
-    <File name="websockets.py" description="/ws and /pipecat audio WebSocket endpoints" />
-    <File name="models.py" description="Pydantic request and response models" />
-    <Folder name="services" description="Prompt context loading, MCP presets, image generation" />
-  </Folder>
-  <Folder name="core" description="Per-bot process management, connection registry and audio routing" />
-  <Folder name="config" description="Persona management">
-    <Folder name="personas" description="One folder per persona, defined in Markdown" />
-    <File name="persona_utils.py" description="Persona loading and selection" />
-    <File name="create_persona.py" description="CLI to generate a new persona" />
-  </Folder>
-  <Folder name="scripts" description="Command-line tools">
-    <File name="meetingbaas.py" description="The Pipecat pipeline each bot runs in" />
-    <File name="meetingbaas_api.py" description="Thin MeetingBaas API client" />
-    <File name="export_openapi.py" description="Refreshes the committed OpenAPI snapshot" />
-  </Folder>
-  <Folder name="utils" description="LLM provider resolution, MCP client, runtime helpers" />
-</Files>
+The server is open source: [Meeting-Baas/speaking-meeting-bot](https://github.com/Meeting-Baas/speaking-meeting-bot). Contributions and pull requests are welcome.

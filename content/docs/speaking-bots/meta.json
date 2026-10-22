@@ -7,8 +7,9 @@
     "index",
     "getting-started",
     "reference",
-    "command-line",
     "personas",
+    "command-line",
+    "self-hosting",
     "acknowledgements"
   ]
 }

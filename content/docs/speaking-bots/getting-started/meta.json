@@ -1,5 +1,12 @@
 {
-  "title": "Getting Started",
-  "icon": "Settings",
-  "pages": ["set-up", "environment-variables", "ngrok-setup"]
+  "title": "Using the API",
+  "icon": "Rocket",
+  "pages": [
+    "sending-a-bot",
+    "conversation-tuning",
+    "context-and-tools",
+    "bring-your-own-keys",
+    "multiple-bots",
+    "callbacks-and-transcripts"
+  ]
 }

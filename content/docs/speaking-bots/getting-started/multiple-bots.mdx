@@ -1,0 +1,52 @@
+---
+title: Multiple bots in one call
+description: Panels, debates and interviews with several bots that take turns
+icon: Users
+---
+
+Several bots can share a meeting: send `POST /bots` once per bot with the same `meeting_url`. Each gets its own pipeline; what makes it work is that they take turns.
+
+## Floor control
+
+Bots launched by the same server coordinate through a per-meeting floor: while one of them is speaking, its siblings hold their replies. A bot gives up the floor when it finishes its sentence, and a 20-second backstop cuts off any bot that holds it longer, so a long-winded persona cannot block the others forever.
+
+Floor control keys off the display name MeetingBaas reports for each participant, which gives you the one hard rule:
+
+<Callout type="warn">
+  **Give every bot a distinct `bot_name`.** Two bots with the same name are not gated against each other and will talk over one another.
+</Callout>
+
+## Making a conversation start
+
+Two reactive bots can both wait for someone else to speak first. Two things prevent the deadlock:
+
+- Give exactly **one** bot an `entry_message` (the opener). Bundled personas without a persona entry message stay silent; a `prompt` bot always greets, so for prompt-based siblings set the opener's `entry_message` and give the others a very short one (or accept that each says hello once).
+- The [re-engagement nudge](/docs/speaking-bots/getting-started/conversation-tuning#re-engagement-when-the-room-is-quiet) does the rest: a bot that hears nothing for 15 seconds says something, the sibling hears it through speech-to-text and answers.
+
+## Keeping turns short
+
+With bots talking to bots, patience in turn-taking matters more than speed. Put the length in the prompt ("2–3 sentences per turn") and raise `turn_config.stop_secs` so a bot does not jump in during a sibling's pause:
+
+```bash
+# Opener
+curl -s -X POST $API/bots -H "Content-Type: application/json" -H "x-meeting-baas-api-key: $KEY" \
+  -d '{
+    "meeting_url": "https://meet.google.com/abc-defg-hij",
+    "bot_name": "Vibe",
+    "entry_message": "Let us debate: should every team ship on Fridays?",
+    "prompt": "You are Vibe. Argue FOR shipping on Fridays. 2-3 sentences per turn.",
+    "turn_config": {"stop_secs": 1.2, "start_secs": 0.4}
+  }'
+
+# Reactive sibling
+curl -s -X POST $API/bots -H "Content-Type: application/json" -H "x-meeting-baas-api-key: $KEY" \
+  -d '{
+    "meeting_url": "https://meet.google.com/abc-defg-hij",
+    "bot_name": "Skeptic",
+    "entry_message": "Skeptic here.",
+    "prompt": "You are Skeptic. Argue AGAINST shipping on Fridays. 2-3 sentences per turn.",
+    "turn_config": {"stop_secs": 1.2, "start_secs": 0.4}
+  }'
+```
+
+Each bot is its own MeetingBaas bot, so each counts against your recording time and the meeting is recorded once per bot. Remove each with its own `DELETE /bots/{bot_id}`.

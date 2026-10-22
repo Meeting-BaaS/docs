@@ -1,0 +1,74 @@
+---
+title: Context and tools
+description: Give the bot documents to read and MCP servers to act on during the call
+icon: Plug
+---
+
+A `prompt` tells the bot who it is. Two more fields tell it what it knows and what it can do.
+
+## Documents and URLs: `prompt_data_sources`
+
+Up to ten sources are loaded when the bot starts and appended to its system prompt as labelled context blocks:
+
+```json
+{
+  "meeting_url": "...",
+  "prompt": "You are Analyst. Answer questions about the account using the notes.",
+  "prompt_data_sources": [
+    { "name": "Account notes", "type": "url", "url": "https://example.com/acme-notes.md" },
+    { "name": "Pricing", "type": "text", "text": "Starter is $49/month, Team is $199/month..." }
+  ],
+  "prompt_data_token_limit": 6000
+}
+```
+
+| Field | Notes |
+|---|---|
+| `name` | Label shown to the model above the block |
+| `type` | `text` (inline, in `text`) or `url` (fetched, from `url`) |
+| `headers` | Optional request headers for `url` sources, e.g. a bearer token; only over `https://` |
+| `token_limit` | Per-source cap, applied before the request-level cap |
+| `prompt_data_token_limit` | Total cap across all sources, default `4000`, max `50000`; `0` disables loading |
+
+Sources are fetched once, at bot creation, with a 1 MB limit per URL. URLs on private networks or localhost are refused on the hosted API. A source that cannot be used fails the request instead of producing a bot that silently knows nothing: `400` for a bad source (refused host, too large, bad type), `502` when the URL could not be fetched.
+
+Keep the budget in mind: everything you attach is sent to the model on every turn. A few thousand tokens of focused notes work better than a whole document.
+
+## Tools: `mcp`
+
+The bot can call tools on your [Model Context Protocol](https://modelcontextprotocol.io) servers mid-conversation — look up a customer, check a calendar, create a ticket — and speak the result.
+
+```json
+{
+  "meeting_url": "...",
+  "prompt": "You are the support bot. Use the CRM tools to answer account questions.",
+  "mcp": {
+    "instructions": "Only read data. Never modify an account during the call.",
+    "servers": [
+      {
+        "name": "crm",
+        "transport": "streamable_http",
+        "url": "https://mcp.example.com/mcp",
+        "headers": { "Authorization": "Bearer ..." },
+        "tool_allowlist": ["get_account", "list_recent_calls"],
+        "timeout_seconds": 20,
+        "instructions": "Accounts are keyed by company name."
+      }
+    ]
+  }
+}
+```
+
+| Field | Notes |
+|---|---|
+| `transport` | `http`, `streamable_http` or `sse`. Omit it for a metadata-only server: the bot is told about the tools but cannot call them |
+| `url`, `headers` | Where to connect and how to authenticate. Headers only over `https://` (or a private URL on a self-hosted server) |
+| `tool_allowlist` | The only tools the bot may call from this server; everything else the server exposes is hidden |
+| `tools` | Tool names to mention to the model when the server is metadata-only |
+| `timeout_seconds` | Per-server connection and tool-call timeout (`0.1`–`300`) |
+| `instructions` | Per-server guidance; `mcp.instructions` applies to all servers |
+| `enabled` | `false` documents a server without connecting it |
+
+Up to ten servers per bot. Tool calls run one at a time while the bot holds the floor, so keep tools fast; anything over a few seconds is dead air in the call. Headers you pass are kept in memory for the bot's lifetime and never written to disk or returned.
+
+Stdio MCP servers are not available through the API. The `mcp_profile` presets (`professional`, `personal`, `all`) connect to a local mcpproxy and only make sense on a [self-hosted server](/docs/speaking-bots/self-hosting) that runs one; on the hosted API they fail to connect.
