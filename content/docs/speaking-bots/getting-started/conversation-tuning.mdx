@@ -20,9 +20,11 @@ Every knob below is optional and per bot; leave it out and the server default ap
 | Field | Values | Default |
 |---|---|---|
 | `llm_provider` | `openai`, `anthropic`, `zai` | the server's `LLM_PROVIDER` (Anthropic on the hosted API) |
-| `llm_model` | any model name the provider accepts | the server's model for that provider |
+| `llm_model` | any model name the provider accepts | the server's model for that provider (`claude-haiku-4-5` on the hosted API) |
 
 The provider must have a key: the server's own, or one you pass in [`credentials`](/docs/speaking-bots/getting-started/bring-your-own-keys). Asking for a provider the server has no key for returns a `400` that names the missing one.
+
+The defaults are the fast models on purpose: a spoken reply of a sentence or two gains little from a frontier model and waits seconds longer for it. Reasoning is turned off in whatever way the chosen model accepts, so picking a bigger `llm_model` costs latency but never a failed turn; on models whose reasoning is always on (Claude Fable, Opus 5.5 and newer) the bot runs at the lowest effort instead.
 
 ## Speech
 
