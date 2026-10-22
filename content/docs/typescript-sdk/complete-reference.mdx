@@ -35,7 +35,7 @@ const client = createBaasClient({
 Have a bot join a meeting, now or in the future.
 
 **Parameters:**
-- `params`: [JoinRequest](/docs/api/reference/join#request-body) - Join meeting configuration
+- `params`: [JoinRequest](/docs/api/reference/join) - Join meeting configuration
 
 **Returns:**
 - `success`: Boolean (true if bot joined successfully, false in case of any errors)
@@ -104,7 +104,7 @@ if (success) {
 Get meeting recording and metadata.
 
 **Parameters:**
-- `params`: [GetMeetingDataParams](/docs/api/reference/get_meeting_data#query-parameters) - Parameters for retrieving meeting data
+- `params`: [GetMeetingDataParams](/docs/api/reference/get_meeting_data) - Parameters for retrieving meeting data
 
 **Returns:**
 - `success`: Boolean (true if meeting data retrieved successfully, false in case of any errors)
@@ -165,7 +165,7 @@ if (success) {
 Retrieves a paginated list of the user's bots with essential metadata, including IDs, names, and meeting details.
 
 **Parameters:**
-- `params?`: [BotsWithMetadataParams](/docs/api/reference/bots_with_metadata#query-parameters) - Optional filtering and pagination parameters
+- `params?`: [BotsWithMetadataParams](/docs/api/reference/bots_with_metadata) - Optional filtering and pagination parameters
 
 **Returns:**
 - `success`: Boolean (true if bots retrieved successfully, false in case of any errors)
@@ -199,7 +199,7 @@ if (success) {
 Transcribe or retranscribe a bot's audio using the Default or your provided Speech to Text Provider.
 
 **Parameters:**
-- `params`: [RetranscribeBody](/docs/api/reference/retranscribe_bot#request-body) - Retranscription configuration
+- `params`: [RetranscribeBody](/docs/api/reference/retranscribe_bot) - Retranscription configuration
 
 **Returns:**
 - `success`: Boolean (true if retranscription started successfully, false in case of any errors)
@@ -263,7 +263,7 @@ if (success) {
 Integrates a new calendar with the system using OAuth credentials. This endpoint establishes a connection with the calendar provider (Google, Microsoft), sets up webhook notifications for real-time updates, and performs an initial sync of all calendar events. It requires OAuth credentials (client ID, client secret, and refresh token) and the platform type. Once created, the calendar is assigned a unique UUID that should be used for all subsequent operations. Returns the newly created calendar object with all integration details.
 
 **Parameters:**
-- `params`: [CreateCalendarParams](/docs/api/reference/calendars/create_calendar#request-body) - Calendar integration parameters
+- `params`: [CreateCalendarParams](/docs/api/reference/calendars/create_calendar) - Calendar integration parameters
 
 **Returns:**
 - `success`: Boolean (true if calendar created successfully, false in case of any errors)
@@ -356,7 +356,7 @@ if (success) {
 Updates a calendar integration with new credentials or platform while maintaining the same UUID. This operation is performed as an atomic transaction to ensure data integrity. The system automatically unschedules existing bots to prevent duplicates, updates the calendar credentials, and triggers a full resync of all events. Useful when OAuth tokens need to be refreshed or when migrating a calendar between providers. Returns the updated calendar object with its new configuration.
 
 **Parameters:**
-- `params`: `{ uuid: string; body: [UpdateCalendarParams](/docs/api/reference/calendars/update_calendar#request-body) }` - Calendar UUID and update parameters
+- `params`: `{ uuid: string; body: [UpdateCalendarParams](/docs/api/reference/calendars/update_calendar) }` - Calendar UUID and update parameters
 
 **Returns:**
 - `success`: Boolean (true if calendar updated successfully, false in case of any errors)
@@ -446,7 +446,7 @@ if (success) {
 Configures a bot to automatically join and record a specific calendar event at its scheduled time. The request body contains detailed bot configuration, including recording options, streaming settings, and webhook notification URLs. For recurring events, the 'all_occurrences' parameter can be set to true to schedule recording for all instances of the recurring series, or false (default) to schedule only the specific instance. Returns the updated event(s) with the bot parameters attached.
 
 **Parameters:**
-- `params`: `{` uuid: string; body: [BotParam2](/docs/api/reference/calendars/schedule_record_event#request-body); query?: [ScheduleRecordEventParams](/docs/api/reference/calendars/schedule_record_event#query-parameters) `}` - Event UUID, bot configuration, and optional query parameters
+- `params`: `{` uuid: string; body: [BotParam2](/docs/api/reference/calendars/schedule_record_event); query?: [ScheduleRecordEventParams](/docs/api/reference/calendars/schedule_record_event) `}` - Event UUID, bot configuration, and optional query parameters
 
 **Returns:**
 - `success`: Boolean (true if recording scheduled successfully, false in case of any errors)
@@ -484,7 +484,7 @@ if (success) {
 Cancels a previously scheduled recording for a calendar event and releases associated bot resources. For recurring events, the 'all_occurrences' parameter controls whether to unschedule from all instances of the recurring series or just the specific occurrence. This operation is idempotent and will not error if no bot was scheduled. Returns the updated event(s) with the bot parameters removed.
 
 **Parameters:**
-- `params`: `{` uuid: string; query?: [UnscheduleRecordEventParams](/docs/api/reference/calendars/unschedule_record_event#query-parameters) `}` - Event UUID and optional query parameters
+- `params`: `{` uuid: string; query?: [UnscheduleRecordEventParams](/docs/api/reference/calendars/unschedule_record_event) `}` - Event UUID and optional query parameters
 
 **Returns:**
 - `success`: Boolean (true if recording unscheduled successfully, false in case of any errors)
@@ -514,7 +514,7 @@ if (success) {
 Updates the configuration of a bot already scheduled to record an event. Allows modification of recording settings, webhook URLs, and other bot parameters without canceling and recreating the scheduled recording. For recurring events, the 'all_occurrences' parameter determines whether changes apply to all instances or just the specific occurrence. Returns the updated event(s) with the modified bot parameters.
 
 **Parameters:**
-- `params`: `{` uuid: string; body: [BotParam3](/docs/api/reference/calendars/patch_bot#request-body); query?: [PatchBotParams](/docs/api/reference/calendars/patch_bot#query-parameters) `}` - Event UUID, bot configuration updates, and optional query parameters
+- `params`: `{` uuid: string; body: [BotParam3](/docs/api/reference/calendars/patch_bot); query?: [PatchBotParams](/docs/api/reference/calendars/patch_bot) `}` - Event UUID, bot configuration updates, and optional query parameters
 
 **Returns:**
 - `success`: Boolean (true if bot configuration updated successfully, false in case of any errors)
@@ -549,7 +549,7 @@ if (success) {
 Retrieves a paginated list of calendar events with comprehensive filtering options. Supports filtering by organizer email, attendee email, date ranges (start_date_gte, start_date_lte), and event status. Results can be limited to upcoming events (default), past events, or all events. Each event includes full details such as meeting links, participants, and recording status. The response includes a 'next' pagination cursor for retrieving additional results.
 
 **Parameters:**
-- `query`: [ListEventsParams](/docs/api/reference/calendars/list_events#query-parameters) - Filtering and pagination parameters
+- `query`: [ListEventsParams](/docs/api/reference/calendars/list_events) - Filtering and pagination parameters
 
 **Returns:**
 - `success`: Boolean (true if events retrieved successfully, false in case of any errors)
@@ -588,7 +588,7 @@ Triggers a full resync of all calendar events for all integrated calendars. This
 
 **Returns:**
 - `success`: Boolean (true if calendars resynced successfully, false in case of any errors)
-- `data`: [ResyncAllResponse](/docs/api/reference/calendars/resync_all) - Resync results and any errors
+- `data`: [ResyncAllResponse](/docs/api/reference/calendars/resync_all_calendars) - Resync results and any errors
 - `error`: Error, if any
 
 ```typescript
@@ -614,7 +614,7 @@ if (success) {
 Retrieves unprocessed calendar data directly from the provider (Google, Microsoft) using provided OAuth credentials. This endpoint is typically used during the initial setup process to allow users to select which calendars to integrate. Returns a list of available calendars with their unique IDs, email addresses, and primary status. This data is not persisted until a calendar is formally created using the create_calendar endpoint.
 
 **Parameters:**
-- `params`: [ListRawCalendarsParams](/docs/api/reference/calendars/list_raw_calendars#request-body) - OAuth credentials and platform
+- `params`: [ListRawCalendarsParams](/docs/api/reference/calendars/list_raw_calendars) - OAuth credentials and platform
 
 **Returns:**
 - `success`: Boolean (true if raw calendars retrieved successfully, false in case of any errors)
@@ -783,5 +783,5 @@ const joinParams: JoinRequest = {
 - **[Getting Started](/docs/typescript-sdk/getting-started)** - Quick setup guide
 - **[Quick Start](/docs/typescript-sdk/quick-start)** - Comprehensive usage examples
 - **[Integration Guide](/docs/typescript-sdk/integration)** - Advanced integration patterns
-- **[MCP Tools](/docs/typescript-sdk/mpc-tools)** - Using with Model Context Protocol
+- **[MCP Tools](/docs/typescript-sdk/mcp-tools)** - Using with Model Context Protocol
 - **[Advanced Examples](/docs/typescript-sdk/advanced-examples)** - Complex use cases
