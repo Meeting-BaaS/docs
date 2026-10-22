@@ -43,25 +43,22 @@ agent:
   authtoken: YOUR_AUTH_TOKEN
 
 tunnels:
-  proxy1:
+  bot:
     proto: http
-    addr: 8766
-  proxy2:
-    proto: http
-    addr: 8768
+    addr: 7014
 ```
 
 For more detailed information about ngrok configuration options, see the [official ngrok configuration documentation](https://ngrok.com/docs/agent/config/).
 
 ## Usage
 
-This sets up two separate tunnels (proxy1 and proxy2) that will be used by your bots to establish WebSocket connections with the meeting platforms. To start both tunnels simultaneously, run:
+This tunnel forwards public WebSocket connections to the API server, and is used by your bots to establish WebSocket connections with the meeting platforms. To start it, run:
 
 ```bash
 ngrok start --all --config config/ngrok/config.yml
 ```
 
-The free tier of ngrok limits you to 2 concurrent tunnels, which means you can run up to 2 bots simultaneously in local development mode.
+At startup, the API discovers active tunnels through the ngrok API (`localhost:4040`) and prefers tunnels pointing at the configured `PORT` (default `7014`). A single tunnel serves any number of bots — each bot's WebSocket path includes its own client id.
 
   </Accordion>
 </Accordions>
@@ -79,7 +76,7 @@ To use local development mode with automatic ngrok detection:
 
 ```bash
 # Start the API server with local development mode enabled
-poetry run python run.py --local-dev
+poetry run python app/main.py --local-dev
 ```
 
 ## Troubleshooting WebSocket Connections

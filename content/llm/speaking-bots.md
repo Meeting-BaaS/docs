@@ -73,92 +73,6 @@ As you can see in the technologies used below, speaking bots can connect to exte
 
 ---
 
-## Command line usage
-
-Complete command-line interface options for launching Speaking Bots
-
-### Source: ./content/docs/speaking-bots/command-line.mdx
-
-
-## Basic Usage
-
-```bash
-poetry run python scripts/batch.py [options]
-```
-
-## Core Options
-
-| Option             | Description                      | Required | Default | Example                                              |
-| ------------------ | -------------------------------- | -------- | ------- | ---------------------------------------------------- |
-| `-c, --count`      | Number of bot instances          | Yes      | -       | `-c 2`                                               |
-| `--meeting-url`    | Video meeting URL to join        | Yes      | -       | `--meeting-url https://meet.google.com/xxx-yyyy-zzz` |
-| `--personas`       | Space-separated list of personas | No       | Random  | `--personas baas_onboarder arctic_prospector`        |
-| `-s, --start-port` | Starting port for services       | No       | 8765    | `--start-port 8765`                                  |
-| `--add-recorder`   | Add recording-only bot           | No       | False   | `--add-recorder`                                     |
-
-## Example Commands
-
-### Basic Bot Launch
-
-```bash
-poetry run python scripts/batch.py -c 1 --meeting-url LINK
-```
-
-### Multiple Bots with Specific Personas
-
-```bash
-poetry run python scripts/batch.py -c 2 --meeting-url LINK --personas baas_onboarder arctic_prospector
-```
-
-### Additional "passive" bot with recording
-
-```bash
-poetry run python scripts/batch.py -c 1 --meeting-url LINK --add-recorder
-```
-
-## Technical Details
-
-### Port Allocation
-
-- Each bot requires 2 consecutive ports:
-  - Bot process: port N
-  - Proxy process: port N+1
-- Default starting port: 8765
-- Example with 2 bots:
-  - Bot 1: 8765 (bot), 8766 (proxy)
-  - Bot 2: 8767 (bot), 8768 (proxy)
-
-### Persona Selection
-
-- If specific personas provided: uses them in order
-- If not enough personas specified: fills with random selections
-- Validates persona existence before launch
-- Avoids duplicate personas when possible
-- Logs selected persona names and prompts
-
-### Interactive Controls
-
-- Press Enter: Add more bots with same configuration. You might be blocked by the default deduplication key settings.
-- Ctrl+C: Graceful shutdown of all processes
-
-### Error Handling
-
-- URL validation (must start with https://)
-- Port availability checking
-- Process monitoring and auto-recovery
-- Ngrok tunnel management
-- Graceful resource cleanup
-
-### Process Management
-
-- Automatic ngrok tunnel creation
-- Process output logging
-- Auto-cleanup on shutdown
-- Graceful termination of all components
-
-
----
-
 ## Environment Variables
 
 Configure environment variables for Speaking Bots
@@ -171,7 +85,7 @@ Speaking Bots requires several API keys and configuration values to function pro
 1. Copy the example environment file:
 
 ```bash
-cp .env.example .env
+cp env.example .env
 ```
 
 {" "}
@@ -181,7 +95,13 @@ cp .env.example .env
   keys that should be kept private.
 </Callout>
 
-2. Add your credentials to `.env`: You'll need 4 required API keys for core functionality (MeetingBaas, OpenAI, Speech-to-Text, and Text-to-Speech). Additional keys can be added later for optional features.
+2. Add your credentials to `.env`: You'll need one key per pipeline stage (MeetingBaas, LLM, Speech-to-Text, and Text-to-Speech). Additional keys enable optional features.
+
+<Callout type="info">
+  Callers can also bring their own keys per bot through the `credentials` field
+  of `POST /bots` (`llm_api_key`, `stt_api_key`, `tts_api_key`). Any key left
+  out falls back to the server's own configuration.
+</Callout>
 
 ## Core Bot Functionality (Required)
 
@@ -189,7 +109,7 @@ cp .env.example .env
 <Step>
 ### MeetingBaas Configuration
 
-Required for sending meeting bots as personas to various platforms:
+Required for sending meeting bots to Google Meet, Microsoft Teams and Zoom:
 
 ```txt
 MEETING_BAAS_API_KEY=your_meetingbaas_api_key_here
@@ -200,38 +120,57 @@ Get your API key by:
 1. Signing up for [MeetingBaas](https://meetingbaas.com)
 2. Accessing your API key from the MeetingBaas dashboard
 
+To point the API at a self-hosted MeetingBaas deployment:
+
+```txt
+MEETING_BAAS_API_URL=https://your-meetingbaas-deployment.com
+```
+
 </Step>
 
 <Step>
-### OpenAI Configuration
+### LLM Configuration
 
-Powers in-meeting AI interactions and persona management:
+Powers in-meeting AI interactions and persona management. `LLM_PROVIDER`
+selects the provider (default `openai`; also `anthropic` and `zai`):
 
 ```txt
+LLM_PROVIDER=openai
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
+Optional provider tuning (see `env.example` for the full list):
+
+```txt
+# OpenAI
+OPENAI_MODEL=gpt-5.4-mini
+OPENAI_API_SURFACE=responses
+
+# Anthropic (native Pipecat Claude bridge)
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+ANTHROPIC_MODEL=claude-haiku-4-5
+
+# Z.ai GLM (OpenAI-compatible bridge)
+ZAI_API_KEY=your_zai_api_key_here
+ZAI_MODEL=glm-5.2
+ZAI_BASE_URL=https://api.z.ai/api/paas/v4/
+```
+
 <Callout>
-  This key is used both for in-meeting interactions and persona creation functionality.
+  `OPENAI_API_KEY` is also used for persona creation functionality.
 </Callout>
 </Step>
 
 <Step>
 ### Speech-to-Text Configuration
 
-Choose one of the following options:
-
-#### Option 1: Deepgram
+Deepgram powers the bot's in-meeting listening:
 
 ```txt
 DEEPGRAM_API_KEY=your_deepgram_api_key_here
 ```
 
-#### Option 2: Gladia
-
-```txt
-GLADIA_API_KEY=your_gladia_api_key_here
-```
+The STT language comes from the persona's `language_code` (default `en-US`).
 
 </Step>
 
@@ -245,8 +184,24 @@ CARTESIA_API_KEY=your_cartesia_api_key_here
 CARTESIA_VOICE_ID="79a125e8-cd45-4c13-8a67-188112f4dd22"
 ```
 
+Voices are picked per persona via its `cartesia_voice_id`; this value is the
+fallback. Optional default speaking speed (a request can override it per bot
+with `speech_speed`):
+
+```txt
+CARTESIA_TTS_SPEED=1.2
+```
+
 </Step>
 </Steps>
+
+## Server Configuration
+
+```txt
+PORT=7014                  # API server port
+BASE_URL=your_base_url     # Public base URL for the bot's WebSocket endpoints
+WEBHOOK_SECRET=...         # Optional: require x-mb-secret on /webhook callbacks
+```
 
 ## Optional Features
 
@@ -268,8 +223,45 @@ NGROK_AUTHTOKEN=your_ngrok_auth_token_here
 ### Persona Creation
 
 <Steps>
-  <Step>Required for AI image generation and storage:</Step>
+<Step>Required for AI image generation and storage:</Step>
 </Steps>
+
+```txt
+REPLICATE_KEY=your_replicate_key_here
+STABILITY_AI_API_KEY=your_stability_ai_key_here
+UTFS_KEY=your_utfs_key_here
+APP_ID=your_app_id_here
+```
+
+### Prompt Data Sources Limits
+
+Bounds for `prompt_data_sources` URL fetching:
+
+```txt
+PROMPT_DATA_SOURCE_MAX_BYTES=1000000   # Max bytes fetched per URL
+PROMPT_DATA_ALLOW_PRIVATE_URLS=false   # Only in trusted networks
+```
+
+### MCP & Turn-Taking
+
+MCP connection details are supplied per `POST /bots` request (`mcp.servers`).
+Optional server-side overrides:
+
+```txt
+MCP_ALLOW_PRIVATE_URLS=false
+MCP_PROXY_ALL_URL=http://127.0.0.1:8109/mcp
+MCP_PROXY_PERSONAL_URL=http://127.0.0.1:8110/mcp
+MCP_PROXY_PROFESSIONAL_URL=http://127.0.0.1:8111/mcp
+```
+
+Bot turn-taking defaults (a request's `turn_config` overrides them per bot):
+
+```txt
+VAD_CONFIDENCE=0.5
+VAD_START_SECS=0.25
+VAD_STOP_SECS=0.8
+VAD_MIN_VOLUME=0.6
+```
 
 
 ---
@@ -320,25 +312,22 @@ agent:
   authtoken: YOUR_AUTH_TOKEN
 
 tunnels:
-  proxy1:
+  bot:
     proto: http
-    addr: 8766
-  proxy2:
-    proto: http
-    addr: 8768
+    addr: 7014
 ```
 
 For more detailed information about ngrok configuration options, see the [official ngrok configuration documentation](https://ngrok.com/docs/agent/config/).
 
 ## Usage
 
-This sets up two separate tunnels (proxy1 and proxy2) that will be used by your bots to establish WebSocket connections with the meeting platforms. To start both tunnels simultaneously, run:
+This tunnel forwards public WebSocket connections to the API server, and is used by your bots to establish WebSocket connections with the meeting platforms. To start it, run:
 
 ```bash
 ngrok start --all --config config/ngrok/config.yml
 ```
 
-The free tier of ngrok limits you to 2 concurrent tunnels, which means you can run up to 2 bots simultaneously in local development mode.
+At startup, the API discovers active tunnels through the ngrok API (`localhost:4040`) and prefers tunnels pointing at the configured `PORT` (default `7014`). A single tunnel serves any number of bots — each bot's WebSocket path includes its own client id.
 
   </Accordion>
 </Accordions>
@@ -356,7 +345,7 @@ To use local development mode with automatic ngrok detection:
 
 ```bash
 # Start the API server with local development mode enabled
-poetry run python run.py --local-dev
+poetry run python app/main.py --local-dev
 ```
 
 ## Troubleshooting WebSocket Connections
@@ -478,9 +467,9 @@ Edit the `.env` file with your API keys. You'll need:
 **Required API Keys:**
 
 - `MEETING_BAAS_API_KEY`: For meeting platform integration
-- `OPENAI_API_KEY`: For the conversation LLM
+- `OPENAI_API_KEY`, `ANTHROPIC_API_KEY` or `ZAI_API_KEY`: For the conversation LLM (`LLM_PROVIDER` selects which, default `openai`)
 - `CARTESIA_API_KEY`: For text-to-speech
-- `GLADIA_API_KEY` or `DEEPGRAM_API_KEY`: For speech-to-text
+- `DEEPGRAM_API_KEY`: For speech-to-text
 
 For production, also set:
 
@@ -496,36 +485,28 @@ The project now follows an API-first approach. There are two ways to run the ser
 
 ```bash
 # Standard mode
-poetry run uvicorn app:app --reload --host 0.0.0.0 --port 8766
+poetry run uvicorn app:app --reload --host 0.0.0.0 --port 7014
 
 # Local development mode with ngrok auto-configuration
-poetry run python run.py --local-dev
+poetry run python app/main.py --local-dev
 ```
 
 Once the server is running, you can access:
 
-- Interactive API docs: `http://localhost:8766/docs`
-- OpenAPI specification: `http://localhost:8766/openapi.json`
+- Interactive API docs: `http://localhost:7014/docs`
+- OpenAPI specification: `http://localhost:7014/openapi.json`
 
 To create a bot via the API:
 
 ```bash
-curl -X POST http://localhost:8766/run-bots \
+curl -X POST http://localhost:7014/bots \
   -H "Content-Type: application/json" \
+  -H "x-meeting-baas-api-key: your-api-key" \
   -d '{
     "meeting_url": "https://meet.google.com/xxx-yyyy-zzz",
-    "personas": ["interviewer"],
-    "meeting_baas_api_key": "your-api-key"
+    "personas": ["interviewer"]
   }'
 ```
-
-You can also use our CLI tools for testing:
-
-```bash
-poetry run python scripts/batch.py -c 1 --meeting-url LINK
-```
-
-Follow our [Command Line Guide](/docs/speaking-bots/command-line) for more examples and options.
 
 
 ---
@@ -547,10 +528,10 @@ This small open-source API demonstrates the capabilities of [MeetingBaas](https:
 ```bash
 curl -X POST https://speaking.meetingbaas.com/bots \
   -H "Content-Type: application/json" \
+  -H "x-meeting-baas-api-key: your-api-key" \
   -d '{
     "meeting_url": "https://us06web.zoom.us/j/123456789?pwd=example",
-    "personas": ["baas_onboarder"],
-    "meeting_baas_api_key": "your-api-key"
+    "personas": ["baas_onboarder"]
   }'
 ```
 
@@ -580,94 +561,53 @@ The API follows a minimalist design with sensible defaults while offering option
 
 The API includes features not explicitly defined in the routes documentation:
 
-- WebSocket infrastructure for bidirectional audio streaming with selectable quality (16/24kHz)
+- WebSocket infrastructure for bidirectional audio streaming between the bot and your voice pipeline (the bot streams at 16 kHz internally; the underlying MeetingBaas v2 API supports 16–48 kHz samples rates)
 - Persona system with custom voice selection, language preferences, and contextual knowledge
-- Voice Activity Detection with configurable parameters for natural conversation
+- Per-bot LLM provider and model selection (OpenAI, Anthropic or Z.ai)
+- Bring-your-own provider keys per bot (LLM, speech-to-text, text-to-speech)
+- Prompt data sources: inline text or fetched URLs, loaded under a token budget
+- MCP servers and trusted proxy profiles for tool access
+- Voice Activity Detection with configurable parameters for natural conversation (per-bot turn-taking tuning)
+- TTS speaking speed control
 - Function calling tools (weather, time, etc.) that can be enabled or disabled
-- LLM context management for consistent, coherent conversations
+- Post-call transcription with the bot's own turns attributed to it by name
 
-The join route supports options like custom bot names, avatar images, entry messages, and specialized persona selection.
+The join route supports options like custom bot names, avatar images, entry messages, ad-hoc prompts and specialized persona selection.
 
 The API and implementation are open source. We welcome contributions and pull requests from the community. See our [getting started guide](/docs/speaking-bots/getting-started/set-up) for local development setup.
 
 ## Directory Structure
 
 <Files>
-  <Folder name="config" description="Core configuration and persona management">
-    <Folder name="personas" description="Persona definitions and behaviors">
-      <Folder
-        name="baas_onboarder"
-        description="MeetingBaas API presentation persona"
-      >
-        <File
-          name="README.md"
-          description="Core persona definition and behavior"
-        />
-        <File
-          name="Content.md"
-          description="Knowledge and contextual information"
-        />
-        <File
-          name="Rules.md"
-          description="Interaction and behavior guidelines"
-        />
+  <Folder name="app" description="FastAPI server">
+    <File name="main.py" description="Server startup and middleware" />
+    <File name="routes.py" description="/bots, /personas and /webhook routes" />
+    <File name="models.py" description="Request and response models" />
+    <Folder name="services" description="Prompt context, MCP presets, persona details, images" />
+  </Folder>
+  <Folder name="config" description="Configuration and personas">
+    <Folder name="personas" description="One folder per persona: README.md plus knowledge .md files">
+      <Folder name="baas_onboarder" description="MeetingBaas API presentation persona">
+        <File name="README.md" description="Persona definition and behaviour" />
+        <File name="Content.md" description="Knowledge and contextual information" />
+        <File name="Rules.md" description="Interaction and behavior guidelines" />
       </Folder>
-      <Folder
-        name="noota_assistant"
-        description="Noota software sales persona"
-      />
-      <Folder name="gladia_sales" description="Gladia API sales persona" />
     </Folder>
-    <File
-      name="persona_types.py"
-      description="Data structures and type definitions for personas"
-    />
-    <File
-      name="persona_utils.py"
-      description="Persona management and utility functions"
-    />
+    <File name="persona_utils.py" description="Persona loading and management" />
     <File name="prompts.py" description="Default prompts and system messages" />
-    <File
-      name="create_persona.py"
-      description="Tools for creating new personas"
-    />
-    <File
-      name="migrate_personas.py"
-      description="Migration utilities for persona updates"
-    />
+    <File name="voice_utils.py" description="Cartesia voice matching" />
+    <File name="create_persona.py" description="Tools for creating new personas" />
   </Folder>
-  <Folder
-    name="meetingbaas_pipecat"
-    description="Core bot functionality and communications"
-  >
-    <Folder name="bot" description="Bot implementation and behavior">
-      <File
-        name="bot.py"
-        description="Main bot class and meeting interactions"
-      />
-      <File
-        name="runner.py"
-        description="Bot execution and lifecycle management"
-      />
-      <File name="__init__.py" />
-    </Folder>
-    <Folder
-      name="proxy"
-      description="Proxy handling for multiple bot instances"
-    />
-    <Folder name="utils" description="Shared utilities">
-      <File name="logger.py" description="Logging configuration" />
-      <File name="__init__.py" />
-    </Folder>
-    <File name="__init__.py" />
+  <Folder name="core" description="Process and connection management">
+    <File name="process.py" description="Pipecat child process lifecycle" />
+    <File name="connection.py" description="WebSocket connection registry" />
   </Folder>
-  <Folder name="scripts" description="Command-line tools and utilities">
-    <File
-      name="meetingbaas.py"
-      description="MeetingBaas API interaction script"
-    />
-    <File name="batch.py" description="Multiple bot deployment script" />
+  <Folder name="meetingbaas_pipecat" description="Bot runtime package" />
+  <Folder name="scripts" description="Bot runner and MeetingBaas client">
+    <File name="meetingbaas.py" description="Pipecat voice pipeline runner (STT → LLM → TTS)" />
+    <File name="meetingbaas_api.py" description="MeetingBaas v2 API client" />
   </Folder>
+  <Folder name="utils" description="Floor control, LLM config, MCP client, ngrok, runtime" />
 </Files>
 
 
@@ -711,10 +651,6 @@ The personas system enables AI-powered meeting participants with distinct person
       </Folder>
     </Folder>
     <File
-      name="persona_types.py"
-      description="Type definitions and data structures"
-    />
-    <File
       name="persona_utils.py"
       description="Helper functions and persona management"
     />
@@ -727,39 +663,22 @@ The personas system enables AI-powered meeting participants with distinct person
 
 ## Core Components
 
-### PersonaData Class
+### Persona Dictionary
+
+Each persona folder resolves to a dictionary with these keys (built by
+`PersonaManager` from the folder's files):
 
 ```python
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import List, Optional
-
-__all__ = ["Gender", "PersonaData"]
-
-class Gender(str, Enum):
-    MALE = "MALE"
-    FEMALE = "FEMALE"
-    NON_BINARY = "NON-BINARY"
-
-@dataclass
-class PersonaData:
-    """Core data structure for persona information"""
-    name: str
-    prompt: str
-    additional_context: str = ""
-    entry_message: str = ""
-    characteristics: List[str] = field(default_factory=list)
-    tone_of_voice: List[str] = field(default_factory=list)
-    skin_tone: Optional[str] = None
-    gender: Optional[Gender] = None
-    relevant_links: List[str] = field(default_factory=list)
-    language_code: str = "en-US"
-    image: Optional[str] = None
-    cartesia_voice_id: str = ""
-
-    def to_dict(self) -> dict:
-        # Implementation not shown
-        pass
+{
+    "name": str,                 # From the README.md title
+    "prompt": str,               # README.md content minus Metadata/Characteristics/Voice sections
+    "image": str,                # Avatar URL from Metadata
+    "entry_message": str,        # Spoken when the bot is admitted, from Metadata
+    "cartesia_voice_id": str,    # Voice from Metadata
+    "gender": str,               # From Metadata
+    "relevant_links": [str],     # From Metadata
+    "additional_content": str,   # Every other .md file in the folder, concatenated
+}
 ```
 
 ### PersonaManager
@@ -784,6 +703,25 @@ class PersonaManager:
         # Get prompt (first paragraph after title)
         prompt = sections[0].split("\n\n", 1)[1].strip()
 ```
+
+## Adding Knowledge to a Persona
+
+A persona's knowledge is whatever Markdown lives next to its `README.md`:
+
+- `README.md` defines the persona: its prose becomes the system prompt, and the
+  `## Metadata` block drives the avatar, voice, greeting and gender. The
+  `## Characteristics` and `## Voice` sections are display-only and are not
+  sent to the LLM.
+- Every other `.md` file in the folder (`Content.md`, `Rules.md`, `pricing.md`,
+  …) is loaded as additional context, appended to the system prompt under a
+  `# Content from <filename>` heading.
+- There is no retrieval step: all of it goes into the prompt, so keep the
+  files curated and split by topic.
+- The STT language comes from `language_code` in the persona (default
+  `en-US`).
+
+Personas are loaded once when the API starts — restart the server after
+adding or editing persona files.
 
 ## Environment Setup
 
@@ -822,10 +760,16 @@ DO NOT GIVE SPECIAL CHARACTERS LIKE EMOJIS, MARKDOWN, OR CODE
 BE CONCISE, SPEAK FAST, AND DO NOT BE TOO POLITE.
 ```
 
-To launch this persona you would then use:
+To launch this persona, create a bot through the API:
 
 ```bash
-poetry run python scripts/batch.py -c 1 --meeting-url LINK --personas baas_onboarder
+curl -X POST http://localhost:7014/bots \
+  -H "Content-Type: application/json" \
+  -H "x-meeting-baas-api-key: your-api-key" \
+  -d '{
+    "meeting_url": "https://meet.google.com/xxx-yyyy-zzz",
+    "personas": ["baas_onboarder"]
+  }'
 ```
 
 Notice the additional context provided by the surrounding \*.md files.
@@ -978,7 +922,6 @@ The Speaking Bots API provides endpoints to:
 
 - Have bots join meetings
 - Make bots leave meetings
-- Control bot behavior during meetings
 - Generate persona images for bots
 
 Each endpoint is documented with:
@@ -1006,19 +949,6 @@ Generate an image for a persona using Replicate.
 
 <APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/personas/generate-image","method":"post"}]} />
 
-
----
-
-## Health
-
-### Source: ./content/docs/speaking-bots/reference/system/health_health_get.mdx
-
-
-{/* This file was generated by Fumadocs. Do not edit this file directly. Any changes should be made by running the generation command again. */}
-
-Health check endpoint
-
-<APIPage document={"./speaking-bots-openapi.json"} operations={[{"path":"/health","method":"get"}]} />
 
 ---
 

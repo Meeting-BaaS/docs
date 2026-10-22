@@ -35,10 +35,6 @@ The personas system enables AI-powered meeting participants with distinct person
       </Folder>
     </Folder>
     <File
-      name="persona_types.py"
-      description="Type definitions and data structures"
-    />
-    <File
       name="persona_utils.py"
       description="Helper functions and persona management"
     />
@@ -51,39 +47,22 @@ The personas system enables AI-powered meeting participants with distinct person
 
 ## Core Components
 
-### PersonaData Class
+### Persona Dictionary
+
+Each persona folder resolves to a dictionary with these keys (built by
+`PersonaManager` from the folder's files):
 
 ```python
-from dataclasses import dataclass, field
-from enum import Enum
-from typing import List, Optional
-
-__all__ = ["Gender", "PersonaData"]
-
-class Gender(str, Enum):
-    MALE = "MALE"
-    FEMALE = "FEMALE"
-    NON_BINARY = "NON-BINARY"
-
-@dataclass
-class PersonaData:
-    """Core data structure for persona information"""
-    name: str
-    prompt: str
-    additional_context: str = ""
-    entry_message: str = ""
-    characteristics: List[str] = field(default_factory=list)
-    tone_of_voice: List[str] = field(default_factory=list)
-    skin_tone: Optional[str] = None
-    gender: Optional[Gender] = None
-    relevant_links: List[str] = field(default_factory=list)
-    language_code: str = "en-US"
-    image: Optional[str] = None
-    cartesia_voice_id: str = ""
-
-    def to_dict(self) -> dict:
-        # Implementation not shown
-        pass
+{
+    "name": str,                 # From the README.md title
+    "prompt": str,               # README.md content minus Metadata/Characteristics/Voice sections
+    "image": str,                # Avatar URL from Metadata
+    "entry_message": str,        # Spoken when the bot is admitted, from Metadata
+    "cartesia_voice_id": str,    # Voice from Metadata
+    "gender": str,               # From Metadata
+    "relevant_links": [str],     # From Metadata
+    "additional_content": str,   # Every other .md file in the folder, concatenated
+}
 ```
 
 ### PersonaManager
@@ -108,6 +87,25 @@ class PersonaManager:
         # Get prompt (first paragraph after title)
         prompt = sections[0].split("\n\n", 1)[1].strip()
 ```
+
+## Adding Knowledge to a Persona
+
+A persona's knowledge is whatever Markdown lives next to its `README.md`:
+
+- `README.md` defines the persona: its prose becomes the system prompt, and the
+  `## Metadata` block drives the avatar, voice, greeting and gender. The
+  `## Characteristics` and `## Voice` sections are display-only and are not
+  sent to the LLM.
+- Every other `.md` file in the folder (`Content.md`, `Rules.md`, `pricing.md`,
+  …) is loaded as additional context, appended to the system prompt under a
+  `# Content from <filename>` heading.
+- There is no retrieval step: all of it goes into the prompt, so keep the
+  files curated and split by topic.
+- The STT language comes from `language_code` in the persona (default
+  `en-US`).
+
+Personas are loaded once when the API starts — restart the server after
+adding or editing persona files.
 
 ## Environment Setup
 
@@ -146,10 +144,16 @@ DO NOT GIVE SPECIAL CHARACTERS LIKE EMOJIS, MARKDOWN, OR CODE
 BE CONCISE, SPEAK FAST, AND DO NOT BE TOO POLITE.
 ```
 
-To launch this persona you would then use:
+To launch this persona, create a bot through the API:
 
 ```bash
-poetry run python scripts/batch.py -c 1 --meeting-url LINK --personas baas_onboarder
+curl -X POST http://localhost:7014/bots \
+  -H "Content-Type: application/json" \
+  -H "x-meeting-baas-api-key: your-api-key" \
+  -d '{
+    "meeting_url": "https://meet.google.com/xxx-yyyy-zzz",
+    "personas": ["baas_onboarder"]
+  }'
 ```
 
 Notice the additional context provided by the surrounding \*.md files.

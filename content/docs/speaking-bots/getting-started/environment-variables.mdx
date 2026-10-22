@@ -9,7 +9,7 @@ Speaking Bots requires several API keys and configuration values to function pro
 1. Copy the example environment file:
 
 ```bash
-cp .env.example .env
+cp env.example .env
 ```
 
 {" "}
@@ -19,7 +19,13 @@ cp .env.example .env
   keys that should be kept private.
 </Callout>
 
-2. Add your credentials to `.env`: You'll need 4 required API keys for core functionality (MeetingBaas, OpenAI, Speech-to-Text, and Text-to-Speech). Additional keys can be added later for optional features.
+2. Add your credentials to `.env`: You'll need one key per pipeline stage (MeetingBaas, LLM, Speech-to-Text, and Text-to-Speech). Additional keys enable optional features.
+
+<Callout type="info">
+  Callers can also bring their own keys per bot through the `credentials` field
+  of `POST /bots` (`llm_api_key`, `stt_api_key`, `tts_api_key`). Any key left
+  out falls back to the server's own configuration.
+</Callout>
 
 ## Core Bot Functionality (Required)
 
@@ -27,7 +33,7 @@ cp .env.example .env
 <Step>
 ### MeetingBaas Configuration
 
-Required for sending meeting bots as personas to various platforms:
+Required for sending meeting bots to Google Meet, Microsoft Teams and Zoom:
 
 ```txt
 MEETING_BAAS_API_KEY=your_meetingbaas_api_key_here
@@ -38,38 +44,57 @@ Get your API key by:
 1. Signing up for [MeetingBaas](https://meetingbaas.com)
 2. Accessing your API key from the MeetingBaas dashboard
 
+To point the API at a self-hosted MeetingBaas deployment:
+
+```txt
+MEETING_BAAS_API_URL=https://your-meetingbaas-deployment.com
+```
+
 </Step>
 
 <Step>
-### OpenAI Configuration
+### LLM Configuration
 
-Powers in-meeting AI interactions and persona management:
+Powers in-meeting AI interactions and persona management. `LLM_PROVIDER`
+selects the provider (default `openai`; also `anthropic` and `zai`):
 
 ```txt
+LLM_PROVIDER=openai
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
+Optional provider tuning (see `env.example` for the full list):
+
+```txt
+# OpenAI
+OPENAI_MODEL=gpt-5.4-mini
+OPENAI_API_SURFACE=responses
+
+# Anthropic (native Pipecat Claude bridge)
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+ANTHROPIC_MODEL=claude-haiku-4-5
+
+# Z.ai GLM (OpenAI-compatible bridge)
+ZAI_API_KEY=your_zai_api_key_here
+ZAI_MODEL=glm-5.2
+ZAI_BASE_URL=https://api.z.ai/api/paas/v4/
+```
+
 <Callout>
-  This key is used both for in-meeting interactions and persona creation functionality.
+  `OPENAI_API_KEY` is also used for persona creation functionality.
 </Callout>
 </Step>
 
 <Step>
 ### Speech-to-Text Configuration
 
-Choose one of the following options:
-
-#### Option 1: Deepgram
+Deepgram powers the bot's in-meeting listening:
 
 ```txt
 DEEPGRAM_API_KEY=your_deepgram_api_key_here
 ```
 
-#### Option 2: Gladia
-
-```txt
-GLADIA_API_KEY=your_gladia_api_key_here
-```
+The STT language comes from the persona's `language_code` (default `en-US`).
 
 </Step>
 
@@ -83,8 +108,24 @@ CARTESIA_API_KEY=your_cartesia_api_key_here
 CARTESIA_VOICE_ID="79a125e8-cd45-4c13-8a67-188112f4dd22"
 ```
 
+Voices are picked per persona via its `cartesia_voice_id`; this value is the
+fallback. Optional default speaking speed (a request can override it per bot
+with `speech_speed`):
+
+```txt
+CARTESIA_TTS_SPEED=1.2
+```
+
 </Step>
 </Steps>
+
+## Server Configuration
+
+```txt
+PORT=7014                  # API server port
+BASE_URL=your_base_url     # Public base URL for the bot's WebSocket endpoints
+WEBHOOK_SECRET=...         # Optional: require x-mb-secret on /webhook callbacks
+```
 
 ## Optional Features
 
@@ -106,5 +147,42 @@ NGROK_AUTHTOKEN=your_ngrok_auth_token_here
 ### Persona Creation
 
 <Steps>
-  <Step>Required for AI image generation and storage:</Step>
+<Step>Required for AI image generation and storage:</Step>
 </Steps>
+
+```txt
+REPLICATE_KEY=your_replicate_key_here
+STABILITY_AI_API_KEY=your_stability_ai_key_here
+UTFS_KEY=your_utfs_key_here
+APP_ID=your_app_id_here
+```
+
+### Prompt Data Sources Limits
+
+Bounds for `prompt_data_sources` URL fetching:
+
+```txt
+PROMPT_DATA_SOURCE_MAX_BYTES=1000000   # Max bytes fetched per URL
+PROMPT_DATA_ALLOW_PRIVATE_URLS=false   # Only in trusted networks
+```
+
+### MCP & Turn-Taking
+
+MCP connection details are supplied per `POST /bots` request (`mcp.servers`).
+Optional server-side overrides:
+
+```txt
+MCP_ALLOW_PRIVATE_URLS=false
+MCP_PROXY_ALL_URL=http://127.0.0.1:8109/mcp
+MCP_PROXY_PERSONAL_URL=http://127.0.0.1:8110/mcp
+MCP_PROXY_PROFESSIONAL_URL=http://127.0.0.1:8111/mcp
+```
+
+Bot turn-taking defaults (a request's `turn_config` overrides them per bot):
+
+```txt
+VAD_CONFIDENCE=0.5
+VAD_START_SECS=0.25
+VAD_STOP_SECS=0.8
+VAD_MIN_VOLUME=0.6
+```
