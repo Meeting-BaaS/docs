@@ -45,7 +45,7 @@ Either way, the bot accounts must reach a password-only sign-in with no security
 
 ## Step 1 — Create the Microsoft 365 account
 
-The simplest path is the **[Microsoft 365 admin center](https://admin.microsoft.com)** → **Users → Active users → Add a user**: set a clear username (for example `bot1@acme.onmicrosoft.com`) and a strong password you'll store with Meeting BaaS (uncheck **"Require this user to change their password"**) — this wizard can also assign the license in the same flow (next). The new account then shows up under **Active users**:
+The simplest path is the **[Microsoft 365 admin center](https://admin.microsoft.com)** → **Users → Active users → Add a user**: set the **display name participants should see**, a clear username (for example `bot1@acme.onmicrosoft.com`), and a strong password you'll store with Meeting BaaS (uncheck **"Require this user to change their password"**) — this wizard can also assign the license in the same flow (next). The new account then shows up under **Active users**:
 
 <ImageZoom
   src={'/assets/teams-sso/1-create-user-m365.png'}
@@ -56,6 +56,10 @@ The simplest path is the **[Microsoft 365 admin center](https://admin.microsoft.
 />
 
 You can also create it in the **[Microsoft Entra admin center](https://entra.microsoft.com)** → **Users → All users → + New user → Create new user**. In Entra, "Users" sits under the **Identity** group in the left nav; if you don't see it, click **Show more** or type **Users** in the top search bar.
+
+<Callout type="info">
+Microsoft Teams uses this account's display name and profile picture for authenticated bots. The bot request's `bot_name` cannot override them. For multiple public identities, create one Microsoft 365 account per identity and later pin the intended account with `teams_config.credential_id`.
+</Callout>
 
 <ImageZoom
   src={'/assets/teams-sso/2-create-user-entra.png'}
@@ -198,7 +202,7 @@ The response includes the `workspace_id` you'll reference when creating logins:
 
 ### Register a teams login per account
 
-Create one teams login for each Microsoft 365 account, referencing the `workspace_id` above. The `password` is encrypted at rest and never returned.
+[Create one teams login](/docs/api-v2/reference/teams-logins/createTeamsLogin) for each Microsoft 365 account, referencing the `workspace_id` above. The `password` is encrypted at rest and never returned.
 
 ```bash
 curl -X POST https://api.meetingbaas.com/v2/teams-logins \
@@ -216,7 +220,7 @@ curl -X POST https://api.meetingbaas.com/v2/teams-logins \
 | Field          | Required | Notes                                                                                      |
 | -------------- | -------- | ------------------------------------------------------------------------------------------ |
 | `workspace_id` | ✅       | UUID of the parent teams workspace.                                                        |
-| `name`         | ✅       | Friendly label. Not unique.                                                                |
+| `name`         | ✅       | Internal Meeting BaaS label. Not unique and not shown in Microsoft Teams.                  |
 | `email`        | ✅       | The Microsoft 365 account the bot signs in as.                                             |
 | `password`     | ✅       | The account password. **Write-only** — encrypted at rest (AES-256-GCM) and never returned. |
 | `email_group`  | optional | Address for round-robin pooling. Logins sharing the same `email_group` form one pool.      |
@@ -228,6 +232,8 @@ curl -X POST https://api.meetingbaas.com/v2/teams-logins \
 </Callout>
 
 Repeat for each account. Logins sharing an `email_group` form a round-robin pool — add more logins to increase concurrent capacity (each login handles up to 20 concurrent sessions by default).
+
+If visible identity matters, group only accounts with interchangeable Microsoft 365 display names. For a deterministic identity, pass the intended login's `credential_id` when you [create the bot](/docs/api-v2/reference/bots/createBot).
 
 ## You're ready
 
