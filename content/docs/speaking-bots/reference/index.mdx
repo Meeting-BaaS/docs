@@ -5,21 +5,10 @@ description: API reference documentation for Speaking Bots
 
 # Speaking Bots API Reference
 
-This section contains detailed documentation for the Speaking Bots API, which allows you to programmatically create and manage speaking bots in your meetings.
+Generated from the service's live OpenAPI document, also served at [speaking.meetingbaas.com/openapi.json](https://speaking.meetingbaas.com/openapi.json). Each page shows the method, parameters, body schema, responses and examples, and lets you try the call.
 
-The Speaking Bots API provides endpoints to:
+- [`POST /bots`](/docs/speaking-bots/reference/bots/join_meeting_bots_post): send a bot — persona or prompt, model, voice, turn-taking, documents, MCP servers, your own keys
+- [`DELETE /bots/{bot_id}`](/docs/speaking-bots/reference/bots/leave_bot_bots__bot_id__delete): remove it
+- [`POST /personas/generate-image`](/docs/speaking-bots/reference/personas/generate_persona_image_personas_generate_image_post): generate an avatar for a persona
 
-- Have bots join meetings
-- Make bots leave meetings
-- Generate persona images for bots
-
-Each endpoint is documented with:
-
-- Endpoint URL and method
-- Request parameters and body schema
-- Response details
-- Example requests and responses
-
-All API requests require a MeetingBaas API key to be passed in the `x-meeting-baas-api-key` header.
-
-Use the navigation to explore the available endpoints.
+Every request carries a MeetingBaas API key in `x-meeting-baas-api-key`. The bot is created on that account; its status, recording and transcript come from the [MeetingBaas API](/docs/api-v2) under the returned `bot_id`.

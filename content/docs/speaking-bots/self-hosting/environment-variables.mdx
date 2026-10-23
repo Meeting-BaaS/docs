@@ -1,0 +1,132 @@
+---
+title: Environment variables
+description: Everything the server reads from its environment, grouped by what it does
+icon: Variable
+---
+
+Copy `env.example` to `.env` for a local run, or set these on the container. Only the first group is needed to get a bot talking.
+
+<Callout>
+  The MeetingBaas API key is **not** a server setting. Each `POST /bots` request carries the caller's key in `x-meeting-baas-api-key` and the bot is created on that account.
+</Callout>
+
+## Providers (required)
+
+```txt
+# Which LLM the bots use by default: openai (default), anthropic or zai.
+# Callers can override per bot with llm_provider, and bring their own key.
+LLM_PROVIDER=openai
+
+# The default models are the fast ones: a voice reply of a sentence or two
+# gains nothing from a frontier model and loses seconds to it. Thinking is
+# turned off in whatever way the chosen model accepts; models whose thinking
+# is always on (Claude Fable, Opus 5.5 and newer) run at low effort instead.
+OPENAI_API_KEY=
+OPENAI_MODEL=gpt-5.4-mini
+# responses (default, newest models) or chat
+OPENAI_API_SURFACE=responses
+# Optional OpenAI service tier: auto, flex, priority
+OPENAI_SERVICE_TIER=
+
+ANTHROPIC_API_KEY=
+ANTHROPIC_MODEL=claude-haiku-4-5
+
+ZAI_API_KEY=
+ZAI_MODEL=glm-5.2
+ZAI_BASE_URL=https://api.z.ai/api/paas/v4/
+
+# Optional global fallback model; the provider-specific variables win
+LLM_MODEL=
+
+# Speech-to-text (Deepgram) and text-to-speech (Cartesia)
+DEEPGRAM_API_KEY=
+CARTESIA_API_KEY=
+CARTESIA_VOICE_ID=79a125e8-cd45-4c13-8a67-188112f4dd22
+# Default speaking speed when a request sets no speech_speed (0.6 to 1.5)
+CARTESIA_TTS_SPEED=1.2
+```
+
+Set the key of whichever `LLM_PROVIDER` you choose; a request for a provider with no key is refused with a `400` unless the caller supplies one in `credentials`.
+
+## Server
+
+```txt
+# Port the API listens on
+PORT=7014
+
+# Public https URL of this server. MeetingBaas connects back to
+# wss://<this host>/ws/<client_id> for audio. Required everywhere except a
+# local ngrok run, where it is detected.
+BASE_URL=https://speaking.example.com
+
+# MeetingBaas API the bots are created on
+MEETING_BAAS_API_URL=https://api.meetingbaas.com
+
+# Writable directory for transcripts, floor files, ready signals, call
+# summaries and meeting state. Defaults to the repository root; the
+# container image sets /data.
+SPEAKING_BOT_STATE_DIR=/data
+
+# Comma-separated CORS origins; unset allows every origin
+CORS_ALLOW_ORIGINS=
+
+# When set, MeetingBaas callbacks to /webhook must carry it in x-mb-secret.
+# The server passes it to MeetingBaas as the callback secret when creating bots.
+WEBHOOK_SECRET=
+```
+
+## Conversation defaults
+
+```txt
+# Voice-activity detection defaults; a request's turn_config overrides them
+VAD_CONFIDENCE=0.5
+VAD_START_SECS=0.25
+VAD_STOP_SECS=0.8
+VAD_MIN_VOLUME=0.6
+
+# Seconds of silence after admission before a bot speaks on its own, and how
+# many times it may do so
+BOT_IDLE_REENGAGE_SECS=15
+BOT_MAX_REENGAGE=3
+```
+
+## Context and MCP
+
+```txt
+# Cap on each prompt_data_sources URL fetch, in bytes
+PROMPT_DATA_SOURCE_MAX_BYTES=1000000
+# Allow prompt_data_sources URLs on localhost / private networks (trusted networks only)
+PROMPT_DATA_ALLOW_PRIVATE_URLS=false
+
+# Allow remote MCP servers on localhost / private networks (trusted networks only),
+# or list exact private URLs that are allowed
+MCP_ALLOW_PRIVATE_URLS=false
+MCP_ALLOWED_PRIVATE_URLS=
+
+# Local mcpproxy groups behind the mcp_profile presets (optional)
+MCP_PROXY_ALL_URL=http://127.0.0.1:8109/mcp
+MCP_PROXY_PERSONAL_URL=http://127.0.0.1:8110/mcp
+MCP_PROXY_PROFESSIONAL_URL=http://127.0.0.1:8111/mcp
+```
+
+MCP server credentials travel per request in `mcp.servers[].headers`; the server holds no global MCP secret.
+
+## Persona creation (optional)
+
+Only for `POST /personas/generate-image` and the persona CLI:
+
+```txt
+REPLICATE_KEY=
+STABILITY_AI_API_KEY=
+UTFS_KEY=
+APP_ID=
+```
+
+## Local development (optional)
+
+```txt
+# ngrok tunnels for a public hostname during development
+NGROK_AUTHTOKEN=
+```
+
+See [Local development](/docs/speaking-bots/self-hosting/local-development) and [Ngrok setup](/docs/speaking-bots/self-hosting/ngrok-setup).

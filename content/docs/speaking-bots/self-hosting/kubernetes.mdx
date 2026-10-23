@@ -1,0 +1,151 @@
+---
+title: Kubernetes
+description: A single-replica Deployment with a WebSocket-aware ingress, as the hosted API runs it
+icon: Boxes
+---
+
+The hosted API runs on Kubernetes with the manifests below in spirit (a Helm chart with the same shape). Adapt names, hostnames and the ingress class to your cluster.
+
+## What matters
+
+- **`replicas: 1`**, and a `RollingUpdate` with `maxSurge: 1, maxUnavailable: 0` so the API stays reachable through a rollout. The old pod's bots end when it is terminated; `terminationGracePeriodSeconds` only delays that.
+- **The ingress must pass WebSockets** and keep them open for a whole meeting: with ingress-nginx, `proxy-read-timeout` / `proxy-send-timeout` of `3600`.
+- **`BASE_URL` is the ingress hostname**, with TLS. MeetingBaas connects to it from the internet.
+- **State on an `emptyDir`** at `/data` is enough: nothing in it needs to outlive the pod.
+- Readiness on `/ready`, liveness on `/health`. Both answer as soon as uvicorn is up, independently of the Pipecat warm-up the server runs in the background at startup.
+
+## Manifests
+
+```yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: speaking-bot
+type: Opaque
+stringData:
+  ANTHROPIC_API_KEY: "..."
+  OPENAI_API_KEY: "..."
+  DEEPGRAM_API_KEY: "..."
+  CARTESIA_API_KEY: "..."
+  WEBHOOK_SECRET: "..."
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: speaking-bot
+data:
+  PORT: "7014"
+  BASE_URL: "https://speaking.example.com"
+  MEETING_BAAS_API_URL: "https://api.meetingbaas.com"
+  LLM_PROVIDER: "anthropic"
+  ANTHROPIC_MODEL: "claude-haiku-4-5"
+  OPENAI_MODEL: "gpt-5.4-mini"
+  OPENAI_API_SURFACE: "responses"
+  CARTESIA_VOICE_ID: "79a125e8-cd45-4c13-8a67-188112f4dd22"
+  CARTESIA_TTS_SPEED: "1.2"
+  CORS_ALLOW_ORIGINS: "*"
+  SPEAKING_BOT_STATE_DIR: "/data"
+  PROMPT_DATA_ALLOW_PRIVATE_URLS: "false"
+  MCP_ALLOW_PRIVATE_URLS: "false"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: speaking-bot
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: speaking-bot
+  template:
+    metadata:
+      labels:
+        app: speaking-bot
+    spec:
+      terminationGracePeriodSeconds: 60
+      volumes:
+        - name: state
+          emptyDir:
+            sizeLimit: 2Gi
+      containers:
+        - name: speaking-bot
+          image: your-registry/speaking-bot:2026-10-20-abcdef123456
+          ports:
+            - name: http
+              containerPort: 7014
+          envFrom:
+            - configMapRef:
+                name: speaking-bot
+            - secretRef:
+                name: speaking-bot
+          volumeMounts:
+            - name: state
+              mountPath: /data
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: "1"
+              memory: 2Gi
+            limits:
+              cpu: "2"
+              memory: 6Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: speaking-bot
+spec:
+  selector:
+    app: speaking-bot
+  ports:
+    - name: http
+      port: 7014
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: speaking-bot
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: ["speaking.example.com"]
+      secretName: speaking-example-com-tls
+  rules:
+    - host: speaking.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: speaking-bot
+                port:
+                  name: http
+```
+
+## Sizing
+
+Budget about 0.5 vCPU and 600 MB per bot you expect to be in a call at the same time, on top of the ~1 GB the API and the warmed Pipecat imports take. The example above comfortably runs a handful of concurrent bots; for more, raise the limits before adding instances — a second instance needs its own hostname and its own `BASE_URL`.
+
+## Rolling out a new version
+
+A new image tag means a new pod and the end of every bot in a call at that moment. The Deployment uses the `Recreate` strategy on purpose: with a rolling update the old and new pods are briefly ready together, the Service can route a bot's WebSocket to the pod that did not create it, and each pod has its own `/data`, so the bot loses its audio. Deploy in quiet hours, or drain by refusing new `POST /bots` upstream for the length of a meeting first. The hosted API tags release images `<YYYY-MM-DD>-vX.Y.Z`; `GET /ready` reports the running tag as `version`, which is a quick way to confirm what a host is running.

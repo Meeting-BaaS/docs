@@ -1,0 +1,64 @@
+---
+title: Ngrok setup
+description: Give a local server the public hostname MeetingBaas needs to stream audio to it
+icon: Globe
+---
+
+MeetingBaas streams meeting audio *to* the server, so even a laptop run needs a public `https://` URL. ngrok is the quickest way to get one; local-dev mode picks the tunnel up automatically.
+
+## Setup
+
+1. Install the ngrok CLI: `brew install ngrok` on macOS, or the [download](https://ngrok.com/download) for your platform
+2. Sign up for a free account at [ngrok.com](https://dashboard.ngrok.com/signup) and copy the token from the [Your Authtoken page](https://dashboard.ngrok.com/get-started/your-authtoken)
+3. Register it with the CLI once; the server does not read it, so it does not belong in `.env`:
+
+```bash
+ngrok config add-authtoken <your token>
+```
+
+## Tunnels
+
+The repository ships a configuration at `config/ngrok/config.yml` with two tunnels, both forwarding to the one server on port `7014`:
+
+```yaml
+version: "2"
+
+tunnels:
+  proxy1:
+    proto: http
+    addr: 7014
+  proxy2:
+    proto: http
+    addr: 7014
+```
+
+Start them together:
+
+```bash
+ngrok start --all --config config/ngrok/config.yml
+```
+
+ngrok's free tier allows two concurrent tunnels, which is why the file defines two: in local-dev mode each tunnel URL is handed to one bot at a time, so you can have two bots in meetings at once from a laptop. Both reach the same server, which tells bots apart by `client_id`. Your own ngrok config lives at `~/.config/ngrok/ngrok.yml` (Linux), `~/Library/Application Support/ngrok/ngrok.yml` (macOS) or `%HOMEPATH%\AppData\Local\ngrok\ngrok.yml` (Windows); `ngrok config check` prints the path in use.
+
+## Run the server in local-dev mode
+
+```bash
+poetry run python app/main.py --local-dev
+```
+
+At startup the server lists the tunnels it found and uses them, in turn, as the public WebSocket URL for each bot. It resolves that URL in this order:
+
+1. `websocket_url` in the request, if set
+2. `BASE_URL` from the environment
+3. an ngrok tunnel, in local-dev mode
+4. the request's own `Host` header (fallback, fine behind a trusted proxy only)
+
+The server logs the winner as `WebSocket URL:` when it sends the bot. `GET /ready` reports `public_base_url` too, but without `BASE_URL` it echoes the host you called it on, so in local-dev mode it says `localhost` rather than the tunnel.
+
+## When the bot joins but stays silent
+
+- The tunnel URL changed (ngrok free URLs rotate on restart) while the server kept the old one: restart the server after restarting ngrok.
+- The server is running without `--local-dev` and without `BASE_URL`: it falls back to the `Host` header, which is `localhost:7014` and unreachable from MeetingBaas. Set `BASE_URL` to the tunnel URL or use `--local-dev`.
+- Both tunnels are in use: a third `POST /bots` is refused with `400 No more ngrok URLs available`. Remove a bot, or skip local-dev mode and set `BASE_URL` to one tunnel URL instead — bots are multiplexed by `client_id` on a single hostname, so one tunnel serves any number of them.
+
+For anything beyond a laptop, set `BASE_URL` to a real hostname instead — see [Self-hosting](/docs/speaking-bots/self-hosting).

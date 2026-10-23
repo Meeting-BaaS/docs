@@ -1,0 +1,40 @@
+---
+title: Bring your own keys
+description: Run a bot on your own LLM, speech-to-text and text-to-speech accounts
+icon: KeyRound
+---
+
+By default the hosted API pays for the model, the transcription and the voice behind every bot. If you would rather use your own provider accounts — for billing, rate limits, data-processing agreements, or a model the server does not have a key for — pass them per bot in `credentials`. One limit to weigh first, especially for a data-processing agreement: the keys live only in the memory of the running API, so if it restarts while the bot is in a call, the bot is respawned on the server's own keys.
+
+```json
+{
+  "meeting_url": "https://meet.google.com/abc-defg-hij",
+  "bot_name": "Analyst",
+  "prompt": "...",
+  "llm_provider": "anthropic",
+  "llm_model": "claude-opus-4-7",
+  "credentials": {
+    "llm_api_key": "sk-ant-...",
+    "stt_api_key": "<Deepgram key>",
+    "tts_api_key": "<Cartesia key>"
+  }
+}
+```
+
+| Key | Provider | Used for |
+|---|---|---|
+| `llm_api_key` | the one in `llm_provider`: OpenAI, Anthropic or Z.ai | the conversation |
+| `stt_api_key` | [Deepgram](https://deepgram.com) | hearing the room |
+| `tts_api_key` | [Cartesia](https://cartesia.ai) | the bot's voice |
+
+Every key is optional. Whatever you leave out falls back to the server's own key, so you can bring only the LLM key and keep speech on MeetingBaas. A key you supply also satisfies the provider check: `llm_provider: "zai"` works with your Z.ai key even when the server has none.
+
+## What happens to the keys
+
+- They are used only by the pipeline process of that one bot, passed to it through its environment, and discarded when the bot leaves.
+- They are never written to disk, never logged, and never returned by any endpoint.
+- Validation errors (`422`) do not echo the request body.
+
+## What stays on the server's keys
+
+The MeetingBaas side (joining, recording, the final transcript) always runs on the MeetingBaas account whose key is in `x-meeting-baas-api-key`. Deriving a persona from a `prompt` and generating persona images also use the server's own OpenAI and Replicate accounts.

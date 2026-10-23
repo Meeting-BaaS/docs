@@ -15,22 +15,30 @@ _openapi:
           MeetingBaas
 
           and processes audio using Pipecat's voice AI framework.
-      - content: bot_image
+      - content: >-
+          meeting_url: URL of the Google Meet, Zoom or Microsoft Teams meeting
+          to join
       - content: 'bot_name: Name to display for the bot in the meeting'
       - content: >-
-          credentials: Bring your own provider keys for this bot (LLM,
-          speech-to-text, text-to-speech). Any key left out falls back to the
-          server's own configuration. Keys are used only by this bot's pipeline
-          and are never stored or returned.
-      - content: enable_tools
+          personas: List of persona names to use. The first available will be
+          selected.
+      - content: bot_image
       - content: entry_message
       - content: extra
+      - content: enable_tools
+      - content: prompt
       - content: >-
-          llm_model: Provider model for this bot. Defaults to provider-specific
-          env vars.
+          websocket_url: Optional public WebSocket base URL override, e.g.
+          wss://bot.example.com
       - content: >-
-          llm_provider: LLM provider for this bot. Defaults to LLM_PROVIDER,
-          then openai.
+          turn_config: Per-bot turn-taking tuning (VAD
+          confidence/start_secs/stop_secs/min_volume)
+      - content: >-
+          prompt_data_sources: External text or URL data sources to append to
+          the bot prompt
+      - content: >-
+          prompt_data_token_limit: Approximate total token cap for loaded
+          prompt_data_sources. 0 disables loading.
       - content: 'mcp: MCP server/tool metadata and optional live connection details'
       - content: >-
           mcp_profile: Optional trusted local mcpproxy group preset.
@@ -46,22 +54,20 @@ _openapi:
           expose upstream_servers, call_tool_destructive, code_execution,
           registry, or quarantine tools.
       - content: >-
-          meeting_url: URL of the Google Meet, Zoom or Microsoft Teams meeting
-          to join
+          llm_provider: LLM provider for this bot. Defaults to LLM_PROVIDER,
+          then openai.
       - content: >-
-          personas: List of persona names to use. The first available will be
-          selected.
-      - content: prompt
+          llm_model: Provider model for this bot. Defaults to provider-specific
+          env vars.
       - content: >-
-          prompt_data_sources: External text or URL data sources to append to
-          the bot prompt
+          speech_speed: TTS speaking speed multiplier between 0.6 and 1.5;
+          values outside are rejected. Defaults to CARTESIA_TTS_SPEED,
+          TTS_SPEED, SPEECH_SPEED, or the runner default.
       - content: >-
-          prompt_data_token_limit: Approximate total token cap for loaded
-          prompt_data_sources. 0 disables loading.
-      - content: >-
-          speech_speed: TTS speaking speed multiplier. Honored range is 0.6-1.5
-          (the runner clamps to it); values outside are rejected. Defaults to
-          CARTESIA_TTS_SPEED, TTS_SPEED, SPEECH_SPEED, or the runner default.
+          credentials: Bring your own provider keys for this bot (LLM,
+          speech-to-text, text-to-speech). Any key left out falls back to the
+          server's own configuration. Keys are used only by this bot's pipeline
+          and are never stored or returned.
       - content: >-
           transcription_enabled: Have MeetingBaas transcribe the recording once
           the meeting ends, with the bot's own turns attributed to it by name.
@@ -69,12 +75,6 @@ _openapi:
       - content: >-
           transcription_provider: MeetingBaas speech-to-text provider for that
           transcript.
-      - content: >-
-          turn_config: Per-bot turn-taking tuning (VAD
-          confidence/start_secs/stop_secs/min_volume)
-      - content: >-
-          websocket_url: Optional public WebSocket base URL override, e.g.
-          wss://bot.example.com
       - content: >-
           bot_id: The MeetingBaas bot ID used for API operations with
           MeetingBaas

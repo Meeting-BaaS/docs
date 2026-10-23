@@ -1,0 +1,109 @@
+---
+title: cURL cookbook
+description: Copy-paste requests for the common things people do with the API
+icon: Terminal
+---
+
+Set these once; every example uses them.
+
+```bash
+API=https://speaking.meetingbaas.com      # or your own server
+KEY=your-meetingbaas-api-key
+```
+
+## A bot from a prompt
+
+```bash
+curl -s -X POST $API/bots \
+  -H "Content-Type: application/json" \
+  -H "x-meeting-baas-api-key: $KEY" \
+  -d '{
+    "meeting_url": "https://meet.google.com/abc-defg-hij",
+    "bot_name": "Vibe",
+    "prompt": "You are Vibe, an upbeat engineer. Keep turns to 2-3 sentences.",
+    "entry_message": "Hey everyone, Vibe here. Let us get into it.",
+    "enable_tools": false
+  }'
+# → 201 {"bot_id":"c804aa7c-cfe3-474c-ac87-a1907fce5db1"}
+```
+
+## A bundled persona
+
+```bash
+curl -s -X POST $API/bots \
+  -H "Content-Type: application/json" \
+  -H "x-meeting-baas-api-key: $KEY" \
+  -d '{"meeting_url": "https://meet.google.com/abc-defg-hij", "personas": ["baas_onboarder"]}'
+```
+
+## A specific model, faster speech, patient turn-taking
+
+```bash
+curl -s -X POST $API/bots -H "Content-Type: application/json" -H "x-meeting-baas-api-key: $KEY" \
+  -d '{
+    "meeting_url": "https://meet.google.com/abc-defg-hij",
+    "bot_name": "Analyst",
+    "prompt": "You are Analyst. Answer in two sentences.",
+    "llm_provider": "openai",
+    "llm_model": "gpt-5.4-mini",
+    "speech_speed": 1.2,
+    "turn_config": {"stop_secs": 1.0}
+  }'
+```
+
+## With documents and an MCP server
+
+```bash
+curl -s -X POST $API/bots -H "Content-Type: application/json" -H "x-meeting-baas-api-key: $KEY" \
+  -d '{
+    "meeting_url": "https://meet.google.com/abc-defg-hij",
+    "bot_name": "Support",
+    "prompt": "You are Support. Use the account notes and the CRM tools.",
+    "prompt_data_sources": [{"name": "Account notes", "type": "url", "url": "https://example.com/acme.md"}],
+    "mcp": {"servers": [{"name": "crm", "transport": "streamable_http", "url": "https://mcp.example.com/mcp",
+                         "headers": {"Authorization": "Bearer ..."}, "tool_allowlist": ["get_account"]}]}
+  }'
+```
+
+## On your own provider keys
+
+```bash
+curl -s -X POST $API/bots -H "Content-Type: application/json" -H "x-meeting-baas-api-key: $KEY" \
+  -d "{
+    \"meeting_url\": \"https://meet.google.com/abc-defg-hij\",
+    \"prompt\": \"You are a concise meeting assistant.\",
+    \"llm_provider\": \"anthropic\",
+    \"credentials\": {\"llm_api_key\": \"$ANTHROPIC_API_KEY\", \"stt_api_key\": \"$DEEPGRAM_API_KEY\", \"tts_api_key\": \"$CARTESIA_API_KEY\"}
+  }"
+```
+
+## Two bots debating
+
+```bash
+for who in "Vibe:FOR" "Skeptic:AGAINST"; do
+  name=${who%%:*}; side=${who##*:}
+  curl -s -X POST $API/bots -H "Content-Type: application/json" -H "x-meeting-baas-api-key: $KEY" \
+    -d "{\"meeting_url\": \"https://meet.google.com/abc-defg-hij\", \"bot_name\": \"$name\",
+         \"entry_message\": \"$name here.\",
+         \"prompt\": \"You are $name. Argue $side shipping on Fridays. 2-3 sentences per turn.\",
+         \"turn_config\": {\"stop_secs\": 1.2}}"
+done
+```
+
+## Status, then remove
+
+```bash
+curl -s https://api.meetingbaas.com/v2/bots/<bot_id>/status -H "x-meeting-baas-api-key: $KEY"
+
+curl -s -X DELETE $API/bots/<bot_id> \
+  -H "Content-Type: application/json" -H "x-meeting-baas-api-key: $KEY" -d '{}'
+```
+
+## Is the server up?
+
+```bash
+curl -s $API/health   # {"status":"ok","version":"...",...}
+curl -s $API/ready    # adds the public base URL the server resolved
+```
+
+Each option is explained in the [guides](/docs/speaking-bots/getting-started/sending-a-bot) and every field in the [reference](/docs/speaking-bots/reference).

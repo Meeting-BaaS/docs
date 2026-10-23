@@ -1,0 +1,69 @@
+---
+title: Self-hosting overview
+description: Run the Speaking Bots server on your own infrastructure
+icon: Server
+---
+
+The server behind the hosted API is open source ([Meeting-Baas/speaking-meeting-bot](https://github.com/Meeting-Baas/speaking-meeting-bot)) and runs anywhere a container runs. Self-host it when you want the bots' speech and language traffic to stay on your providers and your network, or when you want to change the pipeline itself. The bots still join meetings through MeetingBaas with your API key; only the voice pipeline moves.
+
+## What the service is
+
+One FastAPI process on port `7014` that, for every bot:
+
+- creates the bot on MeetingBaas with your caller's key and points its audio stream at **its own public hostname** (`wss://<BASE_URL>/ws/<client_id>`);
+- spawns one **Pipecat child process** for that bot (speech-to-text → LLM → text-to-speech) and bridges audio between it and MeetingBaas;
+- keeps the bot's state (transcript, floor file, ready signal, call summary) in a **state directory** on local disk.
+
+Three consequences shape every deployment:
+
+<Callout type="warn">
+  **Run exactly one replica.** Bot processes, WebSocket connections and floor-control files all live inside the one instance; a second replica behind the same hostname would receive audio for bots it does not know. Scale vertically, or run separate instances under separate hostnames.
+</Callout>
+
+- **A public HTTPS hostname is part of the contract.** MeetingBaas connects *back* to the server for audio, so `BASE_URL` must be reachable from the internet and WebSocket upgrades must pass through whatever sits in front (load balancer, ingress, reverse proxy), with idle timeouts long enough for a meeting.
+- **A restart ends every live bot.** Plan rollouts for quiet hours; there is no draining.
+
+## Requirements
+
+- Linux, Python 3.11 (or the container image), `ffmpeg`
+- Outbound HTTPS to MeetingBaas and to your providers (OpenAI / Anthropic / Z.ai, Deepgram, Cartesia)
+- Roughly 0.5 vCPU and 600 MB of memory per concurrent bot on top of a ~1 GB baseline; the image warms the Pipecat imports at startup so the first bot does not pay a cold start
+- Provider keys: one LLM provider, Deepgram, Cartesia — see [Environment variables](/docs/speaking-bots/self-hosting/environment-variables). Callers may also [bring their own](/docs/speaking-bots/getting-started/bring-your-own-keys), in which case the server's keys are only the fallback
+
+## Run it with Docker
+
+```bash
+git clone https://github.com/Meeting-Baas/speaking-meeting-bot.git
+cd speaking-meeting-bot
+docker build -t speaking-bot .
+
+docker run -d --name speaking-bot -p 7014:7014 \
+  -e BASE_URL=https://speaking.example.com \
+  -e LLM_PROVIDER=anthropic \
+  -e ANTHROPIC_API_KEY=... \
+  -e DEEPGRAM_API_KEY=... \
+  -e CARTESIA_API_KEY=... \
+  -v speaking-bot-state:/data \
+  speaking-bot
+```
+
+The image sets `SPEAKING_BOT_STATE_DIR=/data` and `PORT=7014`; the volume keeps meeting state across a container restart so a bot whose audio reconnects can be respawned — on the server's own provider keys, since per-bot [`credentials`](/docs/speaking-bots/getting-started/bring-your-own-keys) are held only in memory and are not restored. Put a TLS-terminating reverse proxy in front of port 7014 that forwards WebSockets (nginx: `proxy_http_version 1.1`, `Upgrade`/`Connection` headers, `proxy_read_timeout 3600`), and point `BASE_URL` at its public hostname.
+
+Check it:
+
+```bash
+curl -s https://speaking.example.com/ready
+# {"status":"ready","service":"speaking-meeting-bot","version":"...","public_base_url":"https://speaking.example.com",...}
+```
+
+`public_base_url` must be the hostname MeetingBaas can reach; if it shows an internal address, `BASE_URL` is wrong.
+
+## Other ways to run it
+
+- [Kubernetes](/docs/speaking-bots/self-hosting/kubernetes): a single-replica Deployment with an ingress that passes WebSockets — what the hosted API runs on.
+- Bare metal or a VM: `poetry install`, then `poetry run uvicorn app:app --host 0.0.0.0 --port 7014` under systemd with an `EnvironmentFile`; the repo also ships a `flake.nix` dev shell.
+- [Local development](/docs/speaking-bots/self-hosting/local-development) with ngrok for a public hostname.
+
+## Pointing callers at your server
+
+Your server exposes the same API as the hosted one, so the [guides](/docs/speaking-bots/getting-started/sending-a-bot) apply unchanged with `API=https://speaking.example.com`. Callers still authenticate with a MeetingBaas API key; set `MEETING_BAAS_API_URL` if your bots should be created on a MeetingBaas environment other than production.

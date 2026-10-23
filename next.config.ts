@@ -117,11 +117,24 @@ const config: NextConfig = {
       permanent: true,
     }));
 
+    // Speaking Bots: local-setup pages moved under self-hosting when the
+    // section was reorganised around the hosted API.
+    const speakingBotsRedirects = [
+      ['getting-started/set-up', 'self-hosting/local-development'],
+      ['getting-started/environment-variables', 'self-hosting/environment-variables'],
+      ['getting-started/ngrok-setup', 'self-hosting/ngrok-setup'],
+    ].map(([from, to]) => ({
+      source: `/speaking-bots/${from}`,
+      destination: `/speaking-bots/${to}`,
+      permanent: true,
+    }));
+
     return [
       // API v2 legacy path redirects
       ...apiV2BotRedirects,
       ...apiV2CalendarRedirects,
       ...apiV2ZoomRedirects,
+      ...speakingBotsRedirects,
       // Redirect /docs paths to root
       {
         source: '/docs/:path*',
