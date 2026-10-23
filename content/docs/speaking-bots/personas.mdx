@@ -55,7 +55,10 @@ BaaS onboarder speaks with:
 | `image` | Default avatar (`bot_image` in the request overrides it) |
 | `entry_message` | Spoken when admitted, unless the request sets its own |
 | `cartesia_voice_id` | The bot's voice; omit it for the server default |
+| `language_code` | The language the bot listens for (Deepgram speech-to-text); default `en-US` |
 | Every other `*.md` in the folder | Loaded as additional context, each under a "Content from &lt;file&gt;" heading |
+
+There is no retrieval step: every file goes into the prompt on every turn, so keep the knowledge curated and split by topic rather than dumping a manual in.
 
 Write for speech: short sentences, no markdown or code in the prompt, and tell the persona to be concise — everything the model produces is spoken aloud.
 

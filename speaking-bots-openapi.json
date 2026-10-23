@@ -3,7 +3,7 @@
   "info": {
     "title": "Speaking Meeting Bot API",
     "description": "API for deploying AI-powered speaking agents in video meetings. Combines MeetingBaas for meeting connectivity with Pipecat for voice AI processing.",
-    "version": "0.1.0"
+    "version": "2026-10-22-v0.2.0"
   },
   "paths": {
     "/bots": {
