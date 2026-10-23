@@ -4369,7 +4369,7 @@
           },
           "recording_mode": {
             "default": "speaker_view",
-            "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records the entire gallery view (coming soon).\n\nDefault: `speaker_view`",
+            "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records Google Meet's tiled gallery view. Other platforms currently fall back to `speaker_view`.\n\nDefault: `speaker_view`",
             "enum": [
               "audio_only",
               "speaker_view",
@@ -5074,7 +5074,7 @@
               },
               "recording_mode": {
                 "default": "speaker_view",
-                "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records the entire gallery view (coming soon).\n\nDefault: `speaker_view`",
+                "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records Google Meet's tiled gallery view. Other platforms currently fall back to `speaker_view`.\n\nDefault: `speaker_view`",
                 "enum": [
                   "audio_only",
                   "speaker_view",
@@ -5787,7 +5787,7 @@
               },
               "recording_mode": {
                 "default": "speaker_view",
-                "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records the entire gallery view (coming soon).\n\nDefault: `speaker_view`",
+                "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records Google Meet's tiled gallery view. Other platforms currently fall back to `speaker_view`.\n\nDefault: `speaker_view`",
                 "enum": [
                   "audio_only",
                   "speaker_view",
@@ -13514,7 +13514,7 @@
               },
               "recording_mode": {
                 "default": "speaker_view",
-                "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records the entire gallery view (coming soon).\n\nDefault: `speaker_view`",
+                "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records Google Meet's tiled gallery view. Other platforms currently fall back to `speaker_view`.\n\nDefault: `speaker_view`",
                 "enum": [
                   "audio_only",
                   "speaker_view",
@@ -14184,7 +14184,7 @@
               },
               "recording_mode": {
                 "default": "speaker_view",
-                "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records the entire gallery view (coming soon).\n\nDefault: `speaker_view`",
+                "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records Google Meet's tiled gallery view. Other platforms currently fall back to `speaker_view`.\n\nDefault: `speaker_view`",
                 "enum": [
                   "audio_only",
                   "speaker_view",
@@ -15158,7 +15158,7 @@
             "type": "string"
           },
           "recording_mode": {
-            "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records the entire gallery view (coming soon).\n\nDefault: `speaker_view`",
+            "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records Google Meet's tiled gallery view. Other platforms currently fall back to `speaker_view`.\n\nDefault: `speaker_view`",
             "enum": [
               "audio_only",
               "speaker_view",
@@ -15814,7 +15814,7 @@
             "type": "string"
           },
           "recording_mode": {
-            "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records the entire gallery view (coming soon).\n\nDefault: `speaker_view`",
+            "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records Google Meet's tiled gallery view. Other platforms currently fall back to `speaker_view`.\n\nDefault: `speaker_view`",
             "enum": [
               "audio_only",
               "speaker_view",
