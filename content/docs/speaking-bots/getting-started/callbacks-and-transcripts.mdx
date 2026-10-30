@@ -9,13 +9,28 @@ icon: Webhook
 When the API creates a bot it registers its own `/webhook` as the bot's callback URL. MeetingBaas calls it with the bot's status changes; the API uses two of them:
 
 - **`in_call_recording`**: the bot has been admitted. The pipeline is told it may speak, and the entry message goes out. (The API also polls the bot's status for this, so a lost callback only delays the greeting.)
-- **`call_ended`** (and `bot_left`, `meeting_ended`, `complete`): the pipeline stops and, if the bot kept a transcript of its own turns, a short call summary is produced server-side.
+- **`call_ended`** (and `bot_left`, `meeting_ended`, `complete`): the pipeline stops, the usage report is closed, and a [briefing](/docs/speaking-bots/getting-started/representing-someone#the-briefing) is written for bots that asked for one.
 
 `POST /webhook` is not part of the public API and is not for you to call: it only acts on bot IDs the server launched itself, and a self-hosted server can require a shared secret on it (`WEBHOOK_SECRET`, echoed by MeetingBaas in the `x-mb-secret` header).
 
 ## Your own webhooks
 
 Want to be notified yourself? Use the MeetingBaas account-level webhooks: the speaking bot is an ordinary bot on your account, so every event documented under [API v2 webhooks](/docs/api-v2/webhooks) fires for it — `bot.status_change` as it joins and leaves, `bot.completed` with the recording and transcript, `bot.failed`, and so on.
+
+## The bot's own events: `callback_url`
+
+MeetingBaas tells you when the bot joined and left. The speaking API tells you what it did in between. Give it a `callback_url` (and a `callback_secret`) in `POST /bots` and it posts one JSON document per event:
+
+| Event | When | `data` |
+|---|---|---|
+| `speaking_bot.utterance` | each reply the bot spoke | `text`, `started_at`, `ended_at` |
+| `speaking_bot.escalation` | the bot handed a decision back to its owner | `escalation_id`, `question`, `category`, `context` |
+| `speaking_bot.owner_message_delivered` | an owner message or escalation answer was relayed | `message_id`, `type`, `escalation_id` |
+| `speaking_bot.ended` | the call is over | `status`, `reason`, `usage`, `briefing`, `escalations` |
+
+Every delivery carries the event name in `x-speaking-bot-event` and, when a secret was given, `x-speaking-bot-signature: sha256=<hex>`, the HMAC-SHA256 of the exact request body with `callback_secret`. Verify it before trusting the payload. The envelope has `event`, `event_id`, `bot_id` (the MeetingBaas id), `created_at` and `data`.
+
+Delivery is best effort: a `5xx` or a network error is retried three times over about fifteen seconds, a `4xx` is not, and redirects are never followed (a `3xx` counts as a failed delivery, since following it would resend the signed body elsewhere). The transcript, usage and briefing stay retrievable through the API if your endpoint was down. `callback_url` must be `https://` on a public host: loopback, private and link-local addresses are refused, both as written and after DNS resolution.
 
 ## Recording and transcript
 

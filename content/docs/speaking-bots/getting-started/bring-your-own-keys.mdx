@@ -4,7 +4,7 @@ description: Run a bot on your own LLM, speech-to-text and text-to-speech accoun
 icon: KeyRound
 ---
 
-By default the hosted API pays for the model, the transcription and the voice behind every bot. If you would rather use your own provider accounts — for billing, rate limits, data-processing agreements, or a model the server does not have a key for — pass them per bot in `credentials`. One limit to weigh first, especially for a data-processing agreement: the keys live only in the memory of the running API, so if it restarts while the bot is in a call, the bot is respawned on the server's own keys.
+By default the hosted API runs the model, the live transcription and the voice behind every bot on Meeting BaaS provider accounts, and that provider usage is billed to you alongside the bot's meeting time (see [what provider usage costs](#what-provider-usage-costs)). If you would rather use your own provider accounts — for billing, rate limits, data-processing agreements, or a model the server does not have a key for — pass them per bot in `credentials`. One limit to weigh first, especially for a data-processing agreement: the keys live only in the memory of the running API, so if it restarts while the bot is in a call, the bot is respawned on the server's own keys.
 
 ```json
 {
@@ -34,6 +34,34 @@ Every key is optional. Whatever you leave out falls back to the server's own key
 - They are used only by the pipeline process of that one bot, passed to it through its environment, and discarded when the bot leaves.
 - They are never written to disk, never logged, and never returned by any endpoint.
 - Validation errors (`422`) do not echo the request body.
+
+## What provider usage costs
+
+A bot on Meeting BaaS keys is billed for what the providers charged: speech-to-text per second of meeting audio, text-to-speech per character spoken, the language model per token. A bot on your own keys is billed only for its meeting time; the providers bill you directly. You can mix: your LLM key with Meeting BaaS speech, for example.
+
+Every bot keeps a usage report, live during the call and final afterwards:
+
+```bash
+curl -s https://speaking.meetingbaas.com/bots/<bot_id>/usage \
+  -H "x-meeting-baas-api-key: $KEY"
+```
+
+```json
+{
+  "stt_audio_seconds": 1812.4,
+  "tts_characters": 6950,
+  "llm_turns": 14,
+  "llm_prompt_tokens": 61200,
+  "llm_cached_prompt_tokens": 48800,
+  "llm_completion_tokens": 2100,
+  "llm_provider": "openai",
+  "llm_model": "gpt-5.4-mini",
+  "key_sources": { "llm": "caller", "stt": "platform", "tts": "platform" },
+  "duration_seconds": 1830.2
+}
+```
+
+`key_sources` says, per provider, whether that bot ran on a Meeting BaaS key (`platform`, billed to you) or on one you supplied (`caller`, billed by the provider). The same report is delivered in the `speaking_bot.ended` event when you set a `callback_url`. Current provider rates are on the [pricing page](https://meetingbaas.com/pricing).
 
 ## What stays on the server's keys
 
