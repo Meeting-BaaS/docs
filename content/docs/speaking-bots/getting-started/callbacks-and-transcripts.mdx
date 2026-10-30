@@ -30,7 +30,7 @@ MeetingBaas tells you when the bot joined and left. The speaking API tells you w
 
 Every delivery carries the event name in `x-speaking-bot-event` and, when a secret was given, `x-speaking-bot-signature: sha256=<hex>`, the HMAC-SHA256 of the exact request body with `callback_secret`. Verify it before trusting the payload. The envelope has `event`, `event_id`, `bot_id` (the MeetingBaas id), `created_at` and `data`.
 
-Delivery is best effort: a `5xx` or a network error is retried three times over about fifteen seconds, a `4xx` is not. The transcript, usage and briefing stay retrievable through the API if your endpoint was down. `callback_url` must be `https://` on the hosted API.
+Delivery is best effort: a `5xx` or a network error is retried three times over about fifteen seconds, a `4xx` is not, and redirects are never followed (a `3xx` counts as a failed delivery, since following it would resend the signed body elsewhere). The transcript, usage and briefing stay retrievable through the API if your endpoint was down. `callback_url` must be `https://` on a public host: loopback, private and link-local addresses are refused, both as written and after DNS resolution.
 
 ## Recording and transcript
 

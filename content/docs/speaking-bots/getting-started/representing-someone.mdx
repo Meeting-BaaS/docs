@@ -67,7 +67,7 @@ The bot relays it in its own words within a second or two, and a `speaking_bot.o
 
 ## The briefing
 
-With `briefing` set (or implied by `authority` or `callback_url`), the API runs one LLM call when the meeting ends, on the same provider and key the bot spoke with, and writes:
+With `briefing` set (an empty object is enough), the API runs one LLM call when the meeting ends, on the same provider and key the bot spoke with, and writes:
 
 | Key | Contents |
 |---|---|
@@ -84,7 +84,9 @@ curl -s https://speaking.meetingbaas.com/bots/<bot_id>/briefing \
   -H "x-meeting-baas-api-key: $KEY"
 ```
 
-`briefing.language` picks the language it is written in (a BCP-47 tag, default English) and `briefing.instructions` what to focus on. `briefing.enabled: false` switches it off. The same object arrives in the `speaking_bot.ended` event.
+`briefing.language` picks the language it is written in (a BCP-47 tag, default English) and `briefing.instructions` what to focus on. Bots that do not set `briefing` get none: it is an LLM call on a key, and only a bot that asked for it pays for it. The same object arrives in the `speaking_bot.ended` event.
+
+Every per-bot route above answers only to the API key that created the bot; any other key gets a 404.
 
 ## Language
 
