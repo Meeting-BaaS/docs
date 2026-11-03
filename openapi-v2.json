@@ -4369,7 +4369,7 @@
           },
           "recording_mode": {
             "default": "speaker_view",
-            "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records the entire gallery view (coming soon).\n\nDefault: `speaker_view`",
+            "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records Google Meet's tiled gallery view. Other platforms currently fall back to `speaker_view`.\n\nDefault: `speaker_view`",
             "enum": [
               "audio_only",
               "speaker_view",
@@ -5074,7 +5074,7 @@
               },
               "recording_mode": {
                 "default": "speaker_view",
-                "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records the entire gallery view (coming soon).\n\nDefault: `speaker_view`",
+                "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records Google Meet's tiled gallery view. Other platforms currently fall back to `speaker_view`.\n\nDefault: `speaker_view`",
                 "enum": [
                   "audio_only",
                   "speaker_view",
@@ -5787,7 +5787,7 @@
               },
               "recording_mode": {
                 "default": "speaker_view",
-                "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records the entire gallery view (coming soon).\n\nDefault: `speaker_view`",
+                "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records Google Meet's tiled gallery view. Other platforms currently fall back to `speaker_view`.\n\nDefault: `speaker_view`",
                 "enum": [
                   "audio_only",
                   "speaker_view",
@@ -7422,6 +7422,208 @@
                 },
                 "type": "array"
               },
+              "provider_usage": {
+                "anyOf": [
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "billable_cents": {
+                        "description": "Cents on Meeting BaaS keys, passed through at provider cost; 0 when every provider ran on your own keys",
+                        "type": "number"
+                      },
+                      "billed_tokens": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Tokens debited for billable_cents at your token price (null until billed)"
+                      },
+                      "cents_per_token": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Your token price the pass-through was converted at (null until billed)"
+                      },
+                      "llm": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "cached_prompt_tokens": {
+                            "description": "Prompt tokens read back from the provider's cache",
+                            "type": "number"
+                          },
+                          "completion_tokens": {
+                            "description": "Completion tokens",
+                            "type": "number"
+                          },
+                          "cost_cents": {
+                            "description": "List cost in cents at the rate card",
+                            "type": "number"
+                          },
+                          "key_source": {
+                            "description": "Whose key the provider ran on: 'platform' (Meeting BaaS, billed as voice_pipeline tokens) or 'caller' (your own key, not billed here)",
+                            "type": "string"
+                          },
+                          "model": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "description": "Model name as the provider reported it"
+                          },
+                          "prompt_tokens": {
+                            "description": "Prompt tokens, cached ones included",
+                            "type": "number"
+                          },
+                          "provider": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "description": "Language model provider"
+                          },
+                          "turns": {
+                            "description": "Model calls",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "provider",
+                          "model",
+                          "key_source",
+                          "turns",
+                          "prompt_tokens",
+                          "cached_prompt_tokens",
+                          "completion_tokens",
+                          "cost_cents"
+                        ],
+                        "type": "object"
+                      },
+                      "rate_card_version": {
+                        "description": "Rate card the costs were priced with",
+                        "type": "string"
+                      },
+                      "reported_at": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "When the speaking service reported the usage"
+                      },
+                      "stt": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "audio_seconds": {
+                            "description": "Seconds of audio transcribed",
+                            "type": "number"
+                          },
+                          "cost_cents": {
+                            "description": "List cost in cents at the rate card",
+                            "type": "number"
+                          },
+                          "key_source": {
+                            "description": "Whose key the provider ran on: 'platform' (Meeting BaaS, billed as voice_pipeline tokens) or 'caller' (your own key, not billed here)",
+                            "type": "string"
+                          },
+                          "provider": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "description": "Speech-to-text provider"
+                          }
+                        },
+                        "required": [
+                          "provider",
+                          "key_source",
+                          "audio_seconds",
+                          "cost_cents"
+                        ],
+                        "type": "object"
+                      },
+                      "tts": {
+                        "additionalProperties": false,
+                        "properties": {
+                          "characters": {
+                            "description": "Characters spoken",
+                            "type": "number"
+                          },
+                          "cost_cents": {
+                            "description": "List cost in cents at the rate card",
+                            "type": "number"
+                          },
+                          "key_source": {
+                            "description": "Whose key the provider ran on: 'platform' (Meeting BaaS, billed as voice_pipeline tokens) or 'caller' (your own key, not billed here)",
+                            "type": "string"
+                          },
+                          "provider": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "description": "Text-to-speech provider"
+                          },
+                          "requests": {
+                            "description": "Text-to-speech requests",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "provider",
+                          "key_source",
+                          "characters",
+                          "requests",
+                          "cost_cents"
+                        ],
+                        "type": "object"
+                      }
+                    },
+                    "required": [
+                      "stt",
+                      "tts",
+                      "llm",
+                      "billable_cents",
+                      "billed_tokens",
+                      "cents_per_token",
+                      "rate_card_version",
+                      "reported_at"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Voice pipeline usage of a speaking bot (null for other bots, or until the speaking service reports it)"
+              },
               "raw_transcription": {
                 "anyOf": [
                   {
@@ -7545,6 +7747,10 @@
                       "transcription": {
                         "description": "Transcription tokens consumed",
                         "type": "number"
+                      },
+                      "voice_pipeline": {
+                        "description": "Tokens for a speaking bot's voice pipeline (speech-to-text, text-to-speech, language model) on Meeting BaaS provider keys, passed through at provider cost (0 on your own keys)",
+                        "type": "number"
                       }
                     },
                     "required": [
@@ -7553,6 +7759,7 @@
                       "byok_transcription",
                       "streaming_input",
                       "streaming_output",
+                      "voice_pipeline",
                       "total"
                     ],
                     "type": "object"
@@ -7706,6 +7913,7 @@
               "error_code",
               "error_message",
               "tokens",
+              "provider_usage",
               "extra",
               "zoom_config",
               "meet_login_credential_id",
@@ -7971,6 +8179,204 @@
                 },
                 "type": "array"
               },
+              "provider_usage": {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "billable_cents": {
+                        "description": "Cents on Meeting BaaS keys, passed through at provider cost; 0 when every provider ran on your own keys",
+                        "type": "number"
+                      },
+                      "billed_tokens": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Tokens debited for billable_cents at your token price (null until billed)"
+                      },
+                      "cents_per_token": {
+                        "anyOf": [
+                          {
+                            "type": "number"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "Your token price the pass-through was converted at (null until billed)"
+                      },
+                      "llm": {
+                        "properties": {
+                          "cached_prompt_tokens": {
+                            "description": "Prompt tokens read back from the provider's cache",
+                            "type": "number"
+                          },
+                          "completion_tokens": {
+                            "description": "Completion tokens",
+                            "type": "number"
+                          },
+                          "cost_cents": {
+                            "description": "List cost in cents at the rate card",
+                            "type": "number"
+                          },
+                          "key_source": {
+                            "description": "Whose key the provider ran on: 'platform' (Meeting BaaS, billed as voice_pipeline tokens) or 'caller' (your own key, not billed here)",
+                            "type": "string"
+                          },
+                          "model": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "description": "Model name as the provider reported it"
+                          },
+                          "prompt_tokens": {
+                            "description": "Prompt tokens, cached ones included",
+                            "type": "number"
+                          },
+                          "provider": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "description": "Language model provider"
+                          },
+                          "turns": {
+                            "description": "Model calls",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "provider",
+                          "model",
+                          "key_source",
+                          "turns",
+                          "prompt_tokens",
+                          "cached_prompt_tokens",
+                          "completion_tokens",
+                          "cost_cents"
+                        ],
+                        "type": "object"
+                      },
+                      "rate_card_version": {
+                        "description": "Rate card the costs were priced with",
+                        "type": "string"
+                      },
+                      "reported_at": {
+                        "anyOf": [
+                          {
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "When the speaking service reported the usage"
+                      },
+                      "stt": {
+                        "properties": {
+                          "audio_seconds": {
+                            "description": "Seconds of audio transcribed",
+                            "type": "number"
+                          },
+                          "cost_cents": {
+                            "description": "List cost in cents at the rate card",
+                            "type": "number"
+                          },
+                          "key_source": {
+                            "description": "Whose key the provider ran on: 'platform' (Meeting BaaS, billed as voice_pipeline tokens) or 'caller' (your own key, not billed here)",
+                            "type": "string"
+                          },
+                          "provider": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "description": "Speech-to-text provider"
+                          }
+                        },
+                        "required": [
+                          "provider",
+                          "key_source",
+                          "audio_seconds",
+                          "cost_cents"
+                        ],
+                        "type": "object"
+                      },
+                      "tts": {
+                        "properties": {
+                          "characters": {
+                            "description": "Characters spoken",
+                            "type": "number"
+                          },
+                          "cost_cents": {
+                            "description": "List cost in cents at the rate card",
+                            "type": "number"
+                          },
+                          "key_source": {
+                            "description": "Whose key the provider ran on: 'platform' (Meeting BaaS, billed as voice_pipeline tokens) or 'caller' (your own key, not billed here)",
+                            "type": "string"
+                          },
+                          "provider": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ],
+                            "description": "Text-to-speech provider"
+                          },
+                          "requests": {
+                            "description": "Text-to-speech requests",
+                            "type": "number"
+                          }
+                        },
+                        "required": [
+                          "provider",
+                          "key_source",
+                          "characters",
+                          "requests",
+                          "cost_cents"
+                        ],
+                        "type": "object"
+                      }
+                    },
+                    "required": [
+                      "stt",
+                      "tts",
+                      "llm",
+                      "billable_cents",
+                      "billed_tokens",
+                      "cents_per_token",
+                      "rate_card_version",
+                      "reported_at"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Voice pipeline usage of a speaking bot (null for other bots, or until the speaking service reports it)"
+              },
               "raw_transcription": {
                 "anyOf": [
                   {
@@ -8092,6 +8498,10 @@
                       "transcription": {
                         "description": "Transcription tokens consumed",
                         "type": "number"
+                      },
+                      "voice_pipeline": {
+                        "description": "Tokens for a speaking bot's voice pipeline (speech-to-text, text-to-speech, language model) on Meeting BaaS provider keys, passed through at provider cost (0 on your own keys)",
+                        "type": "number"
                       }
                     },
                     "required": [
@@ -8100,6 +8510,7 @@
                       "byok_transcription",
                       "streaming_input",
                       "streaming_output",
+                      "voice_pipeline",
                       "total"
                     ],
                     "type": "object"
@@ -8252,6 +8663,7 @@
               "error_code",
               "error_message",
               "tokens",
+              "provider_usage",
               "extra",
               "zoom_config",
               "meet_login_credential_id",
@@ -10538,6 +10950,10 @@
                         "transcription": {
                           "description": "Transcription tokens consumed",
                           "type": "number"
+                        },
+                        "voice_pipeline": {
+                          "description": "Tokens for a speaking bot's voice pipeline (speech-to-text, text-to-speech, language model) on Meeting BaaS provider keys, passed through at provider cost (0 on your own keys)",
+                          "type": "number"
                         }
                       },
                       "required": [
@@ -10546,6 +10962,7 @@
                         "byok_transcription",
                         "streaming_input",
                         "streaming_output",
+                        "voice_pipeline",
                         "total"
                       ],
                       "type": "object"
@@ -10796,6 +11213,10 @@
                         "transcription": {
                           "description": "Transcription tokens consumed",
                           "type": "number"
+                        },
+                        "voice_pipeline": {
+                          "description": "Tokens for a speaking bot's voice pipeline (speech-to-text, text-to-speech, language model) on Meeting BaaS provider keys, passed through at provider cost (0 on your own keys)",
+                          "type": "number"
                         }
                       },
                       "required": [
@@ -10804,6 +11225,7 @@
                         "byok_transcription",
                         "streaming_input",
                         "streaming_output",
+                        "voice_pipeline",
                         "total"
                       ],
                       "type": "object"
@@ -13514,7 +13936,7 @@
               },
               "recording_mode": {
                 "default": "speaker_view",
-                "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records the entire gallery view (coming soon).\n\nDefault: `speaker_view`",
+                "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records Google Meet's tiled gallery view. Other platforms currently fall back to `speaker_view`.\n\nDefault: `speaker_view`",
                 "enum": [
                   "audio_only",
                   "speaker_view",
@@ -14184,7 +14606,7 @@
               },
               "recording_mode": {
                 "default": "speaker_view",
-                "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records the entire gallery view (coming soon).\n\nDefault: `speaker_view`",
+                "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records Google Meet's tiled gallery view. Other platforms currently fall back to `speaker_view`.\n\nDefault: `speaker_view`",
                 "enum": [
                   "audio_only",
                   "speaker_view",
@@ -15158,7 +15580,7 @@
             "type": "string"
           },
           "recording_mode": {
-            "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records the entire gallery view (coming soon).\n\nDefault: `speaker_view`",
+            "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records Google Meet's tiled gallery view. Other platforms currently fall back to `speaker_view`.\n\nDefault: `speaker_view`",
             "enum": [
               "audio_only",
               "speaker_view",
@@ -15814,7 +16236,7 @@
             "type": "string"
           },
           "recording_mode": {
-            "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records the entire gallery view (coming soon).\n\nDefault: `speaker_view`",
+            "description": "The recording mode of the bot.\n\nDetermines what the bot records during the meeting:\n\n- `speaker_view`: Records the speaker's view (default). Shows the active speaker or presenter.\n- `audio_only`: Records only the audio without video.\n- `gallery_view`: Records Google Meet's tiled gallery view. Other platforms currently fall back to `speaker_view`.\n\nDefault: `speaker_view`",
             "enum": [
               "audio_only",
               "speaker_view",

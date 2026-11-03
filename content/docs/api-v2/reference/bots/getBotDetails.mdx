@@ -64,6 +64,9 @@ _openapi:
           data.participants: List of participants who joined the meeting with
           their names and metadata
       - content: >-
+          data.provider_usage: Voice pipeline usage of a speaking bot (null for
+          other bots, or until the speaking service reports it)
+      - content: >-
           data.raw_transcription: Signed URL to the raw transcription file
           (valid for 4 hours, null if not available)
       - content: 'data.recording_mode: The recording mode used by the bot'
