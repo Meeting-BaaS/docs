@@ -7719,6 +7719,64 @@
                 ],
                 "type": "string"
               },
+              "teams_login": {
+                "anyOf": [
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "credential_id": {
+                        "anyOf": [
+                          {
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "UUID of the Teams login assigned to this bot (null for bots created without a Teams credential)"
+                      },
+                      "fallback_applied": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "True when a Teams credential was assigned but the bot asked in as a guest; null when the join mode is unknown"
+                      },
+                      "mode": {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "signed_in",
+                              "guest"
+                            ],
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "How the bot asked to join: signed_in with the assigned Microsoft 365 account, guest after an anonymous fallback, or null when the bot never reached the waiting room"
+                      }
+                    },
+                    "required": [
+                      "credential_id",
+                      "mode",
+                      "fallback_applied"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Teams sign-in outcome (null for non-Teams platforms). Reported by the bot on the in_waiting_room status."
+              },
               "tokens": {
                 "anyOf": [
                   {
@@ -7917,6 +7975,7 @@
               "extra",
               "zoom_config",
               "meet_login_credential_id",
+              "teams_login",
               "callback_config"
             ],
             "type": "object"
@@ -8471,6 +8530,63 @@
                 ],
                 "type": "string"
               },
+              "teams_login": {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "credential_id": {
+                        "anyOf": [
+                          {
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "UUID of the Teams login assigned to this bot (null for bots created without a Teams credential)"
+                      },
+                      "fallback_applied": {
+                        "anyOf": [
+                          {
+                            "type": "boolean"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "True when a Teams credential was assigned but the bot asked in as a guest; null when the join mode is unknown"
+                      },
+                      "mode": {
+                        "anyOf": [
+                          {
+                            "enum": [
+                              "signed_in",
+                              "guest"
+                            ],
+                            "type": "string"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ],
+                        "description": "How the bot asked to join: signed_in with the assigned Microsoft 365 account, guest after an anonymous fallback, or null when the bot never reached the waiting room"
+                      }
+                    },
+                    "required": [
+                      "credential_id",
+                      "mode",
+                      "fallback_applied"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Teams sign-in outcome (null for non-Teams platforms). Reported by the bot on the in_waiting_room status."
+              },
               "tokens": {
                 "anyOf": [
                   {
@@ -8667,6 +8783,7 @@
               "extra",
               "zoom_config",
               "meet_login_credential_id",
+              "teams_login",
               "callback_config"
             ],
             "type": "object"

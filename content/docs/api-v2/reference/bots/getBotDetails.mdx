@@ -74,6 +74,9 @@ _openapi:
           data.speakers: List of speakers identified in the meeting with their
           names and metadata
       - content: 'data.status: The current status of the bot'
+      - content: >-
+          data.teams_login: Teams sign-in outcome (null for non-Teams
+          platforms). Reported by the bot on the in_waiting_room status.
       - content: 'data.tokens: Token consumption breakdown (null if not yet consumed)'
       - content: >-
           data.transcription: Signed URL to the transcription file (valid for 4
