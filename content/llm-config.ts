@@ -203,13 +203,6 @@ export const categoryConfig: CategoryConfigMap = {
       "./content/docs/speaking-bots/reference/personas/**/*.mdx"
     ]
   },
-  "speaking-bots/system": {
-    "title": "system speaking-bots Reference",
-    "description": "Reference documentation for system in speaking-bots.",
-    "patterns": [
-      "./content/docs/speaking-bots/reference/system/**/*.mdx"
-    ]
-  },
   "transcript-seeker": {
     "title": "Transcript Seeker, the open-source transcription playground",
     "description": "Documentation for the Transcript Seeker transcription playground.",
@@ -357,11 +350,6 @@ export const knownTxtPaths: string[][] = [
     "llms",
     "speaking-bots",
     "personas"
-  ],
-  [
-    "llms",
-    "speaking-bots",
-    "system"
   ],
   [
     "llms",

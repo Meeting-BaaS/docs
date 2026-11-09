@@ -1,6 +1,6 @@
 ---
 title: Conversation tuning
-description: Choose the model, the voice speed and how eagerly the bot takes its turn
+description: Choose the model, the voice, the language, when the bot replies and how eagerly it takes its turn
 icon: SlidersHorizontal
 ---
 
@@ -35,6 +35,36 @@ Text-to-speech is Cartesia; the voice comes from the persona (`cartesia_voice_id
 ```
 
 A `prompt` bot that should sound brisk benefits from both a higher `speech_speed` and an instruction like "answer in two sentences" — the LLM decides how much is said, the speed only how fast.
+
+Two more knobs shape the voice itself:
+
+| Field | Values | Default |
+|---|---|---|
+| `speech_volume` | loudness multiplier between `0.5` and `2.0` | the provider default |
+| `speech_emotion` | a Cartesia sonic-3 emotion tag such as `excited` or `calm` (experimental) | none: the model infers the tone from the text, which Cartesia recommends |
+
+## Language
+
+`language` is the language the bot listens for, as a BCP-47 tag (`en`, `en-NG`, `fr`), or `multi` to let the speech-to-text switch between its multilingual set during the call. It defaults to US English. What the bot says follows the prompt and the voice, so a French-speaking bot needs a French prompt as well.
+
+## When the bot replies
+
+`respond_mode` decides which turns the bot answers:
+
+- `always` (default): every completed turn gets a reply. The right mode for a 1:1 call.
+- `mentioned`: the bot stays quiet until someone says its name, then listens for a short window and answers. The mode for multi-party meetings; it still hears the whole conversation, so when addressed it knows what was said before.
+
+Speech-to-text rarely writes an unusual name the way you spell it. `wake_phrases` lists the other ways the name may be heard — spellings, nicknames, how the transcript tends to render it — and each is also boosted in the recogniser. Up to 10 phrases of at most 40 characters:
+
+```json
+{
+  "bot_name": "Baas",
+  "respond_mode": "mentioned",
+  "wake_phrases": ["Bass", "Bess", "Boss"]
+}
+```
+
+The name itself and its split and joined variants are always accepted, so short, common names need no `wake_phrases` at all.
 
 ## Turn-taking
 

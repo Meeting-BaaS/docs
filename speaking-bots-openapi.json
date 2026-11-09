@@ -1,486 +1,158 @@
 {
-  "openapi": "3.1.0",
-  "info": {
-    "title": "Speaking Meeting Bot API",
-    "description": "API for deploying AI-powered speaking agents in video meetings. Combines MeetingBaas for meeting connectivity with Pipecat for voice AI processing.",
-    "version": "2026-10-22-v0.2.0"
-  },
-  "paths": {
-    "/bots": {
-      "post": {
-        "tags": [
-          "bots"
-        ],
-        "summary": "Join Meeting",
-        "description": "Create and deploy a speaking bot in a meeting.\n\nLaunches an AI-powered bot that joins a video meeting through MeetingBaas\nand processes audio using Pipecat's voice AI framework.",
-        "operationId": "join_meeting_bots_post",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/BotRequest"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "201": {
-            "description": "Bot successfully created and joined the meeting",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/JoinResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request - Missing required fields or invalid data"
-          },
-          "500": {
-            "description": "Server error - Failed to create bot through MeetingBaas API"
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/bots/{bot_id}": {
-      "delete": {
-        "tags": [
-          "bots"
-        ],
-        "summary": "Leave Bot",
-        "description": "Remove a bot from a meeting by its ID.\n\nThis will:\n1. Call the MeetingBaas API to make the bot leave\n2. Close WebSocket connections if they exist\n3. Terminate the associated Pipecat process",
-        "operationId": "leave_bot_bots__bot_id__delete",
-        "parameters": [
-          {
-            "name": "bot_id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "title": "Bot Id"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/LeaveBotRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Bot successfully removed from meeting",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "additionalProperties": true,
-                  "title": "Response Leave Bot Bots  Bot Id  Delete"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request - Missing required fields or identifiers"
-          },
-          "404": {
-            "description": "Bot not found - No bot with the specified ID"
-          },
-          "500": {
-            "description": "Server error - Failed to remove bot from MeetingBaas API"
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/personas/generate-image": {
-      "post": {
-        "tags": [
-          "personas"
-        ],
-        "summary": "Generate Persona Image",
-        "description": "Generate an image for a persona using Replicate.",
-        "operationId": "generate_persona_image_personas_generate_image_post",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/PersonaImageRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Image successfully generated",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/PersonaImageResponse"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Invalid request data"
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
   "components": {
     "schemas": {
+      "AcceptedResponse": {
+        "description": "The message was queued for the bot.",
+        "properties": {
+          "message_id": {
+            "title": "Message Id",
+            "type": "string"
+          },
+          "ok": {
+            "default": true,
+            "title": "Ok",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "message_id"
+        ],
+        "title": "AcceptedResponse",
+        "type": "object"
+      },
+      "AuthorityConfig": {
+        "additionalProperties": false,
+        "description": "What the bot may say on its owner's behalf, and what it must hand back.\n\nTurns the persona into a representative: it introduces itself as an AI\nattending for ``owner_name``, states only ``approved_positions``, raises an\nescalation (and tells the room it is checking) for anything in\n``escalate_on``, and never does what ``forbidden`` lists. Spending,\ncommitments and deadline changes are escalated even when not listed.",
+        "properties": {
+          "approved_positions": {
+            "description": "Positions the bot may state, in the owner's words",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Approved Positions",
+            "type": "array"
+          },
+          "escalate_on": {
+            "description": "Decisions that must go back to the owner before any answer",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Escalate On",
+            "type": "array"
+          },
+          "forbidden": {
+            "description": "Things the bot must never say or do, even if asked",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Forbidden",
+            "type": "array"
+          },
+          "owner_name": {
+            "description": "Who the bot represents",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Owner Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "owner_name"
+        ],
+        "title": "AuthorityConfig",
+        "type": "object"
+      },
       "BotCredentials": {
+        "additionalProperties": false,
+        "description": "Bring-your-own provider keys for one bot.\n\nEvery field is optional; a key that is not supplied falls back to the\nserver's own configuration. Keys are handed to this bot's pipeline process\nonly, are never written to disk or logs, and are never returned by the API.",
         "properties": {
           "llm_api_key": {
             "anyOf": [
               {
-                "type": "string",
-                "minLength": 1,
                 "format": "password",
+                "minLength": 1,
+                "type": "string",
                 "writeOnly": true
               },
               {
                 "type": "null"
               }
             ],
+            "description": "API key for the LLM provider selected by llm_provider (OpenAI, Anthropic or Z.ai).",
             "format": "password",
             "title": "Llm Api Key",
-            "description": "API key for the LLM provider selected by llm_provider (OpenAI, Anthropic or Z.ai).",
             "writeOnly": true
           },
           "stt_api_key": {
             "anyOf": [
               {
-                "type": "string",
-                "minLength": 1,
                 "format": "password",
+                "minLength": 1,
+                "type": "string",
                 "writeOnly": true
               },
               {
                 "type": "null"
               }
             ],
+            "description": "Deepgram API key for speech-to-text.",
             "format": "password",
             "title": "Stt Api Key",
-            "description": "Deepgram API key for speech-to-text.",
             "writeOnly": true
           },
           "tts_api_key": {
             "anyOf": [
               {
-                "type": "string",
-                "minLength": 1,
                 "format": "password",
+                "minLength": 1,
+                "type": "string",
                 "writeOnly": true
               },
               {
                 "type": "null"
               }
             ],
+            "description": "Cartesia API key for text-to-speech.",
             "format": "password",
             "title": "Tts Api Key",
-            "description": "Cartesia API key for text-to-speech.",
             "writeOnly": true
           }
         },
-        "additionalProperties": false,
-        "type": "object",
         "title": "BotCredentials",
-        "description": "Bring-your-own provider keys for one bot.\n\nEvery field is optional; a key that is not supplied falls back to the\nserver's own configuration. Keys are handed to this bot's pipeline process\nonly, are never written to disk or logs, and are never returned by the API."
+        "type": "object"
       },
       "BotRequest": {
-        "properties": {
-          "meeting_url": {
-            "type": "string",
-            "title": "Meeting Url",
-            "description": "URL of the Google Meet, Zoom or Microsoft Teams meeting to join"
-          },
-          "bot_name": {
-            "type": "string",
-            "title": "Bot Name",
-            "description": "Name to display for the bot in the meeting",
-            "default": ""
-          },
-          "personas": {
-            "anyOf": [
-              {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array",
-                "maxItems": 10
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Personas",
-            "description": "List of persona names to use. The first available will be selected."
-          },
-          "bot_image": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Bot Image"
-          },
-          "entry_message": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Entry Message"
-          },
-          "extra": {
-            "anyOf": [
-              {
-                "additionalProperties": true,
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Extra"
-          },
-          "enable_tools": {
-            "type": "boolean",
-            "title": "Enable Tools",
-            "default": true
-          },
-          "prompt": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Prompt"
-          },
-          "websocket_url": {
-            "anyOf": [
-              {
-                "type": "string"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Websocket Url",
-            "description": "Optional public WebSocket base URL override, e.g. wss://bot.example.com"
-          },
-          "turn_config": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/TurnConfig"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "Per-bot turn-taking tuning (VAD confidence/start_secs/stop_secs/min_volume)"
-          },
-          "prompt_data_sources": {
-            "anyOf": [
-              {
-                "items": {
-                  "$ref": "#/components/schemas/PromptDataSource"
-                },
-                "type": "array",
-                "maxItems": 10
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Prompt Data Sources",
-            "description": "External text or URL data sources to append to the bot prompt"
-          },
-          "prompt_data_token_limit": {
-            "type": "integer",
-            "maximum": 50000.0,
-            "minimum": 0.0,
-            "title": "Prompt Data Token Limit",
-            "description": "Approximate total token cap for loaded prompt_data_sources. 0 disables loading.",
-            "default": 4000
-          },
-          "mcp": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/MCPConfig"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "MCP server/tool metadata and optional live connection details"
-          },
-          "mcp_profile": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "professional",
-                  "personal",
-                  "all"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Mcp Profile",
-            "description": "Optional trusted local mcpproxy group preset. 'professional' connects to MCP_PROXY_PROFESSIONAL_URL or http://127.0.0.1:8111/mcp; 'personal' connects to MCP_PROXY_PERSONAL_URL or http://127.0.0.1:8110/mcp; 'all' connects to MCP_PROXY_ALL_URL or http://127.0.0.1:8109/mcp. The preset is merged with explicit mcp servers when both are supplied."
-          },
-          "mcp_profile_tool_access": {
-            "type": "string",
-            "enum": [
-              "read_only",
-              "read_write"
-            ],
-            "title": "Mcp Profile Tool Access",
-            "description": "Tool exposure for mcp_profile presets. 'read_only' exposes retrieve_tools, call_tool_read, read_cache, and set_profile. 'read_write' also exposes call_tool_write. Presets never expose upstream_servers, call_tool_destructive, code_execution, registry, or quarantine tools.",
-            "default": "read_only"
-          },
-          "llm_provider": {
-            "anyOf": [
-              {
-                "type": "string",
-                "enum": [
-                  "openai",
-                  "anthropic",
-                  "zai"
-                ]
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Llm Provider",
-            "description": "LLM provider for this bot. Defaults to LLM_PROVIDER, then openai."
-          },
-          "llm_model": {
-            "anyOf": [
-              {
-                "type": "string",
-                "maxLength": 120,
-                "minLength": 1
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Llm Model",
-            "description": "Provider model for this bot. Defaults to provider-specific env vars."
-          },
-          "speech_speed": {
-            "anyOf": [
-              {
-                "type": "number",
-                "maximum": 1.5,
-                "minimum": 0.6
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Speech Speed",
-            "description": "TTS speaking speed multiplier between 0.6 and 1.5; values outside are rejected. Defaults to CARTESIA_TTS_SPEED, TTS_SPEED, SPEECH_SPEED, or the runner default."
-          },
-          "credentials": {
-            "anyOf": [
-              {
-                "$ref": "#/components/schemas/BotCredentials"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "description": "Bring your own provider keys for this bot (LLM, speech-to-text, text-to-speech). Any key left out falls back to the server's own configuration. Keys are used only by this bot's pipeline and are never stored or returned."
-          },
-          "transcription_enabled": {
-            "type": "boolean",
-            "title": "Transcription Enabled",
-            "description": "Have MeetingBaas transcribe the recording once the meeting ends, with the bot's own turns attributed to it by name. Set false for a recording without a transcript.",
-            "default": true
-          },
-          "transcription_provider": {
-            "type": "string",
-            "enum": [
-              "gladia",
-              "deepgram",
-              "assemblyai",
-              "speechmatics",
-              "soniox"
-            ],
-            "title": "Transcription Provider",
-            "description": "MeetingBaas speech-to-text provider for that transcript.",
-            "default": "gladia"
-          }
-        },
         "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "meeting_url"
-        ],
-        "title": "BotRequest",
         "description": "Request model for creating a speaking bot in a meeting.",
         "example": {
+          "authority": {
+            "approved_positions": [
+              "Ada supports option B for the vendor choice"
+            ],
+            "escalate_on": [
+              "any spending above 500 dollars"
+            ],
+            "forbidden": [
+              "agreeing to new deadlines"
+            ],
+            "owner_name": "Ada Okafor"
+          },
           "bot_image": "https://example.com/bot-avatar.png",
           "bot_name": "Meeting Assistant",
+          "briefing": {
+            "language": "en"
+          },
+          "callback_url": "https://app.example.com/hooks/speaking-bot",
           "enable_tools": true,
           "entry_message": "Hello! I'm here to assist with the meeting.",
           "extra": {
             "company": "ACME Corp",
             "meeting_purpose": "Weekly sync"
           },
+          "language": "en",
           "llm_model": "claude-opus-4-8",
           "llm_provider": "anthropic",
           "mcp": {
@@ -518,7 +190,617 @@
           "prompt_data_token_limit": 3000,
           "speech_speed": 1.15,
           "websocket_url": "wss://bots.example.com"
-        }
+        },
+        "properties": {
+          "authority": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AuthorityConfig"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Make the bot a representative: who it attends for, what it may say, what it must escalate. Adds the escalate_to_owner tool and switches off unprompted speech."
+          },
+          "bot_image": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bot Image"
+          },
+          "bot_name": {
+            "default": "",
+            "description": "Name to display for the bot in the meeting",
+            "title": "Bot Name",
+            "type": "string"
+          },
+          "briefing": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BriefingConfig"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Post-meeting briefing settings. Only bots that set this (even empty) get a briefing, in the call-end event and at GET /bots/{bot_id}/briefing."
+          },
+          "callback_secret": {
+            "anyOf": [
+              {
+                "format": "password",
+                "minLength": 1,
+                "type": "string",
+                "writeOnly": true
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Shared secret used to sign callback_url deliveries (x-speaking-bot-signature: sha256=<HMAC of the body>).",
+            "format": "password",
+            "title": "Callback Secret",
+            "writeOnly": true
+          },
+          "callback_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Where this API posts the bot's own events: each utterance it speaks, each escalation to its owner, and the end of the call with the usage report and briefing. An https URL on a public host; signed with callback_secret when one is given. Redirects are not followed.",
+            "title": "Callback Url"
+          },
+          "credentials": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/BotCredentials"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Bring your own provider keys for this bot (LLM, speech-to-text, text-to-speech). Any key left out falls back to the server's own configuration. Keys are used only by this bot's pipeline and are never stored or returned."
+          },
+          "enable_tools": {
+            "default": true,
+            "title": "Enable Tools",
+            "type": "boolean"
+          },
+          "entry_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Entry Message"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extra"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "pattern": "^(multi|[a-z]{2,3}(-[A-Za-z0-9]{2,8})*)$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Language the bot listens for, as a BCP-47 tag (en, en-NG, fr), or 'multi' to let Deepgram switch between its multilingual set during the call. Defaults to en-US.",
+            "title": "Language"
+          },
+          "llm_model": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Provider model for this bot. Defaults to provider-specific env vars.",
+            "title": "Llm Model"
+          },
+          "llm_provider": {
+            "anyOf": [
+              {
+                "enum": [
+                  "openai",
+                  "anthropic",
+                  "zai"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "LLM provider for this bot. Defaults to LLM_PROVIDER, then openai.",
+            "title": "Llm Provider"
+          },
+          "mcp": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MCPConfig"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "MCP server/tool metadata and optional live connection details"
+          },
+          "mcp_profile": {
+            "anyOf": [
+              {
+                "enum": [
+                  "professional",
+                  "personal",
+                  "all"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional trusted local mcpproxy group preset. 'professional' connects to MCP_PROXY_PROFESSIONAL_URL or http://127.0.0.1:8111/mcp; 'personal' connects to MCP_PROXY_PERSONAL_URL or http://127.0.0.1:8110/mcp; 'all' connects to MCP_PROXY_ALL_URL or http://127.0.0.1:8109/mcp. The preset is merged with explicit mcp servers when both are supplied.",
+            "title": "Mcp Profile"
+          },
+          "mcp_profile_tool_access": {
+            "default": "read_only",
+            "description": "Tool exposure for mcp_profile presets. 'read_only' exposes retrieve_tools, call_tool_read, read_cache, and set_profile. 'read_write' also exposes call_tool_write. Presets never expose upstream_servers, call_tool_destructive, code_execution, registry, or quarantine tools.",
+            "enum": [
+              "read_only",
+              "read_write"
+            ],
+            "title": "Mcp Profile Tool Access",
+            "type": "string"
+          },
+          "meeting_url": {
+            "description": "URL of the Google Meet, Zoom or Microsoft Teams meeting to join",
+            "title": "Meeting Url",
+            "type": "string"
+          },
+          "personas": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 10,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "List of persona names to use. The first available will be selected.",
+            "title": "Personas"
+          },
+          "prompt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Prompt"
+          },
+          "prompt_data_sources": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PromptDataSource"
+                },
+                "maxItems": 10,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "External text or URL data sources to append to the bot prompt",
+            "title": "Prompt Data Sources"
+          },
+          "prompt_data_token_limit": {
+            "default": 4000,
+            "description": "Approximate total token cap for loaded prompt_data_sources. 0 disables loading.",
+            "maximum": 50000.0,
+            "minimum": 0.0,
+            "title": "Prompt Data Token Limit",
+            "type": "integer"
+          },
+          "respond_mode": {
+            "default": "always",
+            "description": "When the bot replies. 'always': every completed turn gets an answer (good for 1:1 calls). 'mentioned': the bot only hears turns within a short window after someone says its name — the mode for multi-party meetings where it should stay quiet until addressed.",
+            "enum": [
+              "always",
+              "mentioned"
+            ],
+            "title": "Respond Mode",
+            "type": "string"
+          },
+          "speech_emotion": {
+            "anyOf": [
+              {
+                "maxLength": 60,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Emotion tag guiding the TTS tone (Cartesia sonic-3, experimental; 60+ tags such as 'excited', 'calm'). Omit to let the model infer tone from the text, which Cartesia recommends.",
+            "title": "Speech Emotion"
+          },
+          "speech_speed": {
+            "anyOf": [
+              {
+                "maximum": 1.5,
+                "minimum": 0.6,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "TTS speaking speed multiplier between 0.6 and 1.5; values outside are rejected. Defaults to CARTESIA_TTS_SPEED, TTS_SPEED, SPEECH_SPEED, or the runner default.",
+            "title": "Speech Speed"
+          },
+          "speech_volume": {
+            "anyOf": [
+              {
+                "maximum": 2.0,
+                "minimum": 0.5,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "TTS loudness multiplier. Honored range is 0.5-2.0 (Cartesia sonic-3). Omit for the provider default.",
+            "title": "Speech Volume"
+          },
+          "transcription_enabled": {
+            "default": true,
+            "description": "Have MeetingBaas transcribe the recording once the meeting ends, with the bot's own turns attributed to it by name. Set false for a recording without a transcript.",
+            "title": "Transcription Enabled",
+            "type": "boolean"
+          },
+          "transcription_provider": {
+            "default": "gladia",
+            "description": "MeetingBaas speech-to-text provider for that transcript.",
+            "enum": [
+              "gladia",
+              "deepgram",
+              "assemblyai",
+              "speechmatics",
+              "soniox"
+            ],
+            "title": "Transcription Provider",
+            "type": "string"
+          },
+          "turn_config": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TurnConfig"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Per-bot turn-taking tuning (VAD confidence/start_secs/stop_secs/min_volume)"
+          },
+          "wake_phrases": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 10,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Other ways the bot's name may be heard, for respond_mode 'mentioned': spellings, nicknames, how the speech-to-text tends to write it. The name itself, split and joined variants of it, and these are all accepted, and all are boosted in the recogniser. Up to 10 phrases of at most 40 characters each.",
+            "title": "Wake Phrases"
+          },
+          "websocket_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional public WebSocket base URL override, e.g. wss://bot.example.com",
+            "title": "Websocket Url"
+          }
+        },
+        "required": [
+          "meeting_url"
+        ],
+        "title": "BotRequest",
+        "type": "object"
+      },
+      "BriefingAction": {
+        "additionalProperties": true,
+        "properties": {
+          "due": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due"
+          },
+          "owner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Owner"
+          },
+          "task": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task"
+          }
+        },
+        "title": "BriefingAction",
+        "type": "object"
+      },
+      "BriefingConfig": {
+        "additionalProperties": false,
+        "description": "The post-meeting briefing, generated on the bot's own LLM key.",
+        "properties": {
+          "enabled": {
+            "default": true,
+            "description": "Generate a briefing when the call ends",
+            "title": "Enabled",
+            "type": "boolean"
+          },
+          "instructions": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "What the owner wants the briefing to focus on",
+            "title": "Instructions"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "pattern": "^(multi|[a-z]{2,3}(-[A-Za-z0-9]{2,8})*)$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Language the briefing is written in (BCP-47). Defaults to English.",
+            "title": "Language"
+          }
+        },
+        "title": "BriefingConfig",
+        "type": "object"
+      },
+      "BriefingEscalation": {
+        "additionalProperties": true,
+        "properties": {
+          "answer": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer"
+          },
+          "question": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status"
+          }
+        },
+        "title": "BriefingEscalation",
+        "type": "object"
+      },
+      "BriefingReport": {
+        "additionalProperties": true,
+        "description": "The post-meeting briefing for the bot's owner.",
+        "properties": {
+          "actions": {
+            "items": {
+              "$ref": "#/components/schemas/BriefingAction"
+            },
+            "title": "Actions",
+            "type": "array"
+          },
+          "coverage_notes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Coverage Notes",
+            "type": "array"
+          },
+          "decisions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Decisions",
+            "type": "array"
+          },
+          "escalations": {
+            "items": {
+              "$ref": "#/components/schemas/BriefingEscalation"
+            },
+            "title": "Escalations",
+            "type": "array"
+          },
+          "generated_at": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generated At"
+          },
+          "language": {
+            "default": "en",
+            "title": "Language",
+            "type": "string"
+          },
+          "llm_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Model"
+          },
+          "llm_provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Provider"
+          },
+          "summary": {
+            "default": "",
+            "title": "Summary",
+            "type": "string"
+          },
+          "unresolved": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unresolved",
+            "type": "array"
+          },
+          "what_the_representative_said": {
+            "items": {
+              "type": "string"
+            },
+            "title": "What The Representative Said",
+            "type": "array"
+          }
+        },
+        "title": "BriefingReport",
+        "type": "object"
+      },
+      "EscalationResponseRequest": {
+        "additionalProperties": false,
+        "description": "The owner's answer to an escalation the bot raised.",
+        "properties": {
+          "decision": {
+            "anyOf": [
+              {
+                "enum": [
+                  "approved",
+                  "declined",
+                  "deferred",
+                  "info"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "How the owner decided, when it was a yes/no question",
+            "title": "Decision"
+          },
+          "response": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Response",
+            "type": "string"
+          }
+        },
+        "required": [
+          "response"
+        ],
+        "title": "EscalationResponseRequest",
+        "type": "object"
       },
       "HTTPValidationError": {
         "properties": {
@@ -526,29 +808,31 @@
             "items": {
               "$ref": "#/components/schemas/ValidationError"
             },
-            "type": "array",
-            "title": "Detail"
+            "title": "Detail",
+            "type": "array"
           }
         },
-        "type": "object",
-        "title": "HTTPValidationError"
+        "title": "HTTPValidationError",
+        "type": "object"
       },
       "JoinResponse": {
+        "description": "Response model for a bot joining a meeting",
         "properties": {
           "bot_id": {
-            "type": "string",
+            "description": "The MeetingBaas bot ID used for API operations with MeetingBaas",
             "title": "Bot Id",
-            "description": "The MeetingBaas bot ID used for API operations with MeetingBaas"
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "bot_id"
         ],
         "title": "JoinResponse",
-        "description": "Response model for a bot joining a meeting"
+        "type": "object"
       },
       "LeaveBotRequest": {
+        "additionalProperties": false,
+        "description": "Request model for making a bot leave a meeting",
         "properties": {
           "bot_id": {
             "anyOf": [
@@ -559,70 +843,52 @@
                 "type": "null"
               }
             ],
-            "title": "Bot Id",
-            "description": "The MeetingBaas bot ID to remove from the meeting. This will also close the WebSocket connection made through Pipecat by this bot."
+            "description": "The MeetingBaas bot ID to remove from the meeting. This will also close the WebSocket connection made through Pipecat by this bot.",
+            "title": "Bot Id"
           }
         },
-        "additionalProperties": false,
-        "type": "object",
         "title": "LeaveBotRequest",
-        "description": "Request model for making a bot leave a meeting"
+        "type": "object"
       },
       "MCPConfig": {
+        "additionalProperties": false,
+        "description": "Bot-level MCP configuration: the set of servers to expose plus global instructions.",
         "properties": {
-          "servers": {
-            "items": {
-              "$ref": "#/components/schemas/MCPServerConfig"
-            },
-            "type": "array",
-            "maxItems": 10,
-            "title": "Servers",
-            "description": "MCP servers to document and optionally connect for tool calls"
-          },
           "instructions": {
             "anyOf": [
               {
-                "type": "string",
-                "maxLength": 4000
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Instructions",
-            "description": "Global MCP usage instructions for the bot"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "title": "MCPConfig",
-        "description": "Bot-level MCP configuration: the set of servers to expose plus global instructions."
-      },
-      "MCPServerConfig": {
-        "properties": {
-          "name": {
-            "type": "string",
-            "maxLength": 120,
-            "minLength": 1,
-            "title": "Name"
-          },
-          "enabled": {
-            "type": "boolean",
-            "title": "Enabled",
-            "description": "Whether this server may be used. Disabled servers are documented but not connected.",
-            "default": true
-          },
-          "url": {
-            "anyOf": [
-              {
+                "maxLength": 4000,
                 "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Url",
-            "description": "Remote MCP server URL. Required for http, streamable_http, and sse transports."
+            "description": "Global MCP usage instructions for the bot",
+            "title": "Instructions"
+          },
+          "servers": {
+            "description": "MCP servers to document and optionally connect for tool calls",
+            "items": {
+              "$ref": "#/components/schemas/MCPServerConfig"
+            },
+            "maxItems": 10,
+            "title": "Servers",
+            "type": "array"
+          }
+        },
+        "title": "MCPConfig",
+        "type": "object"
+      },
+      "MCPServerConfig": {
+        "additionalProperties": false,
+        "description": "MCP server metadata and optional live connection details.",
+        "properties": {
+          "enabled": {
+            "default": true,
+            "description": "Whether this server may be used. Disabled servers are documented but not connected.",
+            "title": "Enabled",
+            "type": "boolean"
           },
           "headers": {
             "anyOf": [
@@ -636,41 +902,41 @@
                 "type": "null"
               }
             ],
-            "title": "Headers",
-            "description": "Optional HTTP headers for remote MCP servers. Use only when a server requires them."
+            "description": "Optional HTTP headers for remote MCP servers. Use only when a server requires them.",
+            "title": "Headers"
           },
-          "transport": {
+          "instructions": {
             "anyOf": [
               {
-                "type": "string",
-                "enum": [
-                  "http",
-                  "streamable_http",
-                  "sse"
-                ]
+                "maxLength": 4000,
+                "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Transport",
-            "description": "Remote MCP transport. Omit for metadata-only servers that cannot execute tools."
+            "description": "Operator instructions or constraints for this MCP server",
+            "title": "Instructions"
           },
-          "tools": {
+          "name": {
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "timeout_seconds": {
             "anyOf": [
               {
-                "items": {
-                  "type": "string"
-                },
-                "type": "array",
-                "maxItems": 50
+                "maximum": 300.0,
+                "minimum": 0.1,
+                "type": "number"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Tools",
-            "description": "Known tool names exposed by this MCP server"
+            "description": "Optional per-server connection/tool timeout in seconds.",
+            "title": "Timeout Seconds"
           },
           "tool_allowlist": {
             "anyOf": [
@@ -678,121 +944,162 @@
                 "items": {
                   "type": "string"
                 },
-                "type": "array",
-                "maxItems": 50
+                "maxItems": 50,
+                "type": "array"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Tool Allowlist",
-            "description": "Optional allowlist of MCP tool names this bot may call from this server."
+            "description": "Optional allowlist of MCP tool names this bot may call from this server.",
+            "title": "Tool Allowlist"
           },
-          "timeout_seconds": {
+          "tools": {
             "anyOf": [
               {
-                "type": "number",
-                "maximum": 300.0,
-                "minimum": 0.1
+                "items": {
+                  "type": "string"
+                },
+                "maxItems": 50,
+                "type": "array"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Timeout Seconds",
-            "description": "Optional per-server connection/tool timeout in seconds."
+            "description": "Known tool names exposed by this MCP server",
+            "title": "Tools"
           },
-          "instructions": {
+          "transport": {
             "anyOf": [
               {
-                "type": "string",
-                "maxLength": 4000
+                "enum": [
+                  "http",
+                  "streamable_http",
+                  "sse"
+                ],
+                "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Instructions",
-            "description": "Operator instructions or constraints for this MCP server"
+            "description": "Remote MCP transport. Omit for metadata-only servers that cannot execute tools.",
+            "title": "Transport"
+          },
+          "url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Remote MCP server URL. Required for http, streamable_http, and sse transports.",
+            "title": "Url"
           }
         },
-        "additionalProperties": false,
-        "type": "object",
         "required": [
           "name"
         ],
         "title": "MCPServerConfig",
-        "description": "MCP server metadata and optional live connection details."
+        "type": "object"
+      },
+      "OwnerMessageRequest": {
+        "additionalProperties": false,
+        "description": "Something the owner wants the bot to relay to the meeting now.",
+        "properties": {
+          "text": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "OwnerMessageRequest",
+        "type": "object"
       },
       "PersonaImageRequest": {
-        "type": "object",
-        "required": [
-          "name",
-          "description"
-        ],
         "properties": {
-          "name": {
-            "type": "string",
-            "description": "Name of the persona to generate an image for"
+          "characteristics": {
+            "description": "List of specific characteristics or features of the persona",
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
           },
           "description": {
-            "type": "string",
-            "description": "Detailed description of the persona's appearance and characteristics"
+            "description": "Detailed description of the persona's appearance and characteristics",
+            "type": "string"
           },
           "gender": {
-            "type": "string",
             "description": "Gender of the persona (optional)",
             "enum": [
               "male",
               "female",
               "non-binary"
-            ]
+            ],
+            "type": "string"
           },
-          "characteristics": {
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "description": "List of specific characteristics or features of the persona"
+          "name": {
+            "description": "Name of the persona to generate an image for",
+            "type": "string"
           }
-        }
+        },
+        "required": [
+          "name",
+          "description"
+        ],
+        "type": "object"
       },
       "PersonaImageResponse": {
-        "type": "object",
         "properties": {
-          "name": {
-            "type": "string",
-            "description": "Name of the persona"
+          "generated_at": {
+            "description": "Timestamp when the image was generated",
+            "format": "date-time",
+            "type": "string"
           },
           "image_url": {
-            "type": "string",
-            "description": "URL of the generated image"
+            "description": "URL of the generated image",
+            "type": "string"
           },
-          "generated_at": {
-            "type": "string",
-            "format": "date-time",
-            "description": "Timestamp when the image was generated"
+          "name": {
+            "description": "Name of the persona",
+            "type": "string"
           }
-        }
+        },
+        "type": "object"
       },
       "PromptDataSource": {
+        "additionalProperties": false,
+        "description": "External context to append to the bot prompt under a token budget.",
         "properties": {
+          "headers": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional HTTP headers for URL sources. Avoid request-specific secrets unless needed.",
+            "title": "Headers"
+          },
           "name": {
-            "type": "string",
+            "default": "external_context",
+            "description": "Human-readable source name shown inside the prompt context block",
             "maxLength": 120,
             "minLength": 1,
             "title": "Name",
-            "description": "Human-readable source name shown inside the prompt context block",
-            "default": "external_context"
-          },
-          "type": {
-            "type": "string",
-            "enum": [
-              "text",
-              "url"
-            ],
-            "title": "Type",
-            "description": "Whether to load inline text or fetch an external HTTP(S) URL"
+            "type": "string"
           },
           "text": {
             "anyOf": [
@@ -803,8 +1110,31 @@
                 "type": "null"
               }
             ],
-            "title": "Text",
-            "description": "Inline context. Required when type is text."
+            "description": "Inline context. Required when type is text.",
+            "title": "Text"
+          },
+          "token_limit": {
+            "anyOf": [
+              {
+                "maximum": 50000.0,
+                "minimum": 1.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Optional per-source token cap before the request-level cap is applied",
+            "title": "Token Limit"
+          },
+          "type": {
+            "description": "Whether to load inline text or fetch an external HTTP(S) URL",
+            "enum": [
+              "text",
+              "url"
+            ],
+            "title": "Type",
+            "type": "string"
           },
           "url": {
             "anyOf": [
@@ -815,110 +1145,234 @@
                 "type": "null"
               }
             ],
-            "title": "Url",
-            "description": "HTTP(S) URL to fetch. Required when type is url."
-          },
-          "headers": {
-            "anyOf": [
-              {
-                "additionalProperties": {
-                  "type": "string"
-                },
-                "type": "object"
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Headers",
-            "description": "Optional HTTP headers for URL sources. Avoid request-specific secrets unless needed."
-          },
-          "token_limit": {
-            "anyOf": [
-              {
-                "type": "integer",
-                "maximum": 50000.0,
-                "minimum": 1.0
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Token Limit",
-            "description": "Optional per-source token cap before the request-level cap is applied"
+            "description": "HTTP(S) URL to fetch. Required when type is url.",
+            "title": "Url"
           }
         },
-        "additionalProperties": false,
-        "type": "object",
         "required": [
           "type"
         ],
         "title": "PromptDataSource",
-        "description": "External context to append to the bot prompt under a token budget."
+        "type": "object"
       },
       "TurnConfig": {
+        "additionalProperties": false,
+        "description": "Per-bot turn-taking tuning.\n\nAll fields optional; unset fields fall back to the VAD_* / TURN_* env\nvars, then the server defaults (0.2 s stop, 1.5 s unfinished pause). A\nlocal end-of-turn model decides whether the speaker has finished once the\nVAD reports a pause, so stop_secs only needs to catch the pause.\nHuman-facing bots want the defaults; bot-vs-bot meetings want patience\n(higher start_secs and unfinished_pause_secs) so the bots stop barging in\non each other.",
         "properties": {
           "confidence": {
             "anyOf": [
               {
-                "type": "number",
                 "maximum": 1.0,
-                "minimum": 0.0
+                "minimum": 0.0,
+                "type": "number"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Confidence",
-            "description": "VAD speech confidence threshold"
+            "description": "VAD speech confidence threshold",
+            "title": "Confidence"
           },
-          "start_secs": {
+          "min_interrupt_words": {
             "anyOf": [
               {
-                "type": "number",
-                "maximum": 5.0,
-                "minimum": 0.05
+                "maximum": 20.0,
+                "minimum": 0.0,
+                "type": "integer"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Start Secs",
-            "description": "Sustained speech (seconds) before a turn registers"
-          },
-          "stop_secs": {
-            "anyOf": [
-              {
-                "type": "number",
-                "maximum": 10.0,
-                "minimum": 0.1
-              },
-              {
-                "type": "null"
-              }
-            ],
-            "title": "Stop Secs",
-            "description": "Silence (seconds) before the bot considers the speaker done and replies"
+            "description": "Words someone must say before they interrupt the bot mid-sentence; coughs and 'uh-huh's stay below it. 0 interrupts on any speech",
+            "title": "Min Interrupt Words"
           },
           "min_volume": {
             "anyOf": [
               {
-                "type": "number",
                 "maximum": 1.0,
-                "minimum": 0.0
+                "minimum": 0.0,
+                "type": "number"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Min Volume",
-            "description": "Minimum input volume for VAD"
+            "description": "Minimum input volume for VAD",
+            "title": "Min Volume"
+          },
+          "start_secs": {
+            "anyOf": [
+              {
+                "maximum": 5.0,
+                "minimum": 0.05,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Sustained speech (seconds) before a turn registers while the bot is silent; while it speaks, min_interrupt_words decides",
+            "title": "Start Secs"
+          },
+          "stop_secs": {
+            "anyOf": [
+              {
+                "maximum": 10.0,
+                "minimum": 0.1,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Silence (seconds) before the bot checks whether the speaker is done; it replies right away when they are",
+            "title": "Stop Secs"
+          },
+          "unfinished_pause_secs": {
+            "anyOf": [
+              {
+                "maximum": 10.0,
+                "minimum": 0.2,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "When the speaker sounds mid-thought, silence (seconds) after which the bot replies anyway",
+            "title": "Unfinished Pause Secs"
           }
         },
-        "additionalProperties": false,
-        "type": "object",
         "title": "TurnConfig",
-        "description": "Per-bot voice-activity / turn-taking tuning.\n\nAll fields optional; unset fields fall back to the VAD_* env vars, then\npipecat defaults. Human-facing bots want snappy turn-taking (low\nstop_secs); bot-vs-bot meetings want patience (higher stop_secs and\nstart_secs) so the bots stop barging in on each other."
+        "type": "object"
+      },
+      "UsageReport": {
+        "additionalProperties": true,
+        "description": "What one bot consumed on each provider, from Pipecat's usage metrics.",
+        "properties": {
+          "bot_id": {
+            "title": "Bot Id",
+            "type": "string"
+          },
+          "duration_seconds": {
+            "title": "Duration Seconds",
+            "type": "number"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          },
+          "key_sources": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "Per provider: 'platform' (ran on the server's key) or 'caller'",
+            "title": "Key Sources",
+            "type": "object"
+          },
+          "llm_cached_prompt_tokens": {
+            "title": "Llm Cached Prompt Tokens",
+            "type": "integer"
+          },
+          "llm_completion_tokens": {
+            "title": "Llm Completion Tokens",
+            "type": "integer"
+          },
+          "llm_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Model"
+          },
+          "llm_prompt_tokens": {
+            "title": "Llm Prompt Tokens",
+            "type": "integer"
+          },
+          "llm_provider": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Llm Provider"
+          },
+          "llm_total_tokens": {
+            "title": "Llm Total Tokens",
+            "type": "integer"
+          },
+          "llm_turns": {
+            "title": "Llm Turns",
+            "type": "integer"
+          },
+          "meetingbaas_bot_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Meetingbaas Bot Id"
+          },
+          "started_at": {
+            "title": "Started At",
+            "type": "number"
+          },
+          "stt_audio_seconds": {
+            "title": "Stt Audio Seconds",
+            "type": "number"
+          },
+          "stt_provider": {
+            "title": "Stt Provider",
+            "type": "string"
+          },
+          "tts_characters": {
+            "title": "Tts Characters",
+            "type": "integer"
+          },
+          "tts_provider": {
+            "title": "Tts Provider",
+            "type": "string"
+          },
+          "tts_requests": {
+            "title": "Tts Requests",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "bot_id",
+          "stt_provider",
+          "tts_provider",
+          "started_at",
+          "duration_seconds",
+          "stt_audio_seconds",
+          "tts_characters",
+          "tts_requests",
+          "llm_turns",
+          "llm_prompt_tokens",
+          "llm_cached_prompt_tokens",
+          "llm_completion_tokens",
+          "llm_total_tokens"
+        ],
+        "title": "UsageReport",
+        "type": "object"
       },
       "ValidationError": {
         "properties": {
@@ -933,33 +1387,462 @@
                 }
               ]
             },
-            "type": "array",
-            "title": "Location"
+            "title": "Location",
+            "type": "array"
           },
           "msg": {
-            "type": "string",
-            "title": "Message"
+            "title": "Message",
+            "type": "string"
           },
           "type": {
-            "type": "string",
-            "title": "Error Type"
+            "title": "Error Type",
+            "type": "string"
           }
         },
-        "type": "object",
         "required": [
           "loc",
           "msg",
           "type"
         ],
-        "title": "ValidationError"
+        "title": "ValidationError",
+        "type": "object"
       }
     },
     "securitySchemes": {
       "ApiKeyAuth": {
-        "type": "apiKey",
+        "description": "MeetingBaas API key for authentication",
         "in": "header",
         "name": "x-meeting-baas-api-key",
-        "description": "MeetingBaas API key for authentication"
+        "type": "apiKey"
+      }
+    }
+  },
+  "info": {
+    "description": "API for deploying AI-powered speaking agents in video meetings. Combines MeetingBaas for meeting connectivity with Pipecat for voice AI processing.",
+    "title": "Speaking Meeting Bot API",
+    "version": "2026-11-03-v0.3.4"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/bots": {
+      "post": {
+        "description": "Create and deploy a speaking bot in a meeting.\n\nLaunches an AI-powered bot that joins a video meeting through MeetingBaas\nand processes audio using Pipecat's voice AI framework.",
+        "operationId": "join_meeting_bots_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BotRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JoinResponse"
+                }
+              }
+            },
+            "description": "Bot successfully created and joined the meeting"
+          },
+          "400": {
+            "description": "Bad request - Missing required fields or invalid data"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "500": {
+            "description": "Server error - Failed to create bot through MeetingBaas API"
+          }
+        },
+        "summary": "Join Meeting",
+        "tags": [
+          "bots"
+        ]
+      }
+    },
+    "/bots/{bot_id}": {
+      "delete": {
+        "description": "Remove a bot from a meeting by its ID.\n\nThis will:\n1. Call the MeetingBaas API to make the bot leave\n2. Close WebSocket connections if they exist\n3. Terminate the associated Pipecat process",
+        "operationId": "leave_bot_bots__bot_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeaveBotRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Leave Bot Bots  Bot Id  Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Bot successfully removed from meeting"
+          },
+          "400": {
+            "description": "Bad request - Missing required fields or identifiers"
+          },
+          "404": {
+            "description": "Bot not found - No bot with the specified ID"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "500": {
+            "description": "Server error - Failed to remove bot from MeetingBaas API"
+          }
+        },
+        "summary": "Leave Bot",
+        "tags": [
+          "bots"
+        ]
+      }
+    },
+    "/bots/{bot_id}/briefing": {
+      "get": {
+        "description": "The post-meeting briefing: summary, decisions, actions, open items, what the\nbot said and what it escalated. Written once the call ends, on the bot's own\nLLM key; also delivered in the speaking_bot.ended event. Only the API key\nthat created the bot may read it.",
+        "operationId": "get_bot_briefing_bots__bot_id__briefing_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BriefingReport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "No briefing for that bot (yet)"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Bot Briefing",
+        "tags": [
+          "bots"
+        ]
+      }
+    },
+    "/bots/{bot_id}/escalations": {
+      "get": {
+        "description": "The decisions the bot has handed back to its owner during this call.\n\nEach entry carries the question, its category, who asked, and the owner's\nanswer once one was posted. The same list is in the call-end event. Only\nthe API key that created the bot may read it.",
+        "operationId": "list_escalations_bots__bot_id__escalations_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "title": "Response List Escalations Bots  Bot Id  Escalations Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "No live bot with that ID"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Escalations",
+        "tags": [
+          "bots"
+        ]
+      }
+    },
+    "/bots/{bot_id}/escalations/{escalation_id}/response": {
+      "post": {
+        "description": "Answer an escalation the bot raised.\n\nThe bot tells the participants the owner's answer, word for word in\nsubstance, and the escalation is marked answered in the briefing. An\nescalation that is never answered stays open and is reported as\nunresolved; the bot never assumes approval. Only the API key that created\nthe bot may answer.",
+        "operationId": "answer_escalation_bots__bot_id__escalations__escalation_id__response_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "title": "Bot Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "escalation_id",
+            "required": true,
+            "schema": {
+              "title": "Escalation Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EscalationResponseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptedResponse"
+                }
+              }
+            },
+            "description": "Queued; the bot relays the answer to the meeting"
+          },
+          "404": {
+            "description": "No live bot, or no such escalation"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Answer Escalation",
+        "tags": [
+          "bots"
+        ]
+      }
+    },
+    "/bots/{bot_id}/messages": {
+      "post": {
+        "description": "Have the bot relay a message from its owner to the meeting.\n\nFor things that come up while the owner is away: \"tell them I'll join at\nhalf past\", \"we can go with option B\". The bot says it in its own words,\nbriefly, and the text appears in the transcript as its turn. Only the API\nkey that created the bot may use this.",
+        "operationId": "send_owner_message_bots__bot_id__messages_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OwnerMessageRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptedResponse"
+                }
+              }
+            },
+            "description": "Queued; the bot relays it within a second or two"
+          },
+          "404": {
+            "description": "No live bot with that ID"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Send Owner Message",
+        "tags": [
+          "bots"
+        ]
+      }
+    },
+    "/bots/{bot_id}/usage": {
+      "get": {
+        "description": "What the bot has consumed so far on speech-to-text, text-to-speech and the LLM.\n\nLive while the bot is in the call, final once it has left. key_sources says\nper provider whether the bot ran on the server's key (billed by Meeting\nBaaS) or on one the request brought. Only the API key that created the bot\nmay read it.",
+        "operationId": "get_bot_usage_bots__bot_id__usage_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "bot_id",
+            "required": true,
+            "schema": {
+              "title": "Bot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageReport"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "404": {
+            "description": "No usage recorded for that bot yet"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Bot Usage",
+        "tags": [
+          "bots"
+        ]
+      }
+    },
+    "/personas/generate-image": {
+      "post": {
+        "description": "Generate an image for a persona using Replicate.",
+        "operationId": "generate_persona_image_personas_generate_image_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonaImageRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PersonaImageResponse"
+                }
+              }
+            },
+            "description": "Image successfully generated"
+          },
+          "400": {
+            "description": "Invalid request data"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Generate Persona Image",
+        "tags": [
+          "personas"
+        ]
       }
     }
   },
@@ -970,12 +1853,12 @@
   ],
   "servers": [
     {
-      "url": "https://speaking.meetingbaas.com",
-      "description": "Production server"
+      "description": "Production server",
+      "url": "https://speaking.meetingbaas.com"
     },
     {
-      "url": "/",
-      "description": "Local development server"
+      "description": "Local development server",
+      "url": "/"
     }
   ]
 }
