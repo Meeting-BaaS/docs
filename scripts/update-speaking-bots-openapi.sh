@@ -1,4 +1,5 @@
 #!/bin/bash
+set -euo pipefail
 
 # Default to the hosted production service
 API_URL="https://speaking.meetingbaas.com/openapi.json"
@@ -16,13 +17,13 @@ done
 
 echo "Fetching Speaking Bots OpenAPI spec from $API_URL..."
 
-# Create a temporary file for the raw response
+# Create a temporary file for the raw response; both temp files go on every exit path
 TEMP_FILE=$(mktemp)
+trap 'rm -f "$TEMP_FILE" "$TEMP_FILE.formatted"' EXIT
 
 # Fetch the OpenAPI spec (fail on HTTP errors, bound the request)
 if ! curl --fail --silent --show-error --connect-timeout 10 --max-time 60 "$API_URL" > "$TEMP_FILE"; then
   echo "Error: Failed to fetch Speaking Bots OpenAPI spec"
-  rm -f "$TEMP_FILE"
   exit 1
 fi
 
@@ -43,10 +44,8 @@ with open(sys.argv[2], "w") as f:
     json.dump(data, f, indent=2, sort_keys=True, ensure_ascii=False)
 ' "$TEMP_FILE" "$TEMP_FILE.formatted"; then
   mv "$TEMP_FILE.formatted" "$OUTPUT_FILE"
-  rm -f "$TEMP_FILE"
   echo "Speaking Bots OpenAPI spec formatted and saved to $OUTPUT_FILE"
 else
-  rm -f "$TEMP_FILE" "$TEMP_FILE.formatted"
   echo "Error: Speaking Bots OpenAPI spec invalid or failed to format"
   exit 1
 fi
