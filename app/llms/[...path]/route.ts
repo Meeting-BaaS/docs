@@ -260,7 +260,11 @@ export async function GET(request: Request) {
   // Remove /llms/ prefix if present
   const pathWithoutPrefix = pathname.replace(/^\/llms\/?/, '');
   const pathSegments = pathWithoutPrefix ? pathWithoutPrefix.split('/') : [];
-  const category = pathSegments.join('-').toLowerCase();
+  // Nested categories are keyed with a slash (`speaking-bots/events`); the
+  // dash-joined form stays as a fallback for the older single-level links.
+  const slashKey = pathSegments.join('/').toLowerCase();
+  const category =
+    slashKey in typedCategoryConfig ? slashKey : pathSegments.join('-').toLowerCase();
 
   // Handle the root /llms path with an index of available categories
   if (category === '') {
