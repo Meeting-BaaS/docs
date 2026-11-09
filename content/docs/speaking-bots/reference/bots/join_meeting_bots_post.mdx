@@ -16,29 +16,42 @@ _openapi:
 
           and processes audio using Pipecat's voice AI framework.
       - content: >-
-          meeting_url: URL of the Google Meet, Zoom or Microsoft Teams meeting
-          to join
+          authority: Make the bot a representative: who it attends for, what it
+          may say, what it must escalate. Adds the escalate_to_owner tool and
+          switches off unprompted speech.
+      - content: bot_image
       - content: 'bot_name: Name to display for the bot in the meeting'
       - content: >-
-          personas: List of persona names to use. The first available will be
-          selected.
-      - content: bot_image
+          briefing: Post-meeting briefing settings. Only bots that set this
+          (even empty) get a briefing, in the call-end event and at GET
+          /bots/{bot_id}/briefing.
+      - content: >-
+          callback_secret: Shared secret used to sign callback_url deliveries
+          (x-speaking-bot-signature: sha256=<HMAC of the body>).
+      - content: >-
+          callback_url: Where this API posts the bot's own events: each
+          utterance it speaks, each escalation to its owner, and the end of the
+          call with the usage report and briefing. An https URL on a public
+          host; signed with callback_secret when one is given. Redirects are not
+          followed.
+      - content: >-
+          credentials: Bring your own provider keys for this bot (LLM,
+          speech-to-text, text-to-speech). Any key left out falls back to the
+          server's own configuration. Keys are used only by this bot's pipeline
+          and are never stored or returned.
+      - content: enable_tools
       - content: entry_message
       - content: extra
-      - content: enable_tools
-      - content: prompt
       - content: >-
-          websocket_url: Optional public WebSocket base URL override, e.g.
-          wss://bot.example.com
+          language: Language the bot listens for, as a BCP-47 tag (en, en-NG,
+          fr), or 'multi' to let Deepgram switch between its multilingual set
+          during the call. Defaults to en-US.
       - content: >-
-          turn_config: Per-bot turn-taking tuning (VAD
-          confidence/start_secs/stop_secs/min_volume)
+          llm_model: Provider model for this bot. Defaults to provider-specific
+          env vars.
       - content: >-
-          prompt_data_sources: External text or URL data sources to append to
-          the bot prompt
-      - content: >-
-          prompt_data_token_limit: Approximate total token cap for loaded
-          prompt_data_sources. 0 disables loading.
+          llm_provider: LLM provider for this bot. Defaults to LLM_PROVIDER,
+          then openai.
       - content: 'mcp: MCP server/tool metadata and optional live connection details'
       - content: >-
           mcp_profile: Optional trusted local mcpproxy group preset.
@@ -54,20 +67,34 @@ _openapi:
           expose upstream_servers, call_tool_destructive, code_execution,
           registry, or quarantine tools.
       - content: >-
-          llm_provider: LLM provider for this bot. Defaults to LLM_PROVIDER,
-          then openai.
+          meeting_url: URL of the Google Meet, Zoom or Microsoft Teams meeting
+          to join
       - content: >-
-          llm_model: Provider model for this bot. Defaults to provider-specific
-          env vars.
+          personas: List of persona names to use. The first available will be
+          selected.
+      - content: prompt
+      - content: >-
+          prompt_data_sources: External text or URL data sources to append to
+          the bot prompt
+      - content: >-
+          prompt_data_token_limit: Approximate total token cap for loaded
+          prompt_data_sources. 0 disables loading.
+      - content: >-
+          respond_mode: When the bot replies. 'always': every completed turn
+          gets an answer (good for 1:1 calls). 'mentioned': the bot only hears
+          turns within a short window after someone says its name — the mode for
+          multi-party meetings where it should stay quiet until addressed.
+      - content: >-
+          speech_emotion: Emotion tag guiding the TTS tone (Cartesia sonic-3,
+          experimental; 60+ tags such as 'excited', 'calm'). Omit to let the
+          model infer tone from the text, which Cartesia recommends.
       - content: >-
           speech_speed: TTS speaking speed multiplier between 0.6 and 1.5;
           values outside are rejected. Defaults to CARTESIA_TTS_SPEED,
           TTS_SPEED, SPEECH_SPEED, or the runner default.
       - content: >-
-          credentials: Bring your own provider keys for this bot (LLM,
-          speech-to-text, text-to-speech). Any key left out falls back to the
-          server's own configuration. Keys are used only by this bot's pipeline
-          and are never stored or returned.
+          speech_volume: TTS loudness multiplier. Honored range is 0.5-2.0
+          (Cartesia sonic-3). Omit for the provider default.
       - content: >-
           transcription_enabled: Have MeetingBaas transcribe the recording once
           the meeting ends, with the bot's own turns attributed to it by name.
@@ -75,6 +102,18 @@ _openapi:
       - content: >-
           transcription_provider: MeetingBaas speech-to-text provider for that
           transcript.
+      - content: >-
+          turn_config: Per-bot turn-taking tuning (VAD
+          confidence/start_secs/stop_secs/min_volume)
+      - content: >-
+          wake_phrases: Other ways the bot's name may be heard, for respond_mode
+          'mentioned': spellings, nicknames, how the speech-to-text tends to
+          write it. The name itself, split and joined variants of it, and these
+          are all accepted, and all are boosted in the recogniser. Up to 10
+          phrases of at most 40 characters each.
+      - content: >-
+          websocket_url: Optional public WebSocket base URL override, e.g.
+          wss://bot.example.com
       - content: >-
           bot_id: The MeetingBaas bot ID used for API operations with
           MeetingBaas

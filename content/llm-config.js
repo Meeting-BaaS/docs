@@ -185,18 +185,18 @@ export const categoryConfig = {
       "./content/docs/speaking-bots/reference/bots/**/*.mdx"
     ]
   },
+  "speaking-bots/events": {
+    "title": "events speaking-bots Reference",
+    "description": "Reference documentation for events in speaking-bots.",
+    "patterns": [
+      "./content/docs/speaking-bots/reference/events/**/*.mdx"
+    ]
+  },
   "speaking-bots/personas": {
     "title": "personas speaking-bots Reference",
     "description": "Reference documentation for personas in speaking-bots.",
     "patterns": [
       "./content/docs/speaking-bots/reference/personas/**/*.mdx"
-    ]
-  },
-  "speaking-bots/system": {
-    "title": "system speaking-bots Reference",
-    "description": "Reference documentation for system in speaking-bots.",
-    "patterns": [
-      "./content/docs/speaking-bots/reference/system/**/*.mdx"
     ]
   },
   "transcript-seeker": {
@@ -345,12 +345,12 @@ export const knownTxtPaths = [
   [
     "llms",
     "speaking-bots",
-    "personas"
+    "events"
   ],
   [
     "llms",
     "speaking-bots",
-    "system"
+    "personas"
   ],
   [
     "llms",

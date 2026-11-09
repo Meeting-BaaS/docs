@@ -23,12 +23,12 @@ MeetingBaas tells you when the bot joined and left. The speaking API tells you w
 
 | Event | When | `data` |
 |---|---|---|
-| `speaking_bot.utterance` | each reply the bot spoke | `text`, `started_at`, `ended_at` |
-| `speaking_bot.escalation` | the bot handed a decision back to its owner | `escalation_id`, `question`, `category`, `context` |
-| `speaking_bot.owner_message_delivered` | an owner message or escalation answer was relayed | `message_id`, `type`, `escalation_id` |
-| `speaking_bot.ended` | the call is over | `status`, `reason`, `usage`, `briefing`, `escalations` |
+| [`speaking_bot.utterance`](/docs/speaking-bots/reference/events/speaking_bot_utterance) | each reply the bot spoke | `text`, `started_at`, `ended_at` |
+| [`speaking_bot.escalation`](/docs/speaking-bots/reference/events/speaking_bot_escalation) | the bot handed a decision back to its owner | `escalation_id`, `question`, `category`, `context` |
+| [`speaking_bot.owner_message_delivered`](/docs/speaking-bots/reference/events/speaking_bot_owner_message_delivered) | an owner message or escalation answer was relayed | `message_id`, `type`, `escalation_id` |
+| [`speaking_bot.ended`](/docs/speaking-bots/reference/events/speaking_bot_ended) | the call is over | `status`, `reason`, `usage`, `briefing`, `escalations` |
 
-Every delivery carries the event name in `x-speaking-bot-event` and, when a secret was given, `x-speaking-bot-signature: sha256=<hex>`, the HMAC-SHA256 of the exact request body with `callback_secret`. Verify it before trusting the payload. The envelope has `event`, `event_id`, `bot_id` (the MeetingBaas id), `created_at` and `data`.
+Every delivery carries the event name in `x-speaking-bot-event` and, when a secret was given, `x-speaking-bot-signature: sha256=<hex>`, the HMAC-SHA256 of the exact request body with `callback_secret`. Verify it before trusting the payload. The envelope has `event`, `event_id`, `bot_id` (the MeetingBaas id), `client_id`, `created_at` and `data`; each event's reference page shows the full payload schema, and the same `webhooks` section is in the [OpenAPI document](https://speaking.meetingbaas.com/openapi.json) for client generators.
 
 Delivery is best effort: a `5xx` or a network error is retried three times over about fifteen seconds, a `4xx` is not, and redirects are never followed (a `3xx` counts as a failed delivery, since following it would resend the signed body elsewhere). The transcript, usage and briefing stay retrievable through the API if your endpoint was down. `callback_url` must be `https://` on a public host: loopback, private and link-local addresses are refused, both as written and after DNS resolution.
 

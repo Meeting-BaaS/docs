@@ -17,6 +17,11 @@ _openapi:
       - content: >-
           bot_id: The MeetingBaas bot ID to remove from the meeting. This will
           also close the WebSocket connection made through Pipecat by this bot.
+      - content: 'bot_id: The MeetingBaas bot ID that was removed'
+      - content: 'message: What was done'
+      - content: >-
+          status: 'partial' when MeetingBaas refused the leave but the local
+          pipeline was still shut down
       - content: detail
 ---
 

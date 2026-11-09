@@ -37,6 +37,8 @@ You can find them here:
 
 - `/openapi.json` - OpenAPI specification (automatically downloaded from api.meetingbaas.com)
 - `/content/docs/api/reference/` - API reference documentation files
+- `/speaking-bots-openapi.json` - Speaking Bots OpenAPI specification (automatically downloaded from speaking.meetingbaas.com)
+- `/content/docs/speaking-bots/reference/` - Speaking Bots API reference documentation files
 
 ## Running This Repository
 
