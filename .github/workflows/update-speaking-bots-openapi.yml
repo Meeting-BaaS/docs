@@ -1,0 +1,154 @@
+name: Update Speaking Bots OpenAPI Specification
+
+# Same shape as update-openapi.yml, for the hosted speaking bot service at
+# speaking.meetingbaas.com. The spec only changes when a speaking-meeting-bot
+# release reaches prod, so a change here is a release's worth of reference
+# pages: one PR per spec version, deduplicated by checksum.
+
+on:
+  schedule:
+    # Twice a day, offset from update-openapi.yml
+    - cron: '54 6,18 * * *'
+  workflow_dispatch: # Allow manual trigger
+  repository_dispatch:
+    # speaking-meeting-bot can fire this after a prod rollout instead of
+    # waiting for the next scheduled run
+    types:
+      - speaking-bots-released
+  push:
+    branches:
+      - main
+    paths:
+      # Run immediately when the workflow or the fetch script changes on main
+      - '.github/workflows/update-speaking-bots-openapi.yml'
+      - 'scripts/update-speaking-bots-openapi.sh'
+
+# Runs from all triggers mutate the same generated files, branch, and PR;
+# serialize them. Never cancel a run that may already be writing.
+concurrency:
+  group: update-speaking-bots-openapi
+  cancel-in-progress: false
+
+jobs:
+  update-speaking-bots-openapi:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Need full history for branch creation
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          run_install: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Fetch and format the Speaking Bots OpenAPI spec
+        id: fetch-spec
+        run: |
+          # Fetch and format the spec in place, using the same script as local
+          # development so the committed formatting never churns
+          if ! bash scripts/update-speaking-bots-openapi.sh; then
+            echo "Error: Failed to download the Speaking Bots OpenAPI specification"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            exit 1
+          fi
+
+          if git diff --quiet -- speaking-bots-openapi.json; then
+            echo "No changes detected in the Speaking Bots OpenAPI spec"
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected in the Speaking Bots OpenAPI spec"
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+
+            # Checksum over the formatted spec for PR deduplication
+            CHECKSUM=$(sha256sum speaking-bots-openapi.json | cut -d' ' -f1)
+            echo "checksum=$CHECKSUM" >> $GITHUB_OUTPUT
+
+            SPEC_VERSION=$(jq -r '.info.version // "unknown"' speaking-bots-openapi.json)
+            echo "spec_version=$SPEC_VERSION" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check for existing PRs
+        if: steps.fetch-spec.outputs.has_changes == 'true'
+        id: check-prs
+        run: |
+          # The checksum in the PR body identifies PRs that already carry this spec
+          CHECKSUM_COMMENT="Speaking-Bots-OpenAPI-Checksum: ${{ steps.fetch-spec.outputs.checksum }}"
+
+          OPEN_PRS=$(gh pr list --json number,title,body --state open --limit 100)
+
+          EXISTING_PR=$(echo "$OPEN_PRS" | jq -r --arg checksum "$CHECKSUM_COMMENT" '.[] | select(.body | contains($checksum)) | .number' | head -n1)
+
+          if [ -n "$EXISTING_PR" ]; then
+            echo "Found existing PR #$EXISTING_PR with the same Speaking Bots OpenAPI changes"
+            echo "create_pr=false" >> $GITHUB_OUTPUT
+            echo "existing_pr=$EXISTING_PR" >> $GITHUB_OUTPUT
+          else
+            echo "No existing PR found with these changes, will create a new one"
+            echo "create_pr=true" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create branch and PR if needed
+        if: steps.fetch-spec.outputs.has_changes == 'true' && steps.check-prs.outputs.create_pr == 'true'
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+
+          TIMESTAMP=$(date +"%Y%m%d%H%M%S")
+          BRANCH_NAME="update-speaking-bots-openapi-$TIMESTAMP"
+          git checkout -b $BRANCH_NAME
+
+          # The spec was already updated in place by the fetch step; regenerate
+          # the reference pages from it
+          pnpm install
+          touch .env
+          pnpm transpile
+          pnpm build:pre
+
+          # Only the spec and its generated reference pages belong in this PR
+          git add speaking-bots-openapi.json
+          git add content/docs/speaking-bots/reference/
+
+          git commit -m "Update Speaking Bots OpenAPI spec (${{ steps.fetch-spec.outputs.spec_version }}) and generated docs - $(date +'%Y-%m-%d %H:%M:%S') [Checksum: ${{ steps.fetch-spec.outputs.checksum }}]"
+
+          git push origin $BRANCH_NAME
+
+          gh pr create \
+            --title "Update Speaking Bots OpenAPI Spec (${{ steps.fetch-spec.outputs.spec_version }}) - $(date +'%Y-%m-%d')" \
+            --body $'This PR updates the Speaking Bots OpenAPI specification from speaking.meetingbaas.com and regenerates the reference pages under `content/docs/speaking-bots/reference/`.\n\nSpec version: '"${{ steps.fetch-spec.outputs.spec_version }}"$'\n\nAutomatically generated by GitHub Actions at '"$(date +'%Y-%m-%d %H:%M:%S')"$'\n\nNew request fields or endpoints may also need a mention in the guides under `content/docs/speaking-bots/getting-started/`; the reference index at `content/docs/speaking-bots/reference/index.mdx` lists the endpoints by hand.\n\nSpeaking-Bots-OpenAPI-Checksum: '"${{ steps.fetch-spec.outputs.checksum }}" \
+            --base "${{ github.event.repository.default_branch }}" \
+            --head "$BRANCH_NAME"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEXT_PUBLIC_ORAMA_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_ORAMA_PROJECT_ID }}
+          NEXT_PUBLIC_ORAMA_API_KEY: ${{ secrets.NEXT_PUBLIC_ORAMA_API_KEY }}
+
+      - name: Comment on existing PR
+        if: steps.fetch-spec.outputs.has_changes == 'true' && steps.check-prs.outputs.create_pr == 'false'
+        run: |
+          gh pr comment ${{ steps.check-prs.outputs.existing_pr }} --body "Workflow ran again on $(date +'%Y-%m-%d %H:%M:%S') and detected the same changes to the Speaking Bots OpenAPI spec. No new PR needed."
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build project with updated spec
+        if: steps.fetch-spec.outputs.has_changes == 'true' && steps.check-prs.outputs.create_pr == 'true'
+        run: |
+          pnpm install
+          touch .env
+          pnpm fumadocs-mdx
+          pnpm build
+        env:
+          NEXT_PUBLIC_ORAMA_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_ORAMA_PROJECT_ID }}
+          NEXT_PUBLIC_ORAMA_API_KEY: ${{ secrets.NEXT_PUBLIC_ORAMA_API_KEY }}
+          ORAMA_PRIVATE_API_KEY: ${{ secrets.ORAMA_PRIVATE_API_KEY }}
+          ORAMA_SEARCH_INDEX_ID: ${{ secrets.ORAMA_SEARCH_INDEX_ID }}
+          ORAMA_AI_INDEX_ID: ${{ secrets.ORAMA_AI_INDEX_ID }}
