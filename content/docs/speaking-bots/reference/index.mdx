@@ -16,4 +16,11 @@ Generated from the service's live OpenAPI document, also served at [speaking.mee
 - [`GET /bots/{bot_id}/usage`](/docs/speaking-bots/reference/bots/get_bot_usage_bots__bot_id__usage_get): speech-to-text, text-to-speech and LLM usage so far, and whose keys paid for it
 - [`POST /personas/generate-image`](/docs/speaking-bots/reference/personas/generate_persona_image_personas_generate_image_post): generate an avatar for a persona
 
+The events a bot posts to your `callback_url` are documented as webhooks, with the full payload of each:
+
+- [`speaking_bot.utterance`](/docs/speaking-bots/reference/events/speaking_bot_utterance): the bot finished saying something
+- [`speaking_bot.escalation`](/docs/speaking-bots/reference/events/speaking_bot_escalation): a representative bot handed a decision to its owner
+- [`speaking_bot.owner_message_delivered`](/docs/speaking-bots/reference/events/speaking_bot_owner_message_delivered): an owner message or escalation answer was relayed
+- [`speaking_bot.ended`](/docs/speaking-bots/reference/events/speaking_bot_ended): the bot left; carries the usage report, the briefing and every escalation
+
 Every request carries a MeetingBaas API key in `x-meeting-baas-api-key`. The bot is created on that account; its status, recording and transcript come from the [MeetingBaas API](/docs/api-v2) under the returned `bot_id`.
