@@ -4307,7 +4307,7 @@
           },
           "ignored_participant_names": {
             "default": [],
-            "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants matching these names when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging).\n\nBy ignoring other bots' participant names, each bot can correctly detect when human participants have left and leave the meeting rather than remaining indefinitely.",
+            "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants whose name exactly matches one of these (case and surrounding spaces ignored) when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging). For whole-word matching of other notetakers, and to ignore your team's other bots in the same meeting (detect_same_account_bots), use timeout_config.bot_detection.",
             "example": [
               "Sandbox Bot",
               "Staging Bot"
@@ -4603,6 +4603,7 @@
           },
           "timeout_config": {
             "default": {
+              "bot_detection": null,
               "everyone_left_timeout": 30,
               "grace_period": 0,
               "max_recording_duration": null,
@@ -4612,6 +4613,80 @@
             },
             "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. The bot leaves everyone_left_timeout seconds after every other participant has left. Zoom bots that join with Zoom credentials use waiting_room_timeout, no_one_joined_timeout (when nobody else joins) and everyone_left_timeout; browser-based Zoom bots also use silence_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
             "properties": {
+              "bot_detection": {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "activate_after": {
+                        "default": 300,
+                        "description": "Seconds after recording starts before the bot may leave because only bots remain. Participant lists can be wrong in the first minutes of a call (especially on Microsoft Teams), hence the 60-second minimum.\n\nDefault: 300 (5 minutes)\nMinimum: 60\nMaximum: 3600 (1 hour)",
+                        "maximum": 3600,
+                        "minimum": 60,
+                        "type": "integer"
+                      },
+                      "detect_same_account_bots": {
+                        "default": false,
+                        "description": "Treat other bots from your team sent to the same meeting URL as bots, so they do not keep this bot in the call. Off by default.\n\nThe list is taken when this bot is sent, so it covers your bots sent before it. A bot sent later is covered from its side: if it also has detect_same_account_bots enabled, it leaves first, and this bot is then alone and leaves too.\n\nDefault: false",
+                        "type": "boolean"
+                      },
+                      "participant_names": {
+                        "default": {
+                          "match_mode": "word",
+                          "matches": []
+                        },
+                        "properties": {
+                          "match_mode": {
+                            "default": "word",
+                            "description": "How matches are compared to participant names. Only `word` is supported: case-insensitive whole words, in order, where anything that is not a letter or digit separates words. `gong` matches `Gong Recorder`, not `Gongora`; `fireflies` matches `Fireflies.ai Notetaker`; `note taker` matches `Note-Taker`.",
+                            "enum": [
+                              "word"
+                            ],
+                            "type": "string"
+                          },
+                          "matches": {
+                            "default": [],
+                            "description": "Names or keywords that mark a participant as a bot. Up to 50, each 1–200 characters, containing at least one letter or digit (any script) and no NUL character.",
+                            "items": {
+                              "maxLength": 200,
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "maxItems": 50,
+                            "type": "array"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "timeout": {
+                        "default": 30,
+                        "description": "Seconds that only bots must remain (and, on Google Meet and Microsoft Teams, the call must stay silent) before the bot leaves. A human reappearing resets it.\n\nDefault: 30\nMinimum: 10\nMaximum: 1800 (30 minutes)",
+                        "maximum": 1800,
+                        "minimum": 10,
+                        "type": "integer"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Leave sooner when every other participant is a bot. Once a human has been in the call and activate_after seconds of recording have passed, if every remaining participant is a matched bot (participant_names, ignored_participant_names, or, with detect_same_account_bots, another bot from your team) the bot leaves after timeout seconds. On Google Meet and Microsoft Teams the call must also be silent. Applies to Google Meet, Microsoft Teams and Zoom bots that join with Zoom credentials.\n\nOmitted (null): off. Only ignored_participant_names is ignored, with the default 5-minute start delay (Google Meet and Microsoft Teams) and everyone_left_timeout.",
+                "example": {
+                  "activate_after": 120,
+                  "detect_same_account_bots": true,
+                  "participant_names": {
+                    "match_mode": "word",
+                    "matches": [
+                      "notetaker",
+                      "fireflies",
+                      "gong"
+                    ]
+                  },
+                  "timeout": 30
+                }
+              },
               "everyone_left_timeout": {
                 "default": 30,
                 "description": "The timeout in seconds for the bot to wait after every other participant has left before leaving the meeting.\n\nIf the bot is the only participant left for this duration, it will leave the meeting. Participants listed in ignored_participant_names are not counted. Applies to Google Meet, Microsoft Teams and Zoom. Zoom bots that join without Zoom credentials (browser-based) cannot see the participant list and still leave through silence_timeout.\n\nDefault: 30 seconds\nMinimum: 10 seconds\nMaximum: 30 minutes",
@@ -5017,7 +5092,7 @@
               },
               "ignored_participant_names": {
                 "default": [],
-                "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants matching these names when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging).\n\nBy ignoring other bots' participant names, each bot can correctly detect when human participants have left and leave the meeting rather than remaining indefinitely.",
+                "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants whose name exactly matches one of these (case and surrounding spaces ignored) when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging). For whole-word matching of other notetakers, and to ignore your team's other bots in the same meeting (detect_same_account_bots), use timeout_config.bot_detection.",
                 "example": [
                   "Sandbox Bot",
                   "Staging Bot"
@@ -5325,6 +5400,7 @@
               "timeout_config": {
                 "additionalProperties": false,
                 "default": {
+                  "bot_detection": null,
                   "everyone_left_timeout": 30,
                   "grace_period": 0,
                   "max_recording_duration": null,
@@ -5334,6 +5410,92 @@
                 },
                 "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. The bot leaves everyone_left_timeout seconds after every other participant has left. Zoom bots that join with Zoom credentials use waiting_room_timeout, no_one_joined_timeout (when nobody else joins) and everyone_left_timeout; browser-based Zoom bots also use silence_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
                 "properties": {
+                  "bot_detection": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "properties": {
+                          "activate_after": {
+                            "default": 300,
+                            "description": "Seconds after recording starts before the bot may leave because only bots remain. Participant lists can be wrong in the first minutes of a call (especially on Microsoft Teams), hence the 60-second minimum.\n\nDefault: 300 (5 minutes)\nMinimum: 60\nMaximum: 3600 (1 hour)",
+                            "maximum": 3600,
+                            "minimum": 60,
+                            "type": "integer"
+                          },
+                          "detect_same_account_bots": {
+                            "default": false,
+                            "description": "Treat other bots from your team sent to the same meeting URL as bots, so they do not keep this bot in the call. Off by default.\n\nThe list is taken when this bot is sent, so it covers your bots sent before it. A bot sent later is covered from its side: if it also has detect_same_account_bots enabled, it leaves first, and this bot is then alone and leaves too.\n\nDefault: false",
+                            "type": "boolean"
+                          },
+                          "participant_names": {
+                            "additionalProperties": false,
+                            "default": {
+                              "match_mode": "word",
+                              "matches": []
+                            },
+                            "properties": {
+                              "match_mode": {
+                                "default": "word",
+                                "description": "How matches are compared to participant names. Only `word` is supported: case-insensitive whole words, in order, where anything that is not a letter or digit separates words. `gong` matches `Gong Recorder`, not `Gongora`; `fireflies` matches `Fireflies.ai Notetaker`; `note taker` matches `Note-Taker`.",
+                                "enum": [
+                                  "word"
+                                ],
+                                "type": "string"
+                              },
+                              "matches": {
+                                "default": [],
+                                "description": "Names or keywords that mark a participant as a bot. Up to 50, each 1–200 characters, containing at least one letter or digit (any script) and no NUL character.",
+                                "items": {
+                                  "maxLength": 200,
+                                  "minLength": 1,
+                                  "type": "string"
+                                },
+                                "maxItems": 50,
+                                "type": "array"
+                              }
+                            },
+                            "required": [
+                              "matches",
+                              "match_mode"
+                            ],
+                            "type": "object"
+                          },
+                          "timeout": {
+                            "default": 30,
+                            "description": "Seconds that only bots must remain (and, on Google Meet and Microsoft Teams, the call must stay silent) before the bot leaves. A human reappearing resets it.\n\nDefault: 30\nMinimum: 10\nMaximum: 1800 (30 minutes)",
+                            "maximum": 1800,
+                            "minimum": 10,
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "activate_after",
+                          "timeout",
+                          "detect_same_account_bots",
+                          "participant_names"
+                        ],
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Leave sooner when every other participant is a bot. Once a human has been in the call and activate_after seconds of recording have passed, if every remaining participant is a matched bot (participant_names, ignored_participant_names, or, with detect_same_account_bots, another bot from your team) the bot leaves after timeout seconds. On Google Meet and Microsoft Teams the call must also be silent. Applies to Google Meet, Microsoft Teams and Zoom bots that join with Zoom credentials.\n\nOmitted (null): off. Only ignored_participant_names is ignored, with the default 5-minute start delay (Google Meet and Microsoft Teams) and everyone_left_timeout.",
+                    "example": {
+                      "activate_after": 120,
+                      "detect_same_account_bots": true,
+                      "participant_names": {
+                        "match_mode": "word",
+                        "matches": [
+                          "notetaker",
+                          "fireflies",
+                          "gong"
+                        ]
+                      },
+                      "timeout": 30
+                    }
+                  },
                   "everyone_left_timeout": {
                     "default": 30,
                     "description": "The timeout in seconds for the bot to wait after every other participant has left before leaving the meeting.\n\nIf the bot is the only participant left for this duration, it will leave the meeting. Participants listed in ignored_participant_names are not counted. Applies to Google Meet, Microsoft Teams and Zoom. Zoom bots that join without Zoom credentials (browser-based) cannot see the participant list and still leave through silence_timeout.\n\nDefault: 30 seconds\nMinimum: 10 seconds\nMaximum: 30 minutes",
@@ -5396,7 +5558,8 @@
                   "silence_timeout",
                   "everyone_left_timeout",
                   "grace_period",
-                  "max_recording_duration"
+                  "max_recording_duration",
+                  "bot_detection"
                 ],
                 "type": "object"
               },
@@ -5731,7 +5894,7 @@
               },
               "ignored_participant_names": {
                 "default": [],
-                "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants matching these names when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging).\n\nBy ignoring other bots' participant names, each bot can correctly detect when human participants have left and leave the meeting rather than remaining indefinitely.",
+                "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants whose name exactly matches one of these (case and surrounding spaces ignored) when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging). For whole-word matching of other notetakers, and to ignore your team's other bots in the same meeting (detect_same_account_bots), use timeout_config.bot_detection.",
                 "example": [
                   "Sandbox Bot",
                   "Staging Bot"
@@ -6021,6 +6184,7 @@
               },
               "timeout_config": {
                 "default": {
+                  "bot_detection": null,
                   "everyone_left_timeout": 30,
                   "grace_period": 0,
                   "max_recording_duration": null,
@@ -6030,6 +6194,80 @@
                 },
                 "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. The bot leaves everyone_left_timeout seconds after every other participant has left. Zoom bots that join with Zoom credentials use waiting_room_timeout, no_one_joined_timeout (when nobody else joins) and everyone_left_timeout; browser-based Zoom bots also use silence_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
                 "properties": {
+                  "bot_detection": {
+                    "anyOf": [
+                      {
+                        "properties": {
+                          "activate_after": {
+                            "default": 300,
+                            "description": "Seconds after recording starts before the bot may leave because only bots remain. Participant lists can be wrong in the first minutes of a call (especially on Microsoft Teams), hence the 60-second minimum.\n\nDefault: 300 (5 minutes)\nMinimum: 60\nMaximum: 3600 (1 hour)",
+                            "maximum": 3600,
+                            "minimum": 60,
+                            "type": "integer"
+                          },
+                          "detect_same_account_bots": {
+                            "default": false,
+                            "description": "Treat other bots from your team sent to the same meeting URL as bots, so they do not keep this bot in the call. Off by default.\n\nThe list is taken when this bot is sent, so it covers your bots sent before it. A bot sent later is covered from its side: if it also has detect_same_account_bots enabled, it leaves first, and this bot is then alone and leaves too.\n\nDefault: false",
+                            "type": "boolean"
+                          },
+                          "participant_names": {
+                            "default": {
+                              "match_mode": "word",
+                              "matches": []
+                            },
+                            "properties": {
+                              "match_mode": {
+                                "default": "word",
+                                "description": "How matches are compared to participant names. Only `word` is supported: case-insensitive whole words, in order, where anything that is not a letter or digit separates words. `gong` matches `Gong Recorder`, not `Gongora`; `fireflies` matches `Fireflies.ai Notetaker`; `note taker` matches `Note-Taker`.",
+                                "enum": [
+                                  "word"
+                                ],
+                                "type": "string"
+                              },
+                              "matches": {
+                                "default": [],
+                                "description": "Names or keywords that mark a participant as a bot. Up to 50, each 1–200 characters, containing at least one letter or digit (any script) and no NUL character.",
+                                "items": {
+                                  "maxLength": 200,
+                                  "minLength": 1,
+                                  "type": "string"
+                                },
+                                "maxItems": 50,
+                                "type": "array"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "timeout": {
+                            "default": 30,
+                            "description": "Seconds that only bots must remain (and, on Google Meet and Microsoft Teams, the call must stay silent) before the bot leaves. A human reappearing resets it.\n\nDefault: 30\nMinimum: 10\nMaximum: 1800 (30 minutes)",
+                            "maximum": 1800,
+                            "minimum": 10,
+                            "type": "integer"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Leave sooner when every other participant is a bot. Once a human has been in the call and activate_after seconds of recording have passed, if every remaining participant is a matched bot (participant_names, ignored_participant_names, or, with detect_same_account_bots, another bot from your team) the bot leaves after timeout seconds. On Google Meet and Microsoft Teams the call must also be silent. Applies to Google Meet, Microsoft Teams and Zoom bots that join with Zoom credentials.\n\nOmitted (null): off. Only ignored_participant_names is ignored, with the default 5-minute start delay (Google Meet and Microsoft Teams) and everyone_left_timeout.",
+                    "example": {
+                      "activate_after": 120,
+                      "detect_same_account_bots": true,
+                      "participant_names": {
+                        "match_mode": "word",
+                        "matches": [
+                          "notetaker",
+                          "fireflies",
+                          "gong"
+                        ]
+                      },
+                      "timeout": 30
+                    }
+                  },
                   "everyone_left_timeout": {
                     "default": 30,
                     "description": "The timeout in seconds for the bot to wait after every other participant has left before leaving the meeting.\n\nIf the bot is the only participant left for this duration, it will leave the meeting. Participants listed in ignored_participant_names are not counted. Applies to Google Meet, Microsoft Teams and Zoom. Zoom bots that join without Zoom credentials (browser-based) cannot see the participant list and still leave through silence_timeout.\n\nDefault: 30 seconds\nMinimum: 10 seconds\nMaximum: 30 minutes",
@@ -7705,6 +7943,7 @@
                   "call_ended",
                   "recording_succeeded",
                   "recording_failed",
+                  "retrying",
                   "api_request_stop",
                   "bot_rejected",
                   "bot_removed",
@@ -8516,6 +8755,7 @@
                   "call_ended",
                   "recording_succeeded",
                   "recording_failed",
+                  "retrying",
                   "api_request_stop",
                   "bot_rejected",
                   "bot_removed",
@@ -8959,6 +9199,7 @@
                   "call_ended",
                   "recording_succeeded",
                   "recording_failed",
+                  "retrying",
                   "api_request_stop",
                   "bot_rejected",
                   "bot_removed",
@@ -9043,6 +9284,7 @@
                   "call_ended",
                   "recording_succeeded",
                   "recording_failed",
+                  "retrying",
                   "api_request_stop",
                   "bot_rejected",
                   "bot_removed",
@@ -11025,6 +11267,7 @@
                     "call_ended",
                     "recording_succeeded",
                     "recording_failed",
+                    "retrying",
                     "api_request_stop",
                     "bot_rejected",
                     "bot_removed",
@@ -11289,6 +11532,7 @@
                     "call_ended",
                     "recording_succeeded",
                     "recording_failed",
+                    "retrying",
                     "api_request_stop",
                     "bot_rejected",
                     "bot_removed",
@@ -13996,7 +14240,7 @@
               },
               "ignored_participant_names": {
                 "default": [],
-                "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants matching these names when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging).\n\nBy ignoring other bots' participant names, each bot can correctly detect when human participants have left and leave the meeting rather than remaining indefinitely.",
+                "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants whose name exactly matches one of these (case and surrounding spaces ignored) when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging). For whole-word matching of other notetakers, and to ignore your team's other bots in the same meeting (detect_same_account_bots), use timeout_config.bot_detection.",
                 "example": [
                   "Sandbox Bot",
                   "Staging Bot"
@@ -14296,6 +14540,7 @@
               "timeout_config": {
                 "additionalProperties": false,
                 "default": {
+                  "bot_detection": null,
                   "everyone_left_timeout": 30,
                   "grace_period": 0,
                   "max_recording_duration": null,
@@ -14305,6 +14550,92 @@
                 },
                 "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. The bot leaves everyone_left_timeout seconds after every other participant has left. Zoom bots that join with Zoom credentials use waiting_room_timeout, no_one_joined_timeout (when nobody else joins) and everyone_left_timeout; browser-based Zoom bots also use silence_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
                 "properties": {
+                  "bot_detection": {
+                    "anyOf": [
+                      {
+                        "additionalProperties": false,
+                        "properties": {
+                          "activate_after": {
+                            "default": 300,
+                            "description": "Seconds after recording starts before the bot may leave because only bots remain. Participant lists can be wrong in the first minutes of a call (especially on Microsoft Teams), hence the 60-second minimum.\n\nDefault: 300 (5 minutes)\nMinimum: 60\nMaximum: 3600 (1 hour)",
+                            "maximum": 3600,
+                            "minimum": 60,
+                            "type": "integer"
+                          },
+                          "detect_same_account_bots": {
+                            "default": false,
+                            "description": "Treat other bots from your team sent to the same meeting URL as bots, so they do not keep this bot in the call. Off by default.\n\nThe list is taken when this bot is sent, so it covers your bots sent before it. A bot sent later is covered from its side: if it also has detect_same_account_bots enabled, it leaves first, and this bot is then alone and leaves too.\n\nDefault: false",
+                            "type": "boolean"
+                          },
+                          "participant_names": {
+                            "additionalProperties": false,
+                            "default": {
+                              "match_mode": "word",
+                              "matches": []
+                            },
+                            "properties": {
+                              "match_mode": {
+                                "default": "word",
+                                "description": "How matches are compared to participant names. Only `word` is supported: case-insensitive whole words, in order, where anything that is not a letter or digit separates words. `gong` matches `Gong Recorder`, not `Gongora`; `fireflies` matches `Fireflies.ai Notetaker`; `note taker` matches `Note-Taker`.",
+                                "enum": [
+                                  "word"
+                                ],
+                                "type": "string"
+                              },
+                              "matches": {
+                                "default": [],
+                                "description": "Names or keywords that mark a participant as a bot. Up to 50, each 1–200 characters, containing at least one letter or digit (any script) and no NUL character.",
+                                "items": {
+                                  "maxLength": 200,
+                                  "minLength": 1,
+                                  "type": "string"
+                                },
+                                "maxItems": 50,
+                                "type": "array"
+                              }
+                            },
+                            "required": [
+                              "matches",
+                              "match_mode"
+                            ],
+                            "type": "object"
+                          },
+                          "timeout": {
+                            "default": 30,
+                            "description": "Seconds that only bots must remain (and, on Google Meet and Microsoft Teams, the call must stay silent) before the bot leaves. A human reappearing resets it.\n\nDefault: 30\nMinimum: 10\nMaximum: 1800 (30 minutes)",
+                            "maximum": 1800,
+                            "minimum": 10,
+                            "type": "integer"
+                          }
+                        },
+                        "required": [
+                          "activate_after",
+                          "timeout",
+                          "detect_same_account_bots",
+                          "participant_names"
+                        ],
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Leave sooner when every other participant is a bot. Once a human has been in the call and activate_after seconds of recording have passed, if every remaining participant is a matched bot (participant_names, ignored_participant_names, or, with detect_same_account_bots, another bot from your team) the bot leaves after timeout seconds. On Google Meet and Microsoft Teams the call must also be silent. Applies to Google Meet, Microsoft Teams and Zoom bots that join with Zoom credentials.\n\nOmitted (null): off. Only ignored_participant_names is ignored, with the default 5-minute start delay (Google Meet and Microsoft Teams) and everyone_left_timeout.",
+                    "example": {
+                      "activate_after": 120,
+                      "detect_same_account_bots": true,
+                      "participant_names": {
+                        "match_mode": "word",
+                        "matches": [
+                          "notetaker",
+                          "fireflies",
+                          "gong"
+                        ]
+                      },
+                      "timeout": 30
+                    }
+                  },
                   "everyone_left_timeout": {
                     "default": 30,
                     "description": "The timeout in seconds for the bot to wait after every other participant has left before leaving the meeting.\n\nIf the bot is the only participant left for this duration, it will leave the meeting. Participants listed in ignored_participant_names are not counted. Applies to Google Meet, Microsoft Teams and Zoom. Zoom bots that join without Zoom credentials (browser-based) cannot see the participant list and still leave through silence_timeout.\n\nDefault: 30 seconds\nMinimum: 10 seconds\nMaximum: 30 minutes",
@@ -14367,7 +14698,8 @@
                   "silence_timeout",
                   "everyone_left_timeout",
                   "grace_period",
-                  "max_recording_duration"
+                  "max_recording_duration",
+                  "bot_detection"
                 ],
                 "type": "object"
               },
@@ -14667,7 +14999,7 @@
               },
               "ignored_participant_names": {
                 "default": [],
-                "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants matching these names when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging).\n\nBy ignoring other bots' participant names, each bot can correctly detect when human participants have left and leave the meeting rather than remaining indefinitely.",
+                "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants whose name exactly matches one of these (case and surrounding spaces ignored) when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging). For whole-word matching of other notetakers, and to ignore your team's other bots in the same meeting (detect_same_account_bots), use timeout_config.bot_detection.",
                 "example": [
                   "Sandbox Bot",
                   "Staging Bot"
@@ -14949,6 +15281,7 @@
               },
               "timeout_config": {
                 "default": {
+                  "bot_detection": null,
                   "everyone_left_timeout": 30,
                   "grace_period": 0,
                   "max_recording_duration": null,
@@ -14958,6 +15291,80 @@
                 },
                 "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. The bot leaves everyone_left_timeout seconds after every other participant has left. Zoom bots that join with Zoom credentials use waiting_room_timeout, no_one_joined_timeout (when nobody else joins) and everyone_left_timeout; browser-based Zoom bots also use silence_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
                 "properties": {
+                  "bot_detection": {
+                    "anyOf": [
+                      {
+                        "properties": {
+                          "activate_after": {
+                            "default": 300,
+                            "description": "Seconds after recording starts before the bot may leave because only bots remain. Participant lists can be wrong in the first minutes of a call (especially on Microsoft Teams), hence the 60-second minimum.\n\nDefault: 300 (5 minutes)\nMinimum: 60\nMaximum: 3600 (1 hour)",
+                            "maximum": 3600,
+                            "minimum": 60,
+                            "type": "integer"
+                          },
+                          "detect_same_account_bots": {
+                            "default": false,
+                            "description": "Treat other bots from your team sent to the same meeting URL as bots, so they do not keep this bot in the call. Off by default.\n\nThe list is taken when this bot is sent, so it covers your bots sent before it. A bot sent later is covered from its side: if it also has detect_same_account_bots enabled, it leaves first, and this bot is then alone and leaves too.\n\nDefault: false",
+                            "type": "boolean"
+                          },
+                          "participant_names": {
+                            "default": {
+                              "match_mode": "word",
+                              "matches": []
+                            },
+                            "properties": {
+                              "match_mode": {
+                                "default": "word",
+                                "description": "How matches are compared to participant names. Only `word` is supported: case-insensitive whole words, in order, where anything that is not a letter or digit separates words. `gong` matches `Gong Recorder`, not `Gongora`; `fireflies` matches `Fireflies.ai Notetaker`; `note taker` matches `Note-Taker`.",
+                                "enum": [
+                                  "word"
+                                ],
+                                "type": "string"
+                              },
+                              "matches": {
+                                "default": [],
+                                "description": "Names or keywords that mark a participant as a bot. Up to 50, each 1–200 characters, containing at least one letter or digit (any script) and no NUL character.",
+                                "items": {
+                                  "maxLength": 200,
+                                  "minLength": 1,
+                                  "type": "string"
+                                },
+                                "maxItems": 50,
+                                "type": "array"
+                              }
+                            },
+                            "type": "object"
+                          },
+                          "timeout": {
+                            "default": 30,
+                            "description": "Seconds that only bots must remain (and, on Google Meet and Microsoft Teams, the call must stay silent) before the bot leaves. A human reappearing resets it.\n\nDefault: 30\nMinimum: 10\nMaximum: 1800 (30 minutes)",
+                            "maximum": 1800,
+                            "minimum": 10,
+                            "type": "integer"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "default": null,
+                    "description": "Leave sooner when every other participant is a bot. Once a human has been in the call and activate_after seconds of recording have passed, if every remaining participant is a matched bot (participant_names, ignored_participant_names, or, with detect_same_account_bots, another bot from your team) the bot leaves after timeout seconds. On Google Meet and Microsoft Teams the call must also be silent. Applies to Google Meet, Microsoft Teams and Zoom bots that join with Zoom credentials.\n\nOmitted (null): off. Only ignored_participant_names is ignored, with the default 5-minute start delay (Google Meet and Microsoft Teams) and everyone_left_timeout.",
+                    "example": {
+                      "activate_after": 120,
+                      "detect_same_account_bots": true,
+                      "participant_names": {
+                        "match_mode": "word",
+                        "matches": [
+                          "notetaker",
+                          "fireflies",
+                          "gong"
+                        ]
+                      },
+                      "timeout": 30
+                    }
+                  },
                   "everyone_left_timeout": {
                     "default": 30,
                     "description": "The timeout in seconds for the bot to wait after every other participant has left before leaving the meeting.\n\nIf the bot is the only participant left for this duration, it will leave the meeting. Participants listed in ignored_participant_names are not counted. Applies to Google Meet, Microsoft Teams and Zoom. Zoom bots that join without Zoom credentials (browser-based) cannot see the participant list and still leave through silence_timeout.\n\nDefault: 30 seconds\nMinimum: 10 seconds\nMaximum: 30 minutes",
@@ -15630,7 +16037,7 @@
             "example": null
           },
           "ignored_participant_names": {
-            "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants matching these names when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging).\n\nBy ignoring other bots' participant names, each bot can correctly detect when human participants have left and leave the meeting rather than remaining indefinitely.",
+            "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants whose name exactly matches one of these (case and surrounding spaces ignored) when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging). For whole-word matching of other notetakers, and to ignore your team's other bots in the same meeting (detect_same_account_bots), use timeout_config.bot_detection.",
             "example": [
               "Sandbox Bot",
               "Staging Bot"
@@ -15946,6 +16353,92 @@
             "additionalProperties": false,
             "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. The bot leaves everyone_left_timeout seconds after every other participant has left. Zoom bots that join with Zoom credentials use waiting_room_timeout, no_one_joined_timeout (when nobody else joins) and everyone_left_timeout; browser-based Zoom bots also use silence_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
             "properties": {
+              "bot_detection": {
+                "anyOf": [
+                  {
+                    "additionalProperties": false,
+                    "properties": {
+                      "activate_after": {
+                        "default": 300,
+                        "description": "Seconds after recording starts before the bot may leave because only bots remain. Participant lists can be wrong in the first minutes of a call (especially on Microsoft Teams), hence the 60-second minimum.\n\nDefault: 300 (5 minutes)\nMinimum: 60\nMaximum: 3600 (1 hour)",
+                        "maximum": 3600,
+                        "minimum": 60,
+                        "type": "integer"
+                      },
+                      "detect_same_account_bots": {
+                        "default": false,
+                        "description": "Treat other bots from your team sent to the same meeting URL as bots, so they do not keep this bot in the call. Off by default.\n\nThe list is taken when this bot is sent, so it covers your bots sent before it. A bot sent later is covered from its side: if it also has detect_same_account_bots enabled, it leaves first, and this bot is then alone and leaves too.\n\nDefault: false",
+                        "type": "boolean"
+                      },
+                      "participant_names": {
+                        "additionalProperties": false,
+                        "default": {
+                          "match_mode": "word",
+                          "matches": []
+                        },
+                        "properties": {
+                          "match_mode": {
+                            "default": "word",
+                            "description": "How matches are compared to participant names. Only `word` is supported: case-insensitive whole words, in order, where anything that is not a letter or digit separates words. `gong` matches `Gong Recorder`, not `Gongora`; `fireflies` matches `Fireflies.ai Notetaker`; `note taker` matches `Note-Taker`.",
+                            "enum": [
+                              "word"
+                            ],
+                            "type": "string"
+                          },
+                          "matches": {
+                            "default": [],
+                            "description": "Names or keywords that mark a participant as a bot. Up to 50, each 1–200 characters, containing at least one letter or digit (any script) and no NUL character.",
+                            "items": {
+                              "maxLength": 200,
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "maxItems": 50,
+                            "type": "array"
+                          }
+                        },
+                        "required": [
+                          "matches",
+                          "match_mode"
+                        ],
+                        "type": "object"
+                      },
+                      "timeout": {
+                        "default": 30,
+                        "description": "Seconds that only bots must remain (and, on Google Meet and Microsoft Teams, the call must stay silent) before the bot leaves. A human reappearing resets it.\n\nDefault: 30\nMinimum: 10\nMaximum: 1800 (30 minutes)",
+                        "maximum": 1800,
+                        "minimum": 10,
+                        "type": "integer"
+                      }
+                    },
+                    "required": [
+                      "activate_after",
+                      "timeout",
+                      "detect_same_account_bots",
+                      "participant_names"
+                    ],
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Leave sooner when every other participant is a bot. Once a human has been in the call and activate_after seconds of recording have passed, if every remaining participant is a matched bot (participant_names, ignored_participant_names, or, with detect_same_account_bots, another bot from your team) the bot leaves after timeout seconds. On Google Meet and Microsoft Teams the call must also be silent. Applies to Google Meet, Microsoft Teams and Zoom bots that join with Zoom credentials.\n\nOmitted (null): off. Only ignored_participant_names is ignored, with the default 5-minute start delay (Google Meet and Microsoft Teams) and everyone_left_timeout.",
+                "example": {
+                  "activate_after": 120,
+                  "detect_same_account_bots": true,
+                  "participant_names": {
+                    "match_mode": "word",
+                    "matches": [
+                      "notetaker",
+                      "fireflies",
+                      "gong"
+                    ]
+                  },
+                  "timeout": 30
+                }
+              },
               "everyone_left_timeout": {
                 "default": 30,
                 "description": "The timeout in seconds for the bot to wait after every other participant has left before leaving the meeting.\n\nIf the bot is the only participant left for this duration, it will leave the meeting. Participants listed in ignored_participant_names are not counted. Applies to Google Meet, Microsoft Teams and Zoom. Zoom bots that join without Zoom credentials (browser-based) cannot see the participant list and still leave through silence_timeout.\n\nDefault: 30 seconds\nMinimum: 10 seconds\nMaximum: 30 minutes",
@@ -16008,7 +16501,8 @@
               "silence_timeout",
               "everyone_left_timeout",
               "grace_period",
-              "max_recording_duration"
+              "max_recording_duration",
+              "bot_detection"
             ],
             "type": "object"
           },
@@ -16287,7 +16781,7 @@
             "example": null
           },
           "ignored_participant_names": {
-            "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants matching these names when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging).\n\nBy ignoring other bots' participant names, each bot can correctly detect when human participants have left and leave the meeting rather than remaining indefinitely.",
+            "description": "Participant names to ignore when evaluating auto-leave conditions.\n\nThe bot will not count participants whose name exactly matches one of these (case and surrounding spaces ignored) when determining whether to leave a meeting. This is useful when multiple bots may join the same meeting across different environments (e.g., sandbox, staging). For whole-word matching of other notetakers, and to ignore your team's other bots in the same meeting (detect_same_account_bots), use timeout_config.bot_detection.",
             "example": [
               "Sandbox Bot",
               "Staging Bot"
@@ -16585,6 +17079,80 @@
           "timeout_config": {
             "description": "Configuration for automatic meeting exit behavior. For Google Meet and Microsoft Teams, the bot uses waiting_room_timeout to wait in the waiting room, then no_one_joined_timeout to wait for participants when first joining the meeting, and finally switches to silence_timeout monitoring once participants are detected. The bot leaves everyone_left_timeout seconds after every other participant has left. Zoom bots that join with Zoom credentials use waiting_room_timeout, no_one_joined_timeout (when nobody else joins) and everyone_left_timeout; browser-based Zoom bots also use silence_timeout. Optional max_recording_duration sets a hard cap on total recording time (up to 12 hours).",
             "properties": {
+              "bot_detection": {
+                "anyOf": [
+                  {
+                    "properties": {
+                      "activate_after": {
+                        "default": 300,
+                        "description": "Seconds after recording starts before the bot may leave because only bots remain. Participant lists can be wrong in the first minutes of a call (especially on Microsoft Teams), hence the 60-second minimum.\n\nDefault: 300 (5 minutes)\nMinimum: 60\nMaximum: 3600 (1 hour)",
+                        "maximum": 3600,
+                        "minimum": 60,
+                        "type": "integer"
+                      },
+                      "detect_same_account_bots": {
+                        "default": false,
+                        "description": "Treat other bots from your team sent to the same meeting URL as bots, so they do not keep this bot in the call. Off by default.\n\nThe list is taken when this bot is sent, so it covers your bots sent before it. A bot sent later is covered from its side: if it also has detect_same_account_bots enabled, it leaves first, and this bot is then alone and leaves too.\n\nDefault: false",
+                        "type": "boolean"
+                      },
+                      "participant_names": {
+                        "default": {
+                          "match_mode": "word",
+                          "matches": []
+                        },
+                        "properties": {
+                          "match_mode": {
+                            "default": "word",
+                            "description": "How matches are compared to participant names. Only `word` is supported: case-insensitive whole words, in order, where anything that is not a letter or digit separates words. `gong` matches `Gong Recorder`, not `Gongora`; `fireflies` matches `Fireflies.ai Notetaker`; `note taker` matches `Note-Taker`.",
+                            "enum": [
+                              "word"
+                            ],
+                            "type": "string"
+                          },
+                          "matches": {
+                            "default": [],
+                            "description": "Names or keywords that mark a participant as a bot. Up to 50, each 1–200 characters, containing at least one letter or digit (any script) and no NUL character.",
+                            "items": {
+                              "maxLength": 200,
+                              "minLength": 1,
+                              "type": "string"
+                            },
+                            "maxItems": 50,
+                            "type": "array"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "timeout": {
+                        "default": 30,
+                        "description": "Seconds that only bots must remain (and, on Google Meet and Microsoft Teams, the call must stay silent) before the bot leaves. A human reappearing resets it.\n\nDefault: 30\nMinimum: 10\nMaximum: 1800 (30 minutes)",
+                        "maximum": 1800,
+                        "minimum": 10,
+                        "type": "integer"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "default": null,
+                "description": "Leave sooner when every other participant is a bot. Once a human has been in the call and activate_after seconds of recording have passed, if every remaining participant is a matched bot (participant_names, ignored_participant_names, or, with detect_same_account_bots, another bot from your team) the bot leaves after timeout seconds. On Google Meet and Microsoft Teams the call must also be silent. Applies to Google Meet, Microsoft Teams and Zoom bots that join with Zoom credentials.\n\nOmitted (null): off. Only ignored_participant_names is ignored, with the default 5-minute start delay (Google Meet and Microsoft Teams) and everyone_left_timeout.",
+                "example": {
+                  "activate_after": 120,
+                  "detect_same_account_bots": true,
+                  "participant_names": {
+                    "match_mode": "word",
+                    "matches": [
+                      "notetaker",
+                      "fireflies",
+                      "gong"
+                    ]
+                  },
+                  "timeout": 30
+                }
+              },
               "everyone_left_timeout": {
                 "default": 30,
                 "description": "The timeout in seconds for the bot to wait after every other participant has left before leaving the meeting.\n\nIf the bot is the only participant left for this duration, it will leave the meeting. Participants listed in ignored_participant_names are not counted. Applies to Google Meet, Microsoft Teams and Zoom. Zoom bots that join without Zoom credentials (browser-based) cannot see the participant list and still leave through silence_timeout.\n\nDefault: 30 seconds\nMinimum: 10 seconds\nMaximum: 30 minutes",
@@ -17209,7 +17777,7 @@
             }
           },
           {
-            "description": "Filter bots by bot statuses.\n\nThis parameter filters bots by their status. It can be used to find bots that have any of the specified statuses. Valid values are one or more of: queued, pickup_delayed, awaiting_reconciliation, transcribing, completed, failed, transcription_failed, joining_call, in_waiting_room, in_waiting_for_host, in_call_not_recording, in_call_recording, recording_paused, recording_resumed, call_ended, recording_succeeded, recording_failed, api_request_stop, bot_rejected, bot_removed, bot_removed_too_early, waiting_room_timeout, invalid_meeting_url, meeting_error, MEET_LOGIN_UNAVAILABLE, MEET_LOGIN_REQUIRED, MEET_LOGIN_FAILED_SAML_REJECTED, MEET_LOGIN_FAILED_TIMEOUT.\n\nExample: \"queued,joining_call\" would match all bots that are queued or joining the call",
+            "description": "Filter bots by bot statuses.\n\nThis parameter filters bots by their status. It can be used to find bots that have any of the specified statuses. Valid values are one or more of: queued, pickup_delayed, awaiting_reconciliation, transcribing, completed, failed, transcription_failed, joining_call, in_waiting_room, in_waiting_for_host, in_call_not_recording, in_call_recording, recording_paused, recording_resumed, call_ended, recording_succeeded, recording_failed, retrying, api_request_stop, bot_rejected, bot_removed, bot_removed_too_early, waiting_room_timeout, invalid_meeting_url, meeting_error, MEET_LOGIN_UNAVAILABLE, MEET_LOGIN_REQUIRED, MEET_LOGIN_FAILED_SAML_REJECTED, MEET_LOGIN_FAILED_TIMEOUT.\n\nExample: \"queued,joining_call\" would match all bots that are queued or joining the call",
             "in": "query",
             "name": "status",
             "required": false,
@@ -17340,7 +17908,7 @@
         ]
       },
       "post": {
-        "description": "Create a bot to join a meeting immediately.\n    \n    The bot will automatically join the meeting, request recording permissions, and start recording once accepted. You can provide a bot-specific callback URL to receive bot.completed and bot.failed events for this bot (in addition to your account's webhooks). The bot will send webhook events for status changes, completion, and failures.\n    \n    Returns a `bot_id` (UUID) that you can use to track status, retrieve meeting data, and manage the bot. The bot will be queued immediately and join the meeting as soon as possible (may take up to 2 minutes depending on availability of bot slots).\n    \n    **Token Reservation:** 0.5 tokens are reserved immediately upon creation. These tokens will be consumed based on the bot's duration and outcome. If the bot fails due to user-responsible errors (`BOT_NOT_ACCEPTED`, `TIMEOUT_WAITING_TO_START`), recording tokens will be charged based on the time spent in the waiting room.\n    \n    **Deduplication:** By default, multiple bots can join the same meeting URL. Set `allow_multiple_bots: false` to prevent duplicate bots within 5 minutes. The deduplication check expires after 5 minutes, allowing a new bot to join the same meeting URL after that period.\n    \n    **Rate Limits:** Subject to your API key's rate limits and your team's daily bot cap. The daily bot cap is checked before token reservation. If the cap is reached, the request will fail with a 429 status code.\n    \n    **Error Scenarios:**\n    - `402 Payment Required`: Insufficient tokens available\n    - `409 Conflict`: Bot already exists for the same meeting URL (when `allow_multiple_bots` is false)\n    - `429 Too Many Requests`: Daily bot cap reached or rate limit exceeded",
+        "description": "Create a bot to join a meeting immediately.\n    \n    The bot will automatically join the meeting, request recording permissions, and start recording once accepted. You can provide a bot-specific callback URL to receive bot.completed and bot.failed events for this bot (in addition to your account's webhooks). The bot will send webhook events for status changes, completion, and failures.\n    \n    Returns a `bot_id` (UUID) that you can use to track status, retrieve meeting data, and manage the bot. The bot will be queued immediately and join the meeting as soon as possible (may take up to 2 minutes depending on availability of bot slots).\n    \n    **Token Reservation:** 0.5 tokens are reserved immediately upon creation. These tokens will be consumed based on the bot's duration and outcome. If the bot fails due to user-responsible errors (`BOT_NOT_ACCEPTED`, `TIMEOUT_WAITING_TO_START`), recording tokens will be charged based on the time spent in the waiting room. A bot that Google Meet itself refuses (`BOT_REJECTED_BY_GOOGLE`) is not charged for that time.\n    \n    **Deduplication:** By default, multiple bots can join the same meeting URL. Set `allow_multiple_bots: false` to prevent duplicate bots within 5 minutes. The deduplication check expires after 5 minutes, allowing a new bot to join the same meeting URL after that period.\n    \n    **Rate Limits:** Subject to your API key's rate limits and your team's daily bot cap. The daily bot cap is checked before token reservation. If the cap is reached, the request will fail with a 429 status code.\n    \n    **Error Scenarios:**\n    - `402 Payment Required`: Insufficient tokens available\n    - `409 Conflict`: Bot already exists for the same meeting URL (when `allow_multiple_bots` is false)\n    - `429 Too Many Requests`: Daily bot cap reached or rate limit exceeded",
         "operationId": "createBot",
         "requestBody": {
           "content": {

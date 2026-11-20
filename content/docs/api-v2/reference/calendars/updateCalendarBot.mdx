@@ -153,15 +153,13 @@ _openapi:
           auto-leave conditions.
 
 
-          The bot will not count participants matching these names when
-          determining whether to leave a meeting. This is useful when multiple
-          bots may join the same meeting across different environments (e.g.,
-          sandbox, staging).
-
-
-          By ignoring other bots' participant names, each bot can correctly
-          detect when human participants have left and leave the meeting rather
-          than remaining indefinitely.
+          The bot will not count participants whose name exactly matches one of
+          these (case and surrounding spaces ignored) when determining whether
+          to leave a meeting. This is useful when multiple bots may join the
+          same meeting across different environments (e.g., sandbox, staging).
+          For whole-word matching of other notetakers, and to ignore your team's
+          other bots in the same meeting (detect_same_account_bots), use
+          timeout_config.bot_detection.
       - content: >-
           meet_config: Meet-only configuration for authenticated bots via SAML
           SSO.
@@ -279,6 +277,21 @@ _openapi:
           and everyone_left_timeout; browser-based Zoom bots also use
           silence_timeout. Optional max_recording_duration sets a hard cap on
           total recording time (up to 12 hours).
+      - content: >-
+          timeout_config.bot_detection: Leave sooner when every other
+          participant is a bot. Once a human has been in the call and
+          activate_after seconds of recording have passed, if every remaining
+          participant is a matched bot (participant_names,
+          ignored_participant_names, or, with detect_same_account_bots, another
+          bot from your team) the bot leaves after timeout seconds. On Google
+          Meet and Microsoft Teams the call must also be silent. Applies to
+          Google Meet, Microsoft Teams and Zoom bots that join with Zoom
+          credentials.
+
+
+          Omitted (null): off. Only ignored_participant_names is ignored, with
+          the default 5-minute start delay (Google Meet and Microsoft Teams) and
+          everyone_left_timeout.
       - content: >-
           timeout_config.everyone_left_timeout: The timeout in seconds for the
           bot to wait after every other participant has left before leaving the
