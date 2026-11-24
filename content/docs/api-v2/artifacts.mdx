@@ -577,12 +577,12 @@ curl -X GET "https://api.meetingbaas.com/v2/bots/BOT-ID" \
   "data": {
     "bot_id": "123e4567-e89b-12d3-a456-426614174000",
     "status": "completed",
-    "video": "https://s3.amazonaws.com/.../video.mp4",
-    "audio": "https://s3.amazonaws.com/.../output.flac",
-    "transcription": "https://s3.amazonaws.com/.../output_transcription.json",
-    "raw_transcription": "https://s3.amazonaws.com/.../raw_transcription.json",
-    "diarization": "https://s3.amazonaws.com/.../diarization.jsonl",
-    "chat_messages": "https://s3.amazonaws.com/.../chat_messages.json",
+    "video": "https://storage.example.com/.../video.mp4",
+    "audio": "https://storage.example.com/.../output.flac",
+    "transcription": "https://storage.example.com/.../output_transcription.json",
+    "raw_transcription": "https://storage.example.com/.../raw_transcription.json",
+    "diarization": "https://storage.example.com/.../diarization.jsonl",
+    "chat_messages": "https://storage.example.com/.../chat_messages.json",
     "participants": [
       { "name": "John Doe", "id": 1, "display_name": "John", "profile_picture": "https://lh3.googleusercontent.com/..." },
       { "name": "Jane Smith", "id": 2 }
@@ -606,12 +606,12 @@ When a bot completes, you'll receive a webhook with all artifact URLs:
   "event": "bot.completed",
   "data": {
     "bot_id": "123e4567-e89b-12d3-a456-426614174000",
-    "video": "https://s3.amazonaws.com/.../video.mp4",
-    "audio": "https://s3.amazonaws.com/.../output.flac",
-    "transcription": "https://s3.amazonaws.com/.../output_transcription.json",
-    "raw_transcription": "https://s3.amazonaws.com/.../raw_transcription.json",
-    "diarization": "https://s3.amazonaws.com/.../diarization.jsonl",
-    "chat_messages": "https://s3.amazonaws.com/.../chat_messages.json",
+    "video": "https://storage.example.com/.../video.mp4",
+    "audio": "https://storage.example.com/.../output.flac",
+    "transcription": "https://storage.example.com/.../output_transcription.json",
+    "raw_transcription": "https://storage.example.com/.../raw_transcription.json",
+    "diarization": "https://storage.example.com/.../diarization.jsonl",
+    "chat_messages": "https://storage.example.com/.../chat_messages.json",
     "transcription_ids": ["gladia-job-12345"],
     "transcription_provider": "gladia"
   }
