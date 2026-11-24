@@ -21,7 +21,7 @@
    ========================================================================== */
 
 @theme {
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-sofia-sans);
   --font-mono: var(--font-geist-mono);
 
   --color-gradient-radial: radial-gradient(circle, var(--tw-gradient-stops));

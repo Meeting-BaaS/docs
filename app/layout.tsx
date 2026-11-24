@@ -3,11 +3,21 @@ import { AISearchTrigger } from '@/components/fumadocs/ai';
 import { baseUrl, createMetadata } from '@/lib/metadata';
 import '@/styles/globals.css';
 import { GeistMono } from 'geist/font/mono';
-import { GeistSans } from 'geist/font/sans';
 import { MessageCircle } from 'lucide-react';
 import type { Viewport } from 'next';
+import localFont from 'next/font/local';
 import type { ReactNode } from 'react';
 import { Providers } from './providers';
+
+// Sofia Sans, the Meeting BaaS brand face, bundled locally (OFL, from
+// google/fonts) like frontend-v2 does, so the build needs no Google fetch.
+// Variable TTF covers the 400-700 range the design uses.
+const sofiaSans = localFont({
+  src: './fonts/SofiaSans.ttf',
+  display: 'swap',
+  weight: '400 700',
+  variable: '--font-sofia-sans',
+});
 
 export const metadata = createMetadata({
   title: {
@@ -29,7 +39,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html
       lang="en"
-      className={`${GeistSans.variable} ${GeistMono.variable}`}
+      className={`${sofiaSans.variable} ${GeistMono.variable}`}
       suppressHydrationWarning
     >
       <Body>
