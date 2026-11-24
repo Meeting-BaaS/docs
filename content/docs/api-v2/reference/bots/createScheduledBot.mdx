@@ -101,8 +101,12 @@ _openapi:
           Useful for storing custom metadata, tracking information, or any other
           data you need to correlate with the bot.
       - content: >-
-          ignored_participant_names: Participant names to ignore when evaluating
-          auto-leave conditions.
+          ignored_participant_names: **Deprecated:** use
+          `timeout_config.bot_detection.participant_names` instead. This field
+          still works and is not being removed yet.
+
+
+          Participant names to ignore when evaluating auto-leave conditions.
 
 
           The bot will not count participants whose name exactly matches one of
@@ -184,22 +188,56 @@ _openapi:
           waiting_room_timeout, no_one_joined_timeout (when nobody else joins)
           and everyone_left_timeout; browser-based Zoom bots also use
           silence_timeout. Optional max_recording_duration sets a hard cap on
-          total recording time (up to 12 hours).
+          total recording time (up to 12 hours). Optional bot_detection leaves
+          sooner when every remaining participant is a bot.
       - content: >-
           timeout_config.bot_detection: Leave sooner when every other
-          participant is a bot. Once a human has been in the call and
-          activate_after seconds of recording have passed, if every remaining
-          participant is a matched bot (participant_names,
-          ignored_participant_names, or, with detect_same_account_bots, another
-          bot from your team) the bot leaves after timeout seconds. On Google
-          Meet and Microsoft Teams the call must also be silent. Applies to
-          Google Meet, Microsoft Teams and Zoom bots that join with Zoom
-          credentials.
+          participant is a bot, instead of waiting for `silence_timeout`.
 
 
-          Omitted (null): off. Only ignored_participant_names is ignored, with
-          the default 5-minute start delay (Google Meet and Microsoft Teams) and
-          everyone_left_timeout.
+          How it works:
+
+          1. A human must have been in the call first. Before that,
+          `no_one_joined_timeout` applies (other notetakers often join before
+          people do).
+
+          2. `activate_after` seconds after recording starts, the bot starts
+          checking.
+
+          3. If every other participant is a bot, it waits `timeout` seconds. A
+          bot is a participant matching `participant_names`, a name in
+          `ignored_participant_names`, or, with `detect_same_account_bots`,
+          another bot from your team in the same meeting. On Google Meet and
+          Microsoft Teams the call must also stay silent during that time.
+
+          4. If that is still true, the bot leaves. A human joining resets the
+          wait (on Google Meet and Microsoft Teams, so does anyone speaking).
+
+
+          Example: `activate_after: 120`, `timeout: 30`. If the last human
+          leaves 10 minutes into the call, the bot leaves about 30 seconds later
+          (on Google Meet and Microsoft Teams, as long as the call stays
+          silent).
+
+
+          Applies to Google Meet, Microsoft Teams and Zoom bots that join with
+          Zoom credentials. Zoom bots without Zoom credentials (browser-based)
+          are not supported yet and still leave through `silence_timeout`.
+
+
+          Omitted or `null`: off. The current behaviour is unchanged: names in
+          `ignored_participant_names` still do not count, and after everyone
+          else leaves the bot waits for the default 5-minute start delay (Google
+          Meet and Microsoft Teams), then `everyone_left_timeout`.
+
+
+          `{}` is on, with the defaults: `activate_after` 300, `timeout` 30, no
+          `participant_names`, `detect_same_account_bots` off. Names in
+          `ignored_participant_names` then also use this object's timers.
+
+
+          In every case, the bot does not leave for this reason unless a human
+          has already been in the call.
       - content: >-
           timeout_config.everyone_left_timeout: The timeout in seconds for the
           bot to wait after every other participant has left before leaving the
