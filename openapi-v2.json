@@ -1601,6 +1601,849 @@
         ],
         "type": "object"
       },
+      "BotWebhookMeetingMetadata": {
+        "$id": "#/components/schemas/BotWebhookMeetingMetadata",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": false,
+            "properties": {
+              "bot_id": {
+                "description": "The UUID of the bot in the meeting",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "event_id": {
+                "anyOf": [
+                  {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "The UUID of the calendar event associated with this bot. Null for non-calendar bots"
+              },
+              "metadata": {
+                "additionalProperties": false,
+                "properties": {
+                  "participant_count": {
+                    "description": "Participants the bot had seen at the time of its first roster snapshot",
+                    "maximum": 9007199254740991,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "platform": {
+                    "description": "Meeting platform, e.g. \"microsoft_teams\"",
+                    "type": "string"
+                  },
+                  "title": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Meeting title when the platform exposes it, else null"
+                  }
+                },
+                "required": [
+                  "platform",
+                  "title",
+                  "participant_count"
+                ],
+                "type": "object"
+              },
+              "occurred_at": {
+                "description": "ISO 8601 timestamp of the first roster snapshot",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                "type": "string"
+              },
+              "participant_event_id": {
+                "description": "Unique identifier of this participant event — also the id of the matching entry in the participant_events.json artifact",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "metadata",
+                "description": "Event kind, mirrors the webhook event name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "bot_id",
+              "event_id",
+              "participant_event_id",
+              "type",
+              "metadata",
+              "occurred_at"
+            ],
+            "type": "object"
+          },
+          "event": {
+            "const": "bot.meeting_metadata",
+            "description": "The webhook event type",
+            "type": "string"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "propertyNames": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking"
+          }
+        },
+        "required": [
+          "event",
+          "data",
+          "extra"
+        ],
+        "type": "object"
+      },
+      "BotWebhookMeetingMetadataInput": {
+        "$id": "#/components/schemas/BotWebhookMeetingMetadataInput",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "data": {
+            "properties": {
+              "bot_id": {
+                "description": "The UUID of the bot in the meeting",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "event_id": {
+                "anyOf": [
+                  {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "The UUID of the calendar event associated with this bot. Null for non-calendar bots"
+              },
+              "metadata": {
+                "properties": {
+                  "participant_count": {
+                    "description": "Participants the bot had seen at the time of its first roster snapshot",
+                    "maximum": 9007199254740991,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "platform": {
+                    "description": "Meeting platform, e.g. \"microsoft_teams\"",
+                    "type": "string"
+                  },
+                  "title": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Meeting title when the platform exposes it, else null"
+                  }
+                },
+                "required": [
+                  "platform",
+                  "title",
+                  "participant_count"
+                ],
+                "type": "object"
+              },
+              "occurred_at": {
+                "description": "ISO 8601 timestamp of the first roster snapshot",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                "type": "string"
+              },
+              "participant_event_id": {
+                "description": "Unique identifier of this participant event — also the id of the matching entry in the participant_events.json artifact",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "metadata",
+                "description": "Event kind, mirrors the webhook event name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "bot_id",
+              "event_id",
+              "participant_event_id",
+              "type",
+              "metadata",
+              "occurred_at"
+            ],
+            "type": "object"
+          },
+          "event": {
+            "const": "bot.meeting_metadata",
+            "description": "The webhook event type",
+            "type": "string"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "propertyNames": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking"
+          }
+        },
+        "required": [
+          "event",
+          "data",
+          "extra"
+        ],
+        "type": "object"
+      },
+      "BotWebhookParticipantJoined": {
+        "$id": "#/components/schemas/BotWebhookParticipantJoined",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": false,
+            "properties": {
+              "bot_id": {
+                "description": "The UUID of the bot in the meeting",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "event_id": {
+                "anyOf": [
+                  {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "The UUID of the calendar event associated with this bot. Null for non-calendar bots"
+              },
+              "occurred_at": {
+                "description": "ISO 8601 timestamp when the event was observed by the bot",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                "type": "string"
+              },
+              "participant": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "description": "Platform participant id (Teams roster device id / MRI) — pseudonymous; display names are deliberately not included for PII",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              "participant_event_id": {
+                "description": "Unique identifier of this participant event — also the id of the matching entry in the participant_events.json artifact",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "joined",
+                "description": "Event kind, mirrors the webhook event name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "bot_id",
+              "event_id",
+              "participant_event_id",
+              "type",
+              "participant",
+              "occurred_at"
+            ],
+            "type": "object"
+          },
+          "event": {
+            "const": "bot.participant_joined",
+            "description": "The webhook event type",
+            "type": "string"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "propertyNames": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking"
+          }
+        },
+        "required": [
+          "event",
+          "data",
+          "extra"
+        ],
+        "type": "object"
+      },
+      "BotWebhookParticipantJoinedInput": {
+        "$id": "#/components/schemas/BotWebhookParticipantJoinedInput",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "data": {
+            "properties": {
+              "bot_id": {
+                "description": "The UUID of the bot in the meeting",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "event_id": {
+                "anyOf": [
+                  {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "The UUID of the calendar event associated with this bot. Null for non-calendar bots"
+              },
+              "occurred_at": {
+                "description": "ISO 8601 timestamp when the event was observed by the bot",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                "type": "string"
+              },
+              "participant": {
+                "properties": {
+                  "id": {
+                    "description": "Platform participant id (Teams roster device id / MRI) — pseudonymous; display names are deliberately not included for PII",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              "participant_event_id": {
+                "description": "Unique identifier of this participant event — also the id of the matching entry in the participant_events.json artifact",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "joined",
+                "description": "Event kind, mirrors the webhook event name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "bot_id",
+              "event_id",
+              "participant_event_id",
+              "type",
+              "participant",
+              "occurred_at"
+            ],
+            "type": "object"
+          },
+          "event": {
+            "const": "bot.participant_joined",
+            "description": "The webhook event type",
+            "type": "string"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "propertyNames": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking"
+          }
+        },
+        "required": [
+          "event",
+          "data",
+          "extra"
+        ],
+        "type": "object"
+      },
+      "BotWebhookParticipantLeft": {
+        "$id": "#/components/schemas/BotWebhookParticipantLeft",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": false,
+            "properties": {
+              "bot_id": {
+                "description": "The UUID of the bot in the meeting",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "event_id": {
+                "anyOf": [
+                  {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "The UUID of the calendar event associated with this bot. Null for non-calendar bots"
+              },
+              "occurred_at": {
+                "description": "ISO 8601 timestamp when the event was observed by the bot",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                "type": "string"
+              },
+              "participant": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "description": "Platform participant id (Teams roster device id / MRI) — pseudonymous; display names are deliberately not included for PII",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              "participant_event_id": {
+                "description": "Unique identifier of this participant event — also the id of the matching entry in the participant_events.json artifact",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "left",
+                "description": "Event kind, mirrors the webhook event name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "bot_id",
+              "event_id",
+              "participant_event_id",
+              "type",
+              "participant",
+              "occurred_at"
+            ],
+            "type": "object"
+          },
+          "event": {
+            "const": "bot.participant_left",
+            "description": "The webhook event type",
+            "type": "string"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "propertyNames": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking"
+          }
+        },
+        "required": [
+          "event",
+          "data",
+          "extra"
+        ],
+        "type": "object"
+      },
+      "BotWebhookParticipantLeftInput": {
+        "$id": "#/components/schemas/BotWebhookParticipantLeftInput",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "data": {
+            "properties": {
+              "bot_id": {
+                "description": "The UUID of the bot in the meeting",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "event_id": {
+                "anyOf": [
+                  {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "The UUID of the calendar event associated with this bot. Null for non-calendar bots"
+              },
+              "occurred_at": {
+                "description": "ISO 8601 timestamp when the event was observed by the bot",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                "type": "string"
+              },
+              "participant": {
+                "properties": {
+                  "id": {
+                    "description": "Platform participant id (Teams roster device id / MRI) — pseudonymous; display names are deliberately not included for PII",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              "participant_event_id": {
+                "description": "Unique identifier of this participant event — also the id of the matching entry in the participant_events.json artifact",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "left",
+                "description": "Event kind, mirrors the webhook event name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "bot_id",
+              "event_id",
+              "participant_event_id",
+              "type",
+              "participant",
+              "occurred_at"
+            ],
+            "type": "object"
+          },
+          "event": {
+            "const": "bot.participant_left",
+            "description": "The webhook event type",
+            "type": "string"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "propertyNames": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking"
+          }
+        },
+        "required": [
+          "event",
+          "data",
+          "extra"
+        ],
+        "type": "object"
+      },
+      "BotWebhookParticipantUpdated": {
+        "$id": "#/components/schemas/BotWebhookParticipantUpdated",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": false,
+            "properties": {
+              "bot_id": {
+                "description": "The UUID of the bot in the meeting",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "event_id": {
+                "anyOf": [
+                  {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "The UUID of the calendar event associated with this bot. Null for non-calendar bots"
+              },
+              "occurred_at": {
+                "description": "ISO 8601 timestamp when the first flip was observed",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                "type": "string"
+              },
+              "participant": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "description": "Platform participant id (Teams roster device id / MRI) — pseudonymous; display names are deliberately not included for PII",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              "participant_event_id": {
+                "description": "Unique identifier of this participant event — also the id of the matching entry in the participant_events.json artifact",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "state": {
+                "additionalProperties": false,
+                "description": "Settled media state after coalescing",
+                "properties": {
+                  "camera": {
+                    "description": "Whether the participant is sending video",
+                    "type": "boolean"
+                  },
+                  "mic": {
+                    "description": "Whether the participant is sending audio",
+                    "type": "boolean"
+                  },
+                  "screenshare": {
+                    "description": "Whether the participant is sharing their screen",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "mic",
+                  "camera",
+                  "screenshare"
+                ],
+                "type": "object"
+              },
+              "type": {
+                "const": "updated",
+                "description": "Event kind, mirrors the webhook event name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "bot_id",
+              "event_id",
+              "participant_event_id",
+              "type",
+              "participant",
+              "state",
+              "occurred_at"
+            ],
+            "type": "object"
+          },
+          "event": {
+            "const": "bot.participant_updated",
+            "description": "The webhook event type",
+            "type": "string"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "propertyNames": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking"
+          }
+        },
+        "required": [
+          "event",
+          "data",
+          "extra"
+        ],
+        "type": "object"
+      },
+      "BotWebhookParticipantUpdatedInput": {
+        "$id": "#/components/schemas/BotWebhookParticipantUpdatedInput",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "data": {
+            "properties": {
+              "bot_id": {
+                "description": "The UUID of the bot in the meeting",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "event_id": {
+                "anyOf": [
+                  {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "The UUID of the calendar event associated with this bot. Null for non-calendar bots"
+              },
+              "occurred_at": {
+                "description": "ISO 8601 timestamp when the first flip was observed",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                "type": "string"
+              },
+              "participant": {
+                "properties": {
+                  "id": {
+                    "description": "Platform participant id (Teams roster device id / MRI) — pseudonymous; display names are deliberately not included for PII",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              "participant_event_id": {
+                "description": "Unique identifier of this participant event — also the id of the matching entry in the participant_events.json artifact",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "state": {
+                "description": "Settled media state after coalescing",
+                "properties": {
+                  "camera": {
+                    "description": "Whether the participant is sending video",
+                    "type": "boolean"
+                  },
+                  "mic": {
+                    "description": "Whether the participant is sending audio",
+                    "type": "boolean"
+                  },
+                  "screenshare": {
+                    "description": "Whether the participant is sharing their screen",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "mic",
+                  "camera",
+                  "screenshare"
+                ],
+                "type": "object"
+              },
+              "type": {
+                "const": "updated",
+                "description": "Event kind, mirrors the webhook event name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "bot_id",
+              "event_id",
+              "participant_event_id",
+              "type",
+              "participant",
+              "state",
+              "occurred_at"
+            ],
+            "type": "object"
+          },
+          "event": {
+            "const": "bot.participant_updated",
+            "description": "The webhook event type",
+            "type": "string"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "propertyNames": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking"
+          }
+        },
+        "required": [
+          "event",
+          "data",
+          "extra"
+        ],
+        "type": "object"
+      },
       "BotWebhookStatusChange": {
         "$id": "#/components/schemas/BotWebhookStatusChange",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -7689,6 +8532,18 @@
                 "description": "The URL of the meeting, set to \"[deleted]\" once the bot's data has been deleted",
                 "type": "string"
               },
+              "participant_events": {
+                "anyOf": [
+                  {
+                    "format": "uri",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Signed URL to the participant events JSON file (valid for 4 hours, null if not available)"
+              },
               "participants": {
                 "description": "List of participants who joined the meeting with their names and metadata",
                 "items": {
@@ -8274,6 +9129,7 @@
               "raw_transcription",
               "transcription",
               "chat_messages",
+              "participant_events",
               "transcription_ids",
               "transcription_provider",
               "error_code",
@@ -8507,6 +9363,18 @@
                 "description": "The URL of the meeting, set to \"[deleted]\" once the bot's data has been deleted",
                 "type": "string"
               },
+              "participant_events": {
+                "anyOf": [
+                  {
+                    "format": "uri",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Signed URL to the participant events JSON file (valid for 4 hours, null if not available)"
+              },
               "participants": {
                 "description": "List of participants who joined the meeting with their names and metadata",
                 "items": {
@@ -9083,6 +9951,7 @@
               "raw_transcription",
               "transcription",
               "chat_messages",
+              "participant_events",
               "transcription_ids",
               "transcription_provider",
               "error_code",
