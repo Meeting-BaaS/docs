@@ -1601,6 +1601,849 @@
         ],
         "type": "object"
       },
+      "BotWebhookMeetingMetadata": {
+        "$id": "#/components/schemas/BotWebhookMeetingMetadata",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": false,
+            "properties": {
+              "bot_id": {
+                "description": "The UUID of the bot in the meeting",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "event_id": {
+                "anyOf": [
+                  {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "The UUID of the calendar event associated with this bot. Null for non-calendar bots"
+              },
+              "metadata": {
+                "additionalProperties": false,
+                "properties": {
+                  "participant_count": {
+                    "description": "Participants the bot had seen at the time of its first roster snapshot",
+                    "maximum": 9007199254740991,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "platform": {
+                    "description": "Meeting platform, e.g. \"microsoft_teams\"",
+                    "type": "string"
+                  },
+                  "title": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Meeting title when the platform exposes it, else null"
+                  }
+                },
+                "required": [
+                  "platform",
+                  "title",
+                  "participant_count"
+                ],
+                "type": "object"
+              },
+              "occurred_at": {
+                "description": "ISO 8601 timestamp of the first roster snapshot",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                "type": "string"
+              },
+              "participant_event_id": {
+                "description": "Unique identifier of this participant event — also the id of the matching entry in the participant_events.json artifact",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "metadata",
+                "description": "Event kind, mirrors the webhook event name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "bot_id",
+              "event_id",
+              "participant_event_id",
+              "type",
+              "metadata",
+              "occurred_at"
+            ],
+            "type": "object"
+          },
+          "event": {
+            "const": "bot.meeting_metadata",
+            "description": "The webhook event type",
+            "type": "string"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "propertyNames": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking"
+          }
+        },
+        "required": [
+          "event",
+          "data",
+          "extra"
+        ],
+        "type": "object"
+      },
+      "BotWebhookMeetingMetadataInput": {
+        "$id": "#/components/schemas/BotWebhookMeetingMetadataInput",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "data": {
+            "properties": {
+              "bot_id": {
+                "description": "The UUID of the bot in the meeting",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "event_id": {
+                "anyOf": [
+                  {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "The UUID of the calendar event associated with this bot. Null for non-calendar bots"
+              },
+              "metadata": {
+                "properties": {
+                  "participant_count": {
+                    "description": "Participants the bot had seen at the time of its first roster snapshot",
+                    "maximum": 9007199254740991,
+                    "minimum": 0,
+                    "type": "integer"
+                  },
+                  "platform": {
+                    "description": "Meeting platform, e.g. \"microsoft_teams\"",
+                    "type": "string"
+                  },
+                  "title": {
+                    "anyOf": [
+                      {
+                        "type": "string"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Meeting title when the platform exposes it, else null"
+                  }
+                },
+                "required": [
+                  "platform",
+                  "title",
+                  "participant_count"
+                ],
+                "type": "object"
+              },
+              "occurred_at": {
+                "description": "ISO 8601 timestamp of the first roster snapshot",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                "type": "string"
+              },
+              "participant_event_id": {
+                "description": "Unique identifier of this participant event — also the id of the matching entry in the participant_events.json artifact",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "metadata",
+                "description": "Event kind, mirrors the webhook event name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "bot_id",
+              "event_id",
+              "participant_event_id",
+              "type",
+              "metadata",
+              "occurred_at"
+            ],
+            "type": "object"
+          },
+          "event": {
+            "const": "bot.meeting_metadata",
+            "description": "The webhook event type",
+            "type": "string"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "propertyNames": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking"
+          }
+        },
+        "required": [
+          "event",
+          "data",
+          "extra"
+        ],
+        "type": "object"
+      },
+      "BotWebhookParticipantJoined": {
+        "$id": "#/components/schemas/BotWebhookParticipantJoined",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": false,
+            "properties": {
+              "bot_id": {
+                "description": "The UUID of the bot in the meeting",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "event_id": {
+                "anyOf": [
+                  {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "The UUID of the calendar event associated with this bot. Null for non-calendar bots"
+              },
+              "occurred_at": {
+                "description": "ISO 8601 timestamp when the event was observed by the bot",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                "type": "string"
+              },
+              "participant": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "description": "Platform participant id (Teams roster device id / MRI) — pseudonymous; display names are deliberately not included for PII",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              "participant_event_id": {
+                "description": "Unique identifier of this participant event — also the id of the matching entry in the participant_events.json artifact",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "joined",
+                "description": "Event kind, mirrors the webhook event name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "bot_id",
+              "event_id",
+              "participant_event_id",
+              "type",
+              "participant",
+              "occurred_at"
+            ],
+            "type": "object"
+          },
+          "event": {
+            "const": "bot.participant_joined",
+            "description": "The webhook event type",
+            "type": "string"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "propertyNames": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking"
+          }
+        },
+        "required": [
+          "event",
+          "data",
+          "extra"
+        ],
+        "type": "object"
+      },
+      "BotWebhookParticipantJoinedInput": {
+        "$id": "#/components/schemas/BotWebhookParticipantJoinedInput",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "data": {
+            "properties": {
+              "bot_id": {
+                "description": "The UUID of the bot in the meeting",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "event_id": {
+                "anyOf": [
+                  {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "The UUID of the calendar event associated with this bot. Null for non-calendar bots"
+              },
+              "occurred_at": {
+                "description": "ISO 8601 timestamp when the event was observed by the bot",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                "type": "string"
+              },
+              "participant": {
+                "properties": {
+                  "id": {
+                    "description": "Platform participant id (Teams roster device id / MRI) — pseudonymous; display names are deliberately not included for PII",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              "participant_event_id": {
+                "description": "Unique identifier of this participant event — also the id of the matching entry in the participant_events.json artifact",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "joined",
+                "description": "Event kind, mirrors the webhook event name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "bot_id",
+              "event_id",
+              "participant_event_id",
+              "type",
+              "participant",
+              "occurred_at"
+            ],
+            "type": "object"
+          },
+          "event": {
+            "const": "bot.participant_joined",
+            "description": "The webhook event type",
+            "type": "string"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "propertyNames": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking"
+          }
+        },
+        "required": [
+          "event",
+          "data",
+          "extra"
+        ],
+        "type": "object"
+      },
+      "BotWebhookParticipantLeft": {
+        "$id": "#/components/schemas/BotWebhookParticipantLeft",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": false,
+            "properties": {
+              "bot_id": {
+                "description": "The UUID of the bot in the meeting",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "event_id": {
+                "anyOf": [
+                  {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "The UUID of the calendar event associated with this bot. Null for non-calendar bots"
+              },
+              "occurred_at": {
+                "description": "ISO 8601 timestamp when the event was observed by the bot",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                "type": "string"
+              },
+              "participant": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "description": "Platform participant id (Teams roster device id / MRI) — pseudonymous; display names are deliberately not included for PII",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              "participant_event_id": {
+                "description": "Unique identifier of this participant event — also the id of the matching entry in the participant_events.json artifact",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "left",
+                "description": "Event kind, mirrors the webhook event name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "bot_id",
+              "event_id",
+              "participant_event_id",
+              "type",
+              "participant",
+              "occurred_at"
+            ],
+            "type": "object"
+          },
+          "event": {
+            "const": "bot.participant_left",
+            "description": "The webhook event type",
+            "type": "string"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "propertyNames": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking"
+          }
+        },
+        "required": [
+          "event",
+          "data",
+          "extra"
+        ],
+        "type": "object"
+      },
+      "BotWebhookParticipantLeftInput": {
+        "$id": "#/components/schemas/BotWebhookParticipantLeftInput",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "data": {
+            "properties": {
+              "bot_id": {
+                "description": "The UUID of the bot in the meeting",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "event_id": {
+                "anyOf": [
+                  {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "The UUID of the calendar event associated with this bot. Null for non-calendar bots"
+              },
+              "occurred_at": {
+                "description": "ISO 8601 timestamp when the event was observed by the bot",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                "type": "string"
+              },
+              "participant": {
+                "properties": {
+                  "id": {
+                    "description": "Platform participant id (Teams roster device id / MRI) — pseudonymous; display names are deliberately not included for PII",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              "participant_event_id": {
+                "description": "Unique identifier of this participant event — also the id of the matching entry in the participant_events.json artifact",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "type": {
+                "const": "left",
+                "description": "Event kind, mirrors the webhook event name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "bot_id",
+              "event_id",
+              "participant_event_id",
+              "type",
+              "participant",
+              "occurred_at"
+            ],
+            "type": "object"
+          },
+          "event": {
+            "const": "bot.participant_left",
+            "description": "The webhook event type",
+            "type": "string"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "propertyNames": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking"
+          }
+        },
+        "required": [
+          "event",
+          "data",
+          "extra"
+        ],
+        "type": "object"
+      },
+      "BotWebhookParticipantUpdated": {
+        "$id": "#/components/schemas/BotWebhookParticipantUpdated",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "additionalProperties": false,
+        "properties": {
+          "data": {
+            "additionalProperties": false,
+            "properties": {
+              "bot_id": {
+                "description": "The UUID of the bot in the meeting",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "event_id": {
+                "anyOf": [
+                  {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "The UUID of the calendar event associated with this bot. Null for non-calendar bots"
+              },
+              "occurred_at": {
+                "description": "ISO 8601 timestamp when the first flip was observed",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                "type": "string"
+              },
+              "participant": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "description": "Platform participant id (Teams roster device id / MRI) — pseudonymous; display names are deliberately not included for PII",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              "participant_event_id": {
+                "description": "Unique identifier of this participant event — also the id of the matching entry in the participant_events.json artifact",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "state": {
+                "additionalProperties": false,
+                "description": "Settled media state after coalescing",
+                "properties": {
+                  "camera": {
+                    "description": "Whether the participant is sending video",
+                    "type": "boolean"
+                  },
+                  "mic": {
+                    "description": "Whether the participant is sending audio",
+                    "type": "boolean"
+                  },
+                  "screenshare": {
+                    "description": "Whether the participant is sharing their screen",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "mic",
+                  "camera",
+                  "screenshare"
+                ],
+                "type": "object"
+              },
+              "type": {
+                "const": "updated",
+                "description": "Event kind, mirrors the webhook event name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "bot_id",
+              "event_id",
+              "participant_event_id",
+              "type",
+              "participant",
+              "state",
+              "occurred_at"
+            ],
+            "type": "object"
+          },
+          "event": {
+            "const": "bot.participant_updated",
+            "description": "The webhook event type",
+            "type": "string"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "propertyNames": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking"
+          }
+        },
+        "required": [
+          "event",
+          "data",
+          "extra"
+        ],
+        "type": "object"
+      },
+      "BotWebhookParticipantUpdatedInput": {
+        "$id": "#/components/schemas/BotWebhookParticipantUpdatedInput",
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "properties": {
+          "data": {
+            "properties": {
+              "bot_id": {
+                "description": "The UUID of the bot in the meeting",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "event_id": {
+                "anyOf": [
+                  {
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "The UUID of the calendar event associated with this bot. Null for non-calendar bots"
+              },
+              "occurred_at": {
+                "description": "ISO 8601 timestamp when the first flip was observed",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$",
+                "type": "string"
+              },
+              "participant": {
+                "properties": {
+                  "id": {
+                    "description": "Platform participant id (Teams roster device id / MRI) — pseudonymous; display names are deliberately not included for PII",
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ],
+                "type": "object"
+              },
+              "participant_event_id": {
+                "description": "Unique identifier of this participant event — also the id of the matching entry in the participant_events.json artifact",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                "type": "string"
+              },
+              "state": {
+                "description": "Settled media state after coalescing",
+                "properties": {
+                  "camera": {
+                    "description": "Whether the participant is sending video",
+                    "type": "boolean"
+                  },
+                  "mic": {
+                    "description": "Whether the participant is sending audio",
+                    "type": "boolean"
+                  },
+                  "screenshare": {
+                    "description": "Whether the participant is sharing their screen",
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "mic",
+                  "camera",
+                  "screenshare"
+                ],
+                "type": "object"
+              },
+              "type": {
+                "const": "updated",
+                "description": "Event kind, mirrors the webhook event name",
+                "type": "string"
+              }
+            },
+            "required": [
+              "bot_id",
+              "event_id",
+              "participant_event_id",
+              "type",
+              "participant",
+              "state",
+              "occurred_at"
+            ],
+            "type": "object"
+          },
+          "event": {
+            "const": "bot.participant_updated",
+            "description": "The webhook event type",
+            "type": "string"
+          },
+          "extra": {
+            "anyOf": [
+              {
+                "additionalProperties": {},
+                "propertyNames": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking"
+          }
+        },
+        "required": [
+          "event",
+          "data",
+          "extra"
+        ],
+        "type": "object"
+      },
       "BotWebhookStatusChange": {
         "$id": "#/components/schemas/BotWebhookStatusChange",
         "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -4359,7 +5202,7 @@
               }
             ],
             "default": null,
-            "description": "Meet-only configuration for authenticated bots via SAML SSO.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Meet joins, Zoom, or Microsoft Teams.",
+            "description": "Meet-only configuration for authenticated bots via SAML SSO.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nA login joins a given meeting once. If every login you can use already has one of your bots in the meeting, the request is refused with 409 (or the bot joins anonymously when fallback is 'anonymous'). The same login can be in any number of different meetings.\n\nLeave null for anonymous Meet joins, Zoom, or Microsoft Teams.",
             "example": null
           },
           "meeting_url": {
@@ -5168,7 +6011,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Meet-only configuration for authenticated bots via SAML SSO.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Meet joins, Zoom, or Microsoft Teams.",
+                "description": "Meet-only configuration for authenticated bots via SAML SSO.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nA login joins a given meeting once. If every login you can use already has one of your bots in the meeting, the request is refused with 409 (or the bot joins anonymously when fallback is 'anonymous'). The same login can be in any number of different meetings.\n\nLeave null for anonymous Meet joins, Zoom, or Microsoft Teams.",
                 "example": null
               },
               "recording_mode": {
@@ -5992,7 +6835,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Meet-only configuration for authenticated bots via SAML SSO.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Meet joins, Zoom, or Microsoft Teams.",
+                "description": "Meet-only configuration for authenticated bots via SAML SSO.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nA login joins a given meeting once. If every login you can use already has one of your bots in the meeting, the request is refused with 409 (or the bot joins anonymously when fallback is 'anonymous'). The same login can be in any number of different meetings.\n\nLeave null for anonymous Meet joins, Zoom, or Microsoft Teams.",
                 "example": null
               },
               "recording_mode": {
@@ -7689,6 +8532,18 @@
                 "description": "The URL of the meeting, set to \"[deleted]\" once the bot's data has been deleted",
                 "type": "string"
               },
+              "participant_events": {
+                "anyOf": [
+                  {
+                    "format": "uri",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Signed URL to the participant events JSON file (valid for 4 hours, null if not available)"
+              },
               "participants": {
                 "description": "List of participants who joined the meeting with their names and metadata",
                 "items": {
@@ -8274,6 +9129,7 @@
               "raw_transcription",
               "transcription",
               "chat_messages",
+              "participant_events",
               "transcription_ids",
               "transcription_provider",
               "error_code",
@@ -8507,6 +9363,18 @@
                 "description": "The URL of the meeting, set to \"[deleted]\" once the bot's data has been deleted",
                 "type": "string"
               },
+              "participant_events": {
+                "anyOf": [
+                  {
+                    "format": "uri",
+                    "type": "string"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "description": "Signed URL to the participant events JSON file (valid for 4 hours, null if not available)"
+              },
               "participants": {
                 "description": "List of participants who joined the meeting with their names and metadata",
                 "items": {
@@ -9083,6 +9951,7 @@
               "raw_transcription",
               "transcription",
               "chat_messages",
+              "participant_events",
               "transcription_ids",
               "transcription_provider",
               "error_code",
@@ -14496,7 +15365,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Meet-only configuration for authenticated bots via SAML SSO.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Meet joins, Zoom, or Microsoft Teams.",
+                "description": "Meet-only configuration for authenticated bots via SAML SSO.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nA login joins a given meeting once. If every login you can use already has one of your bots in the meeting, the request is refused with 409 (or the bot joins anonymously when fallback is 'anonymous'). The same login can be in any number of different meetings.\n\nLeave null for anonymous Meet joins, Zoom, or Microsoft Teams.",
                 "example": null
               },
               "recording_mode": {
@@ -15277,7 +16146,7 @@
                   }
                 ],
                 "default": null,
-                "description": "Meet-only configuration for authenticated bots via SAML SSO.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Meet joins, Zoom, or Microsoft Teams.",
+                "description": "Meet-only configuration for authenticated bots via SAML SSO.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nA login joins a given meeting once. If every login you can use already has one of your bots in the meeting, the request is refused with 409 (or the bot joins anonymously when fallback is 'anonymous'). The same login can be in any number of different meetings.\n\nLeave null for anonymous Meet joins, Zoom, or Microsoft Teams.",
                 "example": null
               },
               "recording_mode": {
@@ -16344,7 +17213,7 @@
                 "type": "null"
               }
             ],
-            "description": "Meet-only configuration for authenticated bots via SAML SSO.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Meet joins, Zoom, or Microsoft Teams.",
+            "description": "Meet-only configuration for authenticated bots via SAML SSO.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nA login joins a given meeting once. If every login you can use already has one of your bots in the meeting, the request is refused with 409 (or the bot joins anonymously when fallback is 'anonymous'). The same login can be in any number of different meetings.\n\nLeave null for anonymous Meet joins, Zoom, or Microsoft Teams.",
             "example": null
           },
           "meeting_url": {
@@ -17110,7 +17979,7 @@
                 "type": "null"
               }
             ],
-            "description": "Meet-only configuration for authenticated bots via SAML SSO.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nLeave null for anonymous Meet joins, Zoom, or Microsoft Teams.",
+            "description": "Meet-only configuration for authenticated bots via SAML SSO.\n\n- credential_id: pin a specific login.\n- email_group: pool selector (preferred — takes priority).\n- fallback: 'fail' (default) or 'anonymous' on saturation.\n\nA login joins a given meeting once. If every login you can use already has one of your bots in the meeting, the request is refused with 409 (or the bot joins anonymously when fallback is 'anonymous'). The same login can be in any number of different meetings.\n\nLeave null for anonymous Meet joins, Zoom, or Microsoft Teams.",
             "example": null
           },
           "meeting_url": {
@@ -18254,7 +19123,7 @@
                 }
               }
             },
-            "description": "Conflict - Bot already exists"
+            "description": "Conflict - Bot already exists, or every available meet login already has a bot in this meeting"
           },
           "429": {
             "content": {
@@ -24001,7 +24870,7 @@
         ]
       },
       "post": {
-        "description": "Create a meet login — a Google Workspace user identity attached to a parent meet workspace.\n\n    Each login represents one Workspace user that bots can sign in as. Many logins can share one workspace; they all use the workspace's cert/key for SAML signing. Round-robin assignment picks the least-loaded active login when a bot is dispatched with `meet_config.email_group` (or `credential_id`) on `POST /v2/bots`.\n\n    **Prerequisites:** Create a meet workspace first via `POST /v2/meet-workspaces`. Pass the returned `workspace_id` here.\n\n    **Domain Validation:** The `email` must belong to the parent workspace's domain (or a subdomain). For example, if the workspace domain is `bots.acme.com`, valid emails include `bot1@bots.acme.com` or `bot2@dev.bots.acme.com`, but not `bot1@acme.com`. The same rule applies to `email_group` if provided.\n\n    **Email Group (optional but encouraged):** Set `email_group` to a Google Group address that contains the bot users as members. When you put this group address on a calendar invite, the assigned bot lands in Meet's verified queue and bypasses the waiting room. Logins sharing the same `email_group` form one round-robin pool.\n\n    **Per-team Uniqueness on Email:** Each `email` may exist at most once per team. Attempting to register the same email twice returns 409.\n\n    **Concurrency:** Each login supports up to 20 concurrent SSO sessions by default. When a login hits its capacity, the round-robin assigner skips it and tries the next one in the pool. If all logins in a pool are saturated, the bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, depending on your `fallback` setting).\n\n    **Error Scenarios:**\n    - `404 Not Found`: `workspace_id` is unknown or does not belong to your team.\n    - `409 Conflict`: A login for this `email` already exists.\n    - `422 Unprocessable Entity`: `email` or `email_group` domain does not match the parent workspace's domain.",
+        "description": "Create a meet login — a Google Workspace user identity attached to a parent meet workspace.\n\n    Each login represents one Workspace user that bots can sign in as. Many logins can share one workspace; they all use the workspace's cert/key for SAML signing. Round-robin assignment picks the least-loaded active login when a bot is dispatched with `meet_config.email_group` (or `credential_id`) on `POST /v2/bots`.\n\n    **Prerequisites:** Create a meet workspace first via `POST /v2/meet-workspaces`. Pass the returned `workspace_id` here.\n\n    **Domain Validation:** The `email` must belong to the parent workspace's domain (or a subdomain). For example, if the workspace domain is `bots.acme.com`, valid emails include `bot1@bots.acme.com` or `bot2@dev.bots.acme.com`, but not `bot1@acme.com`. The same rule applies to `email_group` if provided.\n\n    **Email Group (optional but encouraged):** Set `email_group` to a Google Group address that contains the bot users as members. When you put this group address on a calendar invite, the assigned bot lands in Meet's verified queue and bypasses the waiting room. Logins sharing the same `email_group` form one round-robin pool.\n\n    **Per-team Uniqueness on Email:** Each `email` may exist at most once per team. Attempting to register the same email twice returns 409.\n\n    **Concurrency:** Each login supports up to 20 concurrent SSO sessions by default. When a login hits its capacity, the round-robin assigner skips it and tries the next one in the pool. If all logins in a pool are saturated, the bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, depending on your `fallback` setting).\n\n    **One bot per login per meeting:** A login joins a given meeting once, because Google Meet shows a second sign-in of the same account as another device of one participant, and removing either removes both. When you send several authenticated bots to the same meeting, each takes a different login. If every eligible login already has a bot in that meeting, bot creation is refused with 409 `FST_ERR_MEET_LOGIN_ALREADY_IN_MEETING` (or falls back to anonymous, depending on your `fallback` setting). The same login can be in any number of different meetings at once.\n\n    **Error Scenarios:**\n    - `404 Not Found`: `workspace_id` is unknown or does not belong to your team.\n    - `409 Conflict`: A login for this `email` already exists.\n    - `422 Unprocessable Entity`: `email` or `email_group` domain does not match the parent workspace's domain.",
         "operationId": "createMeetLogin",
         "requestBody": {
           "content": {
@@ -25570,7 +26439,7 @@
         ]
       },
       "post": {
-        "description": "Create a meet workspace — the parent resource that holds your SAML cert + private key for one Google Workspace's SSO config.\n\n    A meet workspace represents one Google Workspace whose Legacy SSO profile points at our `/v2/meet-sso/*` endpoints. The cert and key on the workspace are shared by every `meet_login` (Workspace user identity) you attach to it, mirroring how Google Workspace stores a single verification certificate per SSO profile.\n\n    **Two creation paths, same response shape:**\n\n    - **Server-generated keypair** — pass `generate_keypair: true`. The server creates a self-signed RSA-2048 keypair with 10-year validity. Use this if you don't already have a SAML cert and want the simplest setup.\n    - **Bring-your-own keypair** — pass `cert_pem` and `private_key_pem` together. Use this if you want to manage your own crypto or already have a cert/key pair you trust.\n\n    Mutually exclusive: provide either `generate_keypair: true` OR (`cert_pem` + `private_key_pem`), not both.\n\n    **Response always includes `cert_pem`** so you can upload it to Google's Legacy SSO profile in your Workspace admin console. `private_key_pem` is never returned.\n\n    **After creation, you must:**\n    1. Upload the returned `cert_pem` to Google Admin Console → Security → Set up SSO with third-party IdP → Legacy SSO profile.\n    2. Set Sign-in URL to `https://api.meetingbaas.com/v2/meet-sso/sign-in` and Sign-out URL to `https://api.meetingbaas.com/v2/meet-sso/sign-out` in the same SSO profile. Enable \"Use a domain-specific issuer\" and assign the SSO profile to all users.\n    3. Create one or more Workspace users that bots will sign in as, complete the \"Welcome to Workspace\" interactive login for each, and set language to \"English (United States)\".\n    4. Add `meet_logins` (one per Workspace user) referencing this `workspace_id`.\n    5. Optionally call `POST /v2/meet-workspaces/:workspace_id/verify` to run pre-flight checks.\n\n    **Security:** The cert and key are encrypted at rest using AES-256-GCM. `private_key_pem` is never echoed in any response — including subsequent GETs. If you need it back, you must rotate via PATCH.\n\n    **Per-team uniqueness:** Each `domain` may exist at most once per team. Attempting to create a duplicate returns 409.\n\n    **Error Scenarios:**\n    - `409 Conflict`: A workspace for this `domain` already exists.\n    - `422 Unprocessable Entity`: Invalid cert/key (parse failure or modulus mismatch); both `generate_keypair` and `cert_pem` provided; neither provided.",
+        "description": "Create a meet workspace — the parent resource that holds your SAML cert + private key for one Google Workspace's SSO config.\n\n    A meet workspace represents one Google Workspace whose Legacy SSO profile points at our `/v2/meet-sso/*` endpoints. The cert and key on the workspace are shared by every `meet_login` (Workspace user identity) you attach to it, mirroring how Google Workspace stores a single verification certificate per SSO profile.\n\n    **Two creation paths, same response shape:**\n\n    - **Server-generated keypair** — pass `generate_keypair: true`. The server creates a self-signed RSA-2048 keypair with 10-year validity. Use this if you don't already have a SAML cert and want the simplest setup.\n    - **Bring-your-own keypair** — pass `cert_pem` and `private_key_pem` together. Use this if you want to manage your own crypto or already have a cert/key pair you trust.\n\n    Mutually exclusive: provide either `generate_keypair: true` OR (`cert_pem` + `private_key_pem`), not both.\n\n    **Response always includes `cert_pem`** so you can upload it to Google's Legacy SSO profile in your Workspace admin console. `private_key_pem` is never returned.\n\n    **After creation, you must:**\n    1. Upload the returned `cert_pem` to Google Admin Console → Security → Set up SSO with third-party IdP → Legacy SSO profile.\n    2. Set Sign-in URL to `https://api.meetingbaas.com/v2/meet-sso/sign-in` and Sign-out URL to `https://api.meetingbaas.com/v2/meet-sso/sign-out` in the same SSO profile. Enable \"Use a domain-specific issuer\" and assign the SSO profile to all users.\n    3. Create one or more Workspace users that bots will sign in as, complete the \"Welcome to Workspace\" interactive login for each, and set language to \"English (United States)\".\n    4. Add `meet_logins` (one per Workspace user) referencing this `workspace_id`.\n    5. Optionally call `POST /v2/meet-workspaces/:workspace_id/verify` to check the stored configuration (certificate, key, logins). It does not test the Google Admin console setup.\n\n    **Security:** The cert and key are encrypted at rest using AES-256-GCM. `private_key_pem` is never echoed in any response — including subsequent GETs. If you need it back, you must rotate via PATCH.\n\n    **Per-team uniqueness:** Each `domain` may exist at most once per team. Attempting to create a duplicate returns 409.\n\n    **Error Scenarios:**\n    - `409 Conflict`: A workspace for this `domain` already exists.\n    - `422 Unprocessable Entity`: Invalid cert/key (parse failure or modulus mismatch); both `generate_keypair` and `cert_pem` provided; neither provided.",
         "operationId": "createMeetWorkspace",
         "requestBody": {
           "content": {
@@ -26546,6 +27415,264 @@
           }
         },
         "summary": "Update a meet workspace",
+        "tags": [
+          "Meet Workspaces"
+        ]
+      }
+    },
+    "/v2/meet-workspaces/{workspace_id}/verify": {
+      "post": {
+        "description": "Check the configuration we store for a meet workspace. Read-only: nothing on the workspace or its logins is changed.\n\n    **Checks, returned in this order:**\n    - `certificate_valid`: the stored certificate decrypts and parses as X.509.\n    - `key_matches_certificate`: the stored private key belongs to the stored certificate.\n    - `certificate_not_expired`: the certificate is within its validity period (`warn` when it expires within 30 days).\n    - `workspace_active`: the workspace `state` is `active`.\n    - `has_active_login`: at least one login on the workspace has `state` `active`.\n    - `logins_match_domain`: every login email is on the workspace `domain` or a subdomain of it (`warn` otherwise).\n\n    Each check has a `status` of `pass`, `fail` or `warn` and a `message`. `ok` is `true` when no check has status `fail`; warnings do not affect it.\n\n    **What it cannot detect:** This endpoint makes no call to Google, so it cannot see problems in the Google Admin console: the certificate not uploaded to the SSO profile, the SSO profile not assigned to the user, or the \"Welcome to Workspace\" flow not completed. A response with `ok: true` means the stored configuration is consistent, not that a bot will sign in.\n\n    Returns 404 if the workspace is not found or does not belong to your team.",
+        "operationId": "verifyMeetWorkspace",
+        "parameters": [
+          {
+            "description": "The unique identifier (UUID) of the meet workspace",
+            "in": "path",
+            "name": "workspace_id",
+            "required": true,
+            "schema": {
+              "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "checks": {
+                          "items": {
+                            "additionalProperties": false,
+                            "properties": {
+                              "message": {
+                                "type": "string"
+                              },
+                              "name": {
+                                "enum": [
+                                  "certificate_valid",
+                                  "key_matches_certificate",
+                                  "certificate_not_expired",
+                                  "workspace_active",
+                                  "has_active_login",
+                                  "logins_match_domain"
+                                ],
+                                "type": "string"
+                              },
+                              "status": {
+                                "enum": [
+                                  "pass",
+                                  "fail",
+                                  "warn"
+                                ],
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "name",
+                              "status",
+                              "message"
+                            ],
+                            "type": "object"
+                          },
+                          "type": "array"
+                        },
+                        "last_error": {
+                          "anyOf": [
+                            {
+                              "additionalProperties": false,
+                              "properties": {
+                                "at": {
+                                  "anyOf": [
+                                    {
+                                      "type": "string"
+                                    },
+                                    {
+                                      "type": "null"
+                                    }
+                                  ]
+                                },
+                                "message": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "message",
+                                "at"
+                              ],
+                              "type": "object"
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "logins": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "active": {
+                              "type": "number"
+                            },
+                            "total": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "total",
+                            "active"
+                          ],
+                          "type": "object"
+                        },
+                        "ok": {
+                          "description": "True when no check has status `fail`. Warnings do not affect it.",
+                          "type": "boolean"
+                        },
+                        "verified_at": {
+                          "type": "string"
+                        },
+                        "workspace_id": {
+                          "description": "The unique identifier (UUID) of the meet workspace",
+                          "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$",
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "workspace_id",
+                        "ok",
+                        "checks",
+                        "logins",
+                        "last_error",
+                        "verified_at"
+                      ],
+                      "type": "object"
+                    },
+                    "success": {
+                      "enum": [
+                        true
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "data"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request - Invalid input or validation error"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found - Meet workspace not found"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "description": "Rate Limited - Exceeded rate limit",
+                  "properties": {
+                    "code": {
+                      "description": "Error code for programmatic handling",
+                      "type": "string"
+                    },
+                    "details": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Additional error details (string or null)"
+                    },
+                    "error": {
+                      "description": "Human-readable error message",
+                      "type": "string"
+                    },
+                    "message": {
+                      "anyOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ],
+                      "description": "Human-readable error message"
+                    },
+                    "retryAfter": {
+                      "description": "Number of seconds to wait before retrying",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "statusCode": {
+                      "description": "HTTP status code",
+                      "exclusiveMinimum": 0,
+                      "maximum": 9007199254740991,
+                      "type": "integer"
+                    },
+                    "success": {
+                      "default": false,
+                      "enum": [
+                        false
+                      ],
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "error",
+                    "code",
+                    "statusCode"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Rate Limited - Exceeded rate limit"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error - Unexpected server error"
+          }
+        },
+        "summary": "Verify a meet workspace",
         "tags": [
           "Meet Workspaces"
         ]
