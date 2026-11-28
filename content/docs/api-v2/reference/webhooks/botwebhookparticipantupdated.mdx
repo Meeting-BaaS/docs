@@ -1,0 +1,71 @@
+---
+title: Bot Participant Updated
+description: Bot Participant Updated payload structure
+---
+
+
+
+## Payload Structure
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `data` | object | Yes |  |
+| `event` | string | Yes | The webhook event type |
+| `extra` | object | null | Yes | Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking |
+
+## Field Details
+
+- **`data`** (object) **Required**
+
+  Properties:
+    - **`bot_id`** (string (uuid)) **Required**
+      The UUID of the bot in the meeting
+
+    - **`event_id`** (string (uuid) | null) **Required**
+      The UUID of the calendar event associated with this bot. Null for non-calendar bots
+
+    - **`occurred_at`** (string (date-time)) **Required**
+      ISO 8601 timestamp when the first flip was observed
+
+    - **`participant`** (object) **Required**
+
+    - **`participant_event_id`** (string (uuid)) **Required**
+      Unique identifier of this participant event — also the id of the matching entry in the participant_events.json artifact
+
+    - **`state`** (object) **Required**
+      Settled media state after coalescing
+
+    - **`type`** (string) **Required**
+      Event kind, mirrors the webhook event name
+
+
+- **`event`** (string) **Required**
+  The webhook event type
+
+- **`extra`** (object | null) **Required**
+  Additional metadata provided when creating the bot. This is user-defined data that can be used for correlation or tracking
+
+
+## Example
+
+```json
+{
+  "data": {
+    "bot_id": "examplebot_id",
+    "event_id": null,
+    "occurred_at": "exampleoccurred_at",
+    "participant": {
+      "id": "exampleid"
+    },
+    "participant_event_id": "exampleparticipant_event_id",
+    "state": {
+      "camera": true,
+      "mic": true,
+      "screenshare": true
+    },
+    "type": "exampletype"
+  },
+  "event": "exampleevent",
+  "extra": null
+}
+```

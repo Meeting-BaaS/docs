@@ -23,6 +23,8 @@ _openapi:
 
               **Concurrency:** Each login supports up to 20 concurrent SSO sessions by default. When a login hits its capacity, the round-robin assigner skips it and tries the next one in the pool. If all logins in a pool are saturated, the bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, depending on your `fallback` setting).
 
+              **One bot per login per meeting:** A login joins a given meeting once, because Google Meet shows a second sign-in of the same account as another device of one participant, and removing either removes both. When you send several authenticated bots to the same meeting, each takes a different login. If every eligible login already has a bot in that meeting, bot creation is refused with 409 `FST_ERR_MEET_LOGIN_ALREADY_IN_MEETING` (or falls back to anonymous, depending on your `fallback` setting). The same login can be in any number of different meetings at once.
+
               **Error Scenarios:**
               - `404 Not Found`: `workspace_id` is unknown or does not belong to your team.
               - `409 Conflict`: A login for this `email` already exists.
@@ -113,6 +115,8 @@ Create a meet login — a Google Workspace user identity attached to a parent me
     **Per-team Uniqueness on Email:** Each `email` may exist at most once per team. Attempting to register the same email twice returns 409.
 
     **Concurrency:** Each login supports up to 20 concurrent SSO sessions by default. When a login hits its capacity, the round-robin assigner skips it and tries the next one in the pool. If all logins in a pool are saturated, the bot creation fails with `MEET_LOGIN_UNAVAILABLE` (or falls back to anonymous, depending on your `fallback` setting).
+
+    **One bot per login per meeting:** A login joins a given meeting once, because Google Meet shows a second sign-in of the same account as another device of one participant, and removing either removes both. When you send several authenticated bots to the same meeting, each takes a different login. If every eligible login already has a bot in that meeting, bot creation is refused with 409 `FST_ERR_MEET_LOGIN_ALREADY_IN_MEETING` (or falls back to anonymous, depending on your `fallback` setting). The same login can be in any number of different meetings at once.
 
     **Error Scenarios:**
     - `404 Not Found`: `workspace_id` is unknown or does not belong to your team.
